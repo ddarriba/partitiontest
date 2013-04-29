@@ -23,13 +23,13 @@ class ConsoleObserver: public Observer {
         ParTestOptions * run_instance = NULL);
     virtual void update(string name, unsigned int current_index, unsigned int max_index);
   private:
-    unsigned int number_of_tasks;
-    unsigned int model_digits_count;
-    time_t modelset_init_time;
-    time_t init_time;
-    time_t end_time;
+    unsigned int numberOfTasks;
+    unsigned int modelDigitsCount;
+    time_t modelsetInitTime;
+    time_t initTime;
+    time_t endTime;
    // boost::mutex m_io_monitor;
-    int current_partition;
+    int currentScheme;
     unsigned int modelsetIndex;
     unsigned int modelsetCount;
     unsigned int modelIndex;

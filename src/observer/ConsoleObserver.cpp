@@ -20,12 +20,12 @@
 namespace partest {
 
 ConsoleObserver::ConsoleObserver() {
-	init_time = time(NULL);
-	modelset_init_time = 0;
-	end_time = 0;
-	current_partition = -1;
-	modelsetCount = modelsetIndex = model_digits_count = modelIndex =
-			number_of_tasks = 0;
+	initTime = time(NULL);
+	modelsetInitTime = 0;
+	endTime = 0;
+	currentScheme = -1;
+	modelsetCount = modelsetIndex = modelDigitsCount = modelIndex =
+			numberOfTasks = 0;
 }
 
 ConsoleObserver::~ConsoleObserver() {
@@ -33,7 +33,7 @@ ConsoleObserver::~ConsoleObserver() {
 
 void ConsoleObserver::update(string name, unsigned int current_index,
 		unsigned int max_index) {
-	cout << setw(11) << Utilities::timeToString(time(NULL) - init_time)
+	cout << setw(11) << Utilities::timeToString(time(NULL) - initTime)
 			<< " - - - Modelset " << current_index + 1 << "/" << max_index
 			<< "  " << name << endl;
 }

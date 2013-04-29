@@ -63,13 +63,13 @@ int main(int argc, char *argv[]) {
 
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm( options, partitionMap );
 
-	PartitioningScheme * partition = searchAlgo->start();
+	PartitioningScheme * partitioningScheme = searchAlgo->start();
 
 	cout << "***** BEST PARTITIONING SCHEME *****" << endl;
-	cout << "Partitioning scheme: " << partition->toString() << endl;
-	cout << "Number of elements:  " << partition->getNumberOfElements() << endl;
-	for (int i=0; i<partition->getNumberOfElements(); i++) {
-		PartitionElement * element = partition->getElement(i);
+	cout << "Partitioning scheme: " << partitioningScheme->toString() << endl;
+	cout << "Number of elements:  " << partitioningScheme->getNumberOfElements() << endl;
+	for (int i=0; i<partitioningScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = partitioningScheme->getElement(i);
 		cout << setw(10) << right << i << " : ";
 		cout << element->getName() << endl;
 		cout << setw(10) << " " << "Best model: " << element->getBestModel()->getModel()->getName() << endl;
