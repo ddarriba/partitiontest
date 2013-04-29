@@ -212,8 +212,8 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 		break;
 	case StartTopoUSER:
 		optimizeTopo = false;
-		optimizeBranchLengths = true;
-		optimizeRates = true;
+		optimizeBranchLengths = false;
+		optimizeRates = false;
 #ifdef BUILD_PHYML_ARGS
 		arguments += " -o lr -u ";
 		arguments += options->getTreeFile();

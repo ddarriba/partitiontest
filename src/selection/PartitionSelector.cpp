@@ -79,6 +79,10 @@ PartitionSelector::PartitionSelector(Partition ** partitions,
 	bestPartition = partitionsVector->at(0)->partition;
 	print();
 
+	for (part_id = 0; part_id < numberOfPartitions; part_id++) {
+		delete partitionsVector->at(part_id);
+	}
+
 }
 
 PartitionSelector::~PartitionSelector() {

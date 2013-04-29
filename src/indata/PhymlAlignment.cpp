@@ -98,6 +98,7 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 	/* build sequences */
 	cdata->c_seq = (struct __Align **) malloc(
 			numSeqs * sizeof(struct __Align *));
+
 	for (int i = 0; i < numSeqs; i++) {
 
 		cdata->c_seq[i] = (struct __Align *) malloc(sizeof(struct __Align));

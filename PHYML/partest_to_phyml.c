@@ -287,17 +287,17 @@ void free_cdata(calign * cdata) {
 	Free(cdata->ambigu);
 	Free(cdata->b_frq);
 	Free(cdata->sitepatt);
-//	For(i,cdata->n_otu)
-//	{
-//		Free(cdata->c_seq[i]->name);
-//		if (cdata->c_seq[i]->state) {
-//			Free(cdata->c_seq[i]->state);
-//			if (cdata->c_seq[i]->is_ambigu)
-//				Free(cdata->c_seq[i]->is_ambigu);
-//		}
-//		Free(cdata->c_seq[i]);
-//	}
-//	Free(cdata->c_seq);
+	For(i,cdata->n_otu)
+	{
+		Free(cdata->c_seq[i]->name);
+		if (cdata->c_seq[i]->state) {
+			Free(cdata->c_seq[i]->state);
+			if (cdata->c_seq[i]->is_ambigu)
+				Free(cdata->c_seq[i]->is_ambigu);
+		}
+		Free(cdata->c_seq[i]);
+	}
+	Free(cdata->c_seq);
 	Free(cdata);
 }
 
@@ -325,7 +325,8 @@ calign *clone_cdata(calign * indata, int numberOfStates) {
 	cdata->c_seq = indata->c_seq;
 	cdata->init_len = indata->init_len;
 
-	Get_AA_Freqs(cdata);
+	get_aa_freqs(cdata);
+	//Get_AA_Freqs(cdata);
 
 	return cdata;
 }
@@ -486,6 +487,7 @@ option * build_options(phyml_indata indata) {
 	int i;
 
 	io->ratio_test = 0;
+	io->print_site_lnl = NO;
 
 	strcpy(io->in_align_file, ioFile);
 	io->fp_in_align = Openfile(io->in_align_file, 0);
@@ -604,7 +606,7 @@ option * build_options(phyml_indata indata) {
 	}
 
 	/* MODEL */
-	for (i = 0; i < strlen(pModel); i++)
+	for (i = 0; i < strlen(indata.model); i++)
 		Uppercase(pModel + i);
 	if (!isalpha(pModel[0])) {
 
@@ -697,6 +699,12 @@ option * build_options(phyml_indata indata) {
 
 	Set_Model_Name(io->mod);
 
+	//TODO: SOME TEMPORARY THINGS
+	io->mod->s_opt->constrained_br_len = YES;
+	io->mod->s_opt->min_diff_lk_local = 0.01;
+	io->mod->s_opt->min_diff_lk_global = 0.01;
+	//TODO: *********************
+
 	if (io->mod->s_opt->constrained_br_len == YES) {
 		io->mod->s_opt->opt_topo = NO;
 	}
@@ -709,24 +717,6 @@ option * build_options(phyml_indata indata) {
 			&& (io->mod->s_opt->random_input_tree)) {
 		Warn_And_Exit(
 				"\n. The random starting tree option is only compatible with SPR based search options.\n");
-	}
-
-	if ((io->datatype == NT) && (io->mod->whichmodel > 10)) {
-		char choix;
-		PhyML_Printf(
-				"\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
-		PhyML_Printf("\n. Type any key to exit.\n");
-		if (!scanf("%c", &choix))
-			Exit("\n");
-		Warn_And_Exit("\n");
-	} else if ((io->datatype == AA) && (io->mod->whichmodel < 11)) {
-		char choix;
-		PhyML_Printf(
-				"\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
-		PhyML_Printf("\n. Type any key to exit.\n");
-		if (!scanf("%c", &choix))
-			Exit("\n");
-		Exit("\n");
 	}
 
 //	  int             opt_alpha; /*! =1 -> the gamma shape parameter is optimised */
@@ -754,18 +744,7 @@ option * build_options(phyml_indata indata) {
 		io->mod->m4mod->use_cov_free = 1;
 	}
 */
-/*
-	if (io->print_site_lnl) {
-		strcpy(io->out_lk_file, io->in_align_file);
-		strcat(io->out_lk_file, "_phyml_lk");
-		if (io->appebr_run_ID) {
-			strcat(io->out_lk_file, "_");
-			strcat(io->out_lk_file, io->run_id_string);
-		}
-		strcat(io->out_lk_file, ".txt");
-		io->fp_out_lk = Openfile(io->out_lk_file, 1);
-	}
-*/
+
 		io->print_trace = 0;
 /*
 	if (io->print_trace) {
@@ -1057,9 +1036,6 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 
 			time(&t_end);
 
-			if (tree->io->print_site_lnl)
-				Print_Site_Lk(tree, io->fp_out_lk);
-
 			/* Start from BioNJ tree */
 			if ((num_rand_tree == io->mod->s_opt->n_rand_starts - 1)
 					&& (tree->mod->s_opt->random_input_tree)) {
@@ -1101,7 +1077,12 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 			break;
 	}
 
-	free_cdata(cdata);
+	free(cdata->wght);
+	free(cdata->b_frq);
+	free(cdata->ambigu);
+	free(cdata->invar);
+	free(cdata);
+
 	Free_Model_Complete(mod);
 
 	if (most_likely_tree)
@@ -1361,9 +1342,6 @@ double cl_phyml_lk(int argc, char **argv) {
 //							num_data_set + 1,
 //							(tree->mod->s_opt->n_rand_starts > 1) ?
 //									(num_rand_tree) : (num_tree));
-
-					if (tree->io->print_site_lnl)
-						Print_Site_Lk(tree, io->fp_out_lk);
 
 					/* Start from BioNJ tree */
 					if ((num_rand_tree == io->mod->s_opt->n_rand_starts - 1)
