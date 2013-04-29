@@ -23,7 +23,7 @@ class SearchAlgorithm : public Observer {
 public:
 	SearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~SearchAlgorithm();
-	virtual Partition * start() = 0;
+	virtual PartitioningScheme * start() = 0;
 	virtual void update(const ObservableInfo & info,
 	        ParTestOptions * run_instance = NULL) = 0;
 protected:

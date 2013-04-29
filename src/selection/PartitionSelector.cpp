@@ -19,21 +19,21 @@ namespace partest {
 
 /** Functor for sorting the selection models */
 struct compareSelectionPartitions {
-	inline bool operator()(SelectionPartition * struct1, SelectionPartition * struct2) {
+	inline bool operator()(SelectionPartitioningScheme * struct1, SelectionPartitioningScheme * struct2) {
 		return (struct1->value < struct2->value);
 	}
 };
 
-PartitionSelector::PartitionSelector(Partition ** partitions,
-		int numberOfPartitions, InformationCriterion ic, SampleSize sampleSize, double sampleSizeValue) :
-		ic(ic), sampleSize(sampleSize), sampleSizeValue(sampleSizeValue), numberOfPartitions(numberOfPartitions), partitions(
-				partitions) {
+PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
+		int numberOfSchemes, InformationCriterion ic, SampleSize sampleSize, double sampleSizeValue) :
+		ic(ic), sampleSize(sampleSize), sampleSizeValue(sampleSizeValue), numberOfSchemes(numberOfSchemes), schemesArray(
+				schemesArray) {
 
 	int part_id, id;
-	partitionsVector = new vector<SelectionPartition *>(numberOfPartitions);
-	for (part_id = 0; part_id < numberOfPartitions; part_id++) {
+	schemesVector = new vector<SelectionPartitioningScheme *>(numberOfSchemes);
+	for (part_id = 0; part_id < numberOfSchemes; part_id++) {
 
-		Partition * partition = partitions[part_id];
+		PartitioningScheme * scheme = schemesArray[part_id];
 //		ModelSelector * selectors = (ModelSelector *) alloca(
 //				partition->getNumberOfElements() * sizeof(ModelSelector));
 //		SelectionModel ** bestModels = (SelectionModel **) alloca(
@@ -43,8 +43,8 @@ PartitionSelector::PartitionSelector(Partition ** partitions,
 		int parms = 0;
 		double globalSampleSize = 0.0;
 		double value = 0.0;
-		for (id = 0; id < partition->getNumberOfElements(); id++) {
-			PartitionElement * pe = partition->getElement(id);
+		for (id = 0; id < scheme->getNumberOfElements(); id++) {
+			PartitionElement * pe = scheme->getElement(id);
 			double pSampleSize = sampleSize;
 			switch (sampleSize) {
 			case SS_ALIGNMENT:
@@ -67,26 +67,26 @@ PartitionSelector::PartitionSelector(Partition ** partitions,
 			parms += bestModel->getModel()->getNumberOfFreeParameters();
 		}
 		//double value = ModelSelector::computeIc(ic, lk, parms, globalSampleSize);
-		(partitionsVector->at(part_id)) = new SelectionPartition();
-		(partitionsVector->at(part_id))->numParameters = parms;
-		(partitionsVector->at(part_id))->lnL = lk;
-		(partitionsVector->at(part_id))->partition = partition;
-		(partitionsVector->at(part_id))->value = value;
+		(schemesVector->at(part_id)) = new SelectionPartitioningScheme();
+		(schemesVector->at(part_id))->numParameters = parms;
+		(schemesVector->at(part_id))->lnL = lk;
+		(schemesVector->at(part_id))->scheme = scheme;
+		(schemesVector->at(part_id))->value = value;
 	}
-	std::sort(partitionsVector->begin(), partitionsVector->end(),
+	std::sort(schemesVector->begin(), schemesVector->end(),
 				compareSelectionPartitions());
 
-	bestPartition = partitionsVector->at(0)->partition;
+	bestScheme = schemesVector->at(0)->scheme;
 	print();
 
-	for (part_id = 0; part_id < numberOfPartitions; part_id++) {
-		delete partitionsVector->at(part_id);
+	for (part_id = 0; part_id < numberOfSchemes; part_id++) {
+		delete schemesVector->at(part_id);
 	}
 
 }
 
 PartitionSelector::~PartitionSelector() {
-	delete partitionsVector;
+	delete schemesVector;
 }
 
 void PartitionSelector::print() {
@@ -105,9 +105,9 @@ void PartitionSelector::print() {
 	}
 
 	int id;
-	for (id = 0; id < partitionsVector->size(); id++) {
-		SelectionPartition * sp = partitionsVector->at(id);
-		cout << sp->partition->toString() << " " << sp->lnL << " "
+	for (id = 0; id < schemesVector->size(); id++) {
+		SelectionPartitioningScheme * sp = schemesVector->at(id);
+		cout << sp->scheme->toString() << " " << sp->lnL << " "
 				<< sp->numParameters << " " << sp->value << endl;
 	}
 }

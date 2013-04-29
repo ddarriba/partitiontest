@@ -14,31 +14,31 @@
 namespace partest {
 
 typedef struct {
-	Partition * partition;
+	PartitioningScheme * scheme;
 	double lnL;
 	double numParameters;
 	double value;
 	double delta;
 	double weight;
-} SelectionPartition;
+} SelectionPartitioningScheme;
 
 class PartitionSelector {
 public:
-	PartitionSelector(Partition ** partition,
+	PartitionSelector(PartitioningScheme ** schemesArray,
 			int numberOfPartitions, InformationCriterion ic,
 			SampleSize sampleSize, double sampleSizeValue = 0.0);
 	virtual ~PartitionSelector();
-	Partition * getBestPartition(void) { return bestPartition; }
-	SelectionPartition * getBestSelectionPartition(void) { return partitionsVector->at(0); }
+	PartitioningScheme * getBestScheme(void) { return bestScheme; }
+	SelectionPartitioningScheme * getBestSelectionScheme(void) { return schemesVector->at(0); }
 	void print(void);
 private:
-	Partition ** partitions;
-	Partition * bestPartition;
-	int numberOfPartitions;
+	PartitioningScheme ** schemesArray;
+	PartitioningScheme * bestScheme;
+	int numberOfSchemes;
 	InformationCriterion ic;
 	SampleSize sampleSize;
 	double sampleSizeValue;
-	vector<SelectionPartition *> * partitionsVector;
+	vector<SelectionPartitioningScheme *> * schemesVector;
 };
 
 } /* namespace partest */

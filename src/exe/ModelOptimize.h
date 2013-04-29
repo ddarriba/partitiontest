@@ -22,7 +22,7 @@ namespace partest {
 class ModelOptimize: public Observable {
 public:
 	ModelOptimize(ParTestOptions * options);
-	virtual int optimizePartition(Partition * partition,
+	virtual int optimizePartition(PartitioningScheme * scheme,
 			bool forceRecomputation = false);
 	virtual int optimizePartitionElement(PartitionElement * partitionElement);
 	virtual int optimizeModel(Model * model,

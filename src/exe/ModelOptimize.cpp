@@ -31,7 +31,7 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement)
 		//(options->getRateVariation(), options->getDataType());
 		notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL), partitionElement->getId(),
 				partitionElement->getId());
-#pragma omp parallel for schedule(dynamic) //private(partition)
+#pragma omp for schedule(dynamic)
 		for (int i = 0; i < modelset->getNumberOfModels(); i++) {
 			optimizeModel(modelset->getModel(i), partitionElement, i, modelset->getNumberOfModels());
 		}
@@ -50,20 +50,24 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement)
 		return 0;
 }
 
-int ModelOptimize::optimizePartition(Partition * partition,
+int ModelOptimize::optimizePartition(PartitioningScheme * scheme,
 		bool forceRecomputation) {
-	string * pString = new string(partition->toString());
+	string * pString = new string(scheme->toString());
 	notify_observers(MT_PARTITION_INIT, 0, time(NULL), 0,
-			partition->getNumberOfElements(), pString);
-	for (int i = 0; i < partition->getNumberOfElements(); i++) {
-		PartitionElement * currentElement = partition->getElement(i);
+			scheme->getNumberOfElements(), pString);
+// #pragma omp parallel for schedule(dynamic)
+
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		PartitionElement * currentElement = scheme->getElement(i);
+#pragma omp parallel
 		if (!currentElement->isOptimized() || forceRecomputation) {
 			optimizePartitionElement(currentElement);
 		}
-
+#pragma omp end parallel
 	}
+
 	notify_observers(MT_PARTITION_END, 0, time(NULL), 0,
-			partition->getNumberOfElements(), pString);
+			scheme->getNumberOfElements(), pString);
 	delete pString;
 
 	return 0;

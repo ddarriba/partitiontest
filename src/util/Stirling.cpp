@@ -177,7 +177,7 @@ Stirling::iterator::operator--() {
       throw std::domain_error("integrity check 2 failed");
   }
 
-  Stirling::iterator_k * Stirling::get_partitions(int k, t_partition* &partition,
+  Stirling::iterator_k * Stirling::get_partitions(int k, t_schemeVector* &schemeVector,
       t_partition_elements* &elements) {
 	  Stirling::iterator_k * it;
     if ( !elements ) {
@@ -185,19 +185,19 @@ Stirling::iterator::operator--() {
     } else {
       elements->clear();
     }
-    if ( !partition ) {
-      partition = new t_partition;
+    if ( !schemeVector ) {
+      schemeVector = new t_schemeVector;
     }
-    if ( partition->size() > 0 ) {
+    if ( schemeVector->size() > 0 ) {
       //build t_partition_elements
-      for ( unsigned int i = 0; i < partition->size(); i++ ) {
+      for ( unsigned int i = 0; i < schemeVector->size(); i++ ) {
         unsigned int p_index = 0;
-        for ( unsigned int j = 0; j < (partition->at(i)).size(); j++ ) {
-          p_index += (partition->at(i))[j];
+        for ( unsigned int j = 0; j < (schemeVector->at(i)).size(); j++ ) {
+          p_index += (schemeVector->at(i))[j];
         }
         elements->push_back(p_index);
       }
-      it = new Stirling::iterator_k(partition->size(), k);
+      it = new Stirling::iterator_k(schemeVector->size(), k);
     } else {
       unsigned int p_index = 1;
       for ( unsigned int i = 0; i < k; i++ ) {

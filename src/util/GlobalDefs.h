@@ -21,7 +21,7 @@ extern "C" {
 typedef long t_partitionElementId;
 
 typedef std::vector<t_partitionElementId> t_partition_elements;
-typedef std::vector<t_partition_elements> t_partition;
+typedef std::vector<t_partition_elements> t_schemeVector;
 
 #ifdef _PLL
 #ifndef AXML_H

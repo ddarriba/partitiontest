@@ -17,12 +17,12 @@ class RandomSearchAlgorithm: public SearchAlgorithm {
 public:
 	RandomSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~RandomSearchAlgorithm();
-	virtual Partition * start();
+	virtual PartitioningScheme * start();
 	virtual void update(const ObservableInfo & info, ParTestOptions * run_instance =
 			NULL);
 private:
-	Partition * getRandomPartition(Partition ** partitionsArray, int numberOfPartitions);
-	Partition * getRandomPartition(Partition * p0, Partition ** partitionsArray, int numberOfPartitions);
+	PartitioningScheme * getRandomPartitioningScheme(PartitioningScheme ** schemesArray, int numberOfSchemes);
+	PartitioningScheme * getRandomPartitioningScheme(PartitioningScheme * p0, PartitioningScheme ** schemesArray, int numberOfSchemes);
 	int numberOfBits;
 };
 

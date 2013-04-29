@@ -29,7 +29,7 @@ ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-Partition * ExhaustiveSearchAlgorithm::start() {
+PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 	int i, j;
 	int n = getNumberOfElements();
 	int numberOfPartitions;
@@ -47,28 +47,28 @@ Partition * ExhaustiveSearchAlgorithm::start() {
 		mask[i] = i;
 	}
 
-	t_partition * partitions = new t_partition;
+	t_schemeVector * schemeVector = new t_schemeVector;
 	PartitionManager::get_permutations(mask, numberOfPartitions,
-			numberOfPartitions - 1, partitions);
+			numberOfPartitions - 1, schemeVector);
 	free(mask);
 
-	std::sort(partitions->begin(), partitions->end());
+	std::sort(schemeVector->begin(), schemeVector->end());
 
 	std::vector<t_partition_elements>::iterator it;
-	it = partitions->begin();
-	while ((it = std::adjacent_find(it, partitions->end())) != partitions->end()) {
-		partitions->erase(it);
+	it = schemeVector->begin();
+	while ((it = std::adjacent_find(it, schemeVector->end())) != schemeVector->end()) {
+		schemeVector->erase(it);
 	}
 	//std::unique ( partitions->begin(), partitions->end());
 
 #ifdef DEBUG
-	cout << "[TRACE] PARTITIONS = " << partitions->size() << endl;
+	cout << "[TRACE] PARTITIONS = " << schemeVector->size() << endl;
 #endif
 
-	for (i = 0; i < partitions->size(); i++) {
+	for (i = 0; i < schemeVector->size(); i++) {
 		cout << "( ";
-		for (int j = 0; j < partitions->at(i).size(); j++) {
-			cout << partitions->at(i)[j] << " ";
+		for (int j = 0; j < schemeVector->at(i).size(); j++) {
+			cout << schemeVector->at(i)[j] << " ";
 		}
 		cout << ")";
 	}
@@ -90,29 +90,29 @@ Partition * ExhaustiveSearchAlgorithm::start() {
 	cout << "[TRACE] Attached observer" << endl;
 #endif
 
-	numberOfPartitions = partitions->size();
-	Partition * part;
-	Partition ** partitionsArray = (Partition **) malloc(
-			numberOfPartitions * sizeof(Partition *));
+	numberOfPartitions = schemeVector->size();
+	PartitioningScheme * scheme;
+	PartitioningScheme ** schemesArray = (PartitioningScheme **) malloc(
+			numberOfPartitions * sizeof(PartitioningScheme *));
 	for (i = 0; i < numberOfPartitions; i++) {
-		part = new Partition(&(partitions->at(i)), partitionMap);
-		mo->optimizePartition(part);
-		partitionsArray[i] = part;
+		scheme = new PartitioningScheme(&(schemeVector->at(i)), partitionMap);
+		mo->optimizePartition(scheme);
+		schemesArray[i] = scheme;
 
 	}
-	PartitionSelector partSelector(partitionsArray, numberOfPartitions, options->getInformationCriterion(),
+	PartitionSelector partSelector(schemesArray, numberOfPartitions, options->getInformationCriterion(),
 			options->getSampleSize(), options->getSampleSizeValue());
 
 	for (i = 0; i < numberOfPartitions; i++) {
-		delete partitionsArray[i];
+		delete schemesArray[i];
 	}
 
-	free(partitionsArray);
-	delete partitions;
+	free(schemesArray);
+	delete schemeVector;
 	delete mo;
 	delete observer;
 
-	return partSelector.getBestPartition();
+	return partSelector.getBestScheme();
 }
 
 void ExhaustiveSearchAlgorithm::update(const ObservableInfo & info,

@@ -78,7 +78,7 @@ public:
         void integrityCheck();
     };
 
-    static iterator_k * get_partitions(int k, t_partition* &partition,
+    static iterator_k * get_partitions(int k, t_schemeVector* &schemeVector,
         t_partition_elements* &ptr_elements);
 };
 

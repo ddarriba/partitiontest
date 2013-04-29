@@ -32,7 +32,7 @@ RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-Partition * RandomSearchAlgorithm::start() {
+PartitioningScheme * RandomSearchAlgorithm::start() {
 
 	int cur_partition, cur_step;
 
@@ -41,49 +41,49 @@ Partition * RandomSearchAlgorithm::start() {
 	mo->attach(observer);
 	mo->attach(this);
 
-	Partition * bestPartition = 0;
-	int numPartitions =
+	PartitioningScheme * bestScheme = 0;
+	int numSchemes =
 			(NUM_PARTITIONS < Utilities::bell(numberOfBits)) ?
 					NUM_PARTITIONS : Utilities::bell(numberOfBits);
 	for (cur_step = 0; cur_step < NUM_STEPS; cur_step++) {
-		Partition ** partitionsArray = (Partition **) malloc(
-				numPartitions * sizeof(Partition *));
-		if (bestPartition) {
-			if (bestPartition->getNumberOfElements() == 1)
+		PartitioningScheme ** schemesArray = (PartitioningScheme **) malloc(
+				numSchemes * sizeof(PartitioningScheme *));
+		if (bestScheme) {
+			if (bestScheme->getNumberOfElements() == 1)
 				break;
-			numPartitions =
+			numSchemes =
 					(NUM_PARTITIONS
 							< Utilities::bell(
-									bestPartition->getNumberOfElements())) ?
+									bestScheme->getNumberOfElements())) ?
 							NUM_PARTITIONS :
 							Utilities::bell(
-									bestPartition->getNumberOfElements());
+									bestScheme->getNumberOfElements());
 		}
-		for (cur_partition = 0; cur_partition < numPartitions;
+		for (cur_partition = 0; cur_partition < numSchemes;
 				cur_partition++) {
 
-			if (!(partitionsArray[cur_partition] = getRandomPartition(
-					bestPartition, partitionsArray, cur_partition))) {
+			if (!(schemesArray[cur_partition] = getRandomPartitioningScheme(
+					bestScheme, schemesArray, cur_partition))) {
 				break;
 			}
-			mo->optimizePartition(partitionsArray[cur_partition]);
+			mo->optimizePartition(schemesArray[cur_partition]);
 		}
-		PartitionSelector partSelector(partitionsArray, numPartitions, options->getInformationCriterion(),
+		PartitionSelector partSelector(schemesArray, numSchemes, options->getInformationCriterion(),
 				options->getSampleSize(), options->getSampleSizeValue());
 
-		bestPartition = partSelector.getBestPartition();
+		bestScheme = partSelector.getBestScheme();
 
-		for (cur_partition = 0; cur_partition < numPartitions;
+		for (cur_partition = 0; cur_partition < numSchemes;
 				cur_partition++) {
-			if (partitionsArray[cur_partition] != bestPartition)
-				delete partitionsArray[cur_partition];
+			if (schemesArray[cur_partition] != bestScheme)
+				delete schemesArray[cur_partition];
 		}
-		free(partitionsArray);
+		free(schemesArray);
 	}
 	delete mo;
 	delete observer;
 
-	return bestPartition;
+	return bestScheme;
 }
 
 void RandomSearchAlgorithm::update(const ObservableInfo& info,
@@ -92,14 +92,14 @@ void RandomSearchAlgorithm::update(const ObservableInfo& info,
 }
 
 bool existPartition(t_partitionElementId * classes, int numberOfClasses,
-		Partition ** partitionsArray, int numberOfPartitions) {
-	for (int i = 0; i < numberOfPartitions; i++) {
-		if (partitionsArray[i]->getNumberOfElements() == numberOfClasses) {
+		PartitioningScheme ** schemesArray, int numberOfSchemes) {
+	for (int i = 0; i < numberOfSchemes; i++) {
+		if (schemesArray[i]->getNumberOfElements() == numberOfClasses) {
 			bool equals = true;
 			for (int j = 0; j < numberOfClasses; j++) {
 				bool existElement = false;
 				t_partitionElementId id =
-						partitionsArray[i]->getElement(j)->getId();
+						schemesArray[i]->getElement(j)->getId();
 				for (int k = 0; k < numberOfClasses; k++) {
 					existElement |= (id == classes[j]);
 				}
@@ -113,17 +113,17 @@ bool existPartition(t_partitionElementId * classes, int numberOfClasses,
 	return false;
 }
 
-Partition * RandomSearchAlgorithm::getRandomPartition(
-		Partition ** partitionsArray, int numberOfPartitions) {
+PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
+		PartitioningScheme ** schemesArray, int numberOfSchemes) {
 
 	//Partition * p = new Partition();
 
-	bool gotPartition = false;
+	bool gotScheme = false;
 	int numberOfClasses;
 	int i;
 	t_partitionElementId classes[numberOfBits];
 
-	while (!gotPartition) {
+	while (!gotScheme) {
 
 		numberOfClasses = 1;
 		// first element to the first
@@ -149,10 +149,10 @@ Partition * RandomSearchAlgorithm::getRandomPartition(
 			}
 		}
 
-		gotPartition = !existPartition(classes, numberOfClasses,
-				partitionsArray, numberOfPartitions);
+		gotScheme = !existPartition(classes, numberOfClasses,
+				schemesArray, numberOfSchemes);
 	}
-	Partition * p = new Partition(numberOfClasses);
+	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
 	for (i = 0; i < numberOfClasses; i++) {
 		p->addElement(partitionMap->getPartitionElement(classes[i]));
 	}
@@ -160,20 +160,20 @@ Partition * RandomSearchAlgorithm::getRandomPartition(
 	return p;
 }
 
-Partition * RandomSearchAlgorithm::getRandomPartition(Partition * p0,
-		Partition ** partitionsArray, int numberOfPartitions) {
+PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(PartitioningScheme * p0,
+		PartitioningScheme ** schemesArray, int numberOfSchemes) {
 
 	if (p0 == 0)
-		return getRandomPartition(partitionsArray, numberOfPartitions);
+		return getRandomPartitioningScheme(schemesArray, numberOfSchemes);
 
 	int maxClasses = p0->getNumberOfElements() - 1;
 
-	bool gotPartition = false;
+	bool gotScheme = false;
 	int i;
 	int numberOfClasses;
 	t_partitionElementId classes[maxClasses];
 
-	while (!gotPartition) {
+	while (!gotScheme) {
 
 		numberOfClasses = 1;
 		// first element to the first
@@ -201,11 +201,11 @@ Partition * RandomSearchAlgorithm::getRandomPartition(Partition * p0,
 			}
 		}
 
-		gotPartition = !existPartition(classes, numberOfClasses,
-				partitionsArray, numberOfPartitions);
+		gotScheme = !existPartition(classes, numberOfClasses,
+				schemesArray, numberOfSchemes);
 	}
 
-	Partition * p = new Partition(numberOfClasses);
+	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
 	for (i = 0; i < numberOfClasses; i++) {
 		p->addElement(partitionMap->getPartitionElement(classes[i]));
 	}

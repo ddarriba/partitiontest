@@ -21,11 +21,11 @@
 namespace partest {
 
 /* functor for getting the next partitioning scheme in a group */
-struct nextPartitionFunctor {
-	nextPartitionFunctor(Partition * currentPartition,
+struct nextSchemeFunctor {
+	nextSchemeFunctor(PartitioningScheme * currentScheme,
 			PartitionMap * partitionMap) :
-			currentPartition(currentPartition), partitionMap(partitionMap) {
-		numberOfElements = currentPartition->getNumberOfElements();
+			currentScheme(currentScheme), partitionMap(partitionMap) {
+		numberOfElements = currentScheme->getNumberOfElements();
 		i = 0;
 		j = 1;
 #ifdef GREEDY_EXTENDED
@@ -35,7 +35,7 @@ struct nextPartitionFunctor {
 				(numberOfElements * (1 + numberOfElements)) / 2
 						* sizeof(t_partitionElementId));
 		for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
-			t_partitionElementId nextId = currentPartition->getElement(maskIndex)->getId();
+			t_partitionElementId nextId = currentScheme->getElement(maskIndex)->getId();
 			mask[maskIndex] = nextId;
 			if (nextId > maxIndex) maxIndex = nextId;
 		}
@@ -49,7 +49,7 @@ struct nextPartitionFunctor {
 			}
 		}
 		i=0;
-		partitions = new t_partition;
+		schemeVector = new t_schemeVector;
 		unsigned int bitMask;
 		if (Utilities::isPowerOfTwo(maskIndex)) {
 			bitMask = maskIndex-1;
@@ -57,51 +57,51 @@ struct nextPartitionFunctor {
 			bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex)) - 1;
 		}
 		PartitionManager::get_permutations(mask, maskIndex, bitMask,
-				partitions);
+				schemeVector);
 #endif
 	}
 
-	~nextPartitionFunctor() {
+	~nextSchemeFunctor() {
 		free(mask);
 	}
 #ifdef GREEDY_EXTENDED
-	Partition * operator()(void) {
-		if (i == partitions->size()) {
+	PartitioningScheme * operator()(void) {
+		if (i == schemeVector->size()) {
 			return 0;
 		}
-		t_partition_elements elements = partitions->at(i);
-		Partition * nextPartition = new Partition(elements.size());
+		t_partition_elements elements = schemeVector->at(i);
+		PartitioningScheme * nextScheme = new PartitioningScheme(elements.size());
 
 		for (j = 0; j < elements.size(); j++) {
 
 			PartitionElement * nextElement = partitionMap->getPartitionElement(
 					elements.at(j));
-			nextPartition->addElement(nextElement);
+			nextScheme->addElement(nextElement);
 		}
 
 		i++;
-		return nextPartition;
+		return nextScheme;
 	}
 #else
-	Partition * operator()(void) {
+	PartitioningScheme * operator()(void) {
 		if (i == (numberOfElements - 1)) {
 			return 0;
 		}
-		Partition * nextPartition = new Partition(numberOfElements - 1);
+		PartitioningScheme * nextScheme = new PartitioningScheme(numberOfElements - 1);
 		int k;
 
 		for (k = 0; k < numberOfElements; k++) {
 			if (k != i && k != j) {
-				nextPartition->addElement(currentPartition->getElement(k));
+				nextScheme->addElement(currentScheme->getElement(k));
 			}
 		}
 
-		t_partitionElementId nextId = currentPartition->getElement(i)->getId()
-		+ currentPartition->getElement(j)->getId();
+		t_partitionElementId nextId = currentScheme->getElement(i)->getId()
+		+ currentScheme->getElement(j)->getId();
 		mask[maskIndex++] = nextId;
 		PartitionElement * nextElement = partitionMap->getPartitionElement(
 				nextId);
-		nextPartition->addElement(nextElement);
+		nextScheme->addElement(nextElement);
 
 		/* increment loop iterators */
 		j++;
@@ -109,7 +109,7 @@ struct nextPartitionFunctor {
 			i++;
 			j = i + 1;
 		}
-		return nextPartition;
+		return nextScheme;
 	}
 #endif
 
@@ -118,15 +118,15 @@ struct nextPartitionFunctor {
 	}
 
 	unsigned int size() {
-		return partitions->size();
+		return schemeVector->size();
 	}
 
 private:
-	t_partition * partitions;
+	t_schemeVector * schemeVector;
 	t_partitionElementId * mask;
 	int i, j, maskIndex;
 	int numberOfElements;
-	Partition * currentPartition;
+	PartitioningScheme * currentScheme;
 	PartitionMap * partitionMap;
 };
 
@@ -142,7 +142,7 @@ GreedySearchAlgorithm::~GreedySearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-Partition * GreedySearchAlgorithm::start() {
+PartitioningScheme * GreedySearchAlgorithm::start() {
 
 	int i;
 
@@ -152,50 +152,50 @@ Partition * GreedySearchAlgorithm::start() {
 	mo->attach(this);
 
 	/* 1. start with k=n groups */
-	Partition * firstPartition = new Partition(
+	PartitioningScheme * firstScheme = new PartitioningScheme(
 			partitionMap->getNumberOfPartitions());
 	for (i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		firstPartition->addElement(
+		firstScheme->addElement(
 				partitionMap->getPartitionElement(Utilities::binaryPow(i)));
 	}
 
-	mo->optimizePartition(firstPartition);
-	PartitionSelector partSelector(&firstPartition, 1,
+	mo->optimizePartition(firstScheme);
+	PartitionSelector partSelector(&firstScheme, 1,
 			options->getInformationCriterion(), options->getSampleSize(),
 			options->getSampleSizeValue());
-	double bestCriterionValue = partSelector.getBestSelectionPartition()->value;
+	double bestCriterionValue = partSelector.getBestSelectionScheme()->value;
 
-	Partition * bestPartition = firstPartition;
+	PartitioningScheme * bestScheme = firstScheme;
 	bool reachedMaximum = false;
 	while (!reachedMaximum) {
 		/* 2. evaluate next-step partitions */
-		nextPartitionFunctor nextPartition(bestPartition, partitionMap);
-		int numberOfPartitions = nextPartition.size();
-		Partition **partitionsVector = (Partition **) malloc(
-				numberOfPartitions * sizeof(Partition *));
+		nextSchemeFunctor nextScheme(bestScheme, partitionMap);
+		int numberOfSchemes = nextScheme.size();
+		PartitioningScheme **partitionsVector = (PartitioningScheme **) malloc(
+				numberOfSchemes * sizeof(PartitioningScheme *));
 		i = 0;
 
-		while (Partition * currentPartition = nextPartition()) {
-			partitionsVector[i++] = currentPartition;
-			mo->optimizePartition(currentPartition);
+		while (PartitioningScheme * currentScheme = nextScheme()) {
+			partitionsVector[i++] = currentScheme;
+			mo->optimizePartition(currentScheme);
 		}
 
-		PartitionSelector partSelector(partitionsVector, numberOfPartitions,
+		PartitionSelector partSelector(partitionsVector, numberOfSchemes,
 				options->getInformationCriterion(), options->getSampleSize(),
 				options->getSampleSizeValue());
 		reachedMaximum = (bestCriterionValue
-				<= partSelector.getBestSelectionPartition()->value);
+				<= partSelector.getBestSelectionScheme()->value);
 		if (!reachedMaximum) {
 			bestCriterionValue =
-					partSelector.getBestSelectionPartition()->value;
-			bestPartition = partSelector.getBestPartition();
-			reachedMaximum |= bestPartition->getNumberOfElements() == 1;
+					partSelector.getBestSelectionScheme()->value;
+			bestScheme = partSelector.getBestScheme();
+			reachedMaximum |= bestScheme->getNumberOfElements() == 1;
 		}
 
 		free(partitionsVector);
 	}
 
-	return bestPartition;
+	return bestScheme;
 }
 
 void GreedySearchAlgorithm::update(const ObservableInfo& info,
@@ -203,10 +203,10 @@ void GreedySearchAlgorithm::update(const ObservableInfo& info,
 
 }
 
-int GreedySearchAlgorithm::getNextPartitions(Partition *currentPartition,
-		Partition **nextPartitions) {
-	int numberOfPartitions = currentPartition->getNumberOfElements()
-			* (currentPartition->getNumberOfElements() - 1);
+int GreedySearchAlgorithm::getNextPartitioningSchemes(PartitioningScheme *currentScheme,
+		PartitioningScheme **nextSchemes) {
+	int numberOfPartitions = currentScheme->getNumberOfElements()
+			* (currentScheme->getNumberOfElements() - 1);
 
 }
 

@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm( options, partitionMap );
 
-	Partition * partition = searchAlgo->start();
+	PartitioningScheme * partition = searchAlgo->start();
 
 	cout << "***** BEST PARTITIONING SCHEME *****" << endl;
 	cout << "Partitioning scheme: " << partition->toString() << endl;

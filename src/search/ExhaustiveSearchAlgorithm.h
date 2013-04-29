@@ -16,7 +16,7 @@ class ExhaustiveSearchAlgorithm: public SearchAlgorithm {
 public:
 	ExhaustiveSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~ExhaustiveSearchAlgorithm();
-	virtual Partition * start();
+	virtual PartitioningScheme * start();
 	virtual void update(const ObservableInfo & info,
 	        ParTestOptions * run_instance = NULL);
 };

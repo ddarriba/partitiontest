@@ -17,11 +17,11 @@ class GreedySearchAlgorithm: public SearchAlgorithm {
 public:
 	GreedySearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~GreedySearchAlgorithm();
-	virtual Partition * start();
+	virtual PartitioningScheme * start();
 	virtual void update(const ObservableInfo & info, ParTestOptions * run_instance =
 			NULL);
 private:
-	int getNextPartitions(Partition *currentPartition, Partition **nextPartitions);
+	int getNextPartitioningSchemes(PartitioningScheme *currentScheme, PartitioningScheme **nextSchemes);
 	int numberOfBits;
 };
 
