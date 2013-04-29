@@ -47,14 +47,14 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 		mask[i] = i;
 	}
 
-	t_schemeVector * schemeVector = new t_schemeVector;
-	PartitionManager::get_permutations(mask, numberOfPartitions,
+	t_schemesVector * schemeVector = new t_schemesVector;
+	PartitionManager::getPermutations(mask, numberOfPartitions,
 			numberOfPartitions - 1, schemeVector);
 	free(mask);
 
 	std::sort(schemeVector->begin(), schemeVector->end());
 
-	std::vector<t_partition_elements>::iterator it;
+	std::vector<t_partitioningScheme>::iterator it;
 	it = schemeVector->begin();
 	while ((it = std::adjacent_find(it, schemeVector->end())) != schemeVector->end()) {
 		schemeVector->erase(it);
@@ -62,7 +62,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 	//std::unique ( partitions->begin(), partitions->end());
 
 #ifdef DEBUG
-	cout << "[TRACE] PARTITIONS = " << schemeVector->size() << endl;
+	cout << "[TRACE] PARTITIONING SCHEMES = " << schemeVector->size() << endl;
 #endif
 
 	for (i = 0; i < schemeVector->size(); i++) {
@@ -74,7 +74,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 	}
 
 #ifdef DEBUG
-	cout << "[TRACE] Created partition" << endl;
+	cout << "[TRACE] Created partitioning scheme" << endl;
 #endif
 
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
@@ -96,7 +96,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 			numberOfPartitions * sizeof(PartitioningScheme *));
 	for (i = 0; i < numberOfPartitions; i++) {
 		scheme = new PartitioningScheme(&(schemeVector->at(i)), partitionMap);
-		mo->optimizePartition(scheme);
+		mo->optimizePartitioningScheme(scheme);
 		schemesArray[i] = scheme;
 
 	}

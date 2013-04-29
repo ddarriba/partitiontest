@@ -9,7 +9,7 @@
 #define SEARCHALGORITHM_H_
 
 #include "../indata/PartitionMap.h"
-#include "../indata/Partition.h"
+#include "../indata/PartitioningScheme.h"
 #include "../indata/PartitionElement.h"
 #include "../model/ModelSet.h"
 #include "../options/ParTestOptions.h"

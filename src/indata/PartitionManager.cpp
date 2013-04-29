@@ -26,9 +26,9 @@ void vprint(const t_partitionElementId list[], t_partitionElementId size) {
 	std::cout << "}" << std::endl;
 }
 
-void PartitionManager::get_permutations(t_partitionElementId * mask,
+void PartitionManager::getPermutations(t_partitionElementId * mask,
 		unsigned int size, t_partitionElementId full_mask,
-		t_schemeVector * schemeVector, t_partitionElementId limit,
+		t_schemesVector * schemesVector, t_partitionElementId limit,
 		t_partitionElementId current, int sum) {
 
 	if (!sum && current >= limit)
@@ -40,20 +40,20 @@ void PartitionManager::get_permutations(t_partitionElementId * mask,
 	}
 
 	if (sum == full_mask) {
-		t_partition_elements next_partition;
+		t_partitioningScheme nextScheme;
 		for (t_partitionElementId i = 0; i < size; i++) {
 			if (mask[i] < 0) {
-				next_partition.push_back(-mask[i]);
+				nextScheme.push_back(-mask[i]);
 			}
 		}
-		schemeVector->push_back(next_partition);
+		schemesVector->push_back(nextScheme);
 		return;
 	}
 
 	for (unsigned int i = current + 1; i < size; i++) {
 		if (sum & mask[i])
 			continue;
-		get_permutations(mask, size, full_mask, schemeVector, limit, i, sum);
+		getPermutations(mask, size, full_mask, schemesVector, limit, i, sum);
 		mask[i] = -mask[i];
 	}
 

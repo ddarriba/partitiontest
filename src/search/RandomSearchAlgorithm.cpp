@@ -11,7 +11,7 @@
 #include "observer/ConsoleObserver.h"
 #include "selection/ModelSelector.h"
 #include "selection/PartitionSelector.h"
-#include "indata/Partition.h"
+#include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
 
 #define RND_THRESHOLD 0.5
@@ -34,7 +34,7 @@ RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 
 PartitioningScheme * RandomSearchAlgorithm::start() {
 
-	int cur_partition, cur_step;
+	int currentScheme, currentStep;
 
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
@@ -45,7 +45,7 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 	int numSchemes =
 			(NUM_PARTITIONS < Utilities::bell(numberOfBits)) ?
 					NUM_PARTITIONS : Utilities::bell(numberOfBits);
-	for (cur_step = 0; cur_step < NUM_STEPS; cur_step++) {
+	for (currentStep = 0; currentStep < NUM_STEPS; currentStep++) {
 		PartitioningScheme ** schemesArray = (PartitioningScheme **) malloc(
 				numSchemes * sizeof(PartitioningScheme *));
 		if (bestScheme) {
@@ -59,24 +59,24 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 							Utilities::bell(
 									bestScheme->getNumberOfElements());
 		}
-		for (cur_partition = 0; cur_partition < numSchemes;
-				cur_partition++) {
+		for (currentScheme = 0; currentScheme < numSchemes;
+				currentScheme++) {
 
-			if (!(schemesArray[cur_partition] = getRandomPartitioningScheme(
-					bestScheme, schemesArray, cur_partition))) {
+			if (!(schemesArray[currentScheme] = getRandomPartitioningScheme(
+					bestScheme, schemesArray, currentScheme))) {
 				break;
 			}
-			mo->optimizePartition(schemesArray[cur_partition]);
+			mo->optimizePartitioningScheme(schemesArray[currentScheme]);
 		}
 		PartitionSelector partSelector(schemesArray, numSchemes, options->getInformationCriterion(),
 				options->getSampleSize(), options->getSampleSizeValue());
 
 		bestScheme = partSelector.getBestScheme();
 
-		for (cur_partition = 0; cur_partition < numSchemes;
-				cur_partition++) {
-			if (schemesArray[cur_partition] != bestScheme)
-				delete schemesArray[cur_partition];
+		for (currentScheme = 0; currentScheme < numSchemes;
+				currentScheme++) {
+			if (schemesArray[currentScheme] != bestScheme)
+				delete schemesArray[currentScheme];
 		}
 		free(schemesArray);
 	}

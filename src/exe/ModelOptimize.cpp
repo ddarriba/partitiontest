@@ -50,10 +50,10 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement)
 		return 0;
 }
 
-int ModelOptimize::optimizePartition(PartitioningScheme * scheme,
+int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation) {
 	string * pString = new string(scheme->toString());
-	notify_observers(MT_PARTITION_INIT, 0, time(NULL), 0,
+	notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
 			scheme->getNumberOfElements(), pString);
 // #pragma omp parallel for schedule(dynamic)
 
@@ -66,7 +66,7 @@ int ModelOptimize::optimizePartition(PartitioningScheme * scheme,
 #pragma omp end parallel
 	}
 
-	notify_observers(MT_PARTITION_END, 0, time(NULL), 0,
+	notify_observers(MT_SCHEME_END, 0, time(NULL), 0,
 			scheme->getNumberOfElements(), pString);
 	delete pString;
 

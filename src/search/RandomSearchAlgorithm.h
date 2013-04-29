@@ -9,7 +9,7 @@
 #define RANDOMSEARCHALGORITHM_H_
 
 #include "SearchAlgorithm.h"
-#include "indata/Partition.h"
+#include "indata/PartitioningScheme.h"
 
 namespace partest {
 

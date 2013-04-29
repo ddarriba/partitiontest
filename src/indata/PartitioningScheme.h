@@ -1,5 +1,5 @@
 /*
- * Partition.h
+ * PartitioningScheme.h
  *
  *  Created on: Mar 8, 2013
  *      Author: diego
@@ -15,16 +15,16 @@
 
 namespace partest {
 
-class Partition {
+class PartitioningScheme {
 public:
-	Partition(int numberOfElements);
-	Partition(t_partition_elements * partition, PartitionMap * partitionMap);
+	PartitioningScheme(int numberOfElements);
+	PartitioningScheme(t_partitioningScheme * partition, PartitionMap * partitionMap);
 	int getNumberOfElements() { return numberOfElements; }
 	int getNumberOfBits() { return numberOfBits; }
 	int addElement(PartitionElement * element);
 	PartitionElement * getElement(int id);
 	string toString();
-	virtual ~Partition();
+	virtual ~PartitioningScheme();
 private:
 	PartitionElement ** partitions;
 	int currentElement;

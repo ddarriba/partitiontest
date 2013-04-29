@@ -8,7 +8,7 @@
 #ifndef PARTITIONSELECTOR_H_
 #define PARTITIONSELECTOR_H_
 
-#include "indata/Partition.h"
+#include "indata/PartitioningScheme.h"
 #include "util/GlobalDefs.h"
 
 namespace partest {

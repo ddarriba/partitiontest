@@ -16,7 +16,7 @@ PARTEST_CXXFILES = \
 	exe/ModelOptimize.cpp \
 	exe/PLLModelOptimize.cpp \
 	indata/Alignment.cpp \
-	indata/Partition.cpp \
+	indata/PartitioningScheme.cpp \
 	indata/PartitionMap.cpp \
 	indata/PartitionManager.cpp \
 	indata/PartitionElement.cpp \

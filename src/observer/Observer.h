@@ -18,14 +18,14 @@ namespace partest {
 
 enum MessageType {
   MT_GROUP_INIT,
-  MT_PARTITION_INIT,
+  MT_SCHEME_INIT,
   MT_MODELSET_INIT,
   MT_FTREE_INIT,
   MT_FTREE_END,
   MT_SINGLE_INIT,
   MT_SINGLE_END,
   MT_MODELSET_END,
-  MT_PARTITION_END,
+  MT_SCHEME_END,
   MT_GROUP_END
 };
 struct ObservableInfo {

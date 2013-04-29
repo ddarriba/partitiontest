@@ -12,7 +12,7 @@
 #define MODELOPTIMIZE_H_
 
 #include "../model/Model.h"
-#include "../indata/Partition.h"
+#include "../indata/PartitioningScheme.h"
 #include "../indata/PartitionElement.h"
 #include "../options/ParTestOptions.h"
 #include "../observer/Observable.h"
@@ -22,7 +22,7 @@ namespace partest {
 class ModelOptimize: public Observable {
 public:
 	ModelOptimize(ParTestOptions * options);
-	virtual int optimizePartition(PartitioningScheme * scheme,
+	virtual int optimizePartitioningScheme(PartitioningScheme * scheme,
 			bool forceRecomputation = false);
 	virtual int optimizePartitionElement(PartitionElement * partitionElement);
 	virtual int optimizeModel(Model * model,

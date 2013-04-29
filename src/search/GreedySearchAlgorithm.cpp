@@ -12,7 +12,7 @@
 #include "observer/ConsoleObserver.h"
 #include "selection/ModelSelector.h"
 #include "selection/PartitionSelector.h"
-#include "indata/Partition.h"
+#include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
 #include "indata/PartitionManager.h"
 
@@ -49,14 +49,14 @@ struct nextSchemeFunctor {
 			}
 		}
 		i=0;
-		schemeVector = new t_schemeVector;
+		schemeVector = new t_schemesVector;
 		unsigned int bitMask;
 		if (Utilities::isPowerOfTwo(maskIndex)) {
 			bitMask = maskIndex-1;
 		} else {
 			bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex)) - 1;
 		}
-		PartitionManager::get_permutations(mask, maskIndex, bitMask,
+		PartitionManager::getPermutations(mask, maskIndex, bitMask,
 				schemeVector);
 #endif
 	}
@@ -69,7 +69,7 @@ struct nextSchemeFunctor {
 		if (i == schemeVector->size()) {
 			return 0;
 		}
-		t_partition_elements elements = schemeVector->at(i);
+		t_partitioningScheme elements = schemeVector->at(i);
 		PartitioningScheme * nextScheme = new PartitioningScheme(elements.size());
 
 		for (j = 0; j < elements.size(); j++) {
@@ -122,7 +122,7 @@ struct nextSchemeFunctor {
 	}
 
 private:
-	t_schemeVector * schemeVector;
+	t_schemesVector * schemeVector;
 	t_partitionElementId * mask;
 	int i, j, maskIndex;
 	int numberOfElements;
@@ -159,7 +159,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 				partitionMap->getPartitionElement(Utilities::binaryPow(i)));
 	}
 
-	mo->optimizePartition(firstScheme);
+	mo->optimizePartitioningScheme(firstScheme);
 	PartitionSelector partSelector(&firstScheme, 1,
 			options->getInformationCriterion(), options->getSampleSize(),
 			options->getSampleSizeValue());
@@ -171,16 +171,16 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		/* 2. evaluate next-step partitions */
 		nextSchemeFunctor nextScheme(bestScheme, partitionMap);
 		int numberOfSchemes = nextScheme.size();
-		PartitioningScheme **partitionsVector = (PartitioningScheme **) malloc(
+		PartitioningScheme **partitioningSchemesVector = (PartitioningScheme **) malloc(
 				numberOfSchemes * sizeof(PartitioningScheme *));
 		i = 0;
 
 		while (PartitioningScheme * currentScheme = nextScheme()) {
-			partitionsVector[i++] = currentScheme;
-			mo->optimizePartition(currentScheme);
+			partitioningSchemesVector[i++] = currentScheme;
+			mo->optimizePartitioningScheme(currentScheme);
 		}
 
-		PartitionSelector partSelector(partitionsVector, numberOfSchemes,
+		PartitionSelector partSelector(partitioningSchemesVector, numberOfSchemes,
 				options->getInformationCriterion(), options->getSampleSize(),
 				options->getSampleSizeValue());
 		reachedMaximum = (bestCriterionValue
@@ -192,7 +192,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 			reachedMaximum |= bestScheme->getNumberOfElements() == 1;
 		}
 
-		free(partitionsVector);
+		free(partitioningSchemesVector);
 	}
 
 	return bestScheme;

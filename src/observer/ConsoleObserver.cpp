@@ -21,6 +21,8 @@ namespace partest {
 
 ConsoleObserver::ConsoleObserver() {
 	init_time = time(NULL);
+	modelset_init_time = 0;
+	end_time = 0;
 	current_partition = -1;
 	modelsetCount = modelsetIndex = model_digits_count = modelIndex =
 			number_of_tasks = 0;
@@ -59,12 +61,12 @@ void ConsoleObserver::update(const ObservableInfo & info,
 	case MT_MODELSET_END:
 		cout << "END MODELSET" << endl;
 		break;
-	case MT_PARTITION_INIT:
-		cout << "INIT PARTITION " << *info.message << endl;
+	case MT_SCHEME_INIT:
+		cout << "INIT PARTITIONING SCHEME " << *info.message << endl;
 		modelIndex = 0;
 		break;
-	case MT_PARTITION_END:
-		cout << "END PARTITION " << *info.message << endl;
+	case MT_SCHEME_END:
+		cout << "END PARTITIONING SCHEME " << *info.message << endl;
 		break;
 	}
 }

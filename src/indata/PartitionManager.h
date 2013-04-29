@@ -32,8 +32,8 @@ class PartitionManager {
      * \li 0010, 0001, 1100
      * \li 1000, 0010, 0101
      */
-	static void get_permutations(t_partitionElementId * mask, unsigned int size, t_partitionElementId full_mask,
-    		t_schemeVector * schemeVector, t_partitionElementId limit = MAX_PARTITIONS, t_partitionElementId current = -1,
+	static void getPermutations(t_partitionElementId * mask, unsigned int size, t_partitionElementId full_mask,
+    		t_schemesVector * schemeVector, t_partitionElementId limit = MAX_PARTITIONS, t_partitionElementId current = -1,
         int sum = 0);
 };
 

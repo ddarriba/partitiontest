@@ -78,8 +78,8 @@ public:
         void integrityCheck();
     };
 
-    static iterator_k * get_partitions(int k, t_schemeVector* &schemeVector,
-        t_partition_elements* &ptr_elements);
+    static iterator_k * get_partitions(int k, t_schemesVector* &schemeVector,
+        t_partitioningScheme* &ptr_elements);
 };
 
 extern std::ostream& operator<<(std::ostream& out, Stirling::iterator &it);

@@ -15,7 +15,7 @@ PARTEST_CXXFILES = \
 	exe/PhymlModelOptimize.cpp \
 	indata/Alignment.cpp \
 	indata/PhymlAlignment.cpp \
-	indata/Partition.cpp \
+	indata/PartitioningScheme.cpp \
 	indata/PartitionManager.cpp \
 	indata/PartitionMap.cpp \
 	indata/PartitionElement.cpp \

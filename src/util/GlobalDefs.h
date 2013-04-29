@@ -20,8 +20,8 @@ extern "C" {
 #define MAX_PARTITIONS LONG_MAX
 typedef long t_partitionElementId;
 
-typedef std::vector<t_partitionElementId> t_partition_elements;
-typedef std::vector<t_partition_elements> t_schemeVector;
+typedef std::vector<t_partitionElementId> t_partitioningScheme;
+typedef std::vector<t_partitioningScheme> t_schemesVector;
 
 #ifdef _PLL
 #ifndef AXML_H

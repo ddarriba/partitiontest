@@ -1,11 +1,11 @@
 /*
- * Partition.cpp
+ * PartitioningScheme.cpp
  *
  *  Created on: Mar 8, 2013
  *      Author: diego
  */
 
-#include "Partition.h"
+#include "PartitioningScheme.h"
 #include "PartitionMap.h"
 #include <stdlib.h>
 
@@ -13,7 +13,7 @@
 
 namespace partest {
 
-Partition::Partition(int numberOfElements) :
+PartitioningScheme::PartitioningScheme(int numberOfElements) :
 		numberOfElements(numberOfElements) {
 	currentElement = 0;
 	partitions = (PartitionElement **) malloc(
@@ -22,18 +22,18 @@ Partition::Partition(int numberOfElements) :
 	code = 0;
 }
 
-Partition::Partition(t_partition_elements * partition,
+PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 		PartitionMap * partitionMap) {
 	currentElement = 0;
 	code = 0;
-	numberOfElements = partition->size();
+	numberOfElements = schemeVector->size();
 	partitions = (PartitionElement **) malloc(
 			numberOfElements * sizeof(PartitionElement *));
 	int i;
 #ifdef DEBUG
 	cout << "[TRACE] PARTITION (" << numberOfElements << " elements): [ ";
 	for (i = 0; i < numberOfElements; i++) {
-		cout << partition->at(i) << " ";
+		cout << schemeVector->at(i) << " ";
 	}
 	cout << "]" << endl;
 #endif
@@ -42,10 +42,10 @@ Partition::Partition(t_partition_elements * partition,
 		int j;
 #ifdef DEBUG
 		cout << "[TRACE] ADDING ELEMENT "
-		<< i+1 << "/" << numberOfElements << " (" << partition->at(i) << ")" << endl;
+		<< i+1 << "/" << numberOfElements << " (" << schemeVector->at(i) << ")" << endl;
 #endif
 		PartitionElement * newPE = partitionMap->getPartitionElement(
-				partition->at(i));
+				schemeVector->at(i));
 		if (Utilities::binaryLog(newPE->getId() | 1) > numberOfBits) {
 			numberOfBits = Utilities::binaryLog(newPE->getId() | 1);
 		}
@@ -53,13 +53,13 @@ Partition::Partition(t_partition_elements * partition,
 	}
 }
 
-Partition::~Partition() {
+PartitioningScheme::~PartitioningScheme() {
 	free(partitions);
 	if (code)
 		delete code;
 }
 
-int Partition::addElement(PartitionElement * element) {
+int PartitioningScheme::addElement(PartitionElement * element) {
 	if (currentElement < numberOfElements) {
 		partitions[currentElement++] = element;
 		if (Utilities::binaryLog(element->getId() | 1) > numberOfBits) {
@@ -71,7 +71,7 @@ int Partition::addElement(PartitionElement * element) {
 	}
 }
 
-PartitionElement * Partition::getElement(int id) {
+PartitionElement * PartitioningScheme::getElement(int id) {
 	if (id >= 0 & id < numberOfElements) {
 		return partitions[id];
 	} else {
@@ -79,7 +79,7 @@ PartitionElement * Partition::getElement(int id) {
 	}
 }
 
-string Partition::toString() {
+string PartitioningScheme::toString() {
 	if (!code) {
 		int hashmap[numberOfElements];
 		int intcode[numberOfBits];
