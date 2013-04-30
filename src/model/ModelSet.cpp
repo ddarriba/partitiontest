@@ -17,7 +17,7 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa) :
   numberOfModels = Utilities::binaryPow(numberOfParameters);
   switch (dataType) {
   case DT_NUCLEIC:
-    numberOfMatrices = NUC_MATRIX_SIZE;
+    numberOfMatrices = NUC_MATRIX_SIZE / 2;
     break;
   case DT_PROTEIC:
     numberOfMatrices = PROT_MATRIX_SIZE;
@@ -60,14 +60,20 @@ ModelSet::~ModelSet()
   }
 }
 
+Model * ModelSet::getModel(unsigned int index) {
+	  return models[index];
+}
+
 int ModelSet::buildModelSet(Model **models, bitMask rateVar,
     DataType dataType) {
 
-  int current = 0;
+  int currentIndex = 0;
   switch (dataType) {
   case DT_NUCLEIC:
-    cerr << "NOT IMPLEMENTED!" << endl;
-    exit(-1);
+	  for (int i = (rateVar & RateVarF)?1:0; i < NUC_MATRIX_SIZE; i+=2) {
+	        NucMatrix nm = static_cast<NucMatrix>(i);
+	        models[currentIndex++] = new NucleicModel(nm, rateVar, numberOfTaxa);
+	      }
     break;
   case DT_PROTEIC:
     for (int i = 0; i < PROT_MATRIX_SIZE; i++) {

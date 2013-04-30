@@ -64,7 +64,7 @@ public:
 	static char * getStreamTempFilename();
 	static int countWords(string ss);
 
-	static FILE * myfopen(const char *path, const char *mode);
+	static FILE * myfopen(const char *path, const char *mode, bool lazy=false);
 	static int myGetline(char **lineptr, int *n, FILE *stream);
 
 	static inline int numberOfBranches(int numberOfTaxa) {

@@ -36,6 +36,7 @@ public:
   double getLnL(void) { return lnL; }
   double getAlpha(void) { return alpha; }
   double getpInv(void) { return pInv; }
+  int getNumberOfFrequencies(void) { return numberOfFrequencies; }
   int getNumberOfFreeParameters(void) { return (modelFreeParameters + treeFreeParameters); }
   int getModelFreeParameters(void) { return modelFreeParameters; }
   int getTreeFreeParameters(void) { return treeFreeParameters; }
@@ -61,6 +62,8 @@ protected:
   double *rates;
   /** State frequencies */
   double *frequencies;
+  /** Number of state frequencies */
+  int numberOfFrequencies;
   /** Full name of the model. */
   string name;
   /** Name of the model matrix. */

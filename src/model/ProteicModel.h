@@ -11,6 +11,8 @@
 #include "Model.h"
 #include "../util/GlobalDefs.h"
 
+#define NUM_PROT_FREQS 20
+
 namespace partest {
 
 class ProteicModel: public Model {

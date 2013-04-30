@@ -6655,6 +6655,7 @@ int Assign_State(char *c, int datatype, int stepsize)
   int i;
 
   state[0] = state[1] = state[2] = -1;
+
   if(datatype == NT)
     {
       For(i,stepsize)
@@ -7462,7 +7463,6 @@ void Make_Model_Complete(model *mod)
   mod->qmat->v                   = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->qmat_buff->v              = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->eigen                     = (eigen *)Make_Eigen_Struct(mod->ns);
-
   For(i,mod->n_catg) mod->gamma_rr->v[i] = 1.0;
   For(i,mod->n_catg) mod->gamma_r_proba_unscaled->v[i] = 1.0;
   For(i,mod->n_catg) mod->gamma_r_proba->v[i] = 1.0/(phydbl)mod->n_catg;

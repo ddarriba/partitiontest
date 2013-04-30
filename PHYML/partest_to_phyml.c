@@ -325,7 +325,11 @@ calign *clone_cdata(calign * indata, int numberOfStates) {
 	cdata->c_seq = indata->c_seq;
 	cdata->init_len = indata->init_len;
 
-	get_aa_freqs(cdata);
+	if (numberOfStates == 20) {
+		get_aa_freqs(cdata);
+	} else {
+		get_nt_freqs(cdata);
+	}
 	//Get_AA_Freqs(cdata);
 
 	return cdata;
@@ -504,22 +508,16 @@ option * build_options(phyml_indata indata) {
 		io->mod->state_len = 1;
 		io->mod->m4mod->n_o = 4;
 
-		if ((io->mod->whichmodel == LG) || (io->mod->whichmodel == WAG)
-				|| (io->mod->whichmodel == DAYHOFF)
-				|| (io->mod->whichmodel == JTT)
-				|| (io->mod->whichmodel == BLOSUM62)
-				|| (io->mod->whichmodel == MTREV)
-				|| (io->mod->whichmodel == RTREV)
-				|| (io->mod->whichmodel == CPREV)
-				|| (io->mod->whichmodel == DCMUT) || (io->mod->whichmodel == VT)
-				|| (io->mod->whichmodel == MTMAM)
-				|| (io->mod->whichmodel == MTART)
-				|| (io->mod->whichmodel == HIVW)
-				|| (io->mod->whichmodel == HIVB)
-				|| (io->mod->whichmodel == CUSTOMAA)) {
-			io->mod->whichmodel = HKY85;
-			strcpy(io->mod->modelname, "HKY85\0");
-		}
+		strcpy(io->mod->custom_mod_string,pModel);
+
+		Make_Custom_Model(io->mod);
+	    Translate_Custom_Mod_String(io->mod);
+
+		io->mod->whichmodel       = CUSTOM;
+		strcpy(io->mod->modelname, "custom");
+		io->mod->s_opt->opt_kappa = 0;
+		io->mod->s_opt->opt_rr    = 1;
+
 	} else if (dataType == DATATYPE_AA) {
 
 		io->datatype = AA;
@@ -1009,7 +1007,6 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 					Lk(tree);
 			}
 #endif
-
 			tree->both_sides = 1;
 			Lk(tree);
 			Pars(tree);

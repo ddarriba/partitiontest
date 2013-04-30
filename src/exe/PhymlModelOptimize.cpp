@@ -246,7 +246,6 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 
 	notify_observers(MT_SINGLE_INIT, index, model, time(NULL), index,
 			groupCount);
-
 //	const char * ioFile, const char * treeFile, int dataType,
 //	int freqType, double * frequencies, int optimizeTopology,
 //	int optimizeBranchLengths, int optimizeRates, int optimizePInvar,
@@ -270,6 +269,7 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 	outdata->rates = rates;
 
 //	double lnL = cl_phyml_lk(numWords + 1, params);
+
 	struct __Option *io = build_options(indata);
 	io->cdata = ((PhymlAlignment *) partitionElement->getAlignment())->getCData();
 

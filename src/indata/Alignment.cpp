@@ -6,15 +6,16 @@
  */
 
 #include "Alignment.h"
-#include "../util/Utilities.h"
-#include "../util/GlobalDefs.h"
+#include "util/Utilities.h"
+#include "util/GlobalDefs.h"
 #include <fstream>
 #include <iostream>
 
 namespace partest {
 
 Alignment::Alignment(string alignmentFile, DataType dataType) :
-		alignmentFile(alignmentFile), dataType(dataType) {
+		alignmentFile(alignmentFile), dataType(dataType), shannonEntropy(0), numPatterns(
+				0), numSeqs(0), numSites(0), empiricalFrequencies(0) {
 
 	ifstream inputFile(alignmentFile.c_str());
 	if (!inputFile.good()) {

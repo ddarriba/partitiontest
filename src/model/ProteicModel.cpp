@@ -15,7 +15,8 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 		int numberOfTaxa) :
 		Model(rateVariation, numberOfTaxa), matrix(matrix) {
 	/* treeFreeParameters is already initialized to the number of branches */
-	this->frequencies = (double *) malloc(20 * sizeof(double));
+	this->numberOfFrequencies = NUM_PROT_FREQS;
+	this->frequencies = (double *) malloc(NUM_PROT_FREQS * sizeof(double));
 
 	switch (matrix) {
 	case PROT_MATRIX_DAYHOFF:
@@ -108,7 +109,7 @@ ProteicModel::~ProteicModel() {
 }
 
 void ProteicModel::setFrequencies(const double * frequencies) {
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < NUM_PROT_FREQS; i++) {
 		this->frequencies[i] = frequencies[i];
 	}
 }

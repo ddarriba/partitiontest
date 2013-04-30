@@ -735,7 +735,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       if(tree->data->invar[site] > -0.5)
         {
 	  /* Multiply P(D|r=0) by 2^(fact_sum_scale) */
-
 	  inv_site_lk = tree->mod->pi->v[tree->data->invar[site]];
 	  exponent = fact_sum_scale;
 	  do

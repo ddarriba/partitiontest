@@ -1,0 +1,149 @@
+/*
+ * NucleicModel.cpp
+ *
+ *  Created on: Jan 8, 2013
+ *      Author: diego
+ */
+
+#include "NucleicModel.h"
+#include <stdlib.h>
+#include <iostream>
+
+namespace partest {
+
+NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
+		int numberOfTaxa) :
+		Model(rateVariation, numberOfTaxa), matrix(matrix) {
+	/* treeFreeParameters is already initialized to the number of branches */
+	this->numberOfFrequencies = NUM_NUC_FREQS;
+	this->frequencies = (double *) malloc(NUM_NUC_FREQS * sizeof(double));
+
+	switch (matrix) {
+	case NUC_MATRIX_JC:
+		name.append("JC");
+		matrixName.append("000000");
+		break;
+	case NUC_MATRIX_F81:
+		name = "F81";
+		matrixName.append("000000");
+		break;
+	case NUC_MATRIX_K80:
+		name.append("K80");
+		matrixName.append("010010");
+		break;
+	case NUC_MATRIX_HKY:
+		name.append("HKY");
+		matrixName.append("010010");
+		break;
+	case NUC_MATRIX_TrNef:
+		name.append("TrNef");
+		matrixName.append("010020");
+		break;
+	case NUC_MATRIX_TrN:
+		name.append("TrN");
+		matrixName.append("010020");
+		break;
+	case NUC_MATRIX_TPM1:
+		name.append("TPM1");
+		matrixName.append("012210");
+		break;
+	case NUC_MATRIX_TPM1uf:
+		name.append("TPM1uf");
+		matrixName.append("012210");
+		break;
+	case NUC_MATRIX_TPM2:
+		name.append("TPM2");
+		matrixName.append("010212");
+		break;
+	case NUC_MATRIX_TPM2uf:
+		name.append("TPM2uf");
+		matrixName.append("010212");
+		break;
+	case NUC_MATRIX_TPM3:
+		name.append("TPM3");
+		matrixName.append("012012");
+		break;
+	case NUC_MATRIX_TPM3uf:
+		name.append("TPM3uf");
+		matrixName.append("012012");
+		break;
+	case NUC_MATRIX_TIM1ef:
+		name.append("TIM1ef");
+		matrixName.append("012230");
+		break;
+	case NUC_MATRIX_TIM1:
+		name.append("TIM1");
+		matrixName.append("012230");
+		break;
+	case NUC_MATRIX_TIM2ef:
+		name.append("TIM2ef");
+		matrixName.append("010232");
+		break;
+	case NUC_MATRIX_TIM2:
+		name.append("TIM2");
+		matrixName.append("010232");
+		break;
+	case NUC_MATRIX_TIM3ef:
+		name.append("TIM3ef");
+		matrixName.append("012032");
+		break;
+	case NUC_MATRIX_TIM3:
+		name.append("TIM3");
+		matrixName.append("012032");
+		break;
+	case NUC_MATRIX_TVMef:
+		name.append("TVMef");
+		matrixName.append("012314");
+		break;
+	case NUC_MATRIX_TVM:
+		name.append("TVM");
+		matrixName.append("012314");
+		break;
+	case NUC_MATRIX_SYM:
+		name.append("SYM");
+		matrixName.append("012345");
+		break;
+	case NUC_MATRIX_GTR:
+		name.append("GTR");
+		matrixName.append("012345");
+		break;
+	default:
+		cerr << "ERROR: Unknown nucleic matrix" << endl;
+		exit(-1);
+#ifdef _PLL
+
+#endif
+	}
+
+	if (rateVariation & RateVarF) {
+		modelFreeParameters+=3;
+	}
+
+	if (rateVariation & RateVarI) {
+		name .append("+I");
+		/* proportion of invariable sites free parameter */
+		modelFreeParameters++;
+	}
+
+	if (rateVariation & RateVarG) {
+		name.append("+G");
+		/* alpha free parameter */
+		modelFreeParameters++;
+	}
+}
+
+NucleicModel::~NucleicModel() {
+	// NOTHING
+}
+
+void NucleicModel::setFrequencies(const double * frequencies) {
+	for (int i = 0; i < 4; i++) {
+		this->frequencies[i] = frequencies[i];
+	}
+}
+
+void NucleicModel::setRates(const double * rates) {
+	// Ignore
+}
+
+} /* namespace partest */

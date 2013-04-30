@@ -104,7 +104,7 @@ enum NucMatrix {
   NUC_MATRIX_F81 = 1,
   NUC_MATRIX_K80 = 2,
   NUC_MATRIX_HKY = 3,
-  NUC_MATRIX_TrNet = 4,
+  NUC_MATRIX_TrNef = 4,
   NUC_MATRIX_TrN = 5,
   NUC_MATRIX_TPM1 = 6,
   NUC_MATRIX_TPM1uf = 7,

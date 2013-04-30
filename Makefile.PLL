@@ -23,6 +23,7 @@ PARTEST_CXXFILES = \
 	indata/PLLAlignment.cpp \
 	model/Model.cpp \
 	model/ModelSet.cpp \
+	model/NucleicModel.cpp \
 	model/ProteicModel.cpp \
 	observer/Observable.cpp \
 	observer/ConsoleObserver.cpp \

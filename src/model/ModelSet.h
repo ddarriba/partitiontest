@@ -8,8 +8,8 @@
 #ifndef MODELSET_H_
 #define MODELSET_H_
 
-#include "Model.h"
 #include "ProteicModel.h"
+#include "NucleicModel.h"
 #include "util/Utilities.h"
 
 namespace partest {
@@ -18,8 +18,7 @@ class ModelSet {
 public:
   ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa);
   size_t getNumberOfModels() { return numberOfModels; }
-  Model * getModel(unsigned int index) {
-	  return models[index]; }
+  Model * getModel(unsigned int index);
   virtual ~ModelSet();
 private:
   int buildModelSet(Model **models, bitMask rateVar, DataType dataType);

@@ -121,9 +121,13 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 		cdata->ambigu[j] = alignment->cdata->ambigu[cdata->sitepatt[j]];
 	}
 
-	// TODO: Generalize this for nt as well
-	cdata->b_frq = (phydbl *) malloc(20 * sizeof(phydbl));
-	get_aa_freqs(cdata);
+	if (dataType == DT_PROTEIC) {
+		cdata->b_frq = (phydbl *) malloc(20 * sizeof(phydbl));
+		get_aa_freqs(cdata);
+	} else {
+		cdata->b_frq = (phydbl *) malloc(4 * sizeof(phydbl));
+		get_nt_freqs(cdata);
+	}
 
 	return cdata;
 }
@@ -131,6 +135,7 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 PhymlAlignment::PhymlAlignment(PhymlAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
 
+	dataType = alignment->dataType;
 	cdata = build_cdata(alignment, firstPosition, lastPosition,
 			numberOfSections);
 	numSeqs = cdata->n_otu;
@@ -141,6 +146,7 @@ PhymlAlignment::PhymlAlignment(PhymlAlignment * alignment, int * firstPosition,
 PhymlAlignment::PhymlAlignment(PhymlAlignment * alignment, int firstPosition,
 		int lastPosition) {
 
+	dataType = alignment->dataType;
 	cdata = build_cdata(alignment, &firstPosition, &lastPosition, 1);
 	numSeqs = cdata->n_otu;
 	numSites = cdata->init_len;
@@ -150,12 +156,11 @@ PhymlAlignment::PhymlAlignment(PhymlAlignment * alignment, int firstPosition,
 PhymlAlignment::PhymlAlignment(string alignmentFile, DataType dataType) :
 		Alignment(alignmentFile, dataType) {
 
-	cdata = read_data(alignmentFile.c_str(), DATATYPE_AA);
+	cdata = read_data(alignmentFile.c_str(), dataType);
 
 	numSeqs = cdata->n_otu;
 	numSites = cdata->init_len;
 	numPatterns = cdata->crunch_len;
-	cout << "FREQUENCIES!!" << endl;
 
 	computeShannonEntropy(cdata->b_frq);
 	// TEST!!!

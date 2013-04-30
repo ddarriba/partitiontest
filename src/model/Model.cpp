@@ -14,14 +14,10 @@
 namespace partest {
 
 Model::Model(bitMask rateVariation, int numberOfTaxa) :
-		rateVariation(rateVariation) {
-	alpha = 100.0;
-	pInv = 0.0;
-	lnL = 0.0;
-	frequencies = 0;
-	rates = 0;
+		rateVariation(rateVariation), alpha(100.0), pInv(0.0), lnL(0.0),
+		numberOfFrequencies(0), frequencies(0), rates(0), modelFreeParameters(0), name() {
+
 	/* The free parameters are initialized with the number of branches */
-	modelFreeParameters = 0;
 	treeFreeParameters = Utilities::numberOfBranches(numberOfTaxa);
 }
 

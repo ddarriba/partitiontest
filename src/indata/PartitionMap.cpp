@@ -15,8 +15,7 @@ namespace partest {
 
 PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 		bitMask rateVariation, DataType dataType) :
-		alignment(alignment), rateVariation(
-				rateVariation), dataType(dataType) {
+		alignment(alignment), rateVariation(rateVariation), dataType(dataType) {
 #ifdef DEBUG
 	cout << "[TRACE] Instantiated partition map from config file" << endl;
 #endif
@@ -28,56 +27,68 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 	numberOfElements = 0;
 	//int **partitions;
 
-	f = Utilities::myfopen(configFile, "rb");
+	f = Utilities::myfopen(configFile, "rb", true);
 
-	while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
+	if (f) {
+		while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
 
-		numberOfElements++;
+			numberOfElements++;
 
-		if (cc)
-			free(cc);
-		cc = (char *) NULL;
+			if (cc)
+				free(cc);
+			cc = (char *) NULL;
+		}
+
+		rewind(f);
+
+		assert(
+				Utilities::binaryPow(numberOfElements) < sizeof(t_partitionElementId) * 8);
+		partitions = new vector<partitionInfo>(numberOfElements);
+
+		while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
+
+			char * name = strtok(cc, "=");
+			string nameStr(name);
+			int start = atoi(strtok(NULL, ","));
+			int end = atoi(strtok(NULL, "\\"));
+			char * strideStr = strtok(NULL, "\\");
+			int stride = strideStr ? atoi(strideStr) : 0;
+
+			/* partitionId is translated into partition mask */
+			partitions->at(partitionId).partitionId = Utilities::binaryPow(
+					partitionId);
+			partitions->at(partitionId).partitionElement = new PartitionElement(
+					partitions->at(partitionId).partitionId, nameStr, alignment,
+					start, end, stride, rateVariation, dataType);
+
+			partitionId++;
+
+			if (cc)
+				free(cc);
+
+			cc = (char *) NULL;
+		}
+		numberOfPartitions = numberOfElements;
+	} else {
+		partitions = new vector<partitionInfo>(1);
+		string nameStr("UNIQUE");
+		int start = 1;
+		int end = alignment->getNumSites();
+		int stride = 0;
+
+		partitions->at(0).partitionId = 1;
+		partitions->at(0).partitionElement = new PartitionElement(1, nameStr,
+				alignment, start, end, stride, rateVariation, dataType);
+		numberOfPartitions = 1;
 	}
-
-	rewind(f);
-
-	assert(
-			Utilities::binaryPow(numberOfElements)
-					< sizeof(t_partitionElementId) * 8);
-	partitions = new vector<partitionInfo>(numberOfElements);
-
-	while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
-
-		char * name = strtok(cc, "=");
-		string nameStr(name);
-		int start = atoi(strtok(NULL, ","));
-		int end = atoi(strtok(NULL, "\\"));
-		char * strideStr = strtok(NULL, "\\");
-		int stride = strideStr ? atoi(strideStr) : 0;
-
-		/* partitionId is translated into partition mask */
-		partitions->at(partitionId).partitionId = Utilities::binaryPow(
-				partitionId);
-		partitions->at(partitionId).partitionElement = new PartitionElement(
-				partitions->at(partitionId).partitionId, nameStr, alignment, start, end,
-				stride, rateVariation, dataType);
-
-		partitionId++;
-
-		if (cc)
-			free(cc);
-
-		cc = (char *) NULL;
-	}
-
-	numberOfPartitions = numberOfElements;
-
 }
 
-PartitionMap::PartitionMap(Alignment * alignment, unsigned int numberOfPartitions,
-		bitMask rateVariation, DataType dataType) :
-		alignment(alignment), numberOfElements(numberOfPartitions), numberOfPartitions(numberOfPartitions), rateVariation(
-				rateVariation), dataType(dataType) {
+PartitionMap::PartitionMap(Alignment * alignment,
+		unsigned int numberOfPartitions, bitMask rateVariation,
+		DataType dataType) :
+		alignment(alignment), numberOfElements(numberOfPartitions), numberOfPartitions(
+				numberOfPartitions), rateVariation(rateVariation), dataType(
+				dataType) {
 
 #ifdef DEBUG
 	cout << "[TRACE] Instantiated partition map from void" << endl;
@@ -106,8 +117,8 @@ bool PartitionMap::addPartitionElement(unsigned int partitionId, string name,
 	/* partitionId is translated into partition mask */
 	partitions->at(partitionId).partitionId = Utilities::binaryPow(partitionId);
 	partitions->at(partitionId).partitionElement = new PartitionElement(
-			partitions->at(partitionId).partitionId, name, alignment, startPosition,
-			endPosition, stride, rateVariation, dataType);
+			partitions->at(partitionId).partitionId, name, alignment,
+			startPosition, endPosition, stride, rateVariation, dataType);
 
 	return true;
 }
@@ -149,7 +160,8 @@ PartitionElement * PartitionMap::getPartitionElement(
 					getPartitionElement(Utilities::binaryPow(i))->getEnd();
 			stride[curIndex] =
 					getPartitionElement(Utilities::binaryPow(i))->getStride();
-			name << getPartitionElement(Utilities::binaryPow(i))->getName() << " ";
+			name << getPartitionElement(Utilities::binaryPow(i))->getName()
+					<< " ";
 			curIndex++;
 		}
 	}
@@ -161,8 +173,9 @@ PartitionElement * PartitionMap::getPartitionElement(
 // int * start, int * end, int * stride, int numberOfSections,
 // bitMask rateVariation, DataType dataType
 
-	pInfo.partitionElement = new PartitionElement(partitionId, name.str(), alignment, start,
-			end, stride, numberOfSections, rateVariation, dataType);
+	pInfo.partitionElement = new PartitionElement(partitionId, name.str(),
+			alignment, start, end, stride, numberOfSections, rateVariation,
+			dataType);
 	partitions->push_back(pInfo);
 	numberOfElements++;
 	return pInfo.partitionElement;

@@ -47,10 +47,10 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		model->setAlpha(0.5d);
 	}
 	if (model->isPF()) {
-		double *freqs = (double *)malloc(20 * sizeof(double));
+		double *freqs = (double *)malloc(model->getNumberOfFrequencies() * sizeof(double));
 		int i;
-		for (i=0; i < 20; i++) {
-			freqs[i] = 1.0/20;
+		for (i=0; i < model->getNumberOfFrequencies(); i++) {
+			freqs[i] = 1.0/model->getNumberOfFrequencies();
 		}
 		model->setFrequencies(freqs);
 		free(freqs);

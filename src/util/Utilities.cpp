@@ -225,28 +225,35 @@ void Utilities::exit_partest(int exitValue) {
 	exit(exitValue);
 }
 
-FILE * Utilities::myfopen(const char *path, const char *mode) {
+FILE * Utilities::myfopen(const char *path, const char *mode, bool lazy) {
 	FILE *fp = fopen(path, mode);
 
 	if (strcmp(mode, "r") == 0 || strcmp(mode, "rb") == 0) {
 		if (fp)
 			return fp;
 		else {
-			printf(
-					"\n Error: the file %s you want to open for reading does not exist, exiting ...\n\n",
-					path);
-			exit(-1);
-			return (FILE *) NULL;
+			if (lazy) {
+				return (FILE *) NULL;
+			} else {
+				printf(
+						"\n Error: the file %s you want to open for reading does not exist, exiting ...\n\n",
+						path);
+				exit(-1);
+
+			}
 		}
 	} else {
 		if (fp)
 			return fp;
 		else {
-			printf(
-					"\n Error: the file %s you want to open for writing or appending can not be opened [mode: %s], exiting ...\n\n",
-					path, mode);
-			exit(-1);
-			return (FILE *) NULL;
+			if (lazy) {
+				return (FILE *) NULL;
+			} else {
+				printf(
+						"\n Error: the file %s you want to open for writing or appending can not be opened [mode: %s], exiting ...\n\n",
+						path, mode);
+				exit(-1);
+			}
 		}
 	}
 }
