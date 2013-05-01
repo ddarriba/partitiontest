@@ -44,15 +44,17 @@ void ConsoleObserver::update(const ObservableInfo & info,
 	switch (info.type) {
 	case MT_SINGLE_INIT:
 #ifdef DEBUG
-		cout << "[TRACE] [" << modelIndex+1 << "/" << info.max_index << "]\tOptimizing " << info.model->getName() << "..." << endl;
+		cout << "[TRACE] INIT MODEL [" << modelIndex+1 << "/" << info.max_index << "]\tOptimizing " << info.model->getName() << "..." << endl;
 #endif
 		break;
 	case MT_SINGLE_END:
+#ifdef DEBUG
 		if (modelIndex == 0)
-			cout << "INIT MODEL" << endl;
+			cout << "[TRACE] END MODEL" << endl;
 		cout << "[" << ++modelIndex << "/" << info.max_index << "]\tOptimized "
 				<< setw(15) << info.model->getName() << info.model->getLnL()
 				<< endl;
+#endif
 		break;
 	case MT_MODELSET_INIT:
 		cout << "INIT MODELSET " << info.current_index << endl;

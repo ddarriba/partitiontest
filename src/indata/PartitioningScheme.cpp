@@ -18,7 +18,7 @@ PartitioningScheme::PartitioningScheme(int numberOfElements) :
 	currentElement = 0;
 	partitions = (PartitionElement **) malloc(
 			numberOfElements * sizeof(PartitionElement *));
-	numberOfBits = 0;
+	numberOfBits = 1;
 	code = 0;
 }
 
@@ -37,7 +37,8 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 	}
 	cout << "]" << endl;
 #endif
-	numberOfBits = 0;
+	numberOfBits = 1;
+
 	for (i = 0; i < numberOfElements; i++) {
 		int j;
 #ifdef DEBUG
@@ -46,6 +47,7 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 #endif
 		PartitionElement * newPE = partitionMap->getPartitionElement(
 				schemeVector->at(i));
+
 		if (Utilities::binaryLog(newPE->getId() | 1) > numberOfBits) {
 			numberOfBits = Utilities::binaryLog(newPE->getId() | 1);
 		}
@@ -62,6 +64,7 @@ PartitioningScheme::~PartitioningScheme() {
 int PartitioningScheme::addElement(PartitionElement * element) {
 	if (currentElement < numberOfElements) {
 		partitions[currentElement++] = element;
+
 		if (Utilities::binaryLog(element->getId() | 1) > numberOfBits) {
 			numberOfBits = Utilities::binaryLog(element->getId() | 1);
 		}

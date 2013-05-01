@@ -11,14 +11,15 @@
 #include <stdlib.h>
 #include <vector>
 #include "PartitionElement.h"
-#include "../util/GlobalDefs.h"
+#include "parser/ConfigParser.h"
+#include "util/GlobalDefs.h"
 
 namespace partest {
 
-struct partitionInfo {
+struct partitionMappingInfo {
 	t_partitionElementId partitionId;
 	PartitionElement * partitionElement;
-	~partitionInfo(void){ }//delete partitionElement; }
+	~partitionMappingInfo(void){ }//delete partitionElement; }
 };
 
 /**
@@ -40,7 +41,7 @@ private:
 	Alignment * alignment;
 	unsigned int numberOfElements;
 	unsigned int numberOfPartitions;
-	vector<partitionInfo> * partitions;
+	vector<partitionMappingInfo> * partitions;
 	bitMask rateVariation;
 	DataType dataType;
 };

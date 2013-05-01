@@ -27,6 +27,7 @@ PARTEST_CXXFILES = \
 	observer/ConsoleObserver.cpp \
 	options/ParTestOptions.cpp \
 	parser/ArgumentParser.cpp \
+	parser/ConfigParser.cpp \
 	search/SearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
 	search/RandomSearchAlgorithm.cpp \

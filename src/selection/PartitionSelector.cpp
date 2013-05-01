@@ -34,10 +34,6 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 	for (part_id = 0; part_id < numberOfSchemes; part_id++) {
 
 		PartitioningScheme * scheme = schemesArray[part_id];
-//		ModelSelector * selectors = (ModelSelector *) alloca(
-//				partition->getNumberOfElements() * sizeof(ModelSelector));
-//		SelectionModel ** bestModels = (SelectionModel **) alloca(
-//				partition->getNumberOfElements() * sizeof(SelectionModel *));
 
 		double lk = 0;
 		int parms = 0;
@@ -76,12 +72,12 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 	std::sort(schemesVector->begin(), schemesVector->end(),
 				compareSelectionPartitions());
 
-	bestScheme = schemesVector->at(0)->scheme;
+	bestSelectionScheme = schemesVector->at(0);
 	print();
 
-	for (part_id = 0; part_id < numberOfSchemes; part_id++) {
-		delete schemesVector->at(part_id);
-	}
+//	for (part_id = 1; part_id < numberOfSchemes; part_id++) {
+//		delete schemesVector->at(part_id);
+//	}
 
 }
 
@@ -110,6 +106,8 @@ void PartitionSelector::print() {
 		cout << sp->scheme->toString() << " " << sp->lnL << " "
 				<< sp->numParameters << " " << sp->value << endl;
 	}
+	cout << "*********** ******************** *************" << endl;
+
 }
 
 } /* namespace partest */

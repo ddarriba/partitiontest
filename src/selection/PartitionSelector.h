@@ -28,12 +28,12 @@ public:
 			int numberOfPartitions, InformationCriterion ic,
 			SampleSize sampleSize, double sampleSizeValue = 0.0);
 	virtual ~PartitionSelector();
-	PartitioningScheme * getBestScheme(void) { return bestScheme; }
-	SelectionPartitioningScheme * getBestSelectionScheme(void) { return schemesVector->at(0); }
+	PartitioningScheme * getBestScheme(void) { return bestSelectionScheme->scheme; }
+	SelectionPartitioningScheme * getBestSelectionScheme(void) { return bestSelectionScheme; }
 	void print(void);
 private:
 	PartitioningScheme ** schemesArray;
-	PartitioningScheme * bestScheme;
+	SelectionPartitioningScheme * bestSelectionScheme;
 	int numberOfSchemes;
 	InformationCriterion ic;
 	SampleSize sampleSize;
