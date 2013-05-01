@@ -25,11 +25,12 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 	while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
 
-		numberOfPartitions++;
+        numberOfPartitions++;
 
-		if (cc)
-			free(cc);
-		cc = (char *) NULL;
+        if (cc)
+                free(cc);
+        cc = (char *) NULL;
+
 	}
 
 	rewind(f);
@@ -39,29 +40,38 @@ ConfigParser::ConfigParser(const char * configFile) :
 	partitions = new vector<partitionInfo>(numberOfPartitions);
 
 	while (Utilities::myGetline(&cc, &nbytes, f) > -1) {
-
-		char * name = strtok(cc, "=");
-		string nameStr(name);
-		int start = atoi(strtok(NULL, "-"));
-		int end = atoi(strtok(NULL, "\\"));
-		char * strideStr = strtok(NULL, "\\");
-		int stride = strideStr ? atoi(strideStr) : 0;
-
-		/* partitionId is translated into partition mask */
-		partitions->at(partitionId).partitionId = Utilities::binaryPow(
-				partitionId);
-		partitions->at(partitionId).start = start;
-		partitions->at(partitionId).end = end;
-		partitions->at(partitionId).stride = stride;
-		partitions->at(partitionId).name = nameStr;
-
-		partitionId++;
-
-		if (cc)
-			free(cc);
-
-		cc = (char *) NULL;
+				partitions->at(partitionId).partitionId = Utilities::binaryPow(
+						partitionId);
+				parsePartitionLine(cc, &partitions->at(partitionId));
+				partitionId++;
 	}
+
+	fclose(f);
+}
+
+int ConfigParser::parsePartitionLine(char * line,
+		struct partitionInfo * pInfo) {
+	cout << "DEBUG 1 " << line << endl;
+	char * name = strtok(line, "=");
+	cout << "DEBUG 1 " << name << endl;
+	string nameStr(name);
+	cout << "DEBUG 2" << endl;
+	int start = atoi(strtok(NULL, ","));
+	int end = atoi(strtok(NULL, "\\"));
+	cout << "DEBUG 3" << endl;
+	char * strideStr = strtok(NULL, "\\");
+	int stride = strideStr ? atoi(strideStr) : 0;
+	cout << "DEBUG 4" << endl;
+	/* partitionId is translated into partition mask */
+	pInfo->start = start;
+	pInfo->end = end;
+	pInfo->stride = stride;
+	pInfo->name = nameStr;
+	cout << "DEBUG 5" << endl;
+//	if (line)
+//		free (line);
+//	line = (char *) NULL;
+
 }
 
 ConfigParser::~ConfigParser() {

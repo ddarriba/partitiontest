@@ -6,7 +6,7 @@
  */
 
 #include "PhymlModelOptimize.h"
-#include "../model/ModelSet.h"
+#include "model/ModelSet.h"
 #include <time.h>
 #include <string.h>
 #include <alloca.h>
@@ -288,6 +288,8 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 	if (model->isPF()) {
 		model->setFrequencies(outdata->frequencies);
 	}
+
+//	pt_free_io(io);
 
 	notify_observers(MT_SINGLE_END, index, model, time(NULL), index,
 			groupCount);

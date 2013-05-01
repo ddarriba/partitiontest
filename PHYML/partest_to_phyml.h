@@ -7,8 +7,6 @@
 #define FREQTYPE_EMPIRICAL 2
 #define FREQTYPE_CUSTOM    3
 
-//#include "utilities.h"
-
 typedef struct {
 	const char * ioFile;
 	const char * treeFile;
@@ -31,10 +29,6 @@ typedef struct {
 	double *frequencies;
 	char *tree;
 } phyml_outdata;
-
-//typedef double phydbl;
-
-//typedef struct __Calign;
 
 void get_aa_freqs(struct __Calign *data);
 void get_nt_freqs(struct __Calign *data);

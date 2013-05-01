@@ -63,6 +63,7 @@ struct nextSchemeFunctor {
 
 	~nextSchemeFunctor() {
 		free(mask);
+		delete schemeVector;
 	}
 #ifdef GREEDY_EXTENDED
 	PartitioningScheme * operator()(void) {
@@ -198,6 +199,8 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 
 		free(partitioningSchemesVector);
 	}
+
+	delete mo;
 
 	return bestScheme;
 }

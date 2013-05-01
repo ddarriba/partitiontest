@@ -33,6 +33,7 @@ public:
 	int getNumberOfPartitions() { return numberOfPartitions; }
 	static void printFormat();
 private:
+	int parsePartitionLine(char * line, struct partitionInfo * pInfo);
 	const char * configFile;
 	int numberOfPartitions;
 	vector<partitionInfo> * partitions;
