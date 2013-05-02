@@ -12,6 +12,10 @@
 #include "indata/PartitionElement.h"
 #include <vector>
 
+#define PARTITIONS_TAG "partitions"
+#define SEARCH_ALGO_TAG "search"
+#define ALGORITHM_TAG "algorithm"
+
 using namespace std;
 namespace partest {
 
@@ -34,9 +38,13 @@ public:
 	static void printFormat();
 private:
 	int parsePartitionLine(char * line, struct partitionInfo * pInfo);
+	int parsePartitionDetails(char * line,	struct partitionInfo * pInfo);
 	const char * configFile;
 	int numberOfPartitions;
 	vector<partitionInfo> * partitions;
+	/** search algorithm **/
+	bool searchData;
+	SearchAlgo searchAlgorithm;
 };
 
 } /* namespace partest */
