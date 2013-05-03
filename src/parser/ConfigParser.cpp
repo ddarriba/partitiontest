@@ -7,16 +7,20 @@
 
 #include "ConfigParser.h"
 #include "util/Utilities.h"
-#include "SimpleIni.h"
 #include <string.h>
 #include <assert.h>
 
 namespace partest {
 
 ConfigParser::ConfigParser(const char * configFile) :
-		configFile(configFile), numberOfPartitions(0) {
+		configFile(configFile), numberOfPartitions(0), outputBasePath(
+				DEFAULT_OUTPUT_BASE_PATH), outputFileModels(
+				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
+				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
+				DEFAULT_OUTPUT_SCHEMES_TAG) {
 
 	int partitionId = 0;
+	const char * value;
 
 	CSimpleIniA ini;
 	ini.SetUnicode();
@@ -28,11 +32,10 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 	/** SEARCH ALGORITHM **/
 
-	ini.GetAllKeys(SEARCH_ALGO_TAG, keys);
+	ini.GetAllKeys(SEARCH_TAG, keys);
 	searchData = keys.size() > 0;
 	if (searchData) {
-		const char * value = ini.GetValue(SEARCH_ALGO_TAG, ALGORITHM_TAG,
-				"none");
+		value = ini.GetValue(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "none");
 		if (!strcmp(value, "greedy")) {
 			searchAlgorithm = SearchGreedy;
 		} else if (!strcmp(value, "exhaustive")) {
@@ -66,6 +69,30 @@ ConfigParser::ConfigParser(const char * configFile) :
 		partitionId++;
 	}
 	free(lineBuffer);
+
+	/** OUTPUT **/
+
+	value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
+	if (value) {
+		outputBasePath = string(value);
+	}
+	value = ini.GetValue(OUTPUT_TAG, OUTPUT_MODELS_TAG, 0);
+	if (value) {
+		outputFileModels = outputBasePath + string(value);
+	}
+	value = ini.GetValue(OUTPUT_TAG, OUTPUT_PARTS_TAG, 0);
+	if (value) {
+		outputFilePartitions = outputBasePath + string(value);
+	}
+	value = ini.GetValue(OUTPUT_TAG, OUTPUT_SCHEMES_TAG, 0);
+	if (value) {
+		outputFileSchemes = outputBasePath + string(value);
+	}
+
+	cout << "OUTPUT: " << outputFileModels << endl;
+	cout << "OUTPUT: " << outputFilePartitions << endl;
+	cout << "OUTPUT: " << outputFileSchemes << endl;
+
 	exit(0);
 }
 
