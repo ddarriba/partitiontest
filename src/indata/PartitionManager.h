@@ -8,7 +8,7 @@
 #ifndef PARTITIONMANAGER_H_
 #define PARTITIONMANAGER_H_
 
-#include "../util/GlobalDefs.h"
+#include "util/GlobalDefs.h"
 
 namespace partest {
 
