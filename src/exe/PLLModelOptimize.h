@@ -46,12 +46,12 @@ namespace partest {
 class PLLModelOptimize: public ModelOptimize {
 public:
 	PLLModelOptimize(ParTestOptions * options);
-	int optimizeModel(Model * model, PartitionElement * partitionElement, int index,
-			int groupCount);
+	int optimizeModel(Model * model, PartitionElement * partitionElement,
+			int index, int groupCount);
 	virtual ~PLLModelOptimize();
 private:
-	tree * tr;
-	double **empiricalFrequencies;
+	tree * tr; /** Tree structure from PLL */
+	double **empiricalFrequencies; /** Empirical frequencies of the site states. */
 };
 
 } /* namespace partest */

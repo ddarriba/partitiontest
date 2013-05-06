@@ -6,7 +6,6 @@
  */
 
 #include "PartitionElement.h"
-//#include "../indata/PhymlAlignment.h"
 
 namespace partest {
 

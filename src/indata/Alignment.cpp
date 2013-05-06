@@ -13,6 +13,15 @@
 
 namespace partest {
 
+Alignment::Alignment() {
+	numSeqs = 0;
+	numSites = 0;
+	numPatterns = 0;
+	numberOfFrequencies = 0;
+	empiricalFrequencies = 0;
+	shannonEntropy = 0.0;
+	dataType = DT_NUCLEIC;
+}
 Alignment::Alignment(string alignmentFile, DataType dataType) :
 		alignmentFile(alignmentFile), dataType(dataType), shannonEntropy(0), numPatterns(
 				0), numSeqs(0), numSites(0), empiricalFrequencies(0) {

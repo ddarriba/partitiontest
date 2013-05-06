@@ -24,11 +24,11 @@
 #ifndef MODELOPTIMIZE_H_
 #define MODELOPTIMIZE_H_
 
-#include "../model/Model.h"
-#include "../indata/PartitioningScheme.h"
-#include "../indata/PartitionElement.h"
-#include "../options/ParTestOptions.h"
-#include "../observer/Observable.h"
+#include "model/Model.h"
+#include "indata/PartitioningScheme.h"
+#include "indata/PartitionElement.h"
+#include "options/ParTestOptions.h"
+#include "observer/Observable.h"
 
 namespace partest {
 
@@ -38,14 +38,14 @@ namespace partest {
 class ModelOptimize: public Observable {
 public:
 	/**
-	 * Creates a new interface for Model Optimizers.
+	 * @brief Creates a new interface for Model Optimizers.
 	 *
 	 * @param[in]	options PartitionTest Options for model optimization.
 	 */
 	ModelOptimize(ParTestOptions * options);
 
 	/**
-	 * Optimizes the parameters of the partitions that belong to a partitioning scheme.
+	 * @brief Optimizes the parameters of the partitions that belong to a partitioning scheme.
 	 *
 	 * @param[in]	scheme Partitioning scheme to be evaluated.
 	 * @param[in]	forceRecomputation If true, the scheme is evaluated even if it was already evaluated before.
@@ -57,16 +57,19 @@ public:
 	 * Optimizes the parameters of a single partition.
 	 *
 	 * @param[in]	partitionElement Partition to be evaluated
+	 * @return		0 if the evaluation ended successfully. Error code otherwise.
 	 */
 	virtual int optimizePartitionElement(PartitionElement * partitionElement);
 
 	/**
-	 * Optimizes the parameters of a single model.
+	 * @brief Optimizes the parameters of a single model.
 	 *
 	 * @param[in,out]	model Model to be evaluated.
 	 * @param[in]		partitionElement Partition the model belongs to.
 	 * @param[in]		index The index of the model in the modelset.
 	 * @param[in]		groupCount The number of candidate models.
+	 *
+	 * @return		0 if the evaluation ended successfully. Error code otherwise.
 	 */
 	virtual int optimizeModel(Model * model,
 			PartitionElement * partitionElement, int index, int groupCount) = 0;
