@@ -45,7 +45,8 @@ double ModelSelector::computeBic(double lnL, int freeParameters,
 }
 
 ModelSelector::ModelSelector(PartitionElement * partitionElement,
-		InformationCriterion ic, double sampleSize) {
+		InformationCriterion ic, double sampleSize) :
+				ic(ic), sampleSize(sampleSize) {
 
 	doSelection(partitionElement->getModelset(), ic, sampleSize);
 	partitionElement->setBestModel(getBestModel());
@@ -105,23 +106,26 @@ void ModelSelector::print() {
 
 	/* header */
 	cout << endl;
-	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl;
-	cout << setw(5) << "###" << setw(15) << "Model" << setw(15) << "lnL"
+	cout << setw(95) << setfill('-') << "" << setfill(' ') << endl;
+	cout << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15) << "lnL"
 			<< setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
-	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl;
+	cout << setw(95) << setfill('-') << "" << setfill(' ') << endl;
 	for (int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
 		cout << setw(5) << i + 1 << setw(15)
-				<< selectionModel->getModel()->getName() << setw(15)
+				<< selectionModel->getModel()->getName()
+				<< setw(5) <<  selectionModel->getModel()->getNumberOfFreeParameters()
+				<< setw(15)
 				<< setprecision(10) << selectionModel->getModel()->getLnL()
 				<< setw(15) << selectionModel->getValue() << setw(15)
 				<< selectionModel->getDelta() << setw(15) << setprecision(4)
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl;
+	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl << endl;
+	cout << "SAMPLE SIZE: " << sampleSize << endl << endl;
 	cout << "PARAMETER IMPORTANCE" << endl;
 	cout << setw(15) << "alpha:" << alphaImportance << endl;
 	cout << setw(15) << "pInv:" << invImportance << endl;

@@ -165,7 +165,7 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 				" -f 0.25,0.25,0.25,0.25");
 #endif
 		freqType =
-				!(~options->getRateVariation() | RateVarF) ?
+				model->isPF() ?
 						FREQTYPE_MODEL : FREQTYPE_CUSTOM;
 		if (freqType == FREQTYPE_CUSTOM) {
 			frequencies[0] = frequencies[1] = frequencies[2] = frequencies[3] =

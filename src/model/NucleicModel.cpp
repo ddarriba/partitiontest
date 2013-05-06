@@ -30,82 +30,102 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	case NUC_MATRIX_K80:
 		name.append("K80");
 		matrixName.append("010010");
+		modelFreeParameters+=1;
 		break;
 	case NUC_MATRIX_HKY:
 		name.append("HKY");
 		matrixName.append("010010");
+		modelFreeParameters+=1;
 		break;
 	case NUC_MATRIX_TrNef:
 		name.append("TrNef");
 		matrixName.append("010020");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TrN:
 		name.append("TrN");
 		matrixName.append("010020");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM1:
 		name.append("TPM1");
 		matrixName.append("012210");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM1uf:
 		name.append("TPM1uf");
 		matrixName.append("012210");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM2:
 		name.append("TPM2");
 		matrixName.append("010212");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM2uf:
 		name.append("TPM2uf");
 		matrixName.append("010212");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM3:
 		name.append("TPM3");
 		matrixName.append("012012");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TPM3uf:
 		name.append("TPM3uf");
 		matrixName.append("012012");
+		modelFreeParameters+=2;
 		break;
 	case NUC_MATRIX_TIM1ef:
 		name.append("TIM1ef");
 		matrixName.append("012230");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TIM1:
 		name.append("TIM1");
 		matrixName.append("012230");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TIM2ef:
 		name.append("TIM2ef");
 		matrixName.append("010232");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TIM2:
 		name.append("TIM2");
 		matrixName.append("010232");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TIM3ef:
 		name.append("TIM3ef");
 		matrixName.append("012032");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TIM3:
 		name.append("TIM3");
 		matrixName.append("012032");
+		modelFreeParameters+=3;
 		break;
 	case NUC_MATRIX_TVMef:
 		name.append("TVMef");
 		matrixName.append("012314");
+		modelFreeParameters+=4;
 		break;
 	case NUC_MATRIX_TVM:
 		name.append("TVM");
 		matrixName.append("012314");
+		modelFreeParameters+=4;
 		break;
 	case NUC_MATRIX_SYM:
 		name.append("SYM");
 		matrixName.append("012345");
+		modelFreeParameters+=5;
 		break;
 	case NUC_MATRIX_GTR:
 		name.append("GTR");
 		matrixName.append("012345");
+		modelFreeParameters+=5;
 		break;
 	default:
 		cerr << "ERROR: Unknown nucleic matrix" << endl;

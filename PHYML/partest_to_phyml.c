@@ -28,12 +28,15 @@ void get_aa_freqs(calign *data) {
 	fA = fC = fD = fE = fF = fG = fH = fI = fK = fL = fM = fN = fP = fQ = fR =
 			fS = fT = fV = fW = fY = 1. / 20.;
 
-	For(k,8) {
+	For(k,8)
+	{
 		A = C = D = E = F = G = H = I = K = L = M = N = P = Q = R = S = T = V =
 				W = Y = .0;
 
-		For(i,data->n_otu) {
-			For(j,data->crunch_len) {
+		For(i,data->n_otu)
+		{
+			For(j,data->crunch_len)
+			{
 				w = data->wght[j];
 				if (w) {
 					switch (data->c_seq[i]->state[j]) {
@@ -185,10 +188,13 @@ void get_nt_freqs(calign *data) {
 
 	fA = fC = fG = fT = .25;
 
-	For(k,8) {
+	For(k,8)
+	{
 		A = C = G = T = .0;
-		For(i,data->n_otu) {
-			For(j,data->crunch_len) {
+		For(i,data->n_otu)
+		{
+			For(j,data->crunch_len)
+			{
 				w = data->wght[j];
 				if (w) {
 					switch (data->c_seq[i]->state[j]) {
@@ -277,6 +283,94 @@ void get_nt_freqs(calign *data) {
 	data->b_frq[1] = fC;
 	data->b_frq[2] = fG;
 	data->b_frq[3] = fT;
+}
+
+void print_options(option * io) {
+
+	printf("**********BEGIN IO*************\n\n");
+	printf(" in_tree:       %d\n", io->in_tree);
+	printf(" in_align_file: %s\n", io->in_align_file);
+	printf(" in_tree_file:  %s\n", io->in_tree_file);
+	printf(" in_constraint_tree_file:  %s\n", io->in_constraint_tree_file);
+	printf(" datatype:      %d\n", io->datatype);
+	printf(" n_data_sets:   %d\n", io->n_data_sets);
+	printf(" n_trees:       %d\n", io->n_trees);
+	printf(" init_len:      %d\n", io->init_len);
+	printf(" n_otu:         %d\n", io->n_otu);
+	printf(" multigene:         %d\n", io->multigene);
+	printf(" config_multigene:  %d\n", io->config_multigene);
+	printf(" n_part:        %d\n", io->n_part);
+	printf(" curr_gt:       %d\n", io->curr_gt);
+	printf(" ratio_test:    %d\n", io->ratio_test);
+	printf(" ready_to_go:   %d\n", io->ready_to_go);
+	printf(" r_seed:        %d\n", io->r_seed);
+
+	printf("\n**********BEGIN MODEL*************\n\n");
+	struct __Model * mod = io->mod;
+
+	printf(" modelname:   %s\n", mod->modelname);
+	printf(" mod_num:       %d\n", mod->mod_num);
+	printf(" n_diff_rr:     %d\n", mod->n_diff_rr);
+	printf(" update_eigen:  %d\n", mod->update_eigen);
+	printf(" whichmodel:    %d\n", mod->whichmodel);
+	printf(" n_catg:        %d\n", mod->n_catg);
+	printf(" invar:        %d\n", mod->invar);
+	printf(" ns:           %d\n", mod->ns);
+	printf(" use_m4mod:    %d\n", mod->use_m4mod);
+	printf(" gamma_median: %d\n", mod->gamma_median);
+
+	printf("\n**********BEGIN OPT*************\n\n");
+	struct __Optimiz * opt = mod->s_opt;
+	printf(" a: %d k: %d l: %d i: %d f: %d r: %d, p: %d\n", opt->opt_alpha,
+			opt->opt_kappa, opt->opt_lambda, opt->opt_pinvar,
+			opt->opt_state_freq, opt->opt_rr, opt->opt_subst_param);
+	printf(" COV alpha %d delta %d free_rates %d\n", opt->opt_cov_alpha,
+			opt->opt_cov_delta, opt->opt_cov_free_rates);
+	printf(" Opt BL %d TOPO %d TOPO_SEARCH %d\n", opt->opt_bl, opt->opt_topo,
+			opt->topo_search);
+	printf(" INIT_LK %f n_it_max %d last_opt %d\n", opt->init_lk, opt->n_it_max,
+			opt->last_opt);
+	printf(" random_input_tree %d\n", opt->random_input_tree);
+	printf(" n_rand_starts     %d\n", opt->n_rand_starts);
+	printf(" brent_it_max      %d\n", opt->brent_it_max);
+	printf(" steph_spr         %d\n", opt->steph_spr);
+	printf(" user_state_freq   %d\n", opt->user_state_freq);
+	printf(" opt_five_branch   %d\n", opt->opt_five_branch);
+
+	printf(" min_diff_lk_local  %f\n", opt->min_diff_lk_local);
+	printf(" min_diff_lk_global %f\n", opt->min_diff_lk_global);
+	printf(" min_diff_lk_move   %f\n", opt->min_diff_lk_move);
+	printf(" p_moves_to_examine %f\n", opt->p_moves_to_examine);
+
+	printf(" fast_nni   %d\n", opt->fast_nni);
+	printf(" greedy     %d\n", opt->greedy);
+	printf(" spr_pars   %d\n", opt->spr_pars);
+	printf(" spr_lnL    %d\n", opt->spr_lnL);
+	printf(" constrained_br_len   %d\n", opt->constrained_br_len);
+	printf(" opt_gamma_br_len     %d\n", opt->opt_gamma_br_len);
+	printf(" opt_free_mixt_rates  %d\n", opt->opt_free_mixt_rates);
+}
+
+void print_cdata(calign * cdata) {
+	int i, j, k;
+	printf("**********BEGIN CDATA*************\n\n");
+	printf(" n_otu:      %d\n", cdata->n_otu);
+	printf(" clean_len:  %d\n", cdata->clean_len);
+	printf(" crunch_len: %d\n", cdata->crunch_len);
+	printf(" init_len:   %d\n", cdata->init_len);
+	printf(" format:     %d\n", cdata->format);
+	printf(" obs_pinvar: %f\n", cdata->obs_pinvar);
+	int wght = 0;
+	int ambigu = 0;
+	int invar = 0;
+	for (i = 0; i < cdata->crunch_len; i++) {
+		wght += cdata->wght[i];
+		ambigu += cdata->ambigu[i];
+		invar += cdata->invar[i];
+	}
+	printf(" wght:   %d\n", wght);
+	printf(" ambigu: %d\n", ambigu);
+	printf(" invar:  %d\n", invar);
 }
 
 void free_cdata(calign * cdata) {
@@ -508,15 +602,15 @@ option * build_options(phyml_indata indata) {
 		io->mod->state_len = 1;
 		io->mod->m4mod->n_o = 4;
 
-		strcpy(io->mod->custom_mod_string,pModel);
+		strcpy(io->mod->custom_mod_string, pModel);
 
 		Make_Custom_Model(io->mod);
-	    Translate_Custom_Mod_String(io->mod);
+		Translate_Custom_Mod_String(io->mod);
 
-		io->mod->whichmodel       = CUSTOM;
+		io->mod->whichmodel = CUSTOM;
 		strcpy(io->mod->modelname, "custom");
 		io->mod->s_opt->opt_kappa = 0;
-		io->mod->s_opt->opt_rr    = 1;
+		io->mod->s_opt->opt_rr = 1;
 
 	} else if (dataType == DATATYPE_AA) {
 
@@ -698,7 +792,7 @@ option * build_options(phyml_indata indata) {
 	Set_Model_Name(io->mod);
 
 	//TODO: SOME TEMPORARY THINGS
-	io->mod->s_opt->constrained_br_len = YES;
+	//io->mod->s_opt->constrained_br_len = YES;
 	io->mod->s_opt->min_diff_lk_local = 0.01;
 	io->mod->s_opt->min_diff_lk_global = 0.01;
 	//TODO: *********************
@@ -717,78 +811,64 @@ option * build_options(phyml_indata indata) {
 				"\n. The random starting tree option is only compatible with SPR based search options.\n");
 	}
 
-//	  int             opt_alpha; /*! =1 -> the gamma shape parameter is optimised */
-//	  int             opt_kappa; /*! =1 -> the ts/tv ratio parameter is optimised */
-//	  int            opt_lambda; /*! =1 -> the F84|TN93 model specific parameter is optimised */
-//	  int            opt_pinvar; /*! =1 -> the proportion of invariants is optimised */
-//	  int        opt_state_freq; /*! =1 -> the nucleotide frequencies are optimised */
-//	  int                opt_rr; /*! =1 -> the relative rate parameters of the GTR or the customn model are optimised */
-//	  int       opt_subst_param; /*! if opt_topo=0 and opt_subst_param=1 -> the numerical parameters of the
-//					model are optimised. if opt_topo=0 and opt_free_param=0 -> no parameter is
-//					optimised */
-//	  int         opt_cov_delta;
-//	  int         opt_cov_alpha;
-//	  int    opt_cov_free_rates;
-
-
 	//	if (io->mod->use_m4mod == NO) {
-		io->mod->s_opt->opt_cov_delta = 0;
-		io->mod->s_opt->opt_cov_alpha = 0;
-		io->mod->s_opt->opt_cov_free_rates = 0;
-/*	} else if ((io->mod->s_opt->opt_cov_free_rates)
-			&& (io->mod->s_opt->opt_cov_alpha)) {
-		io->mod->s_opt->opt_cov_free_rates = 1;
-		io->mod->m4mod->use_cov_alpha = 0;
-		io->mod->m4mod->use_cov_free = 1;
-	}
-*/
+	io->mod->s_opt->opt_cov_delta = 0;
+	io->mod->s_opt->opt_cov_alpha = 0;
+	io->mod->s_opt->opt_cov_free_rates = 0;
+	/*	} else if ((io->mod->s_opt->opt_cov_free_rates)
+	 && (io->mod->s_opt->opt_cov_alpha)) {
+	 io->mod->s_opt->opt_cov_free_rates = 1;
+	 io->mod->m4mod->use_cov_alpha = 0;
+	 io->mod->m4mod->use_cov_free = 1;
+	 }
+	 */
 
-		io->print_trace = 0;
-/*
-	if (io->print_trace) {
-		strcpy(io->out_trace_file, io->in_align_file);
-		strcat(io->out_trace_file, "_phyml_trace");
-		if (io->appebr_run_ID) {
-			strcat(io->out_trace_file, "_");
-			strcat(io->out_trace_file, io->run_id_string);
-		}
-		strcat(io->out_trace_file, ".txt");
-		io->fp_out_trace = Openfile(io->out_trace_file, 1);
-	}
+	io->print_trace = 0;
+	/*
+	 if (io->print_trace) {
+	 strcpy(io->out_trace_file, io->in_align_file);
+	 strcat(io->out_trace_file, "_phyml_trace");
+	 if (io->appebr_run_ID) {
+	 strcat(io->out_trace_file, "_");
+	 strcat(io->out_trace_file, io->run_id_string);
+	 }
+	 strcat(io->out_trace_file, ".txt");
+	 io->fp_out_trace = Openfile(io->out_trace_file, 1);
+	 }
 
-	if (io->mod->s_opt->random_input_tree) {
-		strcpy(io->out_trees_file, io->in_align_file);
-		strcat(io->out_trees_file, "_phyml_rand_trees");
-		if (io->appebr_run_ID) {
-			strcat(io->out_trees_file, "_");
-			strcat(io->out_trees_file, io->run_id_string);
-		}
-		strcat(io->out_trees_file, ".txt");
-		io->fp_out_trees = Openfile(io->out_trees_file, 1);
-	}
-*/
+	 if (io->mod->s_opt->random_input_tree) {
+	 strcpy(io->out_trees_file, io->in_align_file);
+	 strcat(io->out_trees_file, "_phyml_rand_trees");
+	 if (io->appebr_run_ID) {
+	 strcat(io->out_trees_file, "_");
+	 strcat(io->out_trees_file, io->run_id_string);
+	 }
+	 strcat(io->out_trees_file, ".txt");
+	 io->fp_out_trees = Openfile(io->out_trees_file, 1);
+	 }
+	 */
 
 	io->print_boot_trees = 0;
-/*	if ((io->print_boot_trees) && (io->mod->bootstrap > 0)) {
-		strcpy(io->out_boot_tree_file, io->in_align_file);
-		strcat(io->out_boot_tree_file, "_phyml_boot_trees");
-		if (io->appebr_run_ID) {
-			strcat(io->out_boot_tree_file, "_");
-			strcat(io->out_boot_tree_file, io->run_id_string);
-		}
-		strcat(io->out_boot_tree_file, ".txt");
-		io->fp_out_boot_tree = Openfile(io->out_boot_tree_file, 1);
+	/*	if ((io->print_boot_trees) && (io->mod->bootstrap > 0)) {
+	 strcpy(io->out_boot_tree_file, io->in_align_file);
+	 strcat(io->out_boot_tree_file, "_phyml_boot_trees");
+	 if (io->appebr_run_ID) {
+	 strcat(io->out_boot_tree_file, "_");
+	 strcat(io->out_boot_tree_file, io->run_id_string);
+	 }
+	 strcat(io->out_boot_tree_file, ".txt");
+	 io->fp_out_boot_tree = Openfile(io->out_boot_tree_file, 1);
 
-		strcpy(io->out_boot_stats_file, io->in_align_file);
-		strcat(io->out_boot_stats_file, "_phyml_boot_stats");
-		if (io->appebr_run_ID) {
-			strcat(io->out_boot_stats_file, "_");
-			strcat(io->out_boot_stats_file, io->run_id_string);
-		}
-		strcat(io->out_boot_stats_file, ".txt");
-		io->fp_out_boot_stats = Openfile(io->out_boot_stats_file, 1);
-	}
-*/
+	 strcpy(io->out_boot_stats_file, io->in_align_file);
+	 strcat(io->out_boot_stats_file, "_phyml_boot_stats");
+	 if (io->appebr_run_ID) {
+	 strcat(io->out_boot_stats_file, "_");
+	 strcat(io->out_boot_stats_file, io->run_id_string);
+	 }
+	 strcat(io->out_boot_stats_file, ".txt");
+	 io->fp_out_boot_stats = Openfile(io->out_boot_stats_file, 1);
+	 }
+	 */
 	if (io->appebr_run_ID) {
 		strcat(io->out_tree_file, "_");
 		strcat(io->out_stats_file, "_");
@@ -822,7 +902,7 @@ option * build_options(phyml_indata indata) {
 	}
 
 	// TODO: THIS OUTFILES !!!
-	io->fp_out_tree = NULL;//Openfile(io->out_tree_file, 1);
+	io->fp_out_tree = NULL;	//Openfile(io->out_tree_file, 1);
 	io->fp_out_stats = Openfile(io->out_stats_file, 1);
 
 	if (io->mod->whichmodel == GTR) {
@@ -860,7 +940,7 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 	most_likely_size = -1.0;
 	tree_size = -1.0;
 
-	r_seed = (io->r_seed < 0) ? (time(NULL)) : (io->r_seed);
+	r_seed = (io->r_seed < 0) ? (time(NULL )) : (io->r_seed);
 	srand(r_seed);
 	io->r_seed = r_seed;
 	io->quiet = 1;
@@ -901,7 +981,8 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 		if (!io->mod->s_opt->random_input_tree)
 			io->mod->s_opt->n_rand_starts = 1;
 
-		For(num_rand_tree,io->mod->s_opt->n_rand_starts) {
+		For(num_rand_tree,io->mod->s_opt->n_rand_starts)
+		{
 			if ((io->mod->s_opt->random_input_tree)
 					&& (io->mod->s_opt->topo_search != NNI_MOVE))
 				if (!io->quiet)
@@ -925,13 +1006,13 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 			}
 			}
 
-			if (io->fp_in_constraint_tree != NULL) {
+			if (io->fp_in_constraint_tree != NULL ) {
 				char *s;
 				io->cstr_tree = Read_Tree_File_Phylip(
 						io->fp_in_constraint_tree);
 				s = Add_Taxa_To_Constraint_Tree(io->fp_in_constraint_tree,
 						cdata);
-				fflush(NULL);
+				fflush(NULL );
 				if (tree->mat)
 					Free_Mat(tree->mat);
 				Free_Tree(tree);
@@ -1007,6 +1088,12 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 					Lk(tree);
 			}
 #endif
+
+#ifdef PHYML_DEBUG
+			print_cdata(cdata);
+			print_options(io);
+#endif
+
 			tree->both_sides = 1;
 			Lk(tree);
 			Pars(tree);
@@ -1047,7 +1134,7 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 			outdata->tree = (char *) malloc(strlen(most_likely_tree) + 1);
 			strcpy(outdata->tree, most_likely_tree);
 
-			if (io->fp_in_constraint_tree != NULL)
+			if (io->fp_in_constraint_tree != NULL )
 				Free_Tree(io->cstr_tree);
 			Free_Spr_List(tree);
 			Free_One_Spr(tree->best_spr);
@@ -1061,7 +1148,8 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 
 		/* Print the most likely tree in the output file */
 		if (!io->quiet)
-			ParTest_Printf("\n. Printing the most likely tree in file '%s'...\n",
+			ParTest_Printf(
+					"\n. Printing the most likely tree in file '%s'...\n",
 					Basename(io->out_tree_file));
 
 		if (io->fp_out_tree) {
@@ -1141,7 +1229,7 @@ double cl_phyml_lk(int argc, char **argv) {
 	tree_size = -1.0;
 
 	io = (option *) Get_Input(argc, argv);
-	r_seed = (io->r_seed < 0) ? (time(NULL)) : (io->r_seed);
+	r_seed = (io->r_seed < 0) ? (time(NULL )) : (io->r_seed);
 	srand(r_seed);
 	io->r_seed = r_seed;
 	io->quiet = 1;
@@ -1164,7 +1252,8 @@ double cl_phyml_lk(int argc, char **argv) {
 		io->n_trees = MIN(io->n_trees,io->n_data_sets);
 	}
 
-	For(num_data_set,io->n_data_sets) {
+	For(num_data_set,io->n_data_sets)
+	{
 		n_otu = 0;
 		best_lnL = UNLIKELY;
 		Get_Seq(io);
@@ -1197,7 +1286,8 @@ double cl_phyml_lk(int argc, char **argv) {
 				if (!io->mod->s_opt->random_input_tree)
 					io->mod->s_opt->n_rand_starts = 1;
 
-				For(num_rand_tree,io->mod->s_opt->n_rand_starts) {
+				For(num_rand_tree,io->mod->s_opt->n_rand_starts)
+				{
 					if ((io->mod->s_opt->random_input_tree)
 							&& (io->mod->s_opt->topo_search != NNI_MOVE))
 						if (!io->quiet)
@@ -1212,23 +1302,21 @@ double cl_phyml_lk(int argc, char **argv) {
 
 					switch (io->in_tree) {
 					case 0:
-					case 1: {
+					case 1:
 						tree = Dist_And_BioNJ(cdata, mod, io);
 						break;
-					}
-					case 2: {
+					case 2:
 						tree = Read_User_Tree(cdata, mod, io);
 						break;
 					}
-					}
 
-					if (io->fp_in_constraint_tree != NULL) {
+					if (io->fp_in_constraint_tree != NULL ) {
 						char *s;
 						io->cstr_tree = Read_Tree_File_Phylip(
 								io->fp_in_constraint_tree);
 						s = Add_Taxa_To_Constraint_Tree(
 								io->fp_in_constraint_tree, cdata);
-						fflush(NULL);
+						fflush(NULL );
 						if (tree->mat)
 							Free_Mat(tree->mat);
 						Free_Tree(tree);
@@ -1321,7 +1409,6 @@ double cl_phyml_lk(int argc, char **argv) {
 //						Print_Tree(io->fp_out_trees, tree);
 //						fflush(NULL);
 //					}
-
 					/* Record the most likely tree in a string of characters */
 					if (tree->c_lnL > best_lnL) {
 						best_lnL = tree->c_lnL;
@@ -1348,7 +1435,7 @@ double cl_phyml_lk(int argc, char **argv) {
 						tree->mod->s_opt->random_input_tree = 0;
 					}
 
-					if (io->fp_in_constraint_tree != NULL)
+					if (io->fp_in_constraint_tree != NULL )
 						Free_Tree(io->cstr_tree);
 					Free_Spr_List(tree);
 					Free_One_Spr(tree->best_spr);
@@ -1365,19 +1452,17 @@ double cl_phyml_lk(int argc, char **argv) {
 //					ParTest_Printf(
 //							"\n. Printing the most likely tree in file '%s'...\n",
 //							Basename(io->out_tree_file));
-
 //				if (io->n_data_sets == 1)
 //					rewind(io->fp_out_tree);
-
 //				ParTest_Fprintf(io->fp_out_tree, "%s\n", most_likely_tree);
-
 				if (io->n_trees > 1 && io->n_data_sets > 1)
 					break;
 			}
 			Free_Cseq(cdata);
 		} else {
 			ParTest_Printf("\n. No data was found.\n");
-			ParTest_Printf("\n. Err in file %s at line %d\n", __FILE__, __LINE__);
+			ParTest_Printf("\n. Err in file %s at line %d\n", __FILE__,
+					__LINE__);
 			return 0.0;
 		}
 		Free_Model_Complete(mod);

@@ -41,7 +41,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		double value = 0.0;
 		for (id = 0; id < scheme->getNumberOfElements(); id++) {
 			PartitionElement * pe = scheme->getElement(id);
-			double pSampleSize = sampleSize;
+			double pSampleSize = 0.0;
 			switch (sampleSize) {
 			case SS_ALIGNMENT:
 				pSampleSize = pe->getAlignment()->getNumSites() * pe->getAlignment()->getNumSeqs();
@@ -49,12 +49,16 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 			case SS_SHANNON:
 				pSampleSize = pe->getAlignment()->getShannonEntropy();
 				break;
+			default:
+				pSampleSize = sampleSize;
+				break;
 			}
 			globalSampleSize += pSampleSize;
 
 			ModelSelector selector = ModelSelector(pe, ic,
 					pSampleSize);
 			SelectionModel * bestModel = selector.getBestModel();
+			selector.print();
 			value += selector.getBestModel()->getValue();
 			lk += bestModel->getModel()->getLnL();
 

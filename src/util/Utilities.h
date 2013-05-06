@@ -68,7 +68,7 @@ public:
 	static int myGetline(char **lineptr, int *n, FILE *stream);
 
 	static inline int numberOfBranches(int numberOfTaxa) {
-		return ((2 * numberOfTaxa) - 1);
+		return ((2 * numberOfTaxa) - 2);
 	}
 
 	class PropertiesInitializer {
