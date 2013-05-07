@@ -1,10 +1,26 @@
-/*
- * ConfigParser.h
+/*  PartitionTest, fast selection of the best fit partitioning scheme for
+ *  multi-gene data sets.
+ *  Copyright May 2013 by Diego Darriba
  *
- *  Created on: May 1, 2013
- *      Author: diego
+ *  This program is free software; you may redistribute it and/or modify its
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation; either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ *  For any other enquiries send an Email to Diego Darriba
+ *  ddarriba@udc.es
  */
 
+/**
+ * @file ConfigParser.h
+ *
+ * @brief Util for parsing configuration files.
+ */
 #ifndef CONFIGPARSER_H_
 #define CONFIGPARSER_H_
 
@@ -18,6 +34,9 @@
 #define SEARCH_TAG 				"search"
 #define SEARCH_ALGORITHM_TAG 	"algorithm"
 
+#define INPUT_TAG 			"input"
+#define INPUT_MSA_TAG 		"msa"
+#define INPUT_TREE_TAG		"tree"
 #define OUTPUT_TAG 			"output"
 #define OUTPUT_BASE_PATH 	"path"
 #define OUTPUT_MODELS_TAG 	"models"
@@ -51,6 +70,20 @@ public:
 		return numberOfPartitions;
 	}
 	static void printFormat();
+	static void createTemplate();
+
+	const string& getOutputFileModels() const {
+		return outputFileModels;
+	}
+
+	const string& getOutputFilePartitions() const {
+		return outputFilePartitions;
+	}
+
+	const string& getOutputFileSchemes() const {
+		return outputFileSchemes;
+	}
+
 private:
 	int parsePartitionLine(char * line, struct partitionInfo * pInfo);
 	int parsePartitionDetails(char * line, struct partitionInfo * pInfo);

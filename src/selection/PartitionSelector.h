@@ -10,6 +10,8 @@
 
 #include "indata/PartitioningScheme.h"
 #include "util/GlobalDefs.h"
+#include "options/ParTestOptions.h"
+#include <iostream>
 
 namespace partest {
 
@@ -20,17 +22,21 @@ typedef struct {
 	double value;
 	double delta;
 	double weight;
+	void print(ostream & out);
 } SelectionPartitioningScheme;
 
 class PartitionSelector {
 public:
 	PartitionSelector(PartitioningScheme ** schemesArray,
-			int numberOfPartitions, InformationCriterion ic,
-			SampleSize sampleSize, double sampleSizeValue = 0.0);
+			int numberOfPartitions, ParTestOptions * options);
 	virtual ~PartitionSelector();
-	PartitioningScheme * getBestScheme(void) { return bestSelectionScheme->scheme; }
-	SelectionPartitioningScheme * getBestSelectionScheme(void) { return bestSelectionScheme; }
-	void print(void);
+	PartitioningScheme * getBestScheme(void) {
+		return bestSelectionScheme->scheme;
+	}
+	SelectionPartitioningScheme * getBestSelectionScheme(void) {
+		return bestSelectionScheme;
+	}
+	void print(ostream& out);
 private:
 	PartitioningScheme ** schemesArray;
 	SelectionPartitioningScheme * bestSelectionScheme;

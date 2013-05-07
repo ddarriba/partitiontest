@@ -19,7 +19,7 @@ namespace partest {
 class PrintMeta {
   public:
     static void print_header(std::ostream& output);
-    static void print_options(std::ostream& output, ParTestOptions & run_instance);
+    static void print_options(std::ostream& output, ParTestOptions & options);
     static void print_usage(std::ostream& output);
 };
 

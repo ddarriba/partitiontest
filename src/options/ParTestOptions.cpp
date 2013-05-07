@@ -6,7 +6,8 @@
  */
 
 #include "ParTestOptions.h"
-
+#include "parser/ConfigParser.h"
+#include "util/PrintMeta.h"
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
@@ -25,16 +26,26 @@ ParTestOptions::ParTestOptions() {
 	sampleSize = DEFAULT_SAMPLE_SIZE;
 	strcpy(treeFile, "");
 	sampleSizeValue = 0.0;
+	modelsOutputStream = 0;
+	partitionsOutputStream = 0;
+	schemesOutputStream = 0;
 }
 
 ParTestOptions::~ParTestOptions() {
+	if (modelsOutputStream && modelsOutputStream->is_open())
+		modelsOutputStream->close();
+	if (partitionsOutputStream && partitionsOutputStream->is_open())
+		partitionsOutputStream->close();
+	if (schemesOutputStream && schemesOutputStream->is_open())
+		schemesOutputStream->close();
 	delete alignment;
 }
 
 void ParTestOptions::set(const char *inputFile, DataType dataType,
 		bitMask doRateVariation, const char *configFile,
-		StartTopo startingTopology, SearchAlgo searchAlgo, InformationCriterion informationCriterion,
-		SampleSize sampleSize, double sampleSizeValue, const char *userTree) {
+		StartTopo startingTopology, SearchAlgo searchAlgo,
+		InformationCriterion informationCriterion, SampleSize sampleSize,
+		double sampleSizeValue, const char *userTree) {
 
 	this->rateVariation = doRateVariation;
 #ifdef _PHYML
@@ -64,6 +75,19 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 		strcpy(this->treeFile, userTree);
 	}
 
+	ConfigParser parser(configFile);
+	this->outputFileModels = parser.getOutputFileModels();
+	this->outputFilePartitions = parser.getOutputFilePartitions();
+	this->outputFileSchemes = parser.getOutputFileSchemes();
+	modelsOutputStream = new ofstream(outputFileModels.c_str());
+	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
+	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
+	PrintMeta::print_header(*modelsOutputStream);
+	PrintMeta::print_header(*partitionsOutputStream);
+	PrintMeta::print_header(*schemesOutputStream);
+	PrintMeta::print_options(*modelsOutputStream, *this);
+	PrintMeta::print_options(*partitionsOutputStream, *this);
+	PrintMeta::print_options(*schemesOutputStream, *this);
 }
 
 Alignment * ParTestOptions::getAlignment() {
@@ -98,6 +122,30 @@ DataType ParTestOptions::getDataType() const {
 	return dataType;
 }
 
+string ParTestOptions::getOutputFileModels(void) const {
+	return outputFileModels;
+}
+
+string ParTestOptions::getOutputFilePartitions(void) const {
+	return outputFilePartitions;
+}
+
+string ParTestOptions::getOutputFileSchemes(void) const {
+	return outputFileSchemes;
+}
+
+ofstream * ParTestOptions::getModelsOutputStream(void) const {
+	return modelsOutputStream;
+}
+
+ofstream * ParTestOptions::getPartitionsOutputStream(void) const {
+	return partitionsOutputStream;
+}
+
+ofstream * ParTestOptions::getSchemesOutputStream(void) const {
+	return schemesOutputStream;
+}
+
 void ParTestOptions::setAlignment(Alignment *alignment) {
 	this->alignment = alignment;
 }
@@ -124,6 +172,18 @@ InformationCriterion ParTestOptions::getInformationCriterion(void) const {
 
 double ParTestOptions::getSampleSizeValue(void) {
 	return sampleSizeValue;
+}
+
+void ParTestOptions::setOutputFileModels(string outputFileModels) {
+	this->outputFileModels = outputFileModels;
+}
+
+void ParTestOptions::setOutputFilePartitions(string outputFilePartitions) {
+	this->outputFilePartitions = outputFilePartitions;
+}
+
+void ParTestOptions::setOutputFileSchemes(string outputFileSchemes) {
+	this->outputFileSchemes = outputFileSchemes;
 }
 
 } /* namespace partest */

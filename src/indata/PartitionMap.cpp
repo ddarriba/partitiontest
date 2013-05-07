@@ -22,14 +22,11 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 
 	if (strcmp(configFile, "")) {
 
-		ConfigParser::printFormat();
 		ConfigParser parser(configFile);
 
 		partitions = new vector<partitionMappingInfo>(
 				parser.getNumberOfPartitions());
 		numberOfElements = numberOfPartitions = parser.getNumberOfPartitions();
-		cout << "NUMBER OF PARTITIONS = " << parser.getNumberOfPartitions()
-				<< endl;
 		for (int i = 0; i < parser.getNumberOfPartitions(); i++) {
 			struct partitionInfo nextPartition = parser.getPartition(i);
 			partitions->at(i).partitionId = nextPartition.partitionId;

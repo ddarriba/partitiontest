@@ -37,12 +37,13 @@ public:
 	static double computeIc(InformationCriterion ic, double lnL,
 			int freeParameters, double sampleSize);
 	static double computeBic(double lnL, int freeParameters, double sampleSize);
-	void print(void);
+	void print(ostream& out);
 private:
 	void doSelection(ModelSet * modelset, InformationCriterion ic,
 			double sampleSize);
 	vector<SelectionModel *> * selectionModels;
 	SelectionModel * bestModel;
+	PartitionElement * partitionElement;
 	InformationCriterion ic;
 	double sampleSize;
 	double minValue;

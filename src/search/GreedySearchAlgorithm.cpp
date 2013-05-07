@@ -35,9 +35,11 @@ struct nextSchemeFunctor {
 				(numberOfElements * (1 + numberOfElements)) / 2
 						* sizeof(t_partitionElementId));
 		for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
-			t_partitionElementId nextId = currentScheme->getElement(maskIndex)->getId();
+			t_partitionElementId nextId =
+					currentScheme->getElement(maskIndex)->getId();
 			mask[maskIndex] = nextId;
-			if (nextId > maxIndex) maxIndex = nextId;
+			if (nextId > maxIndex)
+				maxIndex = nextId;
 		}
 
 		for (i = 0; i < numberOfElements; i++) {
@@ -45,14 +47,15 @@ struct nextSchemeFunctor {
 
 				t_partitionElementId nextId = mask[i] + mask[j];
 				mask[maskIndex++] = nextId;
-				if (nextId > maxIndex) maxIndex = nextId;
+				if (nextId > maxIndex)
+					maxIndex = nextId;
 			}
 		}
-		i=0;
+		i = 0;
 		schemeVector = new t_schemesVector;
 		unsigned int bitMask;
 		if (Utilities::isPowerOfTwo(maskIndex)) {
-			bitMask = maskIndex-1;
+			bitMask = maskIndex - 1;
 		} else {
 			bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex)) - 1;
 		}
@@ -71,7 +74,8 @@ struct nextSchemeFunctor {
 			return 0;
 		}
 		t_partitioningScheme elements = schemeVector->at(i);
-		PartitioningScheme * nextScheme = new PartitioningScheme(elements.size());
+		PartitioningScheme * nextScheme = new PartitioningScheme(
+				elements.size());
 
 		if (!elements.size()) {
 			return 0;
@@ -165,9 +169,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	}
 
 	mo->optimizePartitioningScheme(firstScheme);
-	PartitionSelector partSelector(&firstScheme, 1,
-			options->getInformationCriterion(), options->getSampleSize(),
-			options->getSampleSizeValue());
+	PartitionSelector partSelector(&firstScheme, 1, options);
 	double bestCriterionValue = partSelector.getBestSelectionScheme()->value;
 
 	PartitioningScheme * bestScheme = firstScheme;
@@ -178,21 +180,20 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		nextSchemeFunctor nextScheme(bestScheme, partitionMap);
 
 		int numberOfSchemes = nextScheme.size();
-		PartitioningScheme **partitioningSchemesVector = (PartitioningScheme **) malloc(
-				numberOfSchemes * sizeof(PartitioningScheme *));
+		PartitioningScheme **partitioningSchemesVector =
+				(PartitioningScheme **) malloc(
+						numberOfSchemes * sizeof(PartitioningScheme *));
 		i = 0;
 		while (PartitioningScheme * currentScheme = nextScheme()) {
 			partitioningSchemesVector[i++] = currentScheme;
 			mo->optimizePartitioningScheme(currentScheme);
 		}
-		PartitionSelector partSelector(partitioningSchemesVector, numberOfSchemes,
-				options->getInformationCriterion(), options->getSampleSize(),
-				options->getSampleSizeValue());
+		PartitionSelector partSelector(partitioningSchemesVector,
+				numberOfSchemes, options);
 		reachedMaximum = (bestCriterionValue
 				<= partSelector.getBestSelectionScheme()->value);
 		if (!reachedMaximum) {
-			bestCriterionValue =
-					partSelector.getBestSelectionScheme()->value;
+			bestCriterionValue = partSelector.getBestSelectionScheme()->value;
 			bestScheme = partSelector.getBestScheme();
 			reachedMaximum |= bestScheme->getNumberOfElements() == 1;
 		}
@@ -210,8 +211,8 @@ void GreedySearchAlgorithm::update(const ObservableInfo& info,
 
 }
 
-int GreedySearchAlgorithm::getNextPartitioningSchemes(PartitioningScheme *currentScheme,
-		PartitioningScheme **nextSchemes) {
+int GreedySearchAlgorithm::getNextPartitioningSchemes(
+		PartitioningScheme *currentScheme, PartitioningScheme **nextSchemes) {
 	int numberOfPartitions = currentScheme->getNumberOfElements()
 			* (currentScheme->getNumberOfElements() - 1);
 

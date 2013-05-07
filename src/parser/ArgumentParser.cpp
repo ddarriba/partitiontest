@@ -2,13 +2,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
-#include "../util/Utilities.h"
-#include "../util/PrintMeta.h"
-#include "../indata/Alignment.h"
+#include "ConfigParser.h"
+#include "util/Utilities.h"
+#include "util/PrintMeta.h"
+#include "indata/Alignment.h"
 
 using namespace std;
 
 namespace partest {
+
+#define NUM_ARGUMENTS 16
 
 void ArgumentParser::init() {
 	index = 1;
@@ -16,16 +19,22 @@ void ArgumentParser::init() {
 }
 
 ArgumentParser::ArgumentParser() {
-	option options_list[] = { { ARG_INPUT_FILE, 'i', "input-file", true }, {
-			ARG_INPUT_FORMAT, 'f', "input-format", true }, { ARG_USER_TREE, 'u',
-			"user-tree", true }, { ARG_DATA_TYPE, 'd', "data-type", true }, {
-			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, { ARG_INV,
-			'I', "invariant-sites", false }, { ARG_GAMMA, 'G', "gamma-rates",
-			false }, { ARG_TOPOLOGY, 't', "topology", true }, { ARG_CONFIG_FILE,
-			'c', "config-file", true }, { ARG_SEARCH_ALGORITHM, 'S', "search",
-			true }, { ARG_NUM_PROCS, 'p', "num-procs", true }, { ARG_IC_TYPE,
-			's', "selection-criterion", true }, { ARG_SAMPLE_SIZE, 'n',
-			"sample-size", true }, { ARG_HELP, 'h', "help", false } };
+	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
+			ARG_INPUT_FILE, 'i', "input-file", true }, {
+			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
+			ARG_USER_TREE, 'u', "user-tree", true }, {
+			ARG_DATA_TYPE, 'd', "data-type", true }, {
+			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
+			ARG_INV, 'I', "invariant-sites", false }, {
+			ARG_GAMMA, 'G', "gamma-rates", false }, {
+			ARG_TOPOLOGY, 't', "topology", true }, {
+			ARG_CONFIG_FILE, 'c', "config-file", true }, {
+			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
+			ARG_NUM_PROCS, 'p', "num-procs", true }, {
+			ARG_IC_TYPE, 's', "selection-criterion", true }, {
+			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
+			ARG_CONFIG_HELP, 0, "config-help", false }, {
+			ARG_CONFIG_TEMPLATE, 0, "config-template", false } };
 	unsigned int size = NUM_ARGUMENTS * sizeof(option);
 	arguments = (option *) malloc(size);
 	memcpy(arguments, options_list, size);
@@ -113,7 +122,8 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 	}
 }
 
-void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *options) {
+void ArgumentParser::fill_options(int argc, char *argv[],
+		ParTestOptions *options) {
 
 	bool requiredInputFile = false;
 
@@ -181,9 +191,9 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 						<< "\" is not a valid data type. Use one of the following:"
 						<< endl;
 				cerr << "  -d " << setw(8) << left << ARG_DT_PROTEIC
-				<< "Protein sequence alignment" << endl;
+						<< "Protein sequence alignment" << endl;
 				cerr << "  -d " << setw(8) << left << ARG_DT_NUCLEIC
-				<< "DNA sequence alignment (DEFAULT)" << endl;
+						<< "DNA sequence alignment (DEFAULT)" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
 			break;
@@ -201,13 +211,14 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 						<< "\" is not a valid input topology. Use one of the following:"
 						<< endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_BIONJ
-				<< "BIONJ topology" << endl;
+						<< "BIONJ topology" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
-				<< "Fixed BIONJ topology for every model" << endl;
+						<< "Fixed BIONJ topology for every model" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_ML
-				<< "Maximum Likelihood topology (DEFAULT, slowest)" << endl;
+						<< "Maximum Likelihood topology (DEFAULT, slowest)"
+						<< endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_USER
-				<< "User-defined topology" << endl;
+						<< "User-defined topology" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
 			break;
@@ -222,12 +233,14 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 				cerr << "[ERROR] \"-S " << value
 						<< "\" is not a valid search algorithm. Use one of the following:"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_EXHAUSTIVE << "Exhaustive algorithm (horribly computationally expensive)"
+				cerr << "  -S " << setw(8) << left << ARG_SEARCH_EXHAUSTIVE
+						<< "Exhaustive algorithm (horribly computationally expensive)"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_RANDOM << "Random walk algorithm (chinese restaurant process)"
+				cerr << "  -S " << setw(8) << left << ARG_SEARCH_RANDOM
+						<< "Random walk algorithm (chinese restaurant process)"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_GREEDY << "Greedy hill climbing algorithm"
-						<< endl;
+				cerr << "  -S " << setw(8) << left << ARG_SEARCH_GREEDY
+						<< "Greedy hill climbing algorithm" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
 			break;
@@ -244,14 +257,14 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 				cerr << "[ERROR] \"-s " << value
 						<< "\" is not a valid criterion. Use one of the following:"
 						<< endl;
-				cerr << "  -s " << setw(8) << left << ARG_IC_AIC << "Akaike Information Criterion"
-						<< endl;
-				cerr << "  -s " << setw(8) << left << ARG_IC_BIC << "Bayesian Information Criterion"
-						<< endl;
-				cerr << "  -s " << setw(8) << left << ARG_IC_AICC << "Corrected Akaike Information Criterion"
-						<< endl;
-				cerr << "  -s " << setw(8) << left << ARG_IC_DT << "Decision Theory"
-						<< endl;
+				cerr << "  -s " << setw(8) << left << ARG_IC_AIC
+						<< "Akaike Information Criterion" << endl;
+				cerr << "  -s " << setw(8) << left << ARG_IC_BIC
+						<< "Bayesian Information Criterion" << endl;
+				cerr << "  -s " << setw(8) << left << ARG_IC_AICC
+						<< "Corrected Akaike Information Criterion" << endl;
+				cerr << "  -s " << setw(8) << left << ARG_IC_DT
+						<< "Decision Theory" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
 			break;
@@ -267,10 +280,10 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 					cerr << "[ERROR] \"-n " << value
 							<< "\" is not a valid sample size. Use one of the following:"
 							<< endl;
-					cerr << "  -n " << setw(16) << left << ARG_SS_ALIGN << "Alignment size"
-							<< endl;
-					cerr << "  -n " << setw(16) << left << ARG_SS_SHANNON << "Shannon entropy of the alignment"
-							<< endl;
+					cerr << "  -n " << setw(16) << left << ARG_SS_ALIGN
+							<< "Alignment size" << endl;
+					cerr << "  -n " << setw(16) << left << ARG_SS_SHANNON
+							<< "Shannon entropy of the alignment" << endl;
 					cerr << "  -n " << setw(16) << left << "[CUSTOM_VALUE]"
 							<< "Custom sample size" << endl;
 					Utilities::exit_partest(EX_USAGE);
@@ -289,6 +302,14 @@ void ArgumentParser::fill_options(int argc, char *argv[], ParTestOptions *option
 			break;
 		case ARG_CONFIG_FILE:
 			strcpy(config_file, value);
+			break;
+		case ARG_CONFIG_HELP:
+			ConfigParser::printFormat();
+			Utilities::exit_partest(0);
+			break;
+		case ARG_CONFIG_TEMPLATE:
+			ConfigParser::createTemplate();
+			Utilities::exit_partest(0);
 			break;
 		case ARG_NUM_PROCS:
 #ifdef PTHREADS

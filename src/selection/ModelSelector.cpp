@@ -46,7 +46,7 @@ double ModelSelector::computeBic(double lnL, int freeParameters,
 
 ModelSelector::ModelSelector(PartitionElement * partitionElement,
 		InformationCriterion ic, double sampleSize) :
-				ic(ic), sampleSize(sampleSize) {
+		ic(ic), sampleSize(sampleSize), partitionElement(partitionElement) {
 
 	doSelection(partitionElement->getModelset(), ic, sampleSize);
 	partitionElement->setBestModel(getBestModel());
@@ -102,41 +102,60 @@ double ModelSelector::getOverallAlphaInv() const {
 	return overallAlphaInv;
 }
 
-void ModelSelector::print() {
+void ModelSelector::print(ostream& out) {
 
 	/* header */
-	cout << endl;
-	cout << setw(95) << setfill('-') << "" << setfill(' ') << endl;
-	cout << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15) << "lnL"
-			<< setw(15) << "Value" << setw(15) << "Delta" << setw(15)
+	out << endl;
+	out << "  Partition: " << partitionElement->getName() << endl;
+	out << "         Id: " << partitionElement->getId() << endl;
+	out << "  Num.genes: " << partitionElement->getNumberOfSections() << endl;
+	out << "  Criterion: ";
+	switch (ic) {
+	case AIC:
+		out << "Akaike Information Criterion" << endl;
+		break;
+	case AICC:
+		out << "Corrected Akaike Information Criterion" << endl;
+		break;
+	case BIC:
+		out << "Bayesian Information Criterion" << endl;
+		break;
+	case DT:
+		out << "Decision Theory" << endl;
+		break;
+	}
+	out << "Sample size: " << sampleSize << endl << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15)
+			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
-	cout << setw(95) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	for (int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
-		cout << setw(5) << i + 1 << setw(15)
-				<< selectionModel->getModel()->getName()
-				<< setw(5) <<  selectionModel->getModel()->getNumberOfFreeParameters()
-				<< setw(15)
-				<< setprecision(10) << selectionModel->getModel()->getLnL()
-				<< setw(15) << selectionModel->getValue() << setw(15)
+		out << setw(5) << i + 1 << setw(15)
+				<< selectionModel->getModel()->getName() << setw(5)
+				<< selectionModel->getModel()->getNumberOfFreeParameters()
+				<< setw(15) << setprecision(10)
+				<< selectionModel->getModel()->getLnL() << setw(15)
+				<< selectionModel->getValue() << setw(15)
 				<< selectionModel->getDelta() << setw(15) << setprecision(4)
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl << endl;
-	cout << "SAMPLE SIZE: " << sampleSize << endl << endl;
-	cout << "PARAMETER IMPORTANCE" << endl;
-	cout << setw(15) << "alpha:" << alphaImportance << endl;
-	cout << setw(15) << "pInv:" << invImportance << endl;
-	cout << setw(15) << "alpha + pInv:" << alphaInvImportance << endl;
-	cout << setw(15) << "frequencies:" << fImportance << endl;
-	cout << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
-	cout << setw(15) << "alpha:" << overallAlpha << endl;
-	cout << setw(15) << "pInv:" << overallInv << endl;
-	cout << setw(15) << "alpha + pInv:" << overallInvAlpha << endl;
-	cout << setw(15) << "pInv + alpha:" << overallAlphaInv << endl;
-	cout << setw(90) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
+
+	out << "PARAMETER IMPORTANCE" << endl;
+	out << setw(16) << "alpha: " << alphaImportance << endl;
+	out << setw(16) << "pInv: " << invImportance << endl;
+	out << setw(16) << "alpha + pInv: " << alphaInvImportance << endl;
+	out << setw(16) << "frequencies: " << fImportance << endl;
+	out << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
+	out << setw(16) << "alpha:" << overallAlpha << endl;
+	out << setw(16) << "pInv:" << overallInv << endl;
+	out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
+	out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 }
 
 void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
@@ -203,10 +222,14 @@ void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
 		}
 	}
 
-	overallAlpha /= alphaImportance;
-	overallInv /= invImportance;
-	overallInvAlpha /= alphaInvImportance;
-	overallAlphaInv /= alphaInvImportance;
+	if (alphaImportance > 0.0)
+		overallAlpha /= alphaImportance;
+	if (invImportance > 0.0)
+		overallInv /= invImportance;
+	if (alphaInvImportance > 0.0)
+		overallInvAlpha /= alphaInvImportance;
+	if (alphaInvImportance > 0.0)
+		overallAlphaInv /= alphaInvImportance;
 }
 
 } /* namespace partest */

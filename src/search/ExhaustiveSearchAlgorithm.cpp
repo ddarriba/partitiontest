@@ -100,8 +100,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 		schemesArray[i] = scheme;
 
 	}
-	PartitionSelector partSelector(schemesArray, numberOfPartitions, options->getInformationCriterion(),
-			options->getSampleSize(), options->getSampleSizeValue());
+	PartitionSelector partSelector(schemesArray, numberOfPartitions, options);
 
 	for (i = 0; i < numberOfPartitions; i++) {
 		delete schemesArray[i];

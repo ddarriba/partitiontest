@@ -53,14 +53,11 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 				break;
 			numSchemes =
 					(NUM_PARTITIONS
-							< Utilities::bell(
-									bestScheme->getNumberOfElements())) ?
+							< Utilities::bell(bestScheme->getNumberOfElements())) ?
 							NUM_PARTITIONS :
-							Utilities::bell(
-									bestScheme->getNumberOfElements());
+							Utilities::bell(bestScheme->getNumberOfElements());
 		}
-		for (currentScheme = 0; currentScheme < numSchemes;
-				currentScheme++) {
+		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
 
 			if (!(schemesArray[currentScheme] = getRandomPartitioningScheme(
 					bestScheme, schemesArray, currentScheme))) {
@@ -68,13 +65,11 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 			}
 			mo->optimizePartitioningScheme(schemesArray[currentScheme]);
 		}
-		PartitionSelector partSelector(schemesArray, numSchemes, options->getInformationCriterion(),
-				options->getSampleSize(), options->getSampleSizeValue());
+		PartitionSelector partSelector(schemesArray, numSchemes, options);
 
 		bestScheme = partSelector.getBestScheme();
 
-		for (currentScheme = 0; currentScheme < numSchemes;
-				currentScheme++) {
+		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
 			if (schemesArray[currentScheme] != bestScheme)
 				delete schemesArray[currentScheme];
 		}
@@ -149,8 +144,8 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 			}
 		}
 
-		gotScheme = !existPartition(classes, numberOfClasses,
-				schemesArray, numberOfSchemes);
+		gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
+				numberOfSchemes);
 	}
 	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
 	for (i = 0; i < numberOfClasses; i++) {
@@ -160,8 +155,9 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 	return p;
 }
 
-PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(PartitioningScheme * p0,
-		PartitioningScheme ** schemesArray, int numberOfSchemes) {
+PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
+		PartitioningScheme * p0, PartitioningScheme ** schemesArray,
+		int numberOfSchemes) {
 
 	if (p0 == 0)
 		return getRandomPartitioningScheme(schemesArray, numberOfSchemes);
@@ -201,8 +197,8 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(Partitio
 			}
 		}
 
-		gotScheme = !existPartition(classes, numberOfClasses,
-				schemesArray, numberOfSchemes);
+		gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
+				numberOfSchemes);
 	}
 
 	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);

@@ -28,7 +28,6 @@
 #define ARG_SEARCH_EXHAUSTIVE "exhaustive"
 #define ARG_SEARCH_RANDOM "random"
 #define ARG_SEARCH_GREEDY "greedy"
-#define NUM_ARGUMENTS 12
 
 enum ArgIndex {
   ARG_NULL,
@@ -46,6 +45,8 @@ enum ArgIndex {
   ARG_SAMPLE_SIZE,
   ARG_SEARCH_ALGORITHM,
   ARG_HELP,
+  ARG_CONFIG_HELP,
+  ARG_CONFIG_TEMPLATE,
   ARG_END
 };
 

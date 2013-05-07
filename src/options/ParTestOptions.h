@@ -14,6 +14,8 @@
 #include "../indata/PLLAlignment.h"
 #endif
 #include "../util/GlobalDefs.h"
+#include <iostream>
+#include <fstream>
 #include <string>
 
 namespace partest {
@@ -23,8 +25,10 @@ public:
 	ParTestOptions();
 	virtual ~ParTestOptions();
 	void set(const char *inputFile, DataType dataType, bitMask rateVariation,
-			const char *configFile, StartTopo startingTopology, SearchAlgo searchAlgo, InformationCriterion informationCriterion,
-			SampleSize sampleSize, double sampleSizeValue = 0.0, const char *user_tree = "");
+			const char *configFile, StartTopo startingTopology,
+			SearchAlgo searchAlgo, InformationCriterion informationCriterion,
+			SampleSize sampleSize, double sampleSizeValue = 0.0,
+			const char *user_tree = "");
 
 	Alignment * getAlignment(void);
 	char* getConfigFile(void);
@@ -37,6 +41,12 @@ public:
 	SampleSize getSampleSize(void) const;
 	InformationCriterion getInformationCriterion(void) const;
 	double getSampleSizeValue(void);
+	string getOutputFileModels(void) const;
+	string getOutputFilePartitions(void) const;
+	string getOutputFileSchemes(void) const;
+	ofstream * getModelsOutputStream(void) const;
+	ofstream * getPartitionsOutputStream(void) const;
+	ofstream * getSchemesOutputStream(void) const;
 
 	void setAlignment(Alignment *alignment);
 	void setConfigFile(char* configFile);
@@ -45,19 +55,28 @@ public:
 	void setInformationCriterion(InformationCriterion informationCriterion);
 	void setSampleSize(SampleSize sampleSize);
 	void setSampleSizeValue(double sampleSizeValue);
+	void setOutputFileModels(string outputFileModels);
+	void setOutputFilePartitions(string outputFilePartitions);
+	void setOutputFileSchemes(string outputFileSchemes);
 
 private:
-	Alignment * alignment;
-	bitMask rateVariation;
-	DataType dataType;
-	StartTopo startingTopology;
-	SearchAlgo searchAlgo;
-	SampleSize sampleSize;
-	double sampleSizeValue;
-	InformationCriterion informationCriterion;
-	char inputFile[256];
-	char configFile[256];
-	char treeFile[256];
+	Alignment * alignment;  /** Input MSA */
+	bitMask rateVariation;  /** Rates variation to analyze */
+	DataType dataType;      /** Whether input data is nucleic or proteic */
+	StartTopo startingTopology;	/** Starting topology for optimization */
+	SearchAlgo searchAlgo;		/** Search algorithm */
+	SampleSize sampleSize;		/** Sample size mode for model selection */
+	double sampleSizeValue;		/** Sample size value for model selection */
+	InformationCriterion informationCriterion;	/** Statistical criterion for model selection */
+	char inputFile[256];	/** Input MSA file */
+	char configFile[256];	/** Input configuration file */
+	char treeFile[256];		/** Input tree file */
+	string outputFileModels;		/** Output models file */
+	string outputFilePartitions;	/** Output partitions file */
+	string outputFileSchemes;		/** Output schemes file */
+	ofstream * modelsOutputStream;		/** Output models stream */
+	ofstream * partitionsOutputStream;	/** Output partitions stream */
+	ofstream * schemesOutputStream;		/** Output schemes stream */
 };
 
 } /* namespace partest */

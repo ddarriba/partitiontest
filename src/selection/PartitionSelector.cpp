@@ -10,24 +10,28 @@
 #include "ModelSelector.h"
 #include "SelectionModel.h"
 #include <alloca.h>
-#include <vector>
 #include <iomanip>
+#include <vector>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 
 namespace partest {
 
 /** Functor for sorting the selection models */
 struct compareSelectionPartitions {
-	inline bool operator()(SelectionPartitioningScheme * struct1, SelectionPartitioningScheme * struct2) {
+	inline bool operator()(SelectionPartitioningScheme * struct1,
+			SelectionPartitioningScheme * struct2) {
 		return (struct1->value < struct2->value);
 	}
 };
 
 PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
-		int numberOfSchemes, InformationCriterion ic, SampleSize sampleSize, double sampleSizeValue) :
-		ic(ic), sampleSize(sampleSize), sampleSizeValue(sampleSizeValue), numberOfSchemes(numberOfSchemes), schemesArray(
-				schemesArray) {
+		int numberOfSchemes, ParTestOptions * options) :
+		ic(options->getInformationCriterion()), sampleSize(
+				options->getSampleSize()), sampleSizeValue(
+				options->getSampleSizeValue()), numberOfSchemes(
+				numberOfSchemes), schemesArray(schemesArray) {
 
 	int part_id, id;
 	schemesVector = new vector<SelectionPartitioningScheme *>(numberOfSchemes);
@@ -39,45 +43,55 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		int parms = 0;
 		double globalSampleSize = 0.0;
 		double value = 0.0;
+
 		for (id = 0; id < scheme->getNumberOfElements(); id++) {
 			PartitionElement * pe = scheme->getElement(id);
-			double pSampleSize = 0.0;
-			switch (sampleSize) {
-			case SS_ALIGNMENT:
-				pSampleSize = pe->getAlignment()->getNumSites() * pe->getAlignment()->getNumSeqs();
-				break;
-			case SS_SHANNON:
-				pSampleSize = pe->getAlignment()->getShannonEntropy();
-				break;
-			default:
-				pSampleSize = sampleSize;
-				break;
-			}
-			globalSampleSize += pSampleSize;
+			SelectionModel * bestModel;
+			if (!pe->getBestModel()) {
+				double pSampleSize = 0.0;
+				switch (sampleSize) {
+				case SS_ALIGNMENT:
+					pSampleSize = pe->getAlignment()->getNumSites()
+							* pe->getAlignment()->getNumSeqs();
+					break;
+				case SS_SHANNON:
+					pSampleSize = pe->getAlignment()->getShannonEntropy();
+					break;
+				default:
+					pSampleSize = sampleSize;
+					break;
+				}
+				globalSampleSize += pSampleSize;
 
-			ModelSelector selector = ModelSelector(pe, ic,
-					pSampleSize);
-			SelectionModel * bestModel = selector.getBestModel();
-			selector.print();
-			value += selector.getBestModel()->getValue();
+				ModelSelector selector = ModelSelector(pe, ic, pSampleSize);
+				bestModel = selector.getBestModel();
+				selector.print(*options->getModelsOutputStream());
+			} else {
+				bestModel = pe->getBestModel();
+			}
+			value += bestModel->getValue();
 			lk += bestModel->getModel()->getLnL();
 
 			/* Since we're optimizing branch lengths for each model, we need to count those parameters everytime */
 			/* This means getNumberOfFreeParameters instead of getModelFreeParameters */
 			parms += bestModel->getModel()->getNumberOfFreeParameters();
 		}
+
 		//double value = ModelSelector::computeIc(ic, lk, parms, globalSampleSize);
 		(schemesVector->at(part_id)) = new SelectionPartitioningScheme();
 		(schemesVector->at(part_id))->numParameters = parms;
 		(schemesVector->at(part_id))->lnL = lk;
 		(schemesVector->at(part_id))->scheme = scheme;
 		(schemesVector->at(part_id))->value = value;
+
+		schemesVector->at(part_id)->print(
+				*options->getPartitionsOutputStream());
 	}
 	std::sort(schemesVector->begin(), schemesVector->end(),
-				compareSelectionPartitions());
+			compareSelectionPartitions());
 
 	bestSelectionScheme = schemesVector->at(0);
-	print();
+	print(*options->getSchemesOutputStream());
 
 //	for (part_id = 1; part_id < numberOfSchemes; part_id++) {
 //		delete schemesVector->at(part_id);
@@ -89,29 +103,54 @@ PartitionSelector::~PartitionSelector() {
 	delete schemesVector;
 }
 
-void PartitionSelector::print() {
-	cout << "*********** PARTITIONS SELECTION *************" << endl;
-	cout << " Sample size: ";
-	switch(sampleSize) {
-	case SS_ALIGNMENT:
-	cout << "Alignment size "<< endl;
-	break;
-	case SS_SHANNON:
-	cout << "Shannon entropy "<< endl;
-	break;
-	case SS_CUSTOM:
-		cout << "Custom value "<< sampleSizeValue << endl;
-		break;
-	}
+void PartitionSelector::print(ostream& out) {
 
+	out << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(5)
+			<< "K" << setw(15) << "lnL" << setw(15) << "Value" << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	int id;
 	for (id = 0; id < schemesVector->size(); id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
-		cout << sp->scheme->toString() << " " << sp->lnL << " "
-				<< sp->numParameters << " " << sp->value << endl;
+		out << setw(5) << id + 1 << setw(15) << sp->scheme->toString()
+				<< setw(5) << sp->scheme->getNumberOfElements() << setw(5)
+				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
+				<< sp->value << endl;
 	}
-	cout << "*********** ******************** *************" << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 }
 
+void SelectionPartitioningScheme::print(ostream & out) {
+	out << endl;
+	out << "Scheme:     " << scheme->toString() << endl;
+	out << "Num.Params: " << numParameters << endl;
+	out << "lnL:        " << lnL << endl;
+	out << "value:      " << value << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15)
+			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
+			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		PartitionElement * pe = scheme->getElement(i);
+		SelectionModel * selectionModel = pe->getBestModel();
+
+		out << setw(5) << i + 1 << setw(15)
+				<< selectionModel->getModel()->getName() << setw(5)
+				<< selectionModel->getModel()->getNumberOfFreeParameters()
+				<< setw(15) << setprecision(10)
+				<< selectionModel->getModel()->getLnL() << setw(15)
+				<< selectionModel->getValue() << setw(15)
+				<< selectionModel->getDelta() << setw(15) << setprecision(4)
+				<< selectionModel->getWeight() << setw(15)
+				<< selectionModel->getCumWeight() << endl;
+	}
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		out << setw(5) << i + 1 << ": " << scheme->getElement(i)->getName()
+				<< endl;
+	}
+}
 } /* namespace partest */
