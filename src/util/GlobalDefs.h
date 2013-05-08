@@ -79,7 +79,7 @@ enum ProtMatrix {
   PROT_MATRIX_GTR = GTR
 };
 #else
-#define PROT_MATRIX_SIZE 14 // excluding auto & GTR
+#define PROT_MATRIX_SIZE 14
 enum ProtMatrix {
   PROT_MATRIX_LG = 0,
   PROT_MATRIX_WAG = 1,
