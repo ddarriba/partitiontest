@@ -14,11 +14,11 @@ library (ape)
 library (phylosim)
 
 SAMPLES <- 10    # Total number of samples
-TAXA_COUNT <- 30  # Number of taxa in the output trees
+TAXA_COUNT <- 20  # Number of taxa in the output trees
 GENE_LEN <- 1000  # Length of each gene
 
 MIN_GENES <- 2
-MAX_GENES <- 100
+MAX_GENES <- 20
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data-aa.in"      # Data input file
