@@ -187,6 +187,15 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		while (PartitioningScheme * currentScheme = nextScheme()) {
 			partitioningSchemesVector[i++] = currentScheme;
 			mo->optimizePartitioningScheme(currentScheme);
+
+			for (int k=1; k<currentScheme->getNumberOfElements(); k++) {
+				PartitionElement * e1 = currentScheme->getElement(k);
+				for (int k2=0; k2<k; k2++) {
+					PartitionElement * e2 = currentScheme->getElement(k2);
+					double distance = e1->getModelset()->getModel(0)->distanceTo(e2->getModelset()->getModel(0));
+					cout << "DISTANCE = " << distance << endl;
+				}
+			}
 		}
 		PartitionSelector partSelector(partitioningSchemesVector,
 				numberOfSchemes, options);

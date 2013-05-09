@@ -179,7 +179,8 @@ void NucleicModel::setRates(const double * rates) {
 		this->rates[i] = rates[i];
 }
 
-double NucleicModel::distanceTo(NucleicModel * other) {
+double NucleicModel::distanceTo(Model * otherModel) {
+	NucleicModel * other = static_cast<NucleicModel *>(otherModel);
 	double invDistance = pInv - other->pInv;
 	double shapeDistance = alpha - other->alpha;
 	double matrixDistance = 0.0;

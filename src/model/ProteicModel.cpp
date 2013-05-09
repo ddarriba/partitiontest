@@ -130,7 +130,8 @@ void ProteicModel::setRates(const double * rates) {
 	// Ignore
 }
 
-double ProteicModel::distanceTo(ProteicModel * other) {
+double ProteicModel::distanceTo(Model * otherModel) {
+	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
 	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
 	double invDistance = pInv - other->pInv;
 	double shapeDistance = alpha - other->alpha;

@@ -211,6 +211,7 @@ public:
 	 * @param other The other model.
 	 */
 	virtual double distanceTo(Model * other) = 0;
+
 	/**
 	 * @brief Prints the model details and parameters.
 	 */

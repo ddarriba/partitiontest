@@ -48,7 +48,7 @@ public:
 	NucleicModel(NucMatrix matrix, bitMask rateVariation, int numberOfTaxa);
 	void setFrequencies(const double * frequencies);
 	void setRates(const double * rates);
-	double distanceTo(NucleicModel * other);
+	double distanceTo(Model * other);
 	virtual ~NucleicModel();
 private:
 	NucMatrix matrix; /** Nucleotide substitution scheme */
