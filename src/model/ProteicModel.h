@@ -38,7 +38,7 @@ namespace partest {
 class ProteicModel: public Model {
 public:
 	/**
-	 * Constructor of a amino-acid replacement model.
+	 * @brief Constructor of a amino-acid replacement model.
 	 *
 	 * @param matrix Amino-acid replacement matrix.
 	 * @param rateVariation The rate variation and frequencies parameters (+I, +G, +F).
@@ -47,8 +47,13 @@ public:
   ProteicModel(ProtMatrix matrix, bitMask rateVariation, int numberOfTaxa);
   void setFrequencies(const double * frequencies);
   void setRates(const double * rates);
+  double distanceTo(ProteicModel * other);
   virtual ~ProteicModel();
 private:
+  /**
+   * @brief Compute euclidean distances between amino-acid replacement matrices
+   */
+  double getEuclideanDistance(ProtMatrix m1, ProtMatrix m2);
   ProtMatrix matrix; /** Amino-acid replacement matrix. */
 };
 

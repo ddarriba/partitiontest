@@ -19,6 +19,7 @@
 #include "ProteicModel.h"
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 
 namespace partest {
 
@@ -129,4 +130,44 @@ void ProteicModel::setRates(const double * rates) {
 	// Ignore
 }
 
+double ProteicModel::distanceTo(ProteicModel * other) {
+	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
+	double invDistance = pInv - other->pInv;
+	double shapeDistance = alpha - other->alpha;
+	double freqsDistance = 0.0;
+	for (int i = 0; i < numberOfFrequencies; i++) {
+		freqsDistance += (frequencies[i] - other->frequencies[i])
+				* (frequencies[i] - other->frequencies[i]);
+	}
+	freqsDistance = sqrt(freqsDistance);
+
+	double distance = matrixDistance + invDistance + shapeDistance
+			+ freqsDistance;
+
+	return distance;
+}
+
+double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) {
+	if (m1 == m2) {
+		return 0;
+	} else {
+		ProtMatrix lowMatrix = min(m1, m2);
+		ProtMatrix highMatrix = max(m1, m2);
+		int index = (highMatrix * (highMatrix - 1) / 2) + lowMatrix;
+		double distances[91] = {
+				554.40, 745.31, 308.82, 681.72, 369.32, 253.26, 738.50, 263.33,
+				207.04, 362.29, 732.96, 259.32, 207.44, 360.79, 5.99, 775.30,
+				415.07, 515.03, 478.51, 525.15, 523.88, 3209.58, 2690.17,
+				2541.35, 2614.11, 2548.45, 2553.82, 2553.20, 5.51, 549.44,
+				740.21, 677.20, 733.42, 727.89, 771.69, 3205.23, 1.80, 554.76,
+				745.81, 682.29, 738.85, 733.31, 776.16, 3210.21, 5.76, 867.34,
+				579.11, 336.95, 307.70, 523.09, 523.51, 690.97, 2571.97, 862.86,
+				867.91, 859.28, 474.02, 486.63, 458.27, 520.60, 521.06, 372.84,
+				2406.16, 855.75, 860.15, 623.86, 32.24, 535.48, 720.23, 658.53,
+				718.21, 712.70, 761.99, 3190.63, 28.48, 32.78, 838.70, 842.68,
+				15.20, 549.32, 735.75, 672.36, 731.36, 725.83, 772.55, 3204.47,
+				12.71, 15.65, 855.21, 856.09, 20.71 };
+		return distances[index];
+	}
+}
 } /* namespace partest */

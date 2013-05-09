@@ -17,6 +17,77 @@
 #include "alrt.h"
 #include "partest_to_phyml.h"
 
+void getRates(int i, phydbl *matrix1, phydbl *freqs) {
+	switch (i) {
+	case 0:
+		Init_Qmat_LG(matrix1, freqs);
+		break;
+	case 1:
+		Init_Qmat_WAG(matrix1, freqs);
+		break;
+	case 2:
+		Init_Qmat_JTT(matrix1, freqs);
+		break;
+	case 3:
+		Init_Qmat_MtREV(matrix1, freqs);
+		break;
+	case 4:
+		Init_Qmat_Dayhoff(matrix1, freqs);
+		break;
+	case 5:
+		Init_Qmat_DCMut(matrix1, freqs);
+		break;
+	case 6:
+		Init_Qmat_RtREV(matrix1, freqs);
+		break;
+	case 7:
+		Init_Qmat_CpREV(matrix1, freqs);
+		break;
+	case 8:
+		Init_Qmat_VT(matrix1, freqs);
+		break;
+	case 9:
+		Init_Qmat_Blosum62(matrix1, freqs);
+		break;
+	case 10:
+		Init_Qmat_MtMam(matrix1, freqs);
+		break;
+	case 11:
+		Init_Qmat_MtArt(matrix1, freqs);
+		break;
+	case 12:
+		Init_Qmat_HIVw(matrix1, freqs);
+		break;
+	case 13:
+		Init_Qmat_HIVb(matrix1, freqs);
+		break;
+	}
+}
+
+void compute_distances() {
+	phydbl * matrix1 = alloca(400 * sizeof(phydbl));
+	phydbl * matrix2 = alloca(400 * sizeof(phydbl));
+	phydbl * freqs = alloca(20 * sizeof(phydbl));
+	int i, j, k;
+	for (i = 1; i < 14; i++) {
+		for (j = 0; j < i; j++) {
+			getRates(i, matrix1, freqs);
+			getRates(j, matrix2, freqs);
+
+			double distance = 0.0;
+			for (k = 0; k < 20; k++) {
+				distance += (matrix2[k] - matrix1[k])
+						* (matrix2[k] - matrix1[k]);
+			}
+			distance = sqrt(distance);
+			/* Compute euclidean distances */
+			printf("%6.2f\t", distance);
+		}
+		printf("\n");
+	}
+	exit(0);
+}
+
 void get_aa_freqs(calign *data) {
 	int i, j, k;
 	phydbl A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y;
@@ -469,7 +540,6 @@ struct __Calign * read_data(const char * ioFile, int dataType) {
 	} else if (dataType == DATATYPE_AA) {
 		io->datatype = AA;
 	}
-
 
 	struct __Calign *cdata = 0;
 

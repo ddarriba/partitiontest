@@ -206,9 +206,16 @@ public:
 	 */
 	virtual void setRates(const double * rates);
 	/**
+	 * @brief Computes the distance to other model.
+	 *
+	 * @param other The other model.
+	 */
+	virtual double distanceTo(Model * other) = 0;
+	/**
 	 * @brief Prints the model details and parameters.
 	 */
 	virtual void print();
+
 	virtual ~Model();
 protected:
 	/** Rate variation (+I, +G, +F) */

@@ -38,4 +38,6 @@ double cl_phyml_lk(int argc, char **argv);
 struct __Option * build_options(phyml_indata indata);
 double phyml_lk(struct __Option *io, phyml_outdata * outdata);
 
+void compute_distances();
+
 #endif /* PARTEST_TO_PHYML_H */

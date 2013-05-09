@@ -143,6 +143,16 @@ PhymlModelOptimize::~PhymlModelOptimize() {
 int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitionElement, int index,
 		int groupCount) {
 
+//	for (int i = 1; i < 14; i++) {
+//		for (int j = 0; j < i; j++) {
+//			ProtMatrix m1 = static_cast<ProtMatrix>(i);
+//			ProtMatrix m2 = static_cast<ProtMatrix>(j);
+//			printf("%6.2f\t", Utilities::getEuclideanDistance(m1,m2));
+//		}
+//		printf("\n");
+//	}
+//	compute_distances();
+
 	int dataType, freqType;
 	int optimizeTopo, optimizeBranchLengths, optimizeRates;
 

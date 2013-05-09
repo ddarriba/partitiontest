@@ -19,6 +19,7 @@
 #include "NucleicModel.h"
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 
 namespace partest {
 
@@ -28,7 +29,7 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	/* treeFreeParameters is already initialized to the number of branches */
 	this->numberOfFrequencies = NUM_NUC_FREQS;
 	this->frequencies = (double *) malloc(NUM_NUC_FREQS * sizeof(double));
-
+	this->rates = (double *) malloc(NUM_RATES * sizeof(double));
 	switch (matrix) {
 	case NUC_MATRIX_JC:
 		name.append("JC");
@@ -174,7 +175,29 @@ void NucleicModel::setFrequencies(const double * frequencies) {
 }
 
 void NucleicModel::setRates(const double * rates) {
-	// Ignore
+	for (int i=0;i<NUM_RATES; i++)
+		this->rates[i] = rates[i];
+}
+
+double NucleicModel::distanceTo(NucleicModel * other) {
+	double invDistance = pInv - other->pInv;
+	double shapeDistance = alpha - other->alpha;
+	double matrixDistance = 0.0;
+	for (int i = 0; i < 6; i++) {
+			matrixDistance += (rates[i] - other->rates[i])
+					* (rates[i] - other->rates[i]);
+		}
+	double freqsDistance = 0.0;
+	for (int i = 0; i < numberOfFrequencies; i++) {
+		freqsDistance += (frequencies[i] - other->frequencies[i])
+				* (frequencies[i] - other->frequencies[i]);
+	}
+	freqsDistance = sqrt(freqsDistance);
+
+	double distance = matrixDistance + invDistance + shapeDistance
+			+ freqsDistance;
+
+	return distance;
 }
 
 } /* namespace partest */
