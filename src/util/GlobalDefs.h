@@ -154,7 +154,7 @@ enum NucMatrix {
 #define EX__MAX 78      /* maximum listed value */
 
 enum DataType {
-  DT_NUCLEIC, DT_PROTEIC
+  DT_NUCLEIC=1, DT_PROTEIC=2
 };
 
 enum InformationCriterion {

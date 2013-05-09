@@ -54,8 +54,10 @@ ConfigParser::ConfigParser(const char * configFile) :
 		ini.GetAllKeys(PARTITIONS_TAG, keys);
 		numberOfPartitions = keys.size();
 
+//		assert(
+//				Utilities::binaryPow(numberOfPartitions) < sizeof(t_partitionElementId) * 8);
 		assert(
-				Utilities::binaryPow(numberOfPartitions) < sizeof(t_partitionElementId) * 8);
+						numberOfPartitions < sizeof(t_partitionElementId) * 8);
 		partitions = new vector<partitionInfo>(numberOfPartitions);
 
 		char * lineBuffer = (char *) malloc(30);

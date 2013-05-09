@@ -470,6 +470,7 @@ struct __Calign * read_data(const char * ioFile, int dataType) {
 		io->datatype = AA;
 	}
 
+
 	struct __Calign *cdata = 0;
 
 	Get_Seq(io);

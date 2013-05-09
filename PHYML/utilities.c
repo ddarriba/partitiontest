@@ -6822,7 +6822,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	    case 'N' : case 'X' : case '?' : case 'O' : case '-' : {state[i]=T_MAX_ALPHABET-1;  break;}
 	    default :
 	      {
-		PhyML_Printf("\n. Unknown character state : '%c'\n",c[i]);
+		PhyML_Printf("\n. Unknown AMB character state : '%c'\n",c[i]);
 		Warn_And_Exit("\n. Init failed (check the data type)\n");
 		break;
 	      }
@@ -6859,7 +6859,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	case 'X' : case '?' : case '-' : {state[0]=T_MAX_ALPHABET-1; break;}
 	default  : 
 	  {
-	    PhyML_Printf("\n. Unknown character state : %c\n",state[0]);
+	    PhyML_Printf("\n. Unknown AA character state : %c\n",state[0]);
 	    Warn_And_Exit("\n. Init failed (check the data type)\n");
 	    break;
 	  }
