@@ -136,11 +136,11 @@ double ProteicModel::distanceTo(Model * otherModel) {
 	double invDistance = pInv - other->pInv;
 	double shapeDistance = alpha - other->alpha;
 	double freqsDistance = 0.0;
-	for (int i = 0; i < numberOfFrequencies; i++) {
-		freqsDistance += (frequencies[i] - other->frequencies[i])
-				* (frequencies[i] - other->frequencies[i]);
-	}
-	freqsDistance = sqrt(freqsDistance);
+//	for (int i = 0; i < numberOfFrequencies; i++) {
+//		freqsDistance += (frequencies[i] - other->frequencies[i])
+//				* (frequencies[i] - other->frequencies[i]);
+//	}
+//	freqsDistance = sqrt(freqsDistance);
 
 	double distance = matrixDistance + invDistance + shapeDistance
 			+ freqsDistance;
