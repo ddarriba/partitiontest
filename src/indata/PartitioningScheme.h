@@ -95,6 +95,13 @@ public:
 	PartitionElement * getElement(int id);
 
 	/**
+	 * @brief Gets whether all the PartitionElement instances were optimized or not.
+	 *
+	 * @return 1 if all the PartitionElement instances were already optimized. 0 otherwise.
+	 */
+	int isOptimized(void);
+
+	/**
 	 * @brief Gets a string identifier for the scheme.
 	 *
 	 * @return A string identifier for the scheme.

@@ -111,8 +111,6 @@ bool existPartition(t_partitionElementId * classes, int numberOfClasses,
 PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 		PartitioningScheme ** schemesArray, int numberOfSchemes) {
 
-	//Partition * p = new Partition();
-
 	bool gotScheme = false;
 	int numberOfClasses;
 	int i;

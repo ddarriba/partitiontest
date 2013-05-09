@@ -82,6 +82,14 @@ PartitionElement * PartitioningScheme::getElement(int id) {
 	}
 }
 
+int PartitioningScheme::isOptimized(void) {
+	int optimized = 1;
+	for (int i = 0; i < numberOfElements; i++) {
+		optimized &= partitions[i]->isOptimized();
+	}
+	return optimized;
+}
+
 string PartitioningScheme::toString() {
 	if (!code) {
 		int hashmap[numberOfElements];
