@@ -14,6 +14,7 @@
 #include "search/ExhaustiveSearchAlgorithm.h"
 #include "search/RandomSearchAlgorithm.h"
 #include "search/GreedySearchAlgorithm.h"
+#include "search/HierarchicalSearchAlgorithm.h"
 
 namespace partest {
 
@@ -36,8 +37,8 @@ ModelOptimize * ParTestFactory::createModelOptimize(ParTestOptions * options) {
 	return mo;
 }
 
-SearchAlgorithm * ParTestFactory::createSearchAlgorithm(ParTestOptions * options,
-		PartitionMap * partitionMap) {
+SearchAlgorithm * ParTestFactory::createSearchAlgorithm(
+		ParTestOptions * options, PartitionMap * partitionMap) {
 	SearchAlgorithm * searchAlgorithm = 0;
 	switch (options->getSearchAlgorithm()) {
 	case SearchExhaustive:
@@ -48,6 +49,10 @@ SearchAlgorithm * ParTestFactory::createSearchAlgorithm(ParTestOptions * options
 		break;
 	case SearchGreedy:
 		searchAlgorithm = new GreedySearchAlgorithm(options, partitionMap);
+		break;
+	case SearchHCluster:
+		searchAlgorithm = new HierarchicalSearchAlgorithm(options,
+				partitionMap);
 		break;
 	}
 	return searchAlgorithm;

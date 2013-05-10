@@ -43,6 +43,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				searchAlgorithm = SearchExhaustive;
 			} else if (!strcmp(value, "random")) {
 				searchAlgorithm = SearchRandom;
+			} else if (!strcmp(value, "hcluster")) {
+				searchAlgorithm = SearchHCluster;
 			} else {
 				cerr << "Invalid search algorithm : " << value << endl;
 				Utilities::exit_partest(EX_SOFTWARE);
@@ -56,8 +58,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 //		assert(
 //				Utilities::binaryPow(numberOfPartitions) < sizeof(t_partitionElementId) * 8);
-		assert(
-						numberOfPartitions < sizeof(t_partitionElementId) * 8);
+		assert( numberOfPartitions < sizeof(t_partitionElementId) * 8);
 		partitions = new vector<partitionInfo>(numberOfPartitions);
 
 		char * lineBuffer = (char *) malloc(30);

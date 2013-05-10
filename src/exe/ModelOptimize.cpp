@@ -44,24 +44,21 @@ int ModelOptimize::optimizePartitionElement(
 		PartitionElement * partitionElement) {
 	ModelSet * modelset = partitionElement->getModelset();
 	//(options->getRateVariation(), options->getDataType());
-	notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL),
-			partitionElement->getId(), partitionElement->getId());
+#pragma omp single
+	{
+		notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL),
+				partitionElement->getId(), partitionElement->getId());
+	}
 #pragma omp for schedule(dynamic)
 	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
 		optimizeModel(modelset->getModel(i), partitionElement, i,
 				modelset->getNumberOfModels());
 	}
-
-//		ModelSelector selector(partitionElement->getModelset(), BIC, 113.0);
-//
-//		SelectionModel * best = selector.getBestModel();
-//
-//		cout << " ------------- BEST MODEL --------------- " << endl;
-//		cout << best->getModel()->getName() << endl;
-//		cout << " ------------- ---------- --------------- " << endl;
-
-	notify_observers(MT_MODELSET_END, 0, modelset, time(NULL), 0,
-			modelset->getNumberOfModels());
+#pragma omp single
+	{
+		notify_observers(MT_MODELSET_END, 0, modelset, time(NULL), 0,
+				modelset->getNumberOfModels());
+	}
 
 	return 0;
 }

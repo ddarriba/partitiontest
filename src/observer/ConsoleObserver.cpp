@@ -40,7 +40,6 @@ void ConsoleObserver::update(string name, unsigned int current_index,
 void ConsoleObserver::update(const ObservableInfo & info,
 		ParTestOptions * run_instance) {
 	//boost::mutex::scoped_lock lock(m_io_monitor);
-
 	switch (info.type) {
 	case MT_SINGLE_INIT:
 #ifdef DEBUG
@@ -50,10 +49,10 @@ void ConsoleObserver::update(const ObservableInfo & info,
 	case MT_SINGLE_END:
 #ifdef DEBUG
 		if (modelIndex == 0)
-			cout << "[TRACE] END MODEL" << endl;
+		cout << "[TRACE] END MODEL" << endl;
 		cout << "[" << ++modelIndex << "/" << info.max_index << "]\tOptimized "
-				<< setw(15) << info.model->getName() << info.model->getLnL()
-				<< endl;
+		<< setw(15) << info.model->getName() << info.model->getLnL()
+		<< endl;
 #endif
 		break;
 	case MT_MODELSET_INIT:

@@ -51,7 +51,8 @@ enum StartTopo {
 enum SearchAlgo {
 	SearchExhaustive,
 	SearchRandom,
-	SearchGreedy
+	SearchGreedy,
+	SearchHCluster
 };
 
 #ifdef _PLL

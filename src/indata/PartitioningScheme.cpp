@@ -105,7 +105,6 @@ string PartitioningScheme::toString() {
 				}
 			}
 		}
-
 		hashmap[intcode[0]] = 0;
 		int nextCode = 0;
 		charcode[0] = '0';

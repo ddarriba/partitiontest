@@ -28,6 +28,7 @@
 #define ARG_SEARCH_EXHAUSTIVE "exhaustive"
 #define ARG_SEARCH_RANDOM "random"
 #define ARG_SEARCH_GREEDY "greedy"
+#define ARG_SEARCH_HIERARCHICAL "hcluster"
 
 enum ArgIndex {
   ARG_NULL,

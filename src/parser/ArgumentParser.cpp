@@ -229,18 +229,22 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				searchAlgo = SearchRandom;
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY)) {
 				searchAlgo = SearchGreedy;
+			} else if (!strcmp(value, ARG_SEARCH_HIERARCHICAL)) {
+				searchAlgo = SearchHCluster;
 			} else {
 				cerr << "[ERROR] \"-S " << value
 						<< "\" is not a valid search algorithm. Use one of the following:"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_EXHAUSTIVE
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_EXHAUSTIVE
 						<< "Exhaustive algorithm (horribly computationally expensive)"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_RANDOM
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_RANDOM
 						<< "Random walk algorithm (chinese restaurant process)"
 						<< endl;
-				cerr << "  -S " << setw(8) << left << ARG_SEARCH_GREEDY
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_GREEDY
 						<< "Greedy hill climbing algorithm" << endl;
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_HIERARCHICAL
+						<< "Hierarchical clustering algorithm" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
 			break;

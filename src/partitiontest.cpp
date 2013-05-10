@@ -19,6 +19,7 @@
  */
 #include <iostream>
 #include "util/PrintMeta.h"
+#include "util/Utilities.h"
 #include "util/GlobalDefs.h"
 #include "util/ParTestFactory.h"
 #include "options/ParTestOptions.h"
@@ -64,6 +65,11 @@ int main(int argc, char *argv[]) {
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm( options, partitionMap );
 
 	PartitioningScheme * partitioningScheme = searchAlgo->start();
+
+	if(!partitioningScheme->isOptimized()) {
+		cerr << endl << "[ERROR] Logic error. Search algorithm returned a non-optimized partition" << endl;
+		Utilities::exit_partest(EX_SOFTWARE);
+	}
 
 	cout << "***** BEST PARTITIONING SCHEME *****" << endl;
 	cout << "Partitioning scheme: " << partitioningScheme->toString() << endl;
