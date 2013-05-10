@@ -33,6 +33,7 @@ PARTEST_CXXFILES = \
 	search/SearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
 	search/RandomSearchAlgorithm.cpp \
+	search/HierarchicalSearchAlgorithm.cpp \
 	search/ExhaustiveSearchAlgorithm.cpp \
 	selection/ModelSelector.cpp \
 	selection/PartitionSelector.cpp \
