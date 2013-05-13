@@ -88,6 +88,9 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 					Model * m2 =
 							bestScheme->getElement(j)->getBestModel()->getModel();
 					double newDist = m1->distanceTo(m2);
+#ifdef DEBUG
+		cout << "[TRACE]            Distance: " << bestScheme->getElement(i)->getId() << " to " << bestScheme->getElement(j)->getId() << " = " << newDist << endl;
+#endif
 					if (newDist < distance) {
 						bestMatch0 = bestScheme->getElement(i)->getId();
 						bestMatch1 = bestScheme->getElement(j)->getId();
@@ -110,11 +113,13 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 					nextScheme->addElement(element);
 				}
 			}
-			delete prevScheme;
+			if (prevScheme != bestScheme) {
+				delete prevScheme;
+			}
 		}
 	}
-
 	delete mo;
+
 #ifdef DEBUG
 		cout << "[TRACE] Hcluster - END Return: " << bestScheme->toString() << endl;
 #endif
