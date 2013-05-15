@@ -37,6 +37,8 @@ public:
 	static double computeIc(InformationCriterion ic, double lnL,
 			int freeParameters, double sampleSize);
 	static double computeBic(double lnL, int freeParameters, double sampleSize);
+	static double computeAic(double lnL, int freeParameters);
+	static double computeAicc(double lnL, int freeParameters, double sampleSize);
 	void print(ostream& out);
 private:
 	void doSelection(ModelSet * modelset, InformationCriterion ic,

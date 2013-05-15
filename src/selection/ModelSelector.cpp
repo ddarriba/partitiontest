@@ -25,23 +25,38 @@ double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 	double value;
 	switch (ic) {
 	case AIC:
-		value = 0.0;
+		value = computeAic(lnL, freeParameters);
 		break;
 	case AICC:
-		value = 0.0;
+		value = computeAicc(lnL, freeParameters, sampleSize);
 		break;
 	case BIC:
 		value = computeBic(lnL, freeParameters, sampleSize);
 		break;
 	case DT:
 		value = 0.0;
+		cerr << "ERROR: Decision Theory is not implemented yet" << endl;
+		Utilities::exit_partest(EX_UNAVAILABLE);
 		break;
 	}
 	return value;
 }
+
 double ModelSelector::computeBic(double lnL, int freeParameters,
 		double sampleSize) {
 	return (-2 * lnL + freeParameters * log(sampleSize));
+}
+
+double ModelSelector::computeAic(double lnL, int freeParameters) {
+	return (2 * (freeParameters - lnL));
+}
+
+double ModelSelector::computeAicc(double lnL, int freeParameters,
+		double sampleSize) {
+	double aicc = computeAic(lnL, freeParameters);
+	aicc += (2 * freeParameters * (freeParameters + 1))
+			/ (sampleSize - freeParameters - 1);
+	return aicc;
 }
 
 ModelSelector::ModelSelector(PartitionElement * partitionElement,

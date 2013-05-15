@@ -40,17 +40,17 @@ void ConsoleObserver::update(string name, unsigned int current_index,
 void ConsoleObserver::update(const ObservableInfo & info,
 		ParTestOptions * run_instance) {
 	//boost::mutex::scoped_lock lock(m_io_monitor);
+#pragma omp critical
 	switch (info.type) {
 	case MT_SINGLE_INIT:
 #ifdef DEBUG
-		cout << "[TRACE] INIT MODEL [" << modelIndex+1 << "/" << info.max_index << "]\tOptimizing " << info.model->getName() << "..." << endl;
+		cout << "[TRACE] INIT MODEL [" << info.current_index + 1 << "/" << info.max_index << "]\tOptimizing " << info.model->getName() << "..." << endl;
 #endif
 		break;
 	case MT_SINGLE_END:
 #ifdef DEBUG
 		if (modelIndex == 0)
-		cout << "[TRACE] END MODEL" << endl;
-		cout << "[" << ++modelIndex << "/" << info.max_index << "]\tOptimized "
+		cout << "[TRACE] [" << info.current_index + 1 << "/" << info.max_index << "]\tOptimized "
 		<< setw(15) << info.model->getName() << info.model->getLnL()
 		<< endl;
 #endif

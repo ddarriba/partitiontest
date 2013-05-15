@@ -295,9 +295,7 @@ int PhymlModelOptimize::optimizeModel(Model * model, PartitionElement * partitio
 	if (model->isGamma()) {
 		model->setAlpha(outdata->alpha);
 	}
-	if (model->isPF()) {
-		model->setFrequencies(outdata->frequencies);
-	}
+	model->setFrequencies(outdata->frequencies);
 
 //	pt_free_io(io);
 
