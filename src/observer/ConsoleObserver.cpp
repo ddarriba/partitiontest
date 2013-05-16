@@ -6,8 +6,8 @@
  */
 
 #include "ConsoleObserver.h"
-#include "../util/Utilities.h"
-#include "../util/GlobalDefs.h"
+#include "util/Utilities.h"
+#include "util/GlobalDefs.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

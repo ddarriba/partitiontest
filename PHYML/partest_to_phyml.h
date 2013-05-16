@@ -10,6 +10,7 @@
 typedef struct {
 	const char * ioFile;
 	const char * treeFile;
+	struct __Tree * tree;
 	int dataType;
 	int freqType;
 	double * frequencies;
@@ -34,7 +35,6 @@ void get_aa_freqs(struct __Calign *data);
 void get_nt_freqs(struct __Calign *data);
 void free_cdata(struct __Calign * cdata);
 struct __Calign *read_data(const char * ioFile, int dataType);
-double cl_phyml_lk(int argc, char **argv);
 struct __Option * build_options(phyml_indata indata);
 double phyml_lk(struct __Option *io, phyml_outdata * outdata);
 

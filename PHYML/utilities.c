@@ -4537,7 +4537,6 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
 {
     int i,j,n_otu_tree,n_otu_cdata;
     align *buff;
-
     n_otu_tree  = tree->n_otu;
     n_otu_cdata = cdata->n_otu;
 
@@ -4551,16 +4550,18 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
       {
 	For(j,MIN(n_otu_tree,n_otu_cdata))
 	  {
+		if (!tree->t_nodes[i]->name) {
+			PhyML_Printf("\n. Err: Error in input tree\n");
+			Warn_And_Exit("");
+		}
 	    if(!strcmp(tree->t_nodes[i]->name,cdata->c_seq[j]->name))
 	      break;
 	  }
-	
 	if(j==MIN(n_otu_tree,n_otu_cdata))
 	  {
 	    PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->t_nodes[i]->name);
 	    Warn_And_Exit("");
 	  }
-	
 	buff            = cdata->c_seq[j];
 	cdata->c_seq[j] = cdata->c_seq[i];
 	cdata->c_seq[i] = buff;
@@ -12116,8 +12117,8 @@ void Add_BioNJ_Branch_Lengths(t_tree *tree, calign *cdata, model *mod)
 {
   matrix *mat;
   
-  PhyML_Printf("\n");
-  PhyML_Printf("\n. Computing branch length estimates...\n");
+//  PhyML_Printf("\n");
+//  PhyML_Printf("\n. Computing branch length estimates...\n");
 
   Order_Tree_CSeq(tree,cdata);
   mat = ML_Dist(cdata,mod);
@@ -12137,7 +12138,7 @@ t_tree *Read_User_Tree(calign *cdata, model *mod, option *io)
   t_tree *tree;
 
   
-  PhyML_Printf("\n. Reading tree..."); fflush(NULL);
+//  PhyML_Printf("\n. Reading tree..."); fflush(NULL);
   if(io->n_trees == 1) rewind(io->fp_in_tree);
   tree = Read_Tree_File_Phylip(io->fp_in_tree);
   if(!tree) Exit("\n. Input tree not found...");
