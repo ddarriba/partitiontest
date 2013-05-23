@@ -44,6 +44,12 @@ ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
+PartitioningScheme * ExhaustiveSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+	cerr << "[ERROR] Not implemented yet" << endl;
+	Utilities::exit_partest(EX_UNAVAILABLE);
+	return 0;
+}
+
 PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 	int i, j;
 	int n = getNumberOfElements();

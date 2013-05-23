@@ -38,6 +38,7 @@ public:
 	ExhaustiveSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~ExhaustiveSearchAlgorithm();
 	virtual PartitioningScheme * start();
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
 	virtual void update(const ObservableInfo & info,
 	        ParTestOptions * run_instance = NULL);
 };

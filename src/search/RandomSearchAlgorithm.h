@@ -43,6 +43,7 @@ public:
 	RandomSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~RandomSearchAlgorithm();
 	virtual PartitioningScheme * start();
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
 	virtual void update(const ObservableInfo & info, ParTestOptions * run_instance =
 			NULL);
 private:

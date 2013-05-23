@@ -40,6 +40,7 @@ public:
 	HierarchicalSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
 	virtual ~HierarchicalSearchAlgorithm();
 	virtual PartitioningScheme * start();
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
 	virtual void update(const ObservableInfo & info, ParTestOptions * run_instance =
 			NULL);
 private:

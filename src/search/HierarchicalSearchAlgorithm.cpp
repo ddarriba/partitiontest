@@ -46,6 +46,12 @@ HierarchicalSearchAlgorithm::~HierarchicalSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
+PartitioningScheme * HierarchicalSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+	cerr << "[ERROR] Not implemented yet" << endl;
+	Utilities::exit_partest(EX_UNAVAILABLE);
+	return 0;
+}
+
 PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 #ifdef DEBUG

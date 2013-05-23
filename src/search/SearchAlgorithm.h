@@ -39,7 +39,7 @@ namespace partest {
  *
  * Generic interface for search algorithms.
  */
-class SearchAlgorithm : public Observer {
+class SearchAlgorithm: public Observer {
 public:
 
 	/**
@@ -58,8 +58,17 @@ public:
 	 */
 	virtual PartitioningScheme * start() = 0;
 
+	/**
+	 * @brief Starts a new search starting from a fixed point.
+	 *
+	 * @param startingScheme The starting point for searching.
+	 *
+	 * @return The best-fit partitioning scheme.
+	 */
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint) = 0;
+
 	virtual void update(const ObservableInfo & info,
-	        ParTestOptions * run_instance = NULL) = 0;
+			ParTestOptions * run_instance = NULL) = 0;
 protected:
 
 	/**
@@ -78,8 +87,8 @@ protected:
 	 */
 	unsigned int getNumberOfElements();
 
-	ParTestOptions * options;		/** Execution options */
-	PartitionMap * partitionMap;	/** Map of partitions */
+	ParTestOptions * options; /** Execution options */
+	PartitionMap * partitionMap; /** Map of partitions */
 };
 
 } /* namespace partest */

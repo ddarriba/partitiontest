@@ -165,6 +165,12 @@ GreedySearchAlgorithm::~GreedySearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
+PartitioningScheme * GreedySearchAlgorithm::start(PartitioningScheme * startingPoint) {
+	cerr << "[ERROR] Not implemented yet" << endl;
+	Utilities::exit_partest(EX_UNAVAILABLE);
+	return 0;
+}
+
 PartitioningScheme * GreedySearchAlgorithm::start() {
 
 	int i;

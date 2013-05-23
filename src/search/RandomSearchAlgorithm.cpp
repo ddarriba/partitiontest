@@ -48,6 +48,12 @@ RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
+PartitioningScheme * RandomSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+	cerr << "[ERROR] Not implemented yet" << endl;
+	Utilities::exit_partest(EX_UNAVAILABLE);
+	return 0;
+}
+
 PartitioningScheme * RandomSearchAlgorithm::start() {
 
 	int currentScheme, currentStep;
