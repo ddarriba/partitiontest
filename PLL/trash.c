@@ -20,7 +20,7 @@
 
  
   
-static void reorderNodes(tree *tr, nodeptr *np, nodeptr p, int *count)
+static void reorderNodes(pllInstance *tr, nodeptr *np, nodeptr p, int *count)
 {
   int i, found = 0;
 
@@ -54,16 +54,16 @@ static void reorderNodes(tree *tr, nodeptr *np, nodeptr p, int *count)
     }
 }
 
-void nodeRectifier(tree *tr)
+void nodeRectifier(pllInstance *tr)
 {
   nodeptr *np = (nodeptr *)rax_malloc(2 * tr->mxtips * sizeof(nodeptr));
   int i;
   int count = 0;
   
   tr->start       = tr->nodep[1];
-  tr->rooted      = FALSE;
+  tr->rooted      = PLL_FALSE;
 
-  /* TODO why is tr->rooted set to FALSE here ?*/
+  /* TODO why is tr->rooted set to PLL_FALSE here ?*/
   
   for(i = tr->mxtips + 1; i <= (tr->mxtips + tr->mxtips - 1); i++)
     np[i] = tr->nodep[i];           

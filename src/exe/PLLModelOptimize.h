@@ -50,7 +50,7 @@ public:
 			int index, int groupCount);
 	virtual ~PLLModelOptimize();
 private:
-	tree * tr; /** Tree structure from PLL */
+	pllInstance * tr; /** Tree structure from PLL */
 	double **empiricalFrequencies; /** Empirical frequencies of the site states. */
 };
 

@@ -39,12 +39,12 @@
 #define  LEX_DASH                1 << 13
 #define  LEX_SLASH               1 << 14
 
-#define CONSUME(x)         while (token.tclass & (x)) token = get_token (&input);
+#define CONSUME(x)         while (token.class & (x)) token = get_token (&input);
 #define NEXT_TOKEN         token = get_token (&input);
 
 struct ltoken_t
  {
-   int          tclass;
+   int          class;
    const char * lexeme;
    int          len;
  };

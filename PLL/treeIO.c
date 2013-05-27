@@ -178,27 +178,27 @@ int countTips(nodeptr p, int numsp)
 }
 
 
-double getBranchLength(tree *tr, partitionList *pr, int perGene, nodeptr p)
+double getBranchLength(pllInstance *tr, partitionList *pr, int perGene, nodeptr p)
 {
   double 
     z = 0.0,
     x = 0.0;
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
 
-  assert(perGene != NO_BRANCHES);
+  assert(perGene != PLL_NO_BRANCHES);
 	      
   if(numBranches == 1)
     {
       assert(tr->fracchange != -1.0);
       z = p->z[0];
-      if (z < zmin) 
-	z = zmin;      	 
+      if (z < PLL_ZMIN) 
+	z = PLL_ZMIN;      	 
       
       x = -log(z) * tr->fracchange;           
     }
   else
     {
-      if(perGene == SUMMARIZE_LH)
+      if(perGene == PLL_SUMMARIZE_LH)
 	{
 	  int 
 	    i;
@@ -211,8 +211,8 @@ double getBranchLength(tree *tr, partitionList *pr, int perGene, nodeptr p)
 	      assert(pr->partitionData[i]->partitionContribution != -1.0);
 	      assert(pr->partitionData[i]->fracchange != -1.0);
 	      z = p->z[i];
-	      if(z < zmin) 
-		z = zmin;      	 
+	      if(z < PLL_ZMIN) 
+		z = PLL_ZMIN;      	 
 	      x = -log(z) * pr->partitionData[i]->fracchange;
 	      avgX += x * pr->partitionData[i]->partitionContribution;
 	    }
@@ -226,8 +226,8 @@ double getBranchLength(tree *tr, partitionList *pr, int perGene, nodeptr p)
 	  
 	  z = p->z[perGene];
 	  
-	  if(z < zmin) 
-	    z = zmin;      	 
+	  if(z < PLL_ZMIN) 
+	    z = PLL_ZMIN;      	 
 	  
 	  x = -log(z) * pr->partitionData[perGene]->fracchange;
 	}
@@ -238,7 +238,7 @@ double getBranchLength(tree *tr, partitionList *pr, int perGene, nodeptr p)
 
 
   
-static char *TreeInner2StringREC(char *treestr, tree *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames,
+static char *TreeInner2StringREC(char *treestr, pllInstance *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames,
 			    boolean printLikelihood, boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport, boolean printInnerNodes)
 {
   /* TODOFER simplify this, should be used just to print inner nodes for testing */
@@ -321,7 +321,7 @@ static char *TreeInner2StringREC(char *treestr, tree *tr, partitionList *pr, nod
 }
 
 
-static char *Tree2StringREC(char *treestr, tree *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames,
+static char *Tree2StringREC(char *treestr, pllInstance *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames,
 			    boolean printLikelihood, boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport)
 {
   char  *nameptr;            
@@ -402,17 +402,17 @@ static char *Tree2StringREC(char *treestr, tree *tr, partitionList *pr, nodeptr 
 
 
 
-void printTopology(tree *tr, partitionList *pr, boolean printInner)
+void printTopology(pllInstance *tr, partitionList *pr, boolean printInner)
 {
   if(!printInner)
   {
-    boolean printBranchLengths = FALSE;
-    Tree2String(tr->tree_string, tr, pr, tr->start->back, printBranchLengths, 0, 0, 0, 0, SUMMARIZE_LH, 0,0);
+    boolean printBranchLengths = PLL_FALSE;
+    Tree2String(tr->tree_string, tr, pr, tr->start->back, printBranchLengths, 0, 0, 0, 0, PLL_SUMMARIZE_LH, 0,0);
     fprintf(stderr, "%s", tr->tree_string);
   }
   else
   {
-    TreeInner2StringREC(tr->tree_string, tr, pr, tr->start->back, FALSE, 0, 0, 0, 0, SUMMARIZE_LH, 0,0, TRUE);
+    TreeInner2StringREC(tr->tree_string, tr, pr, tr->start->back, PLL_FALSE, 0, 0, 0, 0, PLL_SUMMARIZE_LH, 0,0, PLL_TRUE);
     fprintf(stderr, "%s", tr->tree_string);
     fprintf(stderr, "Start was %d, pnb %d, pnnb %d, pback %d\n", 
         tr->start->back->number, 
@@ -427,7 +427,7 @@ void printTopology(tree *tr, partitionList *pr, boolean printInner)
 
 
 
-char *Tree2String(char *treestr, tree *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames, boolean printLikelihood,
+char *Tree2String(char *treestr, pllInstance *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames, boolean printLikelihood,
 		  boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport)
 { 
 
@@ -451,7 +451,7 @@ char *Tree2String(char *treestr, tree *tr, partitionList *pr, nodeptr p, boolean
 }
 
 
-void printTreePerGene(tree *tr, partitionList *pr, analdef *adef, char *fileName, char *permission)
+void printTreePerGene(pllInstance *tr, partitionList *pr, analdef *adef, char *fileName, char *permission)
 {  
   FILE *treeFile;
   char extendedTreeFileName[1024];
@@ -468,7 +468,7 @@ void printTreePerGene(tree *tr, partitionList *pr, analdef *adef, char *fileName
       strcat(extendedTreeFileName, ".PARTITION.");
       strcat(extendedTreeFileName, buf);
       /*printf("Partitiuon %d file %s\n", i, extendedTreeFileName);*/
-      Tree2String(tr->tree_string, tr, pr, tr->start->back, TRUE, TRUE, FALSE, FALSE, TRUE, i, FALSE, FALSE);
+      Tree2String(tr->tree_string, tr, pr, tr->start->back, PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_TRUE, i, PLL_FALSE, PLL_FALSE);
       treeFile = myfopen(extendedTreeFileName, permission);
       fprintf(treeFile, "%s", tr->tree_string);
       fclose(treeFile);
@@ -534,11 +534,11 @@ static boolean treeLabelEnd (int ch)
     case '(':   
     case ')':  
     case ';':
-      return TRUE;
+      return PLL_TRUE;
     default:
       break;
     }
-  return FALSE;
+  return PLL_FALSE;
 } 
 
 
@@ -599,7 +599,7 @@ static boolean  treeFlushLabel (FILE *fp)
 
 
 
-static int treeFindTipByLabelString(char  *str, tree *tr)                    
+static int treeFindTipByLabelString(char  *str, pllInstance *tr)                    
 {
   int lookup = lookupWord(str, tr->nameHash);
 
@@ -616,12 +616,12 @@ static int treeFindTipByLabelString(char  *str, tree *tr)
 }
 
 
-static int treeFindTipName(FILE *fp, tree *tr)
+static int treeFindTipName(FILE *fp, pllInstance *tr)
 {
-  char    str[nmlngth+2];
+  char    str[PLL_NMLNGTH + 2];
   int      n;
 
-  if(treeGetLabel(fp, str, nmlngth+2))
+  if(treeGetLabel(fp, str, PLL_NMLNGTH + 2))
     n = treeFindTipByLabelString(str, tr);
   else
     n = 0;
@@ -637,15 +637,15 @@ static void  treeEchoContext (FILE *fp1, FILE *fp2, int n)
   int      ch;
   boolean  waswhite;
   
-  waswhite = TRUE;
+  waswhite = PLL_TRUE;
   
   while (n > 0 && ((ch = getc(fp1)) != EOF)) {
     if (whitechar(ch)) {
       ch = waswhite ? '\0' : ' ';
-      waswhite = TRUE;
+      waswhite = PLL_TRUE;
     }
     else {
-      waswhite = FALSE;
+      waswhite = PLL_FALSE;
     }
     
     if (ch > '\0') {putc(ch, fp2); n--;}
@@ -657,17 +657,17 @@ static boolean treeProcessLength (FILE *fp, double *dptr)
 {
   int  ch;
   
-  if ((ch = treeGetCh(fp)) == EOF)  return FALSE;    /*  Skip comments */
+  if ((ch = treeGetCh(fp)) == EOF)  return PLL_FALSE;    /*  Skip comments */
   (void) ungetc(ch, fp);
   
   if (fscanf(fp, "%lf", dptr) != 1) {
     printf("ERROR: treeProcessLength: Problem reading branch length\n");
     treeEchoContext(fp, stdout, 40);
     printf("\n");
-    return  FALSE;
+    return  PLL_FALSE;
   }
   
-  return  TRUE;
+  return  PLL_TRUE;
 }
 
 
@@ -701,7 +701,7 @@ static boolean treeNeedCh (FILE *fp, int c1, char *where)
 {
   int  c2;
   
-  if ((c2 = treeGetCh(fp)) == c1)  return TRUE;
+  if ((c2 = treeGetCh(fp)) == c1)  return PLL_TRUE;
   
   printf("ERROR: Expecting '%c' %s tree; found:", c1, where);
   if (c2 == EOF) 
@@ -718,12 +718,12 @@ static boolean treeNeedCh (FILE *fp, int c1, char *where)
   if(c1 == ':')    
     printf("RAxML may be expecting to read a tree that contains branch lengths\n");
 
-  return FALSE;
+  return PLL_FALSE;
 } 
 
 
 
-static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchLengths, boolean readNodeLabels, int *lcount)
+static boolean addElementLen (FILE *fp, pllInstance *tr, nodeptr p, boolean readBranchLengths, boolean readNodeLabels, int *lcount)
 {   
   nodeptr  q;
   int      n, ch, fres;
@@ -737,21 +737,21 @@ static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchL
 	    {
 	      printf("ERROR: Too many internal nodes.  Is tree rooted?\n");
 	      printf("       Deepest splitting should be a trifurcation.\n");
-	      return FALSE;
+	      return PLL_FALSE;
 	    }
 	  else 
 	    {
 	      assert(!readNodeLabels);
-	      tr->rooted = TRUE;
+	      tr->rooted = PLL_TRUE;
 	    }
 	}
       
       q = tr->nodep[n];
 
-      if (! addElementLen(fp, tr, q->next, readBranchLengths, readNodeLabels, lcount))        return FALSE;
-      if (! treeNeedCh(fp, ',', "in"))             return FALSE;
-      if (! addElementLen(fp, tr, q->next->next, readBranchLengths, readNodeLabels, lcount))  return FALSE;
-      if (! treeNeedCh(fp, ')', "in"))             return FALSE;
+      if (! addElementLen(fp, tr, q->next, readBranchLengths, readNodeLabels, lcount))        return PLL_FALSE;
+      if (! treeNeedCh(fp, ',', "in"))             return PLL_FALSE;
+      if (! addElementLen(fp, tr, q->next->next, readBranchLengths, readNodeLabels, lcount))  return PLL_FALSE;
+      if (! treeNeedCh(fp, ')', "in"))             return PLL_FALSE;
       
       if(readNodeLabels)
 	{
@@ -777,7 +777,7 @@ static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchL
   else 
     {   
       ungetc(ch, fp);
-      if ((n = treeFindTipName(fp, tr)) <= 0)          return FALSE;
+      if ((n = treeFindTipName(fp, tr)) <= 0)          return PLL_FALSE;
       q = tr->nodep[n];
       if (tr->start->number > n)  tr->start = q;
       (tr->ntips)++;
@@ -786,8 +786,8 @@ static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchL
   if(readBranchLengths)
     {
       double branch;
-      if (! treeNeedCh(fp, ':', "in"))                 return FALSE;
-      if (! treeProcessLength(fp, &branch))            return FALSE;
+      if (! treeNeedCh(fp, ':', "in"))                 return PLL_FALSE;
+      if (! treeProcessLength(fp, &branch))            return PLL_FALSE;
       
       /*printf("Branch %8.20f %d\n", branch, tr->numBranches);*/
       hookupFull(p, q, &branch);
@@ -795,11 +795,11 @@ static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchL
   else
     {
       fres = treeFlushLen(fp);
-      if(!fres) return FALSE;
+      if(!fres) return PLL_FALSE;
       
       hookupDefault(p, q);
     }
-  return TRUE;          
+  return PLL_TRUE;          
 } 
 
 
@@ -812,7 +812,7 @@ static boolean addElementLen (FILE *fp, tree *tr, nodeptr p, boolean readBranchL
 
 
 
-static nodeptr uprootTree (tree *tr, nodeptr p, boolean readBranchLengths, boolean readConstraint, int numBranches)
+static nodeptr uprootTree (pllInstance *tr, nodeptr p, boolean readBranchLengths, boolean readConstraint, int numBranches)
 {
   nodeptr  q, r, s, start;
   int      n, i;              
@@ -896,12 +896,12 @@ static nodeptr uprootTree (tree *tr, nodeptr p, boolean readBranchLengths, boole
   start = findAnyTip(tr->nodep[tr->mxtips + 1], tr->mxtips);
   
   assert(isTip(start->number, tr->mxtips));
-  tr->rooted = FALSE;
+  tr->rooted = PLL_FALSE;
   return  start;
 }
 
 
-int treeReadLen (FILE *fp, tree *tr, boolean readBranches, boolean readNodeLabels, boolean topologyOnly)
+int treeReadLen (FILE *fp, pllInstance *tr, boolean readBranches, boolean readNodeLabels, boolean topologyOnly)
 {
   nodeptr  
     p;
@@ -944,16 +944,16 @@ int treeReadLen (FILE *fp, tree *tr, boolean readBranches, boolean readNodeLabel
   tr->nextnode    = tr->mxtips + 1;      
  
   for(i = 0; i < NUM_BRANCHES; i++)
-    tr->partitionSmoothed[i] = FALSE;
+    tr->partitionSmoothed[i] = PLL_FALSE;
   
-  tr->rooted      = FALSE;     
+  tr->rooted      = PLL_FALSE;     
 
   p = tr->nodep[(tr->nextnode)++]; 
   
   while((ch = treeGetCh(fp)) != '(');
       
   if(!topologyOnly)
-    assert(readBranches == FALSE && readNodeLabels == FALSE);
+    assert(readBranches == PLL_FALSE && readNodeLabels == PLL_FALSE);
   
        
   if (! addElementLen(fp, tr, p, readBranches, readNodeLabels, &lcount))                 
@@ -971,7 +971,7 @@ int treeReadLen (FILE *fp, tree *tr, boolean readBranches, boolean readNodeLabel
 	}
       else 
 	{                                    /*  A rooted format */
-	  tr->rooted = TRUE;
+	  tr->rooted = PLL_TRUE;
 	  if (ch != EOF)  (void) ungetc(ch, fp);
 	}	
     }
@@ -999,7 +999,7 @@ int treeReadLen (FILE *fp, tree *tr, boolean readBranches, boolean readNodeLabel
 
       p->next->next->back = (nodeptr) NULL;      
       //DIEGO: CHECK THIS
-      tr->start = uprootTree(tr, p->next->next, FALSE, FALSE, NUM_BRANCHES);
+      tr->start = uprootTree(tr, p->next->next, PLL_FALSE, PLL_FALSE, NUM_BRANCHES);
       if (! tr->start)                              
 	{
 	  printf("FATAL ERROR UPROOTING TREE\n");
@@ -1026,13 +1026,13 @@ int treeReadLen (FILE *fp, tree *tr, boolean readBranches, boolean readNodeLabel
 
 
 
-void getStartingTree(tree *tr)
+void getStartingTree(pllInstance *tr)
 {
   FILE *treeFile = myfopen(tree_file, "rb");
 
-  tr->likelihood = unlikely;
+  tr->likelihood = PLL_UNLIKELY;
    
-  treeReadLen(treeFile, tr, FALSE, FALSE, FALSE);
+  treeReadLen(treeFile, tr, PLL_FALSE, PLL_FALSE, PLL_FALSE);
                
   fclose(treeFile);
  

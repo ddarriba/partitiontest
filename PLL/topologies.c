@@ -53,7 +53,7 @@
 
 
 
-static void saveTopolRELLRec(tree *tr, nodeptr p, topolRELL *tpl, int *i, int numsp)
+static void saveTopolRELLRec(pllInstance *tr, nodeptr p, topolRELL *tpl, int *i, int numsp)
 {
   int k;
   if(isTip(p->number, numsp))
@@ -82,7 +82,7 @@ static void saveTopolRELLRec(tree *tr, nodeptr p, topolRELL *tpl, int *i, int nu
     }
 }
 
-static void saveTopolRELL(tree *tr, topolRELL *tpl)
+static void saveTopolRELL(pllInstance *tr, topolRELL *tpl)
 {
   nodeptr p = tr->start;
   int k, i = 0;
@@ -109,7 +109,7 @@ static void saveTopolRELL(tree *tr, topolRELL *tpl)
 }
 
 
-static void restoreTopolRELL(tree *tr, topolRELL *tpl, int numBranches)
+static void restoreTopolRELL(pllInstance *tr, topolRELL *tpl, int numBranches)
 {
   int i;
   
@@ -129,7 +129,7 @@ static void restoreTopolRELL(tree *tr, topolRELL *tpl, int numBranches)
 
 
 
-void initTL(topolRELL_LIST *rl, tree *tr, int n)
+void initTL(topolRELL_LIST *rl, pllInstance *tr, int n)
 {
   int i;
 
@@ -140,7 +140,7 @@ void initTL(topolRELL_LIST *rl, tree *tr, int n)
     {
       rl->t[i] = (topolRELL *)rax_malloc(sizeof(topolRELL));
       rl->t[i]->connect = (connectRELL *)rax_malloc((2 * tr->mxtips - 3) * sizeof(connectRELL));
-      rl->t[i]->likelihood = unlikely;     
+      rl->t[i]->likelihood = PLL_UNLIKELY;     
     }
 }
 
@@ -157,7 +157,7 @@ void freeTL(topolRELL_LIST *rl)
 }
 
 
-void restoreTL(topolRELL_LIST *rl, tree *tr, int n, int numBranches)
+void restoreTL(topolRELL_LIST *rl, pllInstance *tr, int n, int numBranches)
 {
   assert(n >= 0 && n < rl->max);    
 
@@ -172,13 +172,13 @@ void resetTL(topolRELL_LIST *rl)
   int i;
 
   for(i = 0; i < rl->max; i++)    
-    rl->t[i]->likelihood = unlikely;          
+    rl->t[i]->likelihood = PLL_UNLIKELY;          
 }
 
 
 
 
-void saveTL(topolRELL_LIST *rl, tree *tr, int index)
+void saveTL(topolRELL_LIST *rl, pllInstance *tr, int index)
 { 
   assert(index >= 0 && index < rl->max);    
     
@@ -217,7 +217,7 @@ static topol  *setupTopol (int maxtips)
     }
   else 
     {
-      tpl->likelihood  = unlikely;
+      tpl->likelihood  = PLL_UNLIKELY;
       tpl->start       = (node *) NULL;
       tpl->nextlink    = 0;
       tpl->ntips       = 0;
@@ -314,7 +314,7 @@ static nodeptr  minTreeTip (nodeptr  p, int numsp)
 }
 
 
-static void saveTree (tree *tr, topol *tpl, int numBranches)
+static void saveTree (pllInstance *tr, topol *tpl, int numBranches)
 /*  Save a tree topology in a standard order so that first branches
  *  from a node contain lower value tips than do second branches from
  *  the node.  The root tip should have the lowest value of all.
@@ -334,7 +334,7 @@ static void saveTree (tree *tr, topol *tpl, int numBranches)
 } /* saveTree */
 
 
-static boolean restoreTree (topol *tpl, tree *tr, partitionList *pr)
+static boolean restoreTree (topol *tpl, pllInstance *tr, partitionList *pr)
 { 
   connptr  r;
   nodeptr  p, p0;    
@@ -363,8 +363,8 @@ static boolean restoreTree (topol *tpl, tree *tr, partitionList *pr)
   
   tr->nextnode   = tpl->nextnode;    
 
-  evaluateGeneric(tr, pr, tr->start, TRUE, FALSE);
-  return TRUE;
+  evaluateGeneric(tr, pr, tr->start, PLL_TRUE, PLL_FALSE);
+  return PLL_TRUE;
 }
 
 
@@ -379,13 +379,13 @@ int initBestTree (bestlist *bt, int newkeep, int numsp)
   if (bt->ninit <= 0) 
     {
       if (! (bt->start = setupTopol(numsp)))  return  0;
-      bt->ninit = -1;
-      bt->nvalid = 0;
+      bt->ninit    = -1;
+      bt->nvalid   = 0;
       bt->numtrees = 0;
-      bt->best = unlikely;
-      bt->improved = FALSE;
-      bt->byScore = (topol **) rax_malloc((newkeep+1) * sizeof(topol *));
-      bt->byTopol = (topol **) rax_malloc((newkeep+1) * sizeof(topol *));
+      bt->best     = PLL_UNLIKELY;
+      bt->improved = PLL_FALSE;
+      bt->byScore  = (topol **) rax_malloc((newkeep+1) * sizeof(topol *));
+      bt->byTopol  = (topol **) rax_malloc((newkeep+1) * sizeof(topol *));
       if (! bt->byScore || ! bt->byTopol) {
         printf( "initBestTree: malloc failure\n");
         return 0;
@@ -400,7 +400,7 @@ int initBestTree (bestlist *bt, int newkeep, int numsp)
     newkeep = -newkeep;
     if (newkeep < 1) newkeep = 1;
     bt->nvalid = 0;
-    bt->best = unlikely;
+    bt->best = PLL_UNLIKELY;
   }
   
   if (bt->nvalid >= newkeep) {
@@ -409,7 +409,7 @@ int initBestTree (bestlist *bt, int newkeep, int numsp)
   }
   else 
     {
-      bt->worst = unlikely;
+      bt->worst = PLL_UNLIKELY;
     }
   
   for (i = bt->ninit + 1; i <= newkeep; i++) 
@@ -426,10 +426,10 @@ int initBestTree (bestlist *bt, int newkeep, int numsp)
 
 void resetBestTree (bestlist *bt)
 { /* resetBestTree */
-  bt->best     = unlikely;
-  bt->worst    = unlikely;
+  bt->best     = PLL_UNLIKELY;
+  bt->worst    = PLL_UNLIKELY;
   bt->nvalid   = 0;
-  bt->improved = FALSE;
+  bt->improved = PLL_FALSE;
 } /* resetBestTree */
 
 
@@ -445,7 +445,7 @@ boolean  freeBestTree(bestlist *bt)
   /* VALGRIND END */
 
   freeTopol(bt->start);
-  return TRUE;
+  return PLL_TRUE;
 } /* freeBestTree */
 
 
@@ -541,7 +541,7 @@ static int  findInList (void *item, void *list[], int n, int (* cmpFunc)(void *,
 
 
 
-static int  findTreeInList (bestlist *bt, tree *tr, int numBranches)
+static int  findTreeInList (bestlist *bt, pllInstance *tr, int numBranches)
 {
   topol  *tpl;
   
@@ -552,7 +552,7 @@ static int  findTreeInList (bestlist *bt, tree *tr, int numBranches)
 } 
 
 
-int  saveBestTree (bestlist *bt, tree *tr, int numBranches)
+int  saveBestTree (bestlist *bt, pllInstance *tr, int numBranches)
 {    
   topol  *tpl, *reuse;
   int  tplNum, scrNum, reuseScrNum, reuseTplNum, i, oldValid, newValid;
@@ -575,7 +575,7 @@ int  saveBestTree (bestlist *bt, tree *tr, int numBranches)
     reuseScrNum = newValid;              /* Take worst tree */
     reuse = bt->byScore[reuseScrNum];
     reuseTplNum = (newValid > oldValid) ? newValid : reuse->tplNum;
-    if (tr->likelihood > bt->start->likelihood) bt->improved = TRUE;
+    if (tr->likelihood > bt->start->likelihood) bt->improved = PLL_TRUE;
   }
   
   scrNum = findInList((void *) tpl, (void **) (& (bt->byScore[1])),
@@ -616,11 +616,11 @@ int  saveBestTree (bestlist *bt, tree *tr, int numBranches)
 } 
 
 
-int  recallBestTree (bestlist *bt, int rank, tree *tr, partitionList *pr)
+int  recallBestTree (bestlist *bt, int rank, pllInstance *tr, partitionList *pr)
 { 
   if (rank < 1)  rank = 1;
   if (rank > bt->nvalid)  rank = bt->nvalid;
-  if (rank > 0)  if (! restoreTree(bt->byScore[rank], tr, pr)) return FALSE;
+  if (rank > 0)  if (! restoreTree(bt->byScore[rank], tr, pr)) return PLL_FALSE;
   return  rank;
 }
 

@@ -1,7 +1,7 @@
 SRC_DIR = src/
 OBJ_DIR = src/
 PLL_SRC_DIR = PLL/
-PLLPARSER_SRC_DIR = PLL/phylip_parser/
+PLLPARSER_SRC_DIR = PLL/parser/phylip/
 
 CC = gcc
 CFLAGS = -I$(PLL_SRC_DIR) -march=native -mtune=native \
@@ -44,28 +44,30 @@ PARTEST_CXXFILES = \
 	util/Stirling.cpp \
 	partitiontest.cpp
 	
-PLL_CFILES   = bipartitionList.c \
-               evaluateGenericSpecial.c \
-               evaluatePartialGenericSpecial.c \
-               hash.c \
-	       lexer.c \
-               makenewzGenericSpecial.c \
-               mem_alloc.c \
-               models.c \
-               optimizeModel.c \
-               queue.c \
-               restartHashTable.c \
-               searchAlgo.c \
-               stack.c \
-               topologies.c \
-               trash.c \
-               treeIO.c \
-               newviewGenericSpecial.c \
-               fastDNAparsimony.c \
-               randomTree.c \
-               recom.c \
-               utils.c # \
-#               genericParallelization.c
+GLOBAL_DEPS = axml.h globalVariables.h
+	
+
+PLL_CFILES   =	bipartitionList.c \
+				evaluateGenericSpecial.c \
+				evaluatePartialGenericSpecial.c \
+				hash.c \
+				makenewzGenericSpecial.c \
+				mem_alloc.c \
+				models.c \
+				optimizeModel.c \
+				queue.c \
+				restartHashTable.c \
+				searchAlgo.c \
+				stack.c \
+				topologies.c \
+				trash.c \
+				treeIO.c \
+				newviewGenericSpecial.c \
+				fastDNAparsimony.c \
+				randomTree.c \
+				recom.c \
+				utils.c
+ 
 
 #PLLPARSER_CFILES = phylip.c \
 #                lexer.c \
@@ -79,10 +81,12 @@ PLLPARSER_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PLLPARSER_CFILES))
 PARTEST_OBJ = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(PARTEST_CXXFILES))
 
 all: pll pllparser partest globals
-	$(CPP) -I$(PLL_SRC_DIR) -I$(PLLPARSER_SRC_DIR) $(OBJ_DIR)globals.o $(CXXFLAGS) \
-	$(OBJ_DIR)phylip.o $(PLL_OBJ) \
+	$(CPP) -I$(PLL_SRC_DIR)  $(OBJ_DIR)globals.o $(CXXFLAGS) \
+	$(PLL_OBJ) \
 	$(OBJ_DIR)ssort.o \
 	$(PARTEST_OBJ) -o partest-pll $(CLIBRARIES)
+# 	$(OBJ_DIR)phylip.o $(PLL_OBJ) \
+
 
 clean:
 	-rm $(PLL_OBJ) $(PLLPARSER_OBJ) $(PARTEST_OBJ) $(OBJ_DIR)globals.o

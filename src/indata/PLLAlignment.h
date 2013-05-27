@@ -30,9 +30,9 @@
 #include "../../axml.h"
 #endif
 extern "C" {
-	#include "parser/phylip/phylip.h"
-	#include "utils.h"
-	struct pllPhylip * pllPhylipParse (const char *);
+	//#include "parser/phylip/phylip.h"
+	//#include "utils.h"
+	//struct pllPhylip * pllPhylipParse (const char *);
 }
 
 namespace partest {
@@ -56,9 +56,9 @@ public:
 	 *
 	 * @return The tree data structure.
 	 */
-	tree * getTree() { return tr; }
+	pllInstance * getTree() { return tr; }
 private:
-	tree * tr; /** Tree structure for working with PLL. */
+	pllInstance * tr; /** Tree structure for working with PLL. */
 };
 
 } /* namespace partest */

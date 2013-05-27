@@ -142,7 +142,7 @@ static inline unsigned int vectorPopcount(INT_TYPE v)
 /********************************DNA FUNCTIONS *****************************************************************/
 
 
-static int checkerPars(tree *tr, nodeptr p)
+static int checkerPars(pllInstance *tr, nodeptr p)
 {
   int group = tr->constraintVector[p->number];
 
@@ -168,14 +168,14 @@ static int checkerPars(tree *tr, nodeptr p)
     }
 }
 
-static boolean tipHomogeneityCheckerPars(tree *tr, nodeptr p, int grouping)
+static boolean tipHomogeneityCheckerPars(pllInstance *tr, nodeptr p, int grouping)
 {
   if(isTip(p->number, tr->mxtips))
     {
       if(tr->constraintVector[p->number] != grouping) 
-	return FALSE;
+	return PLL_FALSE;
       else 
-	return TRUE;
+	return PLL_TRUE;
     }
   else
     {   
@@ -238,7 +238,7 @@ static void computeTraversalInfoParsimony(nodeptr p, int *ti, int *counter, int 
 
 #if (defined(__SIM_SSE3) || defined(__AVX))
 
-static void newviewParsimonyIterativeFast(tree *tr, partitionList *pr)
+static void newviewParsimonyIterativeFast(pllInstance *tr, partitionList *pr)
 {    
   INT_TYPE
     allOne = SET_ALL_BITS_ONE;
@@ -463,7 +463,7 @@ static void newviewParsimonyIterativeFast(tree *tr, partitionList *pr)
 
 
 
-static unsigned int evaluateParsimonyIterativeFast(tree *tr, partitionList *pr)
+static unsigned int evaluateParsimonyIterativeFast(pllInstance *tr, partitionList *pr)
 {
   INT_TYPE 
     allOne = SET_ALL_BITS_ONE;
@@ -640,7 +640,7 @@ static unsigned int evaluateParsimonyIterativeFast(tree *tr, partitionList *pr)
 
 
 
-static unsigned int evaluateParsimony(tree *tr, partitionList *pr, nodeptr p, boolean full)
+static unsigned int evaluateParsimony(pllInstance *tr, partitionList *pr, nodeptr p, boolean full)
 {
   volatile unsigned int result;
   nodeptr q = p->back;
@@ -674,7 +674,7 @@ static unsigned int evaluateParsimony(tree *tr, partitionList *pr, nodeptr p, bo
 }
 
 
-static void newviewParsimony(tree *tr, partitionList *pr, nodeptr  p)
+static void newviewParsimony(pllInstance *tr, partitionList *pr, nodeptr  p)
 {     
   if(p->number <= tr->mxtips)
     return;
@@ -683,7 +683,7 @@ static void newviewParsimony(tree *tr, partitionList *pr, nodeptr  p)
     int 
       counter = 4;     
            
-    computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, FALSE);              
+    computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, PLL_FALSE);              
     tr->ti[0] = counter;            
     
     newviewParsimonyIterativeFast(tr, pr);
@@ -696,7 +696,7 @@ static void newviewParsimony(tree *tr, partitionList *pr, nodeptr  p)
 
 /****************************************************************************************************************************************/
 
-static void insertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr q)
+static void insertParsimony (pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q)
 {
   nodeptr  r;
   
@@ -710,7 +710,7 @@ static void insertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr q)
 
 
 
-static nodeptr buildNewTip (tree *tr, nodeptr p)
+static nodeptr buildNewTip (pllInstance *tr, nodeptr p)
 { 
   nodeptr  q;
 
@@ -722,7 +722,7 @@ static nodeptr buildNewTip (tree *tr, nodeptr p)
   return  q;
 } 
 
-static void buildSimpleTree (tree *tr, partitionList *pr, int ip, int iq, int ir)
+static void buildSimpleTree (pllInstance *tr, partitionList *pr, int ip, int iq, int ir)
 {    
   nodeptr  p, s;
   int  i;
@@ -738,7 +738,7 @@ static void buildSimpleTree (tree *tr, partitionList *pr, int ip, int iq, int ir
 }
 
 
-static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr q, boolean saveBranches)
+static void testInsertParsimony (pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q, boolean saveBranches)
 { 
   unsigned int 
     mp;
@@ -747,7 +747,7 @@ static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr
     r = q->back;   
 
   boolean 
-    doIt = TRUE;
+    doIt = PLL_TRUE;
 
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
 
@@ -758,12 +758,12 @@ static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr
 	qNumber = tr->constraintVector[q->number],
 	pNumber = tr->constraintVector[p->number];
 
-      doIt = FALSE;
+      doIt = PLL_FALSE;
      
       if(pNumber == -9)
 	pNumber = checkerPars(tr, p->back);
       if(pNumber == -9)
-	doIt = TRUE;
+	doIt = PLL_TRUE;
       else
 	{
 	  if(qNumber == -9)
@@ -773,7 +773,7 @@ static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr
 	    rNumber = checkerPars(tr, r);
 
 	  if(pNumber == rNumber || pNumber == qNumber)
-	    doIt = TRUE;       
+	    doIt = PLL_TRUE;       
 	}
     }
 
@@ -792,7 +792,7 @@ static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr
 
       insertParsimony(tr, pr, p, q);
   
-      mp = evaluateParsimony(tr, pr, p->next->next, FALSE);
+      mp = evaluateParsimony(tr, pr, p->next->next, PLL_FALSE);
 
       if(mp < tr->bestParsimony)
 	{
@@ -813,7 +813,7 @@ static void testInsertParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr
 } 
 
 
-static void restoreTreeParsimony(tree *tr, partitionList *pr, nodeptr p, nodeptr q)
+static void restoreTreeParsimony(pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q)
 { 
   nodeptr
     r = q->back;
@@ -823,14 +823,14 @@ static void restoreTreeParsimony(tree *tr, partitionList *pr, nodeptr p, nodeptr
   hookupDefault(p->next,       q);
   hookupDefault(p->next->next, r);
   
-  computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, FALSE);              
+  computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, PLL_FALSE);              
   tr->ti[0] = counter;
     
   newviewParsimonyIterativeFast(tr, pr);
 }
 
 
-static void addTraverseParsimony (tree *tr, partitionList *pr, nodeptr p, nodeptr q, int mintrav, int maxtrav, boolean doAll, boolean saveBranches)
+static void addTraverseParsimony (pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q, int mintrav, int maxtrav, boolean doAll, boolean saveBranches)
 {        
   if (doAll || (--mintrav <= 0))               
     testInsertParsimony(tr, pr, p, q, saveBranches);
@@ -846,7 +846,7 @@ static void addTraverseParsimony (tree *tr, partitionList *pr, nodeptr p, nodept
 
 
 
-static void makePermutationFast(int *perm, int n, tree *tr)
+static void makePermutationFast(int *perm, int n, pllInstance *tr)
 {    
   int  
     i, 
@@ -884,7 +884,7 @@ static nodeptr  removeNodeParsimony (nodeptr p)
   return  q;
 }
 
-static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintrav, int maxtrav, boolean doAll)
+static int rearrangeParsimony(pllInstance *tr, partitionList *pr, nodeptr p, int mintrav, int maxtrav, boolean doAll)
 {   
   nodeptr  
     p1, 
@@ -897,8 +897,8 @@ static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintra
     mintrav2; 
 
   boolean 
-    doP = TRUE,
-    doQ = TRUE;
+    doP = PLL_TRUE,
+    doQ = PLL_TRUE;
            
   if (maxtrav > tr->ntips - 3)  
     maxtrav = tr->ntips - 3; 
@@ -913,12 +913,12 @@ static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintra
   if(tr->constrained)
     {    
       if(! tipHomogeneityCheckerPars(tr, p->back, 0))
-	doP = FALSE;
+	doP = PLL_FALSE;
 	
       if(! tipHomogeneityCheckerPars(tr, q->back, 0))
-	doQ = FALSE;
+	doQ = PLL_FALSE;
 		        
-      if(doQ == FALSE && doP == FALSE)
+      if(doQ == PLL_FALSE && doP == PLL_FALSE)
 	return 0;
     }  
 
@@ -934,14 +934,14 @@ static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintra
 
 	  if ((p1->number > tr->mxtips)) 
 	    {
-	      addTraverseParsimony(tr, pr, p, p1->next->back, mintrav, maxtrav, doAll, FALSE);
-	      addTraverseParsimony(tr, pr, p, p1->next->next->back, mintrav, maxtrav, doAll, FALSE);
+	      addTraverseParsimony(tr, pr, p, p1->next->back, mintrav, maxtrav, doAll, PLL_FALSE);
+	      addTraverseParsimony(tr, pr, p, p1->next->next->back, mintrav, maxtrav, doAll, PLL_FALSE);
 	    }
 	 
 	  if ((p2->number > tr->mxtips)) 
 	    {
-	      addTraverseParsimony(tr, pr, p, p2->next->back, mintrav, maxtrav, doAll, FALSE);
-	      addTraverseParsimony(tr, pr, p, p2->next->next->back, mintrav, maxtrav, doAll, FALSE);
+	      addTraverseParsimony(tr, pr, p, p2->next->back, mintrav, maxtrav, doAll, PLL_FALSE);
+	      addTraverseParsimony(tr, pr, p, p2->next->next->back, mintrav, maxtrav, doAll, PLL_FALSE);
 	    }
 	    
 	   
@@ -977,14 +977,14 @@ static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintra
 	  
 	  if ((q1->number > tr->mxtips)) 
 	    {
-	      addTraverseParsimony(tr, pr, q, q1->next->back, mintrav2 , maxtrav, doAll, FALSE);
-	      addTraverseParsimony(tr, pr, q, q1->next->next->back, mintrav2 , maxtrav, doAll, FALSE);
+	      addTraverseParsimony(tr, pr, q, q1->next->back, mintrav2 , maxtrav, doAll, PLL_FALSE);
+	      addTraverseParsimony(tr, pr, q, q1->next->next->back, mintrav2 , maxtrav, doAll, PLL_FALSE);
 	    }
 	 
 	  if ((q2->number > tr->mxtips)) 
 	    {
-	      addTraverseParsimony(tr, pr, q, q2->next->back, mintrav2 , maxtrav, doAll, FALSE);
-	      addTraverseParsimony(tr, pr, q, q2->next->next->back, mintrav2 , maxtrav, doAll, FALSE);
+	      addTraverseParsimony(tr, pr, q, q2->next->back, mintrav2 , maxtrav, doAll, PLL_FALSE);
+	      addTraverseParsimony(tr, pr, q, q2->next->next->back, mintrav2 , maxtrav, doAll, PLL_FALSE);
 	    }	   
 	   
 	  hookupDefault(q->next,       q1);
@@ -998,7 +998,7 @@ static int rearrangeParsimony(tree *tr, partitionList *pr, nodeptr p, int mintra
 } 
 
 
-static void restoreTreeRearrangeParsimony(tree *tr, partitionList *pr)
+static void restoreTreeRearrangeParsimony(pllInstance *tr, partitionList *pr)
 {    
   removeNodeParsimony(tr->removeNode);  
   //removeNodeParsimony(tr->removeNode, tr);  
@@ -1006,7 +1006,7 @@ static void restoreTreeRearrangeParsimony(tree *tr, partitionList *pr)
 }
 
 /*
-static boolean isInformative2(tree *tr, int site)
+static boolean isInformative2(pllInstance *tr, int site)
 {
   int
     informativeCounter = 0,
@@ -1050,7 +1050,7 @@ static boolean isInformative2(tree *tr, int site)
     }
 	  
   if(informativeCounter >= 2)
-    return TRUE;    
+    return PLL_TRUE;    
   else
     {        
       for(j = 0; j < undetermined; j++)
@@ -1061,17 +1061,17 @@ static boolean isInformative2(tree *tr, int site)
 	      if(check[j] > 1)
 		{
 		  if(!(target & j))
-		    return TRUE;
+		    return PLL_TRUE;
 		}
 	    }
 	} 
     }
      
-  return FALSE;	     
+  return PLL_FALSE;	     
 }
 */
 
-static boolean isInformative(tree *tr, int dataType, int site)
+static boolean isInformative(pllInstance *tr, int dataType, int site)
 {
   int
     informativeCounter = 0,
@@ -1103,21 +1103,21 @@ static boolean isInformative(tree *tr, int dataType, int site)
     } 
 	  
   if(informativeCounter <= 1)
-    return FALSE;    
+    return PLL_FALSE;    
   else
     {        
       for(j = 0; j < undetermined; j++)
 	{
 	  if(check[j] > 1)
-	    return TRUE;
+	    return PLL_TRUE;
 	} 
     }
      
-  return FALSE;	     
+  return PLL_FALSE;	     
 }
 
 
-static void determineUninformativeSites(tree *tr, partitionList *pr, int *informative)
+static void determineUninformativeSites(pllInstance *tr, partitionList *pr, int *informative)
 {
   int 
     model,
@@ -1158,7 +1158,7 @@ static void determineUninformativeSites(tree *tr, partitionList *pr, int *inform
 }
 
 
-static void reorderNodes(tree *tr, nodeptr *np, nodeptr p, int *count)
+static void reorderNodes(pllInstance *tr, nodeptr *np, nodeptr p, int *count)
 {
   int i, found = 0;
 
@@ -1194,16 +1194,16 @@ static void reorderNodes(tree *tr, nodeptr *np, nodeptr p, int *count)
 
 
 
-static void nodeRectifierPars(tree *tr)
+static void nodeRectifierPars(pllInstance *tr)
 {
   nodeptr *np = (nodeptr *)rax_malloc(2 * tr->mxtips * sizeof(nodeptr));
   int i;
   int count = 0;
   
   tr->start       = tr->nodep[1];
-  tr->rooted      = FALSE;
+  tr->rooted      = PLL_FALSE;
 
-  /* TODO why is tr->rooted set to FALSE here ?*/
+  /* TODO why is tr->rooted set to PLL_FALSE here ?*/
   
   for(i = tr->mxtips + 1; i <= (tr->mxtips + tr->mxtips - 1); i++)
     np[i] = tr->nodep[i];           
@@ -1216,7 +1216,7 @@ static void nodeRectifierPars(tree *tr)
 
 
   
-static void compressDNA(tree *tr, partitionList *pr, int *informative)
+static void compressDNA(pllInstance *tr, partitionList *pr, int *informative)
 {
   size_t
     totalNodes,
@@ -1345,7 +1345,7 @@ static void compressDNA(tree *tr, partitionList *pr, int *informative)
 
 
 
-static void stepwiseAddition(tree *tr, partitionList *pr, nodeptr p, nodeptr q)
+static void stepwiseAddition(pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q)
 {            
   nodeptr 
     r = q->back;
@@ -1362,7 +1362,7 @@ static void stepwiseAddition(tree *tr, partitionList *pr, nodeptr p, nodeptr q)
   p->next->next->back = r;
   r->back = p->next->next;
    
-  computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, FALSE);              
+  computeTraversalInfoParsimony(p, tr->ti, &counter, tr->mxtips, PLL_FALSE);              
   tr->ti[0] = counter;
   tr->ti[1] = p->number;
   tr->ti[2] = p->back->number;
@@ -1387,7 +1387,7 @@ static void stepwiseAddition(tree *tr, partitionList *pr, nodeptr p, nodeptr q)
 
 
 
-void allocateParsimonyDataStructures(tree *tr, partitionList *pr)
+void allocateParsimonyDataStructures(pllInstance *tr, partitionList *pr)
 {
   int 
     i,
@@ -1412,7 +1412,7 @@ void allocateParsimonyDataStructures(tree *tr, partitionList *pr)
   rax_free(informative); 
 }
 
-void freeParsimonyDataStructures(tree *tr, partitionList *pr)
+void freeParsimonyDataStructures(pllInstance *tr, partitionList *pr)
 {
   size_t 
     model;
@@ -1426,7 +1426,7 @@ void freeParsimonyDataStructures(tree *tr, partitionList *pr)
 }
 
 
-void makeParsimonyTreeFast(tree *tr, partitionList *pr)
+void makeParsimonyTreeFast(pllInstance *tr, partitionList *pr)
 {   
   nodeptr  
     p, 
@@ -1483,7 +1483,7 @@ void makeParsimonyTreeFast(tree *tr, partitionList *pr)
 	hookupDefault(q->next,       tr->insertNode);
 	hookupDefault(q->next->next, r);
 	
-	computeTraversalInfoParsimony(q, tr->ti, &counter, tr->mxtips, FALSE);              
+	computeTraversalInfoParsimony(q, tr->ti, &counter, tr->mxtips, PLL_FALSE);              
 	tr->ti[0] = counter;
 	
 	newviewParsimonyIterativeFast(tr, pr);
@@ -1502,7 +1502,7 @@ void makeParsimonyTreeFast(tree *tr, partitionList *pr)
       nodeRectifierPars(tr);
       for(i = 1; i <= tr->mxtips + tr->mxtips - 2; i++)
 	{
-	  rearrangeParsimony(tr, pr, tr->nodep[i], 1, 20, FALSE);
+	  rearrangeParsimony(tr, pr, tr->nodep[i], 1, 20, PLL_FALSE);
 	  if(tr->bestParsimony < randomMP)
 	    {		
 	      restoreTreeRearrangeParsimony(tr, pr);
@@ -1515,7 +1515,7 @@ void makeParsimonyTreeFast(tree *tr, partitionList *pr)
   printf("OPT: %d\n", tr->bestParsimony);
 } 
 
-void parsimonySPR(nodeptr p, partitionList *pr, tree *tr)
+void parsimonySPR(nodeptr p, partitionList *pr, pllInstance *tr)
 {
   int i;
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
@@ -1528,7 +1528,7 @@ void parsimonySPR(nodeptr p, partitionList *pr, tree *tr)
     p1 = p->next->back,
     p2 = p->next->next->back;
 
-  //unsigned int score = evaluateParsimony(tr, pr, p, TRUE);
+  //unsigned int score = evaluateParsimony(tr, pr, p, PLL_TRUE);
 
   //printf("parsimonyScore: %u\n", score);
 
@@ -1546,14 +1546,14 @@ void parsimonySPR(nodeptr p, partitionList *pr, tree *tr)
 
   if (p1->number > tr->mxtips) 
     {
-      addTraverseParsimony(tr, pr, p, p1->next->back, 0, 0, TRUE, TRUE);
-      addTraverseParsimony(tr, pr, p, p1->next->next->back, 0, 0, TRUE, TRUE);
+      addTraverseParsimony(tr, pr, p, p1->next->back, 0, 0, PLL_TRUE, PLL_TRUE);
+      addTraverseParsimony(tr, pr, p, p1->next->next->back, 0, 0, PLL_TRUE, PLL_TRUE);
     }
   
   if(p2->number > tr->mxtips)
     {
-      addTraverseParsimony(tr, pr, p, p2->next->back, 0, 0, TRUE, TRUE);
-      addTraverseParsimony(tr, pr, p, p2->next->next->back, 0, 0, TRUE, TRUE);
+      addTraverseParsimony(tr, pr, p, p2->next->back, 0, 0, PLL_TRUE, PLL_TRUE);
+      addTraverseParsimony(tr, pr, p, p2->next->next->back, 0, 0, PLL_TRUE, PLL_TRUE);
     }
 
   //printf("best %u nodes %d %d\n",tr->bestParsimony, tr->insertNode->number, tr->insertNode->back->number);

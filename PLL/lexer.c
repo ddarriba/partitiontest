@@ -92,42 +92,42 @@ get_token (int * input)
   switch (*input)
    {
      case SYMBOL_SLASH:
-       token.tclass = LEX_SLASH;
+       token.class = LEX_SLASH;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_DASH:
-       token.tclass = LEX_DASH;
+       token.class = LEX_DASH;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_EQUAL:
-       token.tclass = LEX_EQUAL;
+       token.class = LEX_EQUAL;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_SEMICOLON:
-       token.tclass = LEX_SEMICOLON;
+       token.class = LEX_SEMICOLON;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_COMMA:
-       token.tclass = LEX_COMMA;
+       token.class = LEX_COMMA;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_COLON:
-       token.tclass = LEX_COLON;
+       token.class = LEX_COLON;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_OPAREN:
-       token.tclass = LEX_OPAREN;
+       token.class = LEX_OPAREN;
        *input = get_next_symbol();
        break;
 
      case SYMBOL_CPAREN:
-       token.tclass = LEX_CPAREN;
+       token.class = LEX_CPAREN;
        *input = get_next_symbol();
        break;
 
@@ -138,7 +138,7 @@ get_token (int * input)
           *input = get_next_symbol();
         } while (*input == SYMBOL_SPACE || *input == SYMBOL_TAB);
        token.len   = pos - start_pos;
-       token.tclass = LEX_WHITESPACE;
+       token.class = LEX_WHITESPACE; 
        if (*input == SYMBOL_LFCR) --token.len;
        break;
        
@@ -161,9 +161,9 @@ get_token (int * input)
         {
           token.len   = pos - start_pos;
           if (!floating)
-            token.tclass = LEX_NUMBER;
+            token.class = LEX_NUMBER;
           else
-            token.tclass = LEX_FLOAT;
+            token.class = LEX_FLOAT;
         }
        else
         {
@@ -171,7 +171,7 @@ get_token (int * input)
             *input = get_next_symbol();
           } while (*input == SYMBOL_CHAR || *input == SYMBOL_DIGIT || *input == SYMBOL_DOT);
           token.len   = pos - start_pos;
-          token.tclass = LEX_STRING;
+          token.class = LEX_STRING;
         }
 
        if (*input == SYMBOL_LFCR) --token.len;
@@ -187,12 +187,12 @@ get_token (int * input)
               *input == SYMBOL_DASH  ||
               *input == SYMBOL_DOT);
        token.len   = pos - start_pos;
-       token.tclass = LEX_STRING;
+       token.class = LEX_STRING;
        if (*input == SYMBOL_LFCR) --token.len;
        break;
        
      case SYMBOL_EOF:
-       token.tclass = LEX_EOF;
+       token.class = LEX_EOF;
        break;
 
      case SYMBOL_CR:
@@ -202,10 +202,10 @@ get_token (int * input)
         {
           *input = get_next_symbol();
         } while (*input == SYMBOL_CR || *input == SYMBOL_LFCR || *input == SYMBOL_LF);
-       token.tclass = LEX_NEWLINE;
+       token.class = LEX_NEWLINE;
        break;
      case SYMBOL_UNKNOWN:
-       token.tclass = LEX_UNKNOWN;
+       token.class = LEX_UNKNOWN;
        break;
    }
 

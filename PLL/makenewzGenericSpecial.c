@@ -64,7 +64,7 @@
    of the likelihood in Pthreads and MPI */
 
 #if IS_PARALLEL
-void branchLength_parallelReduce(tree *tr, double *dlnLdlz,  double *d2lnLdlz2, int numBranches ) ;
+void branchLength_parallelReduce(pllInstance *tr, double *dlnLdlz,  double *d2lnLdlz2, int numBranches ) ;
 extern double *globalResult;
 #endif
 
@@ -76,7 +76,7 @@ extern const unsigned int mask32[32];
 
 /* generic function to get the required pointers to the data associated with the left and right node that define a branch */
 
-static void getVects(tree *tr, partitionList *pr, unsigned char **tipX1, unsigned char **tipX2, double **x1_start, double **x2_start, int *tipCase, int model,
+static void getVects(pllInstance *tr, partitionList *pr, unsigned char **tipX1, unsigned char **tipX2, double **x1_start, double **x2_start, int *tipCase, int model,
     double **x1_gapColumn, double **x2_gapColumn, unsigned int **x1_gap, unsigned int **x2_gap)
 {
   int    
@@ -366,6 +366,9 @@ static void sumGAMMAPROT_GAPPED_SAVE(int tipCase, double *sumtable, double *x1, 
     unsigned char *tipX1, unsigned char *tipX2, int n, 
     double *x1_gapColumn, double *x2_gapColumn, unsigned int *x1_gap, unsigned int *x2_gap);
 
+static void sumGAMMAPROT_LG4(int tipCase, double *sumtable, double *x1, double *x2, double *tipVector[4],
+			     unsigned char *tipX1, unsigned char *tipX2, int n);
+
 static void sumGAMMAPROT(int tipCase, double *sumtable, double *x1, double *x2, double *tipVector,
     unsigned char *tipX1, unsigned char *tipX2, int n);
 
@@ -375,6 +378,9 @@ static void sumGTRCATPROT(int tipCase, double *sumtable, double *x1, double *x2,
 static void sumGTRCATPROT_SAVE(int tipCase, double *sumtable, double *x1, double *x2, double *tipVector,
     unsigned char *tipX1, unsigned char *tipX2, int n, 
     double *x1_gapColumn, double *x2_gapColumn, unsigned int *x1_gap, unsigned int *x2_gap);
+
+static void coreGTRGAMMAPROT_LG4(double *gammaRates, double *EIGN[4], double *sumtable, int upper, int *wrptr,
+				 volatile double *ext_dlnLdlz,  volatile double *ext_d2lnLdlz2, double lz);
 
 static void coreGTRGAMMA(const int upper, double *sumtable,
     volatile double *ext_dlnLdlz,  volatile double *ext_d2lnLdlz2, double *EIGN, double *gammaRates, double lz, int *wrptr);
@@ -611,7 +617,7 @@ void sumGAMMA_FLEX_reorder(int tipCase, double *sumtable, double *x1, double *x2
  * @warning These precomputations are stored in \a tr->partitionData[model].sumBuffer, which is used by function \a execCore
  *
  * @param tr
- *   Tree structure
+ *   Library instance
  *
  * @warning the given branch is implicitly defined in \a tr by these nodes:
  * pNumber = tr->td[0].ti[0].pNumber;
@@ -622,7 +628,7 @@ void sumGAMMA_FLEX_reorder(int tipCase, double *sumtable, double *x1, double *x2
  *
  *
  */
-void makenewzIterative(tree *tr, partitionList * pr)
+void makenewzIterative(pllInstance *tr, partitionList * pr)
 {
   int 
     model, 
@@ -717,10 +723,15 @@ void makenewzIterative(tree *tr, partitionList * pr)
             if(tr->saveMemory)
               sumGAMMAPROT_GAPPED_SAVE(tipCase, pr->partitionData[model]->sumBuffer, x1_start, x2_start, pr->partitionData[model]->tipVector, tipX1, tipX2,
                   width, x1_gapColumn, x2_gapColumn, x1_gap, x2_gap);
+	      else
+		    {
+		      if(pr->partitionData[model]->protModels == LG4)		      			   		
+			sumGAMMAPROT_LG4(tipCase,  pr->partitionData[model]->sumBuffer, x1_start, x2_start, pr->partitionData[model]->tipVector_LG4,
+					 tipX1, tipX2, width);
             else
               sumGAMMAPROT(tipCase, pr->partitionData[model]->sumBuffer, x1_start, x2_start, pr->partitionData[model]->tipVector,
                   tipX1, tipX2, width);
-
+		    }
           }
           break;		
         default:
@@ -735,7 +746,7 @@ void makenewzIterative(tree *tr, partitionList * pr)
 /** @brief Compute first and second derivatives of the likelihood with respect to a given branch length 
  *
  * @param tr
- *   Tree structure
+ *   library instance
  *
  * @param _dlnLdlz 
  *   First derivative dl/dlz
@@ -748,7 +759,7 @@ void makenewzIterative(tree *tr, partitionList * pr)
  * @note  this function actually computes the first and second derivatives of the likelihood for a given branch stored in tr->coreLZ[model] Note that in the parallel case coreLZ must always be broadcasted together with the traversal descriptor, at least for optimizing branch lengths 
  *
  */
-void execCore(tree *tr, partitionList *pr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
+void execCore(pllInstance *tr, partitionList *pr, volatile double *_dlnLdlz, volatile double *_d2lnLdlz2)
 {
   int model, branchIndex;
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
@@ -835,11 +846,19 @@ void execCore(tree *tr, partitionList *pr, volatile double *_dlnLdlz, volatile d
                 pr->partitionData[model]->wgt,
                 &dlnLdlz, &d2lnLdlz2,
                 sumBuffer);
+	    else
+		{ 
+		  if(pr->partitionData[model]->protModels == LG4)		       
+		    coreGTRGAMMAPROT_LG4(pr->partitionData[model]->gammaRates, pr->partitionData[model]->EIGN_LG4,
+					 sumBuffer, width, pr->partitionData[model]->wgt,
+					 &dlnLdlz, &d2lnLdlz2, lz);
           else
 
             coreGTRGAMMAPROT(pr->partitionData[model]->gammaRates, pr->partitionData[model]->EIGN,
                 sumBuffer, width, pr->partitionData[model]->wgt,
                 &dlnLdlz, &d2lnLdlz2, lz);
+	    
+		}
 
           break;		   
         default:
@@ -879,13 +898,13 @@ void execCore(tree *tr, partitionList *pr, volatile double *_dlnLdlz, volatile d
 
 */
 
-static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxiter, double *result)
+static void topLevelMakenewz(pllInstance *tr, partitionList * pr, double *z0, int _maxiter, double *result)
 {
   double   z[NUM_BRANCHES], zprev[NUM_BRANCHES], zstep[NUM_BRANCHES];
   volatile double  dlnLdlz[NUM_BRANCHES], d2lnLdlz2[NUM_BRANCHES];
   int i, maxiter[NUM_BRANCHES], model;
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
-  boolean firstIteration = TRUE;
+  boolean firstIteration = PLL_TRUE;
   boolean outerConverged[NUM_BRANCHES];
   boolean loopConverged;
 
@@ -901,8 +920,8 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
   {
     z[i] = z0[i];
     maxiter[i] = _maxiter;
-    outerConverged[i] = FALSE;
-    tr->curvatOK[i]       = TRUE;
+    outerConverged[i] = PLL_FALSE;
+    tr->curvatOK[i]       = PLL_TRUE;
   }
 
 
@@ -915,13 +934,13 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
 
     for(i = 0; i < numBranches; i++)
     {
-      if(outerConverged[i] == FALSE && tr->curvatOK[i] == TRUE)
+      if(outerConverged[i] == PLL_FALSE && tr->curvatOK[i] == PLL_TRUE)
       {
-        tr->curvatOK[i] = FALSE;
+        tr->curvatOK[i] = PLL_FALSE;
 
         zprev[i] = z[i];
 
-        zstep[i] = (1.0 - zmax) * z[i] + zmin;
+        zstep[i] = (1.0 - PLL_ZMAX) * z[i] + PLL_ZMIN;
       }
     }
 
@@ -930,12 +949,12 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
       /* other case, the outer loop hasn't converged but we are trying to approach 
          the maximum from the wrong side */
 
-      if(outerConverged[i] == FALSE && tr->curvatOK[i] == FALSE)
+      if(outerConverged[i] == PLL_FALSE && tr->curvatOK[i] == PLL_FALSE)
       {
         double lz;
 
-        if (z[i] < zmin) z[i] = zmin;
-        else if (z[i] > zmax) z[i] = zmax;
+        if (z[i] < PLL_ZMIN) z[i] = PLL_ZMIN;
+        else if (z[i] > PLL_ZMAX) z[i] = PLL_ZMAX;
         lz    = log(z[i]);
 
         tr->coreLZ[i] = lz;
@@ -978,10 +997,10 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
 
     if(firstIteration)
       {
-	tr->td[0].traversalHasChanged = TRUE; 
+	tr->td[0].traversalHasChanged = PLL_TRUE; 
 	masterBarrier(THREAD_MAKENEWZ_FIRST, tr, pr);
-	firstIteration = FALSE; 
-	tr->td[0].traversalHasChanged = FALSE; 
+	firstIteration = PLL_FALSE; 
+	tr->td[0].traversalHasChanged = PLL_FALSE; 
       }
     else 
       masterBarrier(THREAD_MAKENEWZ, tr, pr);
@@ -993,7 +1012,7 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
     if(firstIteration)
       {
 	makenewzIterative(tr, pr);
-	firstIteration = FALSE;
+	firstIteration = PLL_FALSE;
       }
     execCore(tr, pr, dlnLdlz, d2lnLdlz2);
 #endif
@@ -1003,12 +1022,12 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
 
     for(i = 0; i < numBranches; i++)
     {
-      if(outerConverged[i] == FALSE && tr->curvatOK[i] == FALSE)
+      if(outerConverged[i] == PLL_FALSE && tr->curvatOK[i] == PLL_FALSE)
       {
-        if ((d2lnLdlz2[i] >= 0.0) && (z[i] < zmax))
+        if ((d2lnLdlz2[i] >= 0.0) && (z[i] < PLL_ZMAX))
           zprev[i] = z[i] = 0.37 * z[i] + 0.63;  /*  Bad curvature, shorten branch */
         else
-          tr->curvatOK[i] = TRUE;
+          tr->curvatOK[i] = PLL_TRUE;
       }
     }
 
@@ -1016,7 +1035,7 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
 
     for(i = 0; i < numBranches; i++)
     {
-      if(tr->curvatOK[i] == TRUE && outerConverged[i] == FALSE)
+      if(tr->curvatOK[i] == PLL_TRUE && outerConverged[i] == PLL_FALSE)
       {
         if (d2lnLdlz2[i] < 0.0)
         {
@@ -1024,8 +1043,8 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
           if (tantmp < 100)
           {
             z[i] *= EXP(tantmp);
-            if (z[i] < zmin)
-              z[i] = zmin;
+            if (z[i] < PLL_ZMIN)
+              z[i] = PLL_ZMIN;
 
             if (z[i] > 0.25 * zprev[i] + 0.75)
               z[i] = 0.25 * zprev[i] + 0.75;
@@ -1033,7 +1052,7 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
           else
             z[i] = 0.25 * zprev[i] + 0.75;
         }
-        if (z[i] > zmax) z[i] = zmax;
+        if (z[i] > PLL_ZMAX) z[i] = PLL_ZMAX;
 
         /* decrement the maximum number of itarations */
 
@@ -1041,15 +1060,15 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
 
         /* check if the outer loop has converged */
         if(maxiter[i] > 0 && (ABS(z[i] - zprev[i]) > zstep[i]))
-          outerConverged[i] = FALSE;
+          outerConverged[i] = PLL_FALSE;
         else
-          outerConverged[i] = TRUE;
+          outerConverged[i] = PLL_TRUE;
       }
     }
 
     /* check if the loop has converged for all partitions */
 
-    loopConverged = TRUE;
+    loopConverged = PLL_TRUE;
     for(i = 0; i < numBranches; i++)
       loopConverged = loopConverged && outerConverged[i];
   }
@@ -1059,7 +1078,7 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
   /* reset  partition execution mask */
 
   for(model = 0; model < pr->numberOfPartitions; model++)
-    pr->partitionData[model]->executeModel = TRUE;
+    pr->partitionData[model]->executeModel = PLL_TRUE;
 
   /* copy the new branches in the result array of branches.
      if we don't do a per partition estimate of 
@@ -1076,7 +1095,7 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
  * @warning A given branch may have one or several branch length values (up to NUM_BRANCHES), usually the later refers to partition-specific branch length values. Thus z0 and result represent collections rather than double values. The number of branch length values is given by \a tr->numBranches 
  *
  * @param tr
- *   Tree structure
+ *   Library instance
  *
  * @param p
  *   One node that defines the branch (p->z)
@@ -1097,18 +1116,18 @@ static void topLevelMakenewz(tree *tr, partitionList * pr, double *z0, int _maxi
  * @param mask 
  *   Specifies if a mask to track partition convergence (\a tr->partitionConverged) is being used.
  *
- * @sa typical values for \a maxiter are constants \a iterations and \a newzpercycle
+ * @sa typical values for \a maxiter are constants \a iterations and \a PLL_NEWZPERCYCLE
  * @note Requirement: q->z == p->z
  */
-void makenewzGeneric(tree *tr, partitionList * pr, nodeptr p, nodeptr q, double *z0, int maxiter, double *result, boolean mask)
+void makenewzGeneric(pllInstance *tr, partitionList * pr, nodeptr p, nodeptr q, double *z0, int maxiter, double *result, boolean mask)
 {
   int i;
   //boolean originalExecute[NUM_BRANCHES];
   int numBranches = pr->perGeneBranchLengths?pr->numberOfPartitions:1;
 
   boolean 
-    p_recom = FALSE, /* if one of was missing, we will need to force recomputation */
-    q_recom = FALSE;
+    p_recom = PLL_FALSE, /* if one of was missing, we will need to force recomputation */
+    q_recom = PLL_FALSE;
 
   /* the first entry of the traversal descriptor stores the node pair that defines 
      the branch */
@@ -1123,9 +1142,9 @@ void makenewzGeneric(tree *tr, partitionList * pr, nodeptr p, nodeptr q, double 
     if(mask)
     {
       if (tr->partitionConverged[i])
-        pr->partitionData[i]->executeModel = FALSE;
+        pr->partitionData[i]->executeModel = PLL_FALSE;
       else
-        pr->partitionData[i]->executeModel = TRUE;
+        pr->partitionData[i]->executeModel = PLL_TRUE;
     }
   }
   if (tr->useRecom)
@@ -1154,10 +1173,10 @@ void makenewzGeneric(tree *tr, partitionList * pr, nodeptr p, nodeptr q, double 
   tr->td[0].count = 1;
 
   if(p_recom || needsRecomp(tr->useRecom, tr->rvec, p, tr->mxtips))
-    computeTraversal(tr, p, TRUE, numBranches);
+    computeTraversal(tr, p, PLL_TRUE, numBranches);
 
   if(q_recom || needsRecomp(tr->useRecom, tr->rvec, q, tr->mxtips))
-    computeTraversal(tr, q, TRUE, numBranches);
+    computeTraversal(tr, q, PLL_TRUE, numBranches);
 
   /* call the Newton-Raphson procedure */
 
@@ -1173,7 +1192,7 @@ void makenewzGeneric(tree *tr, partitionList * pr, nodeptr p, nodeptr q, double 
   /* fix eceuteModel this seems to be a bit redundant with topLevelMakenewz */ 
 
   for(i = 0; i < numBranches; i++)
-    pr->partitionData[i]->executeModel = TRUE;
+    pr->partitionData[i]->executeModel = PLL_TRUE;
 }
 
 
@@ -1532,6 +1551,90 @@ static void sumGAMMAPROT_GAPPED_SAVE(int tipCase, double *sumtable, double *x1, 
     default:
       assert(0);
   }
+}
+
+
+static void sumGAMMAPROT_LG4(int tipCase, double *sumtable, double *x1, double *x2, double *tipVector[4],
+			     unsigned char *tipX1, unsigned char *tipX2, int n)
+{
+  int i, l, k;
+  double *left, *right, *sum;
+
+  switch(tipCase)
+    {
+    case TIP_TIP:
+      for(i = 0; i < n; i++)
+	{	  
+	  for(l = 0; l < 4; l++)
+	    {
+	      left  = &(tipVector[l][20 * tipX1[i]]);
+	      right = &(tipVector[l][20 * tipX2[i]]);
+
+	      sum = &sumtable[i * 80 + l * 20];
+#ifdef __SIM_SSE3
+	      for(k = 0; k < 20; k+=2)
+		{
+		  __m128d sumv = _mm_mul_pd(_mm_load_pd(&left[k]), _mm_load_pd(&right[k]));
+		  
+		  _mm_store_pd(&sum[k], sumv);		 
+		}
+#else
+	      for(k = 0; k < 20; k++)
+		sum[k] = left[k] * right[k];
+#endif
+	    }
+	}
+      break;
+    case TIP_INNER:
+      for(i = 0; i < n; i++)
+	{
+	 
+
+	  for(l = 0; l < 4; l++)
+	    { 
+	      left = &(tipVector[l][20 * tipX1[i]]);
+	      right = &(x2[80 * i + l * 20]);
+	      sum = &sumtable[i * 80 + l * 20];
+#ifdef __SIM_SSE3
+	      for(k = 0; k < 20; k+=2)
+		{
+		  __m128d sumv = _mm_mul_pd(_mm_load_pd(&left[k]), _mm_load_pd(&right[k]));
+		  
+		  _mm_store_pd(&sum[k], sumv);		 
+		}
+#else
+	      for(k = 0; k < 20; k++)
+		sum[k] = left[k] * right[k];
+#endif
+	    }
+	}
+      break;
+    case INNER_INNER:
+      for(i = 0; i < n; i++)
+	{
+	  for(l = 0; l < 4; l++)
+	    {
+	      left  = &(x1[80 * i + l * 20]);
+	      right = &(x2[80 * i + l * 20]);
+	      sum   = &(sumtable[i * 80 + l * 20]);
+
+#ifdef __SIM_SSE3
+	      for(k = 0; k < 20; k+=2)
+		{
+		  __m128d sumv = _mm_mul_pd(_mm_load_pd(&left[k]), _mm_load_pd(&right[k]));
+		  
+		  _mm_store_pd(&sum[k], sumv);		 
+		}
+#else
+	      for(k = 0; k < 20; k++)
+		sum[k] = left[k] * right[k];
+#endif
+	    }
+	}
+      break;
+    default:
+      assert(0);
+    }
 }
 
 
@@ -1931,6 +2034,81 @@ static void coreGTRCAT(int upper, int numberOfCategories, double *sum,
   rax_free(d_start);
 }
 
+
+static void coreGTRGAMMAPROT_LG4(double *gammaRates, double *EIGN[4], double *sumtable, int upper, int *wrptr,
+				 volatile double *ext_dlnLdlz,  volatile double *ext_d2lnLdlz2, double lz)
+{
+  double  *sum, 
+    diagptable0[80] __attribute__ ((aligned (BYTE_ALIGNMENT))),
+    diagptable1[80] __attribute__ ((aligned (BYTE_ALIGNMENT))),
+    diagptable2[80] __attribute__ ((aligned (BYTE_ALIGNMENT)));    
+  int     i, j, l;
+  double  dlnLdlz = 0;
+  double d2lnLdlz2 = 0;
+  double ki, kisqr; 
+  double inv_Li, dlnLidlz, d2lnLidlz2;
+
+  for(i = 0; i < 4; i++)
+    {
+      ki = gammaRates[i];
+      kisqr = ki * ki;
+      
+      diagptable0[i * 20] = 1.0;
+      diagptable1[i * 20] = 0.0;
+      diagptable2[i * 20] = 0.0;
+
+      for(l = 1; l < 20; l++)
+	{
+	  diagptable0[i * 20 + l] = EXP(EIGN[i][l] * ki * lz);
+	  diagptable1[i * 20 + l] = EIGN[i][l] * ki;
+	  diagptable2[i * 20 + l] = EIGN[i][l] * EIGN[i][l] * kisqr;
+	}
+    }
+
+  for (i = 0; i < upper; i++)
+    { 
+      __m128d a0 = _mm_setzero_pd();
+      __m128d a1 = _mm_setzero_pd();
+      __m128d a2 = _mm_setzero_pd();
+
+      sum = &sumtable[i * 80];         
+
+      for(j = 0; j < 4; j++)
+	{	 	  	
+	  double 	   
+	    *d0 = &diagptable0[j * 20],
+	    *d1 = &diagptable1[j * 20],
+	    *d2 = &diagptable2[j * 20];
+  	 	 
+	  for(l = 0; l < 20; l+=2)
+	    {
+	      __m128d tmpv = _mm_mul_pd(_mm_load_pd(&d0[l]), _mm_load_pd(&sum[j * 20 +l]));
+	      a0 = _mm_add_pd(a0, tmpv);
+	      a1 = _mm_add_pd(a1, _mm_mul_pd(tmpv, _mm_load_pd(&d1[l])));
+	      a2 = _mm_add_pd(a2, _mm_mul_pd(tmpv, _mm_load_pd(&d2[l])));
+	    }	 	  
+	}
+
+      a0 = _mm_hadd_pd(a0, a0);
+      a1 = _mm_hadd_pd(a1, a1);
+      a2 = _mm_hadd_pd(a2, a2);
+
+      _mm_storel_pd(&inv_Li, a0);
+      _mm_storel_pd(&dlnLidlz, a1);
+      _mm_storel_pd(&d2lnLidlz2, a2);
+
+      inv_Li = 1.0 / inv_Li;
+
+      dlnLidlz   *= inv_Li;
+      d2lnLidlz2 *= inv_Li;
+
+      dlnLdlz   += wrptr[i] * dlnLidlz;
+      d2lnLdlz2 += wrptr[i] * (d2lnLidlz2 - dlnLidlz * dlnLidlz);
+    }
+
+  *ext_dlnLdlz   = dlnLdlz;
+  *ext_d2lnLdlz2 = d2lnLdlz2;
+}
 
 
 

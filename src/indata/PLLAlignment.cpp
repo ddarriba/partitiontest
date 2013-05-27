@@ -30,18 +30,18 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
 
 PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType) :
 		Alignment(alignmentFile, dataType) {
-	tr = (tree *) malloc (sizeof (tree));
+	tr = (pllInstance *) malloc (sizeof (pllInstance));
 	struct pllPhylip * pd;
 	int *inp;
-	pd = pllPhylipParse(alignmentFile.c_str());
+	//pd = pllPhylipParse(alignmentFile.c_str());
 	//read_phylip_msa(tr, (char *) alignmentFile.c_str(), PHYLIP_SEQUENTIAL, 0);
-	numSeqs = pd->nTaxa;
+	//numSeqs = pd->nTaxa;
 	//TODO: Temporary both are equal
-	numSites = pd->seqLen;
-	numPatterns = pd->seqLen;
-	pllPhylipDump(pd);
-	pllPhylipRemoveDuplicate(pd);
-	pllPhylipDestroy(pd);
+	//numSites = pd->seqLen;
+	//numPatterns = pd->seqLen;
+	//pllPhylipDump(pd);
+	//pllPhylipRemoveDuplicate(pd);
+	//pllPhylipDestroy(pd);
 }
 
 PLLAlignment::~PLLAlignment() {

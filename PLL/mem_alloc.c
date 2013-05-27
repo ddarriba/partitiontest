@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 #ifdef RAXML_USE_LLALLOC
 
