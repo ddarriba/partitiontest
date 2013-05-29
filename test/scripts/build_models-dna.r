@@ -83,45 +83,99 @@ for(sample_index in 0:(SAMPLES-1)) {
 	# construct one model per partition
 	for(i in 1:(max_partitions)) {
 
-	    f_model <- rbinom(1, 1, 0.5)
-	    g_model <- rbinom(1, 1, 0.5)
-	    i_model <- rbinom(1, 1, 0.5)
+	    f_model <- equal_base_frequencies[modelid]
+	    g_model <- (rate_variation[modelid]==2 || rate_variation[modelid]==3)
+	    i_model <- (rate_variation[modelid]==1 || rate_variation[modelid]==3)
 
 	    modelid <- sample(1:88,1,replace=T)
 
-    	    models_mat[i,1] <- model[modelid]
-    	    models_mat[i,2] <- free_params[modelid]
+    	models_mat[i,1] <- model[modelid]
+		models_mat[i,2] <- free_params[modelid]
 	    
 	    completename <- phyml_model[modelid]
-	    if (i_model == 1) {
-	       completename <- paste(completename, "+I", sep="")
-	    }
-	    if (g_model == 1) {
-	       completename <- paste(completename, "+G", sep="")
-	    }
 	    if (f_model == 1) {
-	       completename <- paste(completename, "+F", sep="")
-	    }
-	    models_mat[i,4] <- completename
-	    models_mat[i,5] <- f_model
-	    models_mat[i,6] <- i_model
-	    models_mat[i,7] <- g_model
+	    	models_mat[i,3:6] <- 0.25
+	    } else {
+	    	#Base frequencies from a Dirichlet(1.0,1.0,1.0,1.0)
+			base_frequencies <- rdirichlet(1, c(1,1,1,1) )
+			models_mat[i,3:6] <- formatC(base_frequencies,digits=4)
+    	}
+    	
+    	if (model_titv[modelid] == 1) {
+			if (modelid > 8) {
+		  		#Transition/Transversion rate from a Gamma (2,1) truncated between 2 and 10
+		  		titv <- rtrunc(1,"gamma", 2, 1, a=2, b=10)
+			} else {
+	  			titv <- 0.5
+			}
+			models_mat[i,7] <- formatC(titv,digits=4)
+		}
+		
+		if (model_ratematrix[modelid] == 1) {
+			partition <- substring(model_partition[modelid], seq(1,6,1), seq(1,6,1))
 
-	    if (i_model==1) {
-		#Proportion of invariable sites from uniform (0,1)
-		pinv <- rtrunc(1,"beta", 1, 3, a=0.2,b=0.8)
-		models_mat[i,8] <- formatC(pinv,digits=4)
-	    } else {
-		models_mat[i,8] <- 0.0
-	    }
-	
-	    if (g_model == 1) {
-		#Gamma shape from an Exponential (1,1) => mean=1
-		gamma_shape <- rtrunc(1,"exp", 1, 2, a=0.5,b=5)
-		models_mat[i,9] <- formatC(gamma_shape,digits=4)
-	    } else {
-		models_mat[i,9] <- 100.0
-	    }
+		 	#R-matrix parameters from a Dirichlet(1.0,6.0,1.0,1.0,6.0,1.0) scaled with the last rate. The expected ti/tv is 12/4 = 3
+			validRates=0
+			while (!validRates) {
+	    		switch(model_num_partitions[modelid],
+					{rates <- rdirichlet(1, c(1))},
+					{rates <- rdirichlet(1, c(1,6))},
+					{
+		  				if (as.numeric(partition[5]) == 2) {
+		    				ti2=20
+		  				} else {
+		    				ti2=2
+		  				}
+		  				rates <- rdirichlet(1, c(6,16,ti2))
+					},
+					{rates <- rdirichlet(1, c(6,16,2,8))},
+					{rates <- rdirichlet(1, c(6,16,2,8,4))},
+					{rates <- rdirichlet(1, c(6,16,2,8,20,4))}
+	    		)
+
+	    		rmatrix <- 0
+
+			    # build rate matrix
+			    for (m in 1:6) {
+					rmatrix[m] = rates[as.numeric(partition[m])+1]
+			    }
+		
+			    #scaled with the last rate
+			    rmatrix_scaled <- rmatrix/rmatrix[6]
+			    validRates=(sum(rmatrix_scaled<0.1) == 0) && (sum(rmatrix_scaled>100) == 0)
+			    if (validRates) {
+		          	for (ind1 in 2:6) {
+						for (ind2 in 1:(ind1-1)) {
+						    if (rmatrix_scaled[ind1] != rmatrix_scaled[ind2]) {
+						    	if (abs(rmatrix_scaled[ind1]-rmatrix_scaled[ind2]) < 1) {
+							    	validRates=0
+							    	break
+								}
+						    }
+						}
+			    	}
+			    }
+			}
+   			models_mat[i,8:13] <- formatC(rmatrix_scaled,digits=4)
+    	}
+    
+    	if (rate_variation[modelid]==1 || rate_variation[modelid]==3) {
+	    	#Proportion of invariable sites from uniform (0,1)
+			pinv <- rtrunc(1,"beta", 1, 3, a=0.2,b=0.8)
+			models_mat[i,14] <- formatC(pinv,digits=4)
+    	} else {
+    		models_mat[i,14] <- 0
+    	}
+    	
+	    if (rate_variation[modelid]==2 || rate_variation[modelid]==3) {
+	       #Gamma shape from an Exponential (1,1) => mean=1
+			gamma_shape <- rtrunc(1,"exp", 1, 2, a=0.5,b=5)
+			models_mat[i,15] <- formatC(gamma_shape,digits=4)
+    	} else {
+    		models_mat[i,15] <- 100
+    	}
+	       	
+	    models_mat[i,16] <- model_partition[modelid]
 
 	}
 

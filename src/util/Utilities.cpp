@@ -217,8 +217,11 @@ int Utilities::copyFile(string initialFilePath, string outputFilePath) {
 
 void Utilities::exit_partest(int exitValue) {
 	switch (exitValue) {
+	case EX_OK:
 	case EX_USAGE:
-		//ArgumentParser::display_usage();
+		break;
+	default:
+		cerr << "[ERROR] Exiting with error code " << exitValue << endl;
 		break;
 	}
 
