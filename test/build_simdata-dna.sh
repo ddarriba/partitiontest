@@ -1,4 +1,4 @@
-PERGENE_LENGTH=1000
+PERGENE_LENGTH=500
 
 # JOB CONTROL
 RUN_R_SCRIPT=1 # [1] Execute R scripts for defining the simulations
@@ -13,9 +13,12 @@ LOG_DIR="log"
 INPUT_TREEFILE="scripts/sims/treefile.out"
 INPUT_MODELFILE="scripts/sims/modelsfile.out"
 INPUT_GEN2PARTFILE="scripts/sims/genestopartitions.out"
+INPUT_PARTITIONSFILE="scripts/sims/partitionsfile.out"
+
 OUTPUT_DIR="indelible"
 OUTPUT_ALIGNS_DIR="alignments"
 OUTPUT_PARTEST_DIR="partitiontest"
+OUTPUT_PART_SUMMARY="scripts/sims/partitionssummary.out"
 
 if [ $RUN_R_SCRIPT -eq 1 ]; then
 	# Generate models, partitions and trees
@@ -76,14 +79,14 @@ if [ $BUILD_INDEL_FILES -eq 1 ]; then
 	  models=`sed -n -e $((part_header_line+1)),$((part_header_line+num_genes))p ${INPUT_GEN2PARTFILE} | cut -d' ' -f2`
 	  models=`for each in ${models}; do echo $each; done | sort | uniq`
 	  for each in ${models}; do
-	    modfel=`sed -n -e ${each}p ${INPUT_MODELFILE}`
+	    model=`sed -n -e ${each}p ${INPUT_MODELFILE}`
 	    modelname=`echo $model | cut -d' ' -f1`
 	    fA=`echo $model | cut -d' ' -f3`
 	    fC=`echo $model | cut -d' ' -f4`
 	    fG=`echo $model | cut -d' ' -f5`
 	    fT=`echo $model | cut -d' ' -f6`
 	    
-	    titv=`echo $model | cut -d' ' -f7`
+	    kappa=`echo $model | cut -d' ' -f7`
 	    
 	    rA=`echo $model | cut -d' ' -f8`
 	    rB=`echo $model | cut -d' ' -f9`
@@ -94,19 +97,24 @@ if [ $BUILD_INDEL_FILES -eq 1 ]; then
 
 	    pInv=`echo $model | cut -d' ' -f14`
 	    shape=`echo $model | cut -d' ' -f15`
-
-	    if [ $shape -neq 0 ]; then
+	   
+	    if [ $shape != 0 ]; then
 	      ncat=4
 	    else
 	      ncat=0
 	    fi
 	    
 	    echo [MODEL] model${each} >> ${IND_FILE}
-	    echo [submodel] GTR ${rA} ${rB} ${rC} ${rD} ${rE} ${rF} >> ${IND_FILE}
-	    echo [rates] ${pInv} ${shape} ${ncat} >> ${IND_FILE}
-	    if [ $isF -eq 1 ]; then
-	      echo [statefreq] $fA $fC $fG $fT >> ${IND_FILE}
+
+	    if [ $rA != NA ]; then
+	        echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} ${rB} >> ${IND_FILE}
+	    else
+	        echo [submodel] HKY ${kappa} >> ${IND_FILE}
 	    fi
+
+	    echo [rates] ${pInv} ${shape} ${ncat} >> ${IND_FILE}
+	    echo [statefreq] $fT $fC $fA $fG >> ${IND_FILE}
+
 	    echo " " >> ${IND_FILE}
 	  done
 
@@ -157,13 +165,13 @@ if [ $BUILD_CONTROL_FILES -eq 1 ]; then
     align_filename=${OUTPUT_ALIGNS_DIR}/alignment${sim_index}.phy
     partest_filename=${OUTPUT_PARTEST_DIR}/alignment${sim_index}.conf
     num_genes=`head -n 1 ${align_filename} | tr -s ' ' | cut -d' ' -f2`
-    num_genes=$((num_genes / 1000))
+    num_genes=$((num_genes / PERGENE_LENGTH))
     echo "    ${sim_index}/${NUM_SIMS} : ${num_genes} genes"
     echo [PARTITIONS] > ${partest_filename}
     next_start=1
     for ((gene_index=1; gene_index<=${num_genes}; gene_index++)); do
       echo GENE${gene_index}=${next_start}-$((next_start+999)) >> ${partest_filename}
-      next_start=$((next_start+1000))
+      next_start=$((next_start+PERGENE_LENGTH))
     done
     echo [OUTPUT] >> ${partest_filename}
     echo models=models${sim_index}.out >> ${partest_filename}

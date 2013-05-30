@@ -13,12 +13,12 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 10    # Total number of samples
+SAMPLES <- 1000   # Total number of samples
 TAXA_COUNT <- 20  # Number of taxa in the output trees
-GENE_LEN <- 1000  # Length of each gene
+GENE_LEN <- 500   # Length of each gene
 
-MIN_GENES <- 2
-MAX_GENES <- 20
+MIN_GENES <- 10
+MAX_GENES <- 100
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data.11.in"      # Data input file
@@ -73,24 +73,24 @@ current_index <- 0
 for(sample_index in 0:(SAMPLES-1)) {
 
 	num_genes <- sample(MIN_GENES:MAX_GENES,1,replace=T)
-	max_partitions <- sample(MIN_PARTITIONS:num_genes,1,replace=T)
 
 	# allocate results matrix
-	models_mat <- matrix(nrow=(max_partitions),ncol=16,byrow=TRUE)
-	colnames(models_mat) <- c("ModelName", "Params", "fA","fC","fG","fT","titv", "Ra", "Rb", "Rc", "Rd", "Re", "Rf", "pInv", "shape", "partition")
+	models_mat <- matrix(nrow=(num_genes),ncol=16,byrow=TRUE)
+	colnames(models_mat) <- c("ModelName", "Params", "fA","fC","fG","fT","kappa", "Ra", "Rb", "Rc", "Rd", "Re", "Rf", "pInv", "shape", "partition")
 	models_mat <- as.table(models_mat)
 
 	# construct one model per partition
-	for(i in 1:(max_partitions)) {
+	for(i in 1:(num_genes)) {
+
+	    modelid <- sample(1:88,1,replace=T)
 
 	    f_model <- equal_base_frequencies[modelid]
 	    g_model <- (rate_variation[modelid]==2 || rate_variation[modelid]==3)
 	    i_model <- (rate_variation[modelid]==1 || rate_variation[modelid]==3)
 
-	    modelid <- sample(1:88,1,replace=T)
 
-    	models_mat[i,1] <- model[modelid]
-		models_mat[i,2] <- free_params[modelid]
+	    models_mat[i,1] <- model[modelid]
+	    models_mat[i,2] <- free_params[modelid]
 	    
 	    completename <- phyml_model[modelid]
 	    if (f_model == 1) {
@@ -102,72 +102,78 @@ for(sample_index in 0:(SAMPLES-1)) {
     	}
     	
     	if (model_titv[modelid] == 1) {
-			if (modelid > 8) {
-		  		#Transition/Transversion rate from a Gamma (2,1) truncated between 2 and 10
-		  		titv <- rtrunc(1,"gamma", 2, 1, a=2, b=10)
-			} else {
-	  			titv <- 0.5
-			}
-			models_mat[i,7] <- formatC(titv,digits=4)
+	    if (modelid > 8) {
+		#Transition/Transversion rate from a Gamma (2,1) truncated between 2 and 10
+		titv <- rtrunc(1,"gamma", 2, 1, a=2, b=10)
+		if (f_model == 1) {
+		    kappa <- titv*2
+		} else {
+		    kappa <- titv*(base_frequencies[1]+base_frequencies[3])*(base_frequencies[2]+base_frequencies[4])/(base_frequencies[1]*base_frequencies[3] + base_frequencies[2]*base_frequencies[4])
+		}
+	    } else {
+	  	titv <- 0.5
+		kappa <- 1
+	    }
+	    models_mat[i,7] <- formatC(kappa,digits=4)
+	}
+		
+	if (model_ratematrix[modelid] == 1) {
+	    partition <- substring(model_partition[modelid], seq(1,6,1), seq(1,6,1))
+
+	    #R-matrix parameters from a Dirichlet(1.0,6.0,1.0,1.0,6.0,1.0) scaled with the last rate. The expected ti/tv is 12/4 = 3
+	    validRates=0
+	    while (!validRates) {
+	    	switch(model_num_partitions[modelid],
+		    {rates <- rdirichlet(1, c(1))},
+		    {rates <- rdirichlet(1, c(1,6))},
+		    {
+		  	if (as.numeric(partition[5]) == 2) {
+		   	    ti2=20
+		  	} else {
+		    	    ti2=2
+		  	}
+			rates <- rdirichlet(1, c(6,16,ti2))
+		    },
+		    {rates <- rdirichlet(1, c(6,16,2,8))},
+		    {rates <- rdirichlet(1, c(6,16,2,8,4))},
+		    {rates <- rdirichlet(1, c(6,16,2,8,20,4))}
+	    	)
+
+	    	rmatrix <- 0
+
+		# build rate matrix
+		for (m in 1:6) {
+		    rmatrix[m] = rates[as.numeric(partition[m])+1]
 		}
 		
-		if (model_ratematrix[modelid] == 1) {
-			partition <- substring(model_partition[modelid], seq(1,6,1), seq(1,6,1))
-
-		 	#R-matrix parameters from a Dirichlet(1.0,6.0,1.0,1.0,6.0,1.0) scaled with the last rate. The expected ti/tv is 12/4 = 3
-			validRates=0
-			while (!validRates) {
-	    		switch(model_num_partitions[modelid],
-					{rates <- rdirichlet(1, c(1))},
-					{rates <- rdirichlet(1, c(1,6))},
-					{
-		  				if (as.numeric(partition[5]) == 2) {
-		    				ti2=20
-		  				} else {
-		    				ti2=2
-		  				}
-		  				rates <- rdirichlet(1, c(6,16,ti2))
-					},
-					{rates <- rdirichlet(1, c(6,16,2,8))},
-					{rates <- rdirichlet(1, c(6,16,2,8,4))},
-					{rates <- rdirichlet(1, c(6,16,2,8,20,4))}
-	    		)
-
-	    		rmatrix <- 0
-
-			    # build rate matrix
-			    for (m in 1:6) {
-					rmatrix[m] = rates[as.numeric(partition[m])+1]
-			    }
-		
-			    #scaled with the last rate
-			    rmatrix_scaled <- rmatrix/rmatrix[6]
-			    validRates=(sum(rmatrix_scaled<0.1) == 0) && (sum(rmatrix_scaled>100) == 0)
-			    if (validRates) {
-		          	for (ind1 in 2:6) {
-						for (ind2 in 1:(ind1-1)) {
-						    if (rmatrix_scaled[ind1] != rmatrix_scaled[ind2]) {
-						    	if (abs(rmatrix_scaled[ind1]-rmatrix_scaled[ind2]) < 1) {
-							    	validRates=0
-							    	break
-								}
-						    }
-						}
-			    	}
+		#scaled with the last rate
+		rmatrix_scaled <- rmatrix/rmatrix[6]
+		validRates=(sum(rmatrix_scaled<0.1) == 0) && (sum(rmatrix_scaled>100) == 0)
+		if (validRates) {
+		    for (ind1 in 2:6) {
+		    	for (ind2 in 1:(ind1-1)) {
+			    if (rmatrix_scaled[ind1] != rmatrix_scaled[ind2]) {
+			        if (abs(rmatrix_scaled[ind1]-rmatrix_scaled[ind2]) < 1) {
+				    validRates=0
+				    break
+				}
 			    }
 			}
-   			models_mat[i,8:13] <- formatC(rmatrix_scaled,digits=4)
+		    }
+		}
+	    }
+   	    models_mat[i,8:13] <- formatC(rmatrix_scaled,digits=4)
     	}
     
     	if (rate_variation[modelid]==1 || rate_variation[modelid]==3) {
-	    	#Proportion of invariable sites from uniform (0,1)
-			pinv <- rtrunc(1,"beta", 1, 3, a=0.2,b=0.8)
-			models_mat[i,14] <- formatC(pinv,digits=4)
+	    #Proportion of invariable sites from uniform (0,1)
+	    pinv <- rtrunc(1,"beta", 1, 3, a=0.2,b=0.8)
+	    models_mat[i,14] <- formatC(pinv,digits=4)
     	} else {
-    		models_mat[i,14] <- 0
+    	    models_mat[i,14] <- 0
     	}
     	
-	    if (rate_variation[modelid]==2 || rate_variation[modelid]==3) {
+	if (rate_variation[modelid]==2 || rate_variation[modelid]==3) {
 	       #Gamma shape from an Exponential (1,1) => mean=1
 			gamma_shape <- rtrunc(1,"exp", 1, 2, a=0.5,b=5)
 			models_mat[i,15] <- formatC(gamma_shape,digits=4)
@@ -175,15 +181,16 @@ for(sample_index in 0:(SAMPLES-1)) {
     		models_mat[i,15] <- 100
     	}
 	       	
-	    models_mat[i,16] <- model_partition[modelid]
+    models_mat[i,16] <- model_partition[modelid]
 
-	}
+    }
 
-	# Write the output models
-	write.table(models_mat,file=OUT_MODELS_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
+    # Write the output models
+    write.table(models_mat,file=OUT_MODELS_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
 	# Assign models to genes
-	boxes <- cluster(max_partitions,num_genes)
+	boxes <- rchinese(num_genes,sample(5:100,1))
+	# boxes <- cluster(max_partitions,num_genes)
 	genes_mat <- matrix(nrow=num_genes,ncol=2,byrow=TRUE)
 	colnames(genes_mat) <- c("GeneNumber", "ModelNumber")
 	genes_mat <- as.table(genes_mat)
@@ -231,7 +238,7 @@ for(sample_index in 0:(SAMPLES-1)) {
 	write(partitionstringDEC, file=OUT_PARTITIONS_FILE, append=TRUE)
 	write(partitionstring, file=OUT_PARTITIONS_FILE, append=TRUE)
 
-	current_index <- current_index + max_partitions
+	current_index <- current_index + num_genes 
 
 
 	   ###SIMULATE TREE

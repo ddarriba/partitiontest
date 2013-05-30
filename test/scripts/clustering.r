@@ -1,19 +1,40 @@
 # Sample from a Chinese Restaurant Process
 #
-# size: number of samples to draw
-# a: alpha.  If large then there will tend to be more categories.
+# num_elements: number of samples to draw
+# alpha: alpha.  If large then there will tend to be more categories.
 #
-rchinese <- function(size, a) {
-  stopifnot(length(a) == 1)
+rchinese <- function(num_elements, alpha) {
+  stopifnot(length(alpha) == 1)
   samples = c()
-  new.category = 1
-  for (i in 1:size) {
-    denom = i - 1 + a
-    p.new = a / denom
+  next_category = 1
+  for (i in 1:num_elements) {
+    denom = i - 1 + alpha
+    p_new = alpha / denom
+    rvalue = runif(1)
     ci =
-      if (runif(1) < p.new) {
-        new.category = new.category + 1;
-        new.category - 1
+      if (rvalue < p_new) {
+        next_category = next_category + 1;
+        next_category - 1
+      }
+      else {
+	samples[floor(rvalue * i)]
+      }
+    samples = c(samples, ci)
+  }
+  samples
+}
+
+rchinese2 <- function(num_elements, alpha) {
+  stopifnot(length(alpha) == 1)
+  samples = c()
+  new_category = 1
+  for (i in 1:num_elements) {
+    denom = i - 1 + alpha
+    p_new = alpha / denom
+    ci =
+      if (runif(1) < p_new) {
+        new_category = new_category + 1;
+        new_category - 1
       }
       else {
         counts = unname(table(factor(samples, levels = 1:(i-1))))
@@ -26,7 +47,12 @@ rchinese <- function(size, a) {
 }
 
 #rchinese(10,0.5)
-cluster <- function(num_elements, max_boxes) {
-  boxes <- sample(1:num_elements,max_boxes,replace=T)
+sample_cluster <- function(max_boxes, num_elements) {
+  boxes <- sample(1:max_boxes,num_elements,replace=T)
+  return(boxes)
+}
+
+cluster <- function(max_boxes, num_elements) {
+  boxes <- sample_cluster(max_boxes, num_elements)
   return(boxes)
 }
