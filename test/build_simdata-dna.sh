@@ -170,7 +170,7 @@ if [ $BUILD_CONTROL_FILES -eq 1 ]; then
     echo [PARTITIONS] > ${partest_filename}
     next_start=1
     for ((gene_index=1; gene_index<=${num_genes}; gene_index++)); do
-      echo GENE${gene_index}=${next_start}-$((next_start+999)) >> ${partest_filename}
+      echo GENE${gene_index}=${next_start}-$((next_start+PERGENE_LENGTH-1)) >> ${partest_filename}
       next_start=$((next_start+PERGENE_LENGTH))
     done
     echo [OUTPUT] >> ${partest_filename}

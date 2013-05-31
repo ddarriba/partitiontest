@@ -13,7 +13,7 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 1000   # Total number of samples
+SAMPLES <- 100   # Total number of samples
 TAXA_COUNT <- 20  # Number of taxa in the output trees
 GENE_LEN <- 500   # Length of each gene
 
