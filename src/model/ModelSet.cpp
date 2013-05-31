@@ -25,17 +25,22 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa) :
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
 	int numberOfMatrices;
 	numberOfModels = Utilities::binaryPow(numberOfParameters);
+
+#ifdef SLOW_DNA
 	switch (dataType) {
-	case DT_NUCLEIC:
+		case DT_NUCLEIC:
 		numberOfMatrices = NUC_MATRIX_SIZE / 2;
 		break;
-	case DT_PROTEIC:
+		case DT_PROTEIC:
 		numberOfMatrices = PROT_MATRIX_SIZE;
 		break;
-	default:
+		default:
 		Utilities::exit_partest(EX_OSERR);
 	}
+#else
 	numberOfMatrices = 1;
+#endif
+
 	numberOfModels *= numberOfMatrices;
 	models = (Model **) malloc(numberOfModels * sizeof(Model *));
 
@@ -80,15 +85,18 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar) {
 	NucMatrix nm;
 	switch (dataType) {
 	case DT_NUCLEIC:
-//		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
-//				2) {
-//			NucMatrix nm = static_cast<NucMatrix>(i);
-//			models[currentIndex++] = new NucleicModel(nm, rateVar,
-//					numberOfTaxa);
-//		}
+
+#ifdef SLOW_DNA
+		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
+				2) {
+			nm = static_cast<NucMatrix>(i);
+			models[currentIndex++] = new NucleicModel(nm, rateVar,
+					numberOfTaxa);
+		}
+#else
 		nm = (rateVar & RateVarF) ? NUC_MATRIX_GTR : NUC_MATRIX_SYM;
-		models[currentIndex++] = new NucleicModel(nm, rateVar,
-							numberOfTaxa);
+		models[currentIndex++] = new NucleicModel(nm, rateVar, numberOfTaxa);
+#endif
 		break;
 	case DT_PROTEIC:
 		for (int i = 0; i < PROT_MATRIX_SIZE; i++) {
