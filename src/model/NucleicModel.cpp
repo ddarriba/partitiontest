@@ -17,6 +17,7 @@
  */
 
 #include "NucleicModel.h"
+#include "util/Utilities.h"
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
@@ -42,102 +43,102 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	case NUC_MATRIX_K80:
 		name.append("K80");
 		matrixName.append("010010");
-		modelFreeParameters+=1;
+		modelFreeParameters += 1;
 		break;
 	case NUC_MATRIX_HKY:
 		name.append("HKY");
 		matrixName.append("010010");
-		modelFreeParameters+=1;
+		modelFreeParameters += 1;
 		break;
 	case NUC_MATRIX_TrNef:
 		name.append("TrNef");
 		matrixName.append("010020");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TrN:
 		name.append("TrN");
 		matrixName.append("010020");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM1:
 		name.append("TPM1");
 		matrixName.append("012210");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM1uf:
 		name.append("TPM1uf");
 		matrixName.append("012210");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM2:
 		name.append("TPM2");
 		matrixName.append("010212");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM2uf:
 		name.append("TPM2uf");
 		matrixName.append("010212");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM3:
 		name.append("TPM3");
 		matrixName.append("012012");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TPM3uf:
 		name.append("TPM3uf");
 		matrixName.append("012012");
-		modelFreeParameters+=2;
+		modelFreeParameters += 2;
 		break;
 	case NUC_MATRIX_TIM1ef:
 		name.append("TIM1ef");
 		matrixName.append("012230");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TIM1:
 		name.append("TIM1");
 		matrixName.append("012230");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TIM2ef:
 		name.append("TIM2ef");
 		matrixName.append("010232");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TIM2:
 		name.append("TIM2");
 		matrixName.append("010232");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TIM3ef:
 		name.append("TIM3ef");
 		matrixName.append("012032");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TIM3:
 		name.append("TIM3");
 		matrixName.append("012032");
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 		break;
 	case NUC_MATRIX_TVMef:
 		name.append("TVMef");
 		matrixName.append("012314");
-		modelFreeParameters+=4;
+		modelFreeParameters += 4;
 		break;
 	case NUC_MATRIX_TVM:
 		name.append("TVM");
 		matrixName.append("012314");
-		modelFreeParameters+=4;
+		modelFreeParameters += 4;
 		break;
 	case NUC_MATRIX_SYM:
 		name.append("SYM");
 		matrixName.append("012345");
-		modelFreeParameters+=5;
+		modelFreeParameters += 5;
 		break;
 	case NUC_MATRIX_GTR:
 		name.append("GTR");
 		matrixName.append("012345");
-		modelFreeParameters+=5;
+		modelFreeParameters += 5;
 		break;
 	default:
 		cerr << "ERROR: Unknown nucleic matrix" << endl;
@@ -148,11 +149,11 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	}
 
 	if (rateVariation & RateVarF) {
-		modelFreeParameters+=3;
+		modelFreeParameters += 3;
 	}
 
 	if (rateVariation & RateVarI) {
-		name .append("+I");
+		name.append("+I");
 		/* proportion of invariable sites free parameter */
 		modelFreeParameters++;
 	}
@@ -175,30 +176,79 @@ void NucleicModel::setFrequencies(const double * frequencies) {
 }
 
 void NucleicModel::setRates(const double * rates) {
-	for (int i=0;i<NUM_RATES; i++)
+	for (int i = 0; i < NUM_RATES; i++)
 		this->rates[i] = rates[i];
 }
 
 double NucleicModel::distanceTo(Model * otherModel) {
 	NucleicModel * other = static_cast<NucleicModel *>(otherModel);
-	double invDistance = pInv - other->pInv;
-	double shapeDistance = alpha - other->alpha;
-	double matrixDistance = 0.0;
-	for (int i = 0; i < 6; i++) {
-			matrixDistance += (rates[i] - other->rates[i])
-					* (rates[i] - other->rates[i]);
-		}
-	double freqsDistance = 0.0;
-	for (int i = 0; i < numberOfFrequencies; i++) {
-		freqsDistance += (frequencies[i] - other->frequencies[i])
-				* (frequencies[i] - other->frequencies[i]);
-	}
-	freqsDistance = sqrt(freqsDistance);
 
-	double distance = matrixDistance + invDistance + shapeDistance
-			+ freqsDistance;
+//	double globalDistance = 0.0; //sqrt((this->lnL - other->lnL)*(this->lnL - other->lnL));
+//	if (this->matrixName.compare(other->matrixName))
+//		globalDistance += 100;
+//	if (this->matrix != other->matrix) {
+//		if (!((this->matrix % 2 && this->matrix == other->matrix + 1)
+//				|| (other->matrix % 2 && this->matrix == other->matrix - 1))) {
+//			globalDistance += 50;
+//		}
+//	}
+//	if (this->rateVariation != other->rateVariation)
+//		globalDistance += 25;
+//	return globalDistance;
+//
+//	double invDistance = pInv - other->pInv;
+//	double shapeDistance = alpha - other->alpha;
+//	double matrixDistance = 0.0;
+//	for (int i = 0; i < 6; i++) {
+//		matrixDistance += (rates[i] - other->rates[i])
+//				* (rates[i] - other->rates[i]);
+//	}
+//	double freqsDistance = 0.0;
+//	for (int i = 0; i < numberOfFrequencies; i++) {
+//		freqsDistance += (frequencies[i] - other->frequencies[i])
+//				* (frequencies[i] - other->frequencies[i]);
+//	}
+//	freqsDistance = sqrt(freqsDistance);
+//
+//	double distance = matrixDistance + invDistance + shapeDistance
+//			+ freqsDistance;
+
+	double correlation = Utilities::correlation(rates, other->rates, 6);
+	if (correlation < 0) correlation *= -1;
+	double distance = 1.0 / correlation;
 
 	return distance;
+}
+
+void NucleicModel::print(ostream& cout) {
+	cout << "--------" << endl;
+	cout << name << endl;
+	if (isOptimized()) {
+		cout << "lnL = " << lnL << endl;
+		if (isPInv()) {
+			cout << "pInv = " << pInv << endl;
+		}
+		if (isGamma()) {
+			cout << "alpha = " << alpha << endl;
+		}
+		cout << "Frequencies:" << endl;
+		cout << "  f(A) : " << frequencies[0] << endl;
+		cout << "  f(C) : " << frequencies[1] << endl;
+		cout << "  f(G) : " << frequencies[2] << endl;
+		cout << "  f(T) : " << frequencies[3] << endl;
+		cout << "Rates:" << endl;
+		cout << "  R(a) : " << rates[0] << endl;
+		cout << "  R(b) : " << rates[1] << endl;
+		cout << "  R(c) : " << rates[2] << endl;
+		cout << "  R(d) : " << rates[3] << endl;
+		cout << "  R(e) : " << rates[4] << endl;
+		cout << "  R(f) : " << rates[5] << endl;
+		cout << "MOST LIKELY TREE:" << endl;
+		cout << tree << endl;
+	} else {
+		cout << "Unoptimized" << endl;
+	}
+	cout << "--------" << endl;
 }
 
 } /* namespace partest */

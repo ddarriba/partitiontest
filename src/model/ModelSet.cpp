@@ -35,6 +35,7 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa) :
 	default:
 		Utilities::exit_partest(EX_OSERR);
 	}
+	numberOfMatrices = 1;
 	numberOfModels *= numberOfMatrices;
 	models = (Model **) malloc(numberOfModels * sizeof(Model *));
 
@@ -76,14 +77,18 @@ Model * ModelSet::getModel(unsigned int index) {
 int ModelSet::buildModelSet(Model **models, bitMask rateVar) {
 
 	int currentIndex = 0;
+	NucMatrix nm;
 	switch (dataType) {
 	case DT_NUCLEIC:
-		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
-				2) {
-			NucMatrix nm = static_cast<NucMatrix>(i);
-			models[currentIndex++] = new NucleicModel(nm, rateVar,
-					numberOfTaxa);
-		}
+//		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
+//				2) {
+//			NucMatrix nm = static_cast<NucMatrix>(i);
+//			models[currentIndex++] = new NucleicModel(nm, rateVar,
+//					numberOfTaxa);
+//		}
+		nm = (rateVar & RateVarF) ? NUC_MATRIX_GTR : NUC_MATRIX_SYM;
+		models[currentIndex++] = new NucleicModel(nm, rateVar,
+							numberOfTaxa);
 		break;
 	case DT_PROTEIC:
 		for (int i = 0; i < PROT_MATRIX_SIZE; i++) {

@@ -33,6 +33,11 @@ public:
 	static long factorial(unsigned int x);
 	static long combinatorial(unsigned int a, unsigned int b);
 	static int bell(int n);
+	static double mean(double series[], int numberOfElements);
+	static double variance(double series[], int numberOfElements);
+	static double standardDeviation(double series[], int numberOfElements);
+	static double covariance(double XSeries[], double YSeries[], int numberOfElements);
+	static double correlation(double XSeries[], double YSeries[], int numberOfElements);
 
 	static bool existProperty(const string& property);
 	static string getValue(const string& property);
@@ -50,10 +55,12 @@ public:
 	static inline bool isPowerOfTwo(unsigned int x) {
 		return ((x != 0) && !(x & (x - 1)));
 	}
-	static inline unsigned int binaryPow(unsigned int x) {
-		return (1 << x);
+	static inline t_partitionElementId binaryPow(t_partitionElementId x) {
+		t_partitionElementId nextId = 1;
+		nextId <<= x;
+		return nextId;
 	}
-	static inline unsigned int binaryLog(unsigned int x) {
+	static inline t_partitionElementId binaryLog(t_partitionElementId x) {
 		return ceil(log(x) / log(2));
 	}
 	static inline double dBinaryLog(double x) {

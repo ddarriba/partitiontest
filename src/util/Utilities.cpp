@@ -15,6 +15,80 @@ long Utilities::factorial(unsigned int x) {
 		return x * factorial(x - 1);
 }
 
+double Utilities::mean(double series[], int numberOfElements) {
+	double sum = 0.0;
+	for (int i = 0; i < numberOfElements; i++) {
+		sum += series[i];
+	}
+	return sum / numberOfElements;
+}
+
+double Utilities::variance(double series[], int numberOfElements)
+
+{
+
+	double vmean = mean(series, numberOfElements);
+
+	double temp = 0;
+
+	for (int i = 0; i < numberOfElements; i++)
+
+	{
+
+		temp += (series[i] - vmean) * (series[i] - vmean);
+
+	}
+
+	return temp / numberOfElements;
+
+}
+
+double Utilities::standardDeviation(double series[], int numberOfElements)
+
+{
+
+	return sqrt(variance(series, numberOfElements));
+
+}
+
+double Utilities::covariance(double XSeries[], double YSeries[],
+		int numberOfElements)
+
+		{
+
+	double xmean = mean(XSeries, numberOfElements);
+
+	double ymean = mean(YSeries, numberOfElements);
+
+	double total = 0;
+
+	for (int i = 0; i < numberOfElements; i++)
+
+	{
+
+		total += (XSeries[i] - xmean) * (YSeries[i] - ymean);
+
+	}
+
+	return total / numberOfElements;
+
+}
+
+double Utilities::correlation(double XSeries[], double YSeries[],
+		int numberOfElements)
+
+		{
+
+	double cov = covariance(XSeries, YSeries, numberOfElements);
+
+	double correlation = cov
+			/ (standardDeviation(XSeries, numberOfElements)
+					* standardDeviation(YSeries, numberOfElements));
+
+	return correlation;
+
+}
+
 long Utilities::combinatorial(unsigned int a, unsigned int b) {
 	if (a <= 1)
 		return 1;
@@ -119,7 +193,7 @@ int Utilities::countWords(string strString) {
 int Utilities::numDigits(int number) {
 	int digits = 0;
 	if (number < 0)
-		digits = 1;  // remove this line if '-' counts as a digit
+		digits = 1; // remove this line if '-' counts as a digit
 	while (number) {
 		number /= 10;
 		digits++;

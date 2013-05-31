@@ -56,13 +56,13 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		free(freqs);
 	}
 #else
-	model->print();
+	model->print(cout);
 	cout << tr << " " << empiricalFrequencies << endl;
 
 //  treeEvaluate(tr, 32);
 
 	printf("tree evaluated: %f\n", tr->likelihood);
-	model->print();
+	model->print(cout);
 	return 0;
 #endif
 }

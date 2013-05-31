@@ -193,12 +193,18 @@ public:
 	 * @param tree The model tree in Newick format.
 	 */
 	void setTree(char * tree);
+
+	double * getFrequencies(void) const;
+
 	/**
 	 * @brief Sets the number of state frequencies.
 	 *
 	 * @param frequencies Array with the state frequencies: 4 for nucleotide and 20 for amino-acids.
 	 */
 	virtual void setFrequencies(const double * frequencies);
+
+	double * getRates(void) const;
+
 	/**
 	 * @brief Sets the exchangeability rates.
 	 *
@@ -215,7 +221,7 @@ public:
 	/**
 	 * @brief Prints the model details and parameters.
 	 */
-	virtual void print();
+	virtual void print(ostream& out);
 
 	virtual ~Model();
 protected:

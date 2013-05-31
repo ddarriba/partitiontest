@@ -1093,6 +1093,13 @@ double phyml_lk(option *io, phyml_outdata * outdata) {
 	outdata->tree = (char *) malloc(strlen(most_likely_tree) + 1);
 	strcpy(outdata->tree, most_likely_tree);
 
+	if (io->datatype == NT) {
+		memcpy(outdata->rates,io->mod->rr->v,6 * sizeof(double));
+		memcpy(outdata->frequencies,tree->mod->pi->v, 4*sizeof(double));
+	} else {
+		memcpy(outdata->frequencies,tree->mod->pi->v, 20*sizeof(double));
+	}
+
 	Free_Spr_List(tree);
 	Free_One_Spr(tree->best_spr);
 	if (tree->mat)

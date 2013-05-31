@@ -13,11 +13,32 @@
 
 namespace partest {
 
+struct comparePartitionElements {
+	inline bool operator()(PartitionElement * e1,
+			PartitionElement * e2) {
+
+		if (e1 == e2) return 0;
+
+		t_partitionElementId i1 = e1->getId();
+		t_partitionElementId i2 = e2->getId();
+
+		if (i1 == i2) {
+			cerr << "[ERROR] There are 2 different elements in the set with the same ID" << endl;
+			Utilities::exit_partest(EX_SOFTWARE);
+		}
+
+		while( (i1 & 1) == (i2 & 1)) {
+			i1 >>= 1;
+			i2 >>= 1;
+		}
+		return (i1 & 1);
+	}
+};
+
 PartitioningScheme::PartitioningScheme(int numberOfElements) :
 		numberOfElements(numberOfElements) {
 	currentElement = 0;
-	partitions = (PartitionElement **) malloc(
-			numberOfElements * sizeof(PartitionElement *));
+	partitions = new vector<PartitionElement *>(numberOfElements);
 	numberOfBits = 1;
 	code = 0;
 }
@@ -27,8 +48,7 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 	currentElement = 0;
 	code = 0;
 	numberOfElements = schemeVector->size();
-	partitions = (PartitionElement **) malloc(
-			numberOfElements * sizeof(PartitionElement *));
+	partitions = new vector<PartitionElement *>(numberOfElements);
 	int i;
 #ifdef DEBUG
 	cout << "[TRACE] PARTITION (" << numberOfElements << " elements): [ ";
@@ -56,17 +76,26 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 }
 
 PartitioningScheme::~PartitioningScheme() {
-	free(partitions);
+	delete partitions;
 	if (code)
 		delete code;
 }
 
 int PartitioningScheme::addElement(PartitionElement * element) {
 	if (currentElement < numberOfElements) {
-		partitions[currentElement++] = element;
+		partitions->at(currentElement++) = element;
 
 		if (Utilities::binaryLog(element->getId() | 1) > numberOfBits) {
 			numberOfBits = Utilities::binaryLog(element->getId() | 1);
+		}
+
+		if (currentElement == numberOfElements) {
+			std::sort(partitions->begin(), partitions->end(),
+						comparePartitionElements());
+			for (int i=0;i<numberOfElements;i++) {
+				cout << " " << getElement(i)->getName() << "[" << getElement(i)->getId() << "]";
+			}
+			cout << endl;
 		}
 		return 0;
 	} else {
@@ -76,7 +105,7 @@ int PartitioningScheme::addElement(PartitionElement * element) {
 
 PartitionElement * PartitioningScheme::getElement(int id) {
 	if (id >= 0 & id < numberOfElements) {
-		return partitions[id];
+		return partitions->at(id);
 	} else {
 		return 0;
 	}
@@ -85,7 +114,7 @@ PartitionElement * PartitioningScheme::getElement(int id) {
 int PartitioningScheme::isOptimized(void) {
 	int optimized = 1;
 	for (int i = 0; i < numberOfElements; i++) {
-		optimized &= partitions[i]->isOptimized();
+		optimized &= partitions->at(i)->isOptimized();
 	}
 	return optimized;
 }

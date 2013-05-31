@@ -58,6 +58,7 @@ private:
 	double overallInv;
 	double overallAlphaInv;
 	double overallInvAlpha;
+	DataType dataType;
 };
 
 } /* namespace partest */

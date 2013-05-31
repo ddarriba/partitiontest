@@ -63,6 +63,7 @@ ModelSelector::ModelSelector(PartitionElement * partitionElement,
 		InformationCriterion ic, double sampleSize) :
 		ic(ic), sampleSize(sampleSize), partitionElement(partitionElement) {
 
+	dataType = partitionElement->getModelset()->getDataType();
 	doSelection(partitionElement->getModelset(), ic, sampleSize);
 	partitionElement->setBestModel(getBestModel());
 }
@@ -71,6 +72,7 @@ ModelSelector::ModelSelector(ModelSet * modelset, InformationCriterion ic,
 		double sampleSize) :
 		ic(ic), sampleSize(sampleSize) {
 
+	dataType = modelset->getDataType();
 	doSelection(modelset, ic, sampleSize);
 
 	//print();
@@ -170,7 +172,23 @@ void ModelSelector::print(ostream& out) {
 	out << setw(16) << "pInv:" << overallInv << endl;
 	out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
 	out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(100) << setfill('-') << "" << setfill(' ') << endl<<endl;
+
+	for (int i = 0; i < selectionModels->size(); i++) {
+		Model * bestModel = selectionModels->at(i)->getModel();
+
+		out << setw(5) << i + 1 << setw(15) << bestModel->getName();
+		for (int j = 0; j < bestModel->getNumberOfFrequencies(); j++) {
+			out << setw(10) << setprecision(4)
+					<< bestModel->getFrequencies()[j];
+		}
+		if (dataType == DT_NUCLEIC) {
+			for (int j = 0; j < 6; j++) {
+				out << setw(10) << setprecision(4) << bestModel->getRates()[j];
+			}
+		}
+		out << endl;
+	}
 }
 
 void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,

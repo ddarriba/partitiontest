@@ -71,7 +71,7 @@ void ConsoleObserver::update(const ObservableInfo & info,
 #endif
 		break;
 	case MT_MODELSET_INIT:
-		cout << "INIT MODELSET " << info.current_index << endl;
+		cout << "INIT MODELSET " << *info.message << endl;
 		modelIndex = 0;
 		break;
 	case MT_MODELSET_END:

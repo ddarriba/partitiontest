@@ -18,7 +18,7 @@ extern "C" {
 
 /* this two definitions below must match */
 #define MAX_PARTITIONS LONG_MAX
-typedef long t_partitionElementId;
+typedef unsigned long t_partitionElementId;
 
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;

@@ -78,7 +78,7 @@ bool Model::isOptimized() {
 	return (lnL < 0.0);
 }
 
-void Model::print() {
+void Model::print(ostream& cout) {
 	cout << "--------" << endl;
 	cout << name << endl;
 	if (isOptimized()) {
@@ -105,8 +105,16 @@ void Model::setTree(char * tree) {
 	this->tree = string(tree);
 }
 
+double * Model::getFrequencies(void) const {
+	return frequencies;
+}
+
 void Model::setFrequencies(const double * frequencies) {
 // ignore
+}
+
+double * Model::getRates(void) const {
+	return rates;
 }
 
 void Model::setRates(const double * rates) {

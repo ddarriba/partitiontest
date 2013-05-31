@@ -62,8 +62,8 @@ struct ObservableInfo {
 	 * @param[in] max_index Maximum index within the group.
 	 * @param[in] message Human readable message.
 	 */
-    ObservableInfo(MessageType type, unsigned int p_index, Model * model, time_t time = 0,
-        unsigned int current_index = 0, unsigned int max_index = 0, string * message = 0) :
+    ObservableInfo(MessageType type, t_partitionElementId p_index, Model * model, time_t time = 0,
+        t_partitionElementId current_index = 0, t_partitionElementId max_index = 0, string * message = 0) :
         type(type), model(model), time(time), current_index(current_index), max_index(
             max_index), p_index(p_index), message(message) {
     	assert(type != MT_MODELSET_INIT && type != MT_MODELSET_END);
@@ -80,8 +80,8 @@ struct ObservableInfo {
     	 * @param[in] max_index Maximum index within the group.
     	 * @param[in] message Human readable message.
     	 */
-    ObservableInfo(MessageType type, unsigned int p_index, ModelSet * modelset, time_t time = 0,
-        unsigned int current_index = 0, unsigned int max_index = 0, string * message = 0) :
+    ObservableInfo(MessageType type, t_partitionElementId p_index, ModelSet * modelset, time_t time = 0,
+    		t_partitionElementId current_index = 0, t_partitionElementId max_index = 0, string * message = 0) :
         type(type), modelset(modelset), time(time), current_index(current_index), max_index(
             max_index), p_index(p_index), message(message) {
     	assert(type == MT_MODELSET_INIT || type == MT_MODELSET_END);
@@ -91,9 +91,9 @@ struct ObservableInfo {
     Model * model; /** Reference to a model (if appropriate). */
     ModelSet * modelset; /** Reference to a model set (if appropriate). */
     const time_t time; /** Timestamp with some meaning for the observers. */
-    const unsigned int current_index; /** Current index within the group. */
-    const unsigned int max_index; /** Maximum index within the group. */
-    const unsigned int p_index; /** Index with some meaning for the observers. */
+    const t_partitionElementId current_index; /** Current index within the group. */
+    const t_partitionElementId max_index; /** Maximum index within the group. */
+    const t_partitionElementId p_index; /** Index with some meaning for the observers. */
     string * message; /** Human readable message. */
 };
 

@@ -46,7 +46,8 @@ HierarchicalSearchAlgorithm::~HierarchicalSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-PartitioningScheme * HierarchicalSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+PartitioningScheme * HierarchicalSearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
 	Utilities::exit_partest(EX_UNAVAILABLE);
 	return 0;
@@ -55,7 +56,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start(PartitioningScheme * sta
 PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 #ifdef DEBUG
-		cout << "[TRACE] Hcluster - START" << endl;
+	cout << "[TRACE] Hcluster - START" << endl;
 #endif
 
 	int i;
@@ -66,14 +67,22 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	mo->attach(this);
 
 	/* 1. start with k=n groups */
-	PartitioningScheme * nextScheme = new PartitioningScheme(
-			partitionMap->getNumberOfPartitions());
+	vector<PartitioningScheme *> nextSchemes;
+	nextSchemes.push_back(
+			new PartitioningScheme(partitionMap->getNumberOfPartitions()));
+#ifdef DEBUG
+	cout << "[TRACE]            Creating first scheme" << endl;
+#endif
 	for (i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		nextScheme->addElement(
-				partitionMap->getPartitionElement(Utilities::binaryPow(i)));
+		PartitionElement * nextElement = partitionMap->getPartitionElement(
+				Utilities::binaryPow(i));
+		nextSchemes.at(0)->addElement(nextElement);
 	}
+#ifdef DEBUG
+	cout << "[TRACE]            Created first scheme" << endl;
+#endif
 
-	PartitioningScheme * bestScheme = nextScheme;
+	PartitioningScheme * bestScheme = nextSchemes.at(0);
 	bool reachedMaximum = false;
 	double distance;
 	double bestCriterionValue = DOUBLE_INF;
@@ -81,24 +90,29 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	while (!reachedMaximum) {
 		reachedMaximum = true;
 
+		for (int i = 0; i < nextSchemes.size(); i++) {
 #ifdef DEBUG
-		cout << "[TRACE] Hcluster - Next scheme: " << nextScheme->toString() << endl;
+			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->toString() << endl;
 #endif
-		mo->optimizePartitioningScheme(nextScheme);
-		PartitionSelector partSelector(&nextScheme, 1, options);
-		double criterionValue = partSelector.getBestSelectionScheme()->value;
-		if (criterionValue < bestCriterionValue) {
-			bestCriterionValue = criterionValue;
-			bestScheme = partSelector.getBestScheme();
-			reachedMaximum = false;
+			mo->optimizePartitioningScheme(nextSchemes.at(i));
+#ifdef DEBUG
+			cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->toString() << endl;
+#endif
+			PartitionSelector partSelector(&(nextSchemes.at(i)), 1, options);
+			double criterionValue = partSelector.getBestSelectionScheme()->value;
+			if (criterionValue < bestCriterionValue) {
+				bestCriterionValue = criterionValue;
+				bestScheme = partSelector.getBestScheme();
+				reachedMaximum = false;
+			}
 		}
 
 #ifdef DEBUG
 		cout << "[TRACE] Hcluster - Computing distances" << endl;
 #endif
 
-		if (nextScheme->getNumberOfElements() > 1 && !reachedMaximum) {
-			t_partitionElementId bestMatch0, bestMatch1;
+		if (nextSchemes.at(0)->getNumberOfElements() > 1 && !reachedMaximum) {
+			vector<t_partitionElementId> bestMatch0, bestMatch1;
 			distance = DOUBLE_INF;
 			/*    Look for the minimum distance */
 			for (int i = 1; i < bestScheme->getNumberOfElements(); i++) {
@@ -108,29 +122,51 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 					Model * m2 =
 							bestScheme->getElement(j)->getBestModel()->getModel();
 					double newDist = m1->distanceTo(m2);
-#ifdef DEBUG
-		cout << "[TRACE]            Distance: " << bestScheme->getElement(i)->getId() << " to " << bestScheme->getElement(j)->getId() << " = " << newDist << endl;
+#ifdef ULTRADEBUG
+					cout << "[TRACE]            Distance: " << bestScheme->getElement(i)->getId() << " to " << bestScheme->getElement(j)->getId() << " = " << newDist << endl;
 #endif
 					if (newDist < distance) {
-						bestMatch0 = bestScheme->getElement(i)->getId();
-						bestMatch1 = bestScheme->getElement(j)->getId();
 						distance = newDist;
+					}
+				}
+			}
+			for (int i = 1; i < bestScheme->getNumberOfElements(); i++) {
+				Model * m1 =
+						bestScheme->getElement(i)->getBestModel()->getModel();
+				for (int j = 0; j < i; j++) {
+					Model * m2 =
+							bestScheme->getElement(j)->getBestModel()->getModel();
+					double newDist = m1->distanceTo(m2);
+					if (newDist == distance) {
+						bestMatch0.push_back(
+								bestScheme->getElement(i)->getId());
+						bestMatch1.push_back(
+								bestScheme->getElement(j)->getId());
 					}
 				}
 			}
 
 #ifdef DEBUG
-		cout << "[TRACE] Hcluster - Building next scheme" << endl;
+			cout << "[TRACE] Hcluster - Building next scheme" << endl;
 #endif
 
-			PartitioningScheme * prevScheme = nextScheme;
+			PartitioningScheme * prevScheme = bestScheme; //nextSchemes.at(0);
+
+			for (int i = 0; i < nextSchemes.size(); i++)
+				nextSchemes.pop_back();
 			int numPartitions = prevScheme->getNumberOfElements() - 1;
-			nextScheme = new PartitioningScheme(numPartitions);
-			nextScheme->addElement(partitionMap->getPartitionElement(bestMatch0 + bestMatch1));
-			for (int i = 0; i < prevScheme->getNumberOfElements(); i++) {
-				PartitionElement * element = prevScheme->getElement(i);
-				if (element->getId() != bestMatch0 && element->getId() != bestMatch1) {
-					nextScheme->addElement(element);
+			for (int i = 0; i < bestMatch0.size(); i++) {
+				nextSchemes.push_back(new PartitioningScheme(numPartitions));
+				nextSchemes.at(nextSchemes.size() - 1)->addElement(
+						partitionMap->getPartitionElement(
+								bestMatch0.at(i) + bestMatch1.at(i)));
+				for (int j = 0; j < prevScheme->getNumberOfElements(); j++) {
+					PartitionElement * element = prevScheme->getElement(j);
+					if (element->getId() != bestMatch0.at(i)
+							&& element->getId() != bestMatch1.at(i)) {
+						nextSchemes.at(nextSchemes.size() - 1)->addElement(
+								element);
+					}
 				}
 			}
 			if (prevScheme != bestScheme) {
@@ -141,7 +177,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	delete mo;
 
 #ifdef DEBUG
-		cout << "[TRACE] Hcluster - END Return: " << bestScheme->toString() << endl;
+	cout << "[TRACE] Hcluster - END Return: " << bestScheme->toString() << endl;
 #endif
 	return bestScheme;
 }

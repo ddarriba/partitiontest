@@ -44,13 +44,23 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 		cout << "[TRACE] PhyML Alignment. Adding section from " << firstPosition[i] << " to " << lastPosition[i] << endl;
 #endif
 		int sectionSites = lastPosition[i] - firstPosition[i] + 1;
+#ifdef DEBUG
+		cout << "[TRACE] PhyML Alignment. Sitepatt from " << firstPosition[i] - 1 <<  " to "<< cur_index << " : Elements " << sectionSites << endl;
+#endif
 		memcpy(&(cdata->sitepatt[cur_index]),
 				&(alignment->cdata->sitepatt[firstPosition[i] - 1]),
 				sectionSites * sizeof(int));
 		cur_index += sectionSites;
 	}
+#ifdef DEBUG
+		cout << "[TRACE] Done splitting" << endl;
+#endif
 
 	std::sort(cdata->sitepatt, &(cdata->sitepatt[numSites]));
+
+#ifdef DEBUG
+		cout << "[TRACE] Merging patterns" << endl;
+#endif
 
 	/* count number of patterns */
 	int lastValue = -1;
@@ -72,7 +82,14 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 	int currentWeight = 0;
 	lastValue = -1;
 	int invarCount = 0;
+#ifdef DEBUG
+		cout << "[TRACE]     Loop over sites" << endl;
+#endif
 	for (int i = 0; i < numSites; i++) {
+#ifdef ULTRADEBUG
+		cout << "[TRACE]     Sites " << i << "/" << numSites << endl;
+		cout << "[TRACE]     Sitepatt " << cdata->sitepatt[i] << endl;
+#endif
 		currentWeight++;
 		if (cdata->sitepatt[i] != lastValue) {
 			reindex[currentIndex] = cdata->sitepatt[i];
@@ -87,8 +104,11 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 			lastValue = cdata->sitepatt[i];
 		}
 	}
-
 	cdata->wght[currentIndex - 1] = currentWeight;
+
+#ifdef DEBUG
+		cout << "[TRACE]     Counting invariant sites" << endl;
+#endif
 	for (int i = 0; i < numPatterns; i++) {
 		if (cdata->invar[i] > -1) {
 			invarCount += cdata->wght[i];
@@ -99,6 +119,9 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 	cdata->c_seq = (struct __Align **) malloc(
 			numSeqs * sizeof(struct __Align *));
 
+#ifdef DEBUG
+		cout << "[TRACE]     Loop over sequences" << endl;
+#endif
 	for (int i = 0; i < numSeqs; i++) {
 
 		cdata->c_seq[i] = (struct __Align *) malloc(sizeof(struct __Align));
@@ -128,6 +151,10 @@ struct __Calign * PhymlAlignment::build_cdata(PhymlAlignment * alignment,
 		cdata->b_frq = (phydbl *) malloc(4 * sizeof(phydbl));
 		get_nt_freqs(cdata);
 	}
+
+#ifdef DEBUG
+		cout << "[TRACE] Done merging patterns" << endl;
+#endif
 
 	return cdata;
 }

@@ -109,7 +109,7 @@ public:
 	string toString();
 	virtual ~PartitioningScheme();
 private:
-	PartitionElement ** partitions; /** Array of reference to the partitions of this scheme */
+	vector<PartitionElement*> * partitions; /** Array of reference to the partitions of this scheme */
 	int currentElement; /** Current element index for the step-by-step construction of the scheme */
 	int numberOfElements; /** The number of partitions */
 	int numberOfBits; /** The number of single genes in the scheme. */

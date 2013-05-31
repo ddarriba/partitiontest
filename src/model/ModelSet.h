@@ -64,6 +64,8 @@ public:
    * @return The model in the index position.
    */
   Model * getModel(unsigned int index);
+
+  DataType getDataType(void) { return dataType; }
   virtual ~ModelSet();
 private:
 

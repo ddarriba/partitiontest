@@ -9,8 +9,20 @@
 #include "util/Utilities.h"
 #include <string.h>
 #include <assert.h>
+#include <algorithm>
 
 namespace partest {
+
+struct comparePartitionInfos {
+	inline bool operator()(partitionInfo p1,
+			partitionInfo p2) {
+
+		if (p1.start != p2.start)
+			return p1.start < p2.start;
+		else
+			return p1.stride < p2.stride;
+	}
+};
 
 ConfigParser::ConfigParser(const char * configFile) :
 		configFile(configFile), partitions(0), numberOfPartitions(0), outputBasePath(
@@ -66,8 +78,6 @@ ConfigParser::ConfigParser(const char * configFile) :
 				it != keys.end(); it++) {
 			CSimpleIniA::Entry entry = *it;
 			partitions->at(partitionId).name = entry.pItem;
-			partitions->at(partitionId).partitionId = Utilities::binaryPow(
-					partitionId);
 			strcpy(lineBuffer,
 					ini.GetValue(PARTITIONS_TAG, entry.pItem, "default"));
 			parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
@@ -75,6 +85,12 @@ ConfigParser::ConfigParser(const char * configFile) :
 		}
 		free(lineBuffer);
 
+		std::sort(partitions->begin(), partitions->end(),
+								comparePartitionInfos());
+
+		for (int i=0; i<numberOfPartitions; i++) {
+			partitions->at(i).partitionId = Utilities::binaryPow(i);
+		}
 		/** OUTPUT **/
 
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);

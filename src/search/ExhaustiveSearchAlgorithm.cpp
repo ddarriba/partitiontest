@@ -121,17 +121,30 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 		schemesArray[i] = scheme;
 
 	}
+
+#ifdef DEBUG
+	cout << "[TRACE] Done optimization" << endl;
+#endif
+
 	PartitionSelector partSelector(schemesArray, numberOfPartitions, options);
 
+#ifdef DEBUG
+	cout << "[TRACE] Done selection" << endl;
+#endif
+
 	for (i = 0; i < numberOfPartitions; i++) {
-		delete schemesArray[i];
+		if (schemesArray[i] != partSelector.getBestScheme())
+			delete schemesArray[i];
 	}
 
 	free(schemesArray);
 	delete schemeVector;
 	delete mo;
 	delete observer;
-
+#ifdef DEBUG
+	cout << "[TRACE] Deleted" << endl;
+	cout << "[TRACE] Returning " << (partSelector.getBestScheme())->toString() << endl;
+#endif
 	return partSelector.getBestScheme();
 }
 

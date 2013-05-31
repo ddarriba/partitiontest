@@ -30,6 +30,7 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 		for (int i = 0; i < parser.getNumberOfPartitions(); i++) {
 			struct partitionInfo nextPartition = parser.getPartition(i);
 			partitions->at(i).partitionId = nextPartition.partitionId;
+
 			partitions->at(i).partitionElement = new PartitionElement(
 					nextPartition.partitionId, nextPartition.name, alignment,
 					nextPartition.start, nextPartition.end,

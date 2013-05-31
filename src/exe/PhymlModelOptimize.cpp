@@ -198,7 +198,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 	case StartTopoBIONJ:
 		optimizeTopo = false;
 		optimizeBranchLengths = true;
-		optimizeRates = true;
+		//optimizeRates = true;
 #ifdef BUILD_PHYML_ARGS
 		arguments += " -o lr";
 #endif
@@ -206,7 +206,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 	case StartTopoML:
 		optimizeTopo = true;
 		optimizeBranchLengths = true;
-		optimizeRates = true;
+		//optimizeRates = true;
 #ifdef BUILD_PHYML_ARGS
 		arguments += " -o tlr";
 #endif
@@ -215,7 +215,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 		//TODO: TEMPORARY THIS IS A REGULAR BIONJ!
 		optimizeTopo = false;
 		optimizeBranchLengths = false;
-		optimizeRates = false;
+		//optimizeRates = true;
 #ifdef BUILD_PHYML_ARGS
 		arguments += " -o lr";
 #endif
@@ -223,13 +223,14 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 	case StartTopoUSER:
 		optimizeTopo = false;
 		optimizeBranchLengths = false;
-		optimizeRates = false;
+		//optimizeRates = false;
 #ifdef BUILD_PHYML_ARGS
 		arguments += " -o lr -u ";
 		arguments += options->getTreeFile();
 #endif
 		break;
 	}
+	optimizeRates = dataType == DATATYPE_NT;
 
 #ifdef BUILD_PHYML_ARGS
 	(model->isPInv()) ? (arguments += " -v e") : (arguments += " -v 0.0");
@@ -293,6 +294,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 		model->setAlpha(outdata->alpha);
 	}
 	model->setFrequencies(outdata->frequencies);
+	model->setRates(outdata->rates);
 
 //	pt_free_io(io);
 

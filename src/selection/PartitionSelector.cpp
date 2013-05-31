@@ -64,7 +64,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 				globalSampleSize += pSampleSize;
 
 				ModelSelector selector = ModelSelector(pe, ic, pSampleSize);
-				bestModel = selector.getBestModel();
+				bestModel = selector.getBestModel()->clone();
 				selector.print(*options->getModelsOutputStream());
 			} else {
 				bestModel = pe->getBestModel();
@@ -86,6 +86,13 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 
 		schemesVector->at(part_id)->print(
 				*options->getPartitionsOutputStream());
+		(*options->getPartitionsOutputStream()) << endl;
+		for (int i=0; i<scheme->getNumberOfElements();i++) {
+			(*options->getPartitionsOutputStream()) << scheme->getElement(i)->getName() << endl;
+				scheme->getElement(i)->getBestModel()->getModel()->print(
+						*options->getPartitionsOutputStream());
+				(*options->getPartitionsOutputStream()) << endl;
+		}
 	}
 	std::sort(schemesVector->begin(), schemesVector->end(),
 			compareSelectionPartitions());

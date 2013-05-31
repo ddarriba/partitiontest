@@ -47,7 +47,7 @@ int ModelOptimize::optimizePartitionElement(
 #pragma omp single
 	{
 		notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL),
-				partitionElement->getId(), partitionElement->getId());
+				partitionElement->getId(), partitionElement->getId(), &partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
 	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
