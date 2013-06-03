@@ -39,7 +39,7 @@ void Observable::detach(Observer *myObserver) {
 	}
 }
 
-void Observable::notify_observers(ObservableInfo * info, string * message) {
+void Observable::notify_observers(ObservableInfo * info, string message) {
 	for (unsigned int i = 0; i < observers.size(); i++) {
 		((Observer *) observers[i])->update(*info);
 	}
@@ -48,14 +48,14 @@ void Observable::notify_observers(ObservableInfo * info, string * message) {
 
 void Observable::notify_observers(MessageType type, t_partitionElementId p_index,
 		Model * model, time_t time, t_partitionElementId current_index,
-		t_partitionElementId max_index, string * message) {
+		t_partitionElementId max_index, string message) {
 	notify_observers(
 			new ObservableInfo(type, p_index, model, time, current_index,
 					max_index, message));
 }
 
 void Observable::notify_observers(MessageType type, t_partitionElementId p_index,
-		time_t time, t_partitionElementId current_index, t_partitionElementId max_index, string * message) {
+		time_t time, t_partitionElementId current_index, t_partitionElementId max_index, string message) {
 	ObservableInfo * oi = new ObservableInfo(type, p_index, (Model *) NULL,
 			time, current_index, max_index, message);
 	notify_observers(oi);
@@ -63,7 +63,7 @@ void Observable::notify_observers(MessageType type, t_partitionElementId p_index
 
 void Observable::notify_observers(MessageType type, t_partitionElementId p_index,
 		ModelSet * modelset, time_t time, t_partitionElementId current_index,
-		t_partitionElementId max_index, string * message) {
+		t_partitionElementId max_index, string message) {
 	ObservableInfo * info = new ObservableInfo(type, p_index, modelset, time,
 			current_index, max_index, message);
 	notify_observers(info);

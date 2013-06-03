@@ -155,11 +155,11 @@ void computeDistances(void) {
 int PhymlModelOptimize::optimizeModel(Model * model,
 		PartitionElement * partitionElement, int index, int groupCount) {
 
-	int dataType, freqType;
-	int optimizeTopo, optimizeBranchLengths, optimizeRates;
+	int dataType = 0, freqType = 0;
+	int optimizeTopo = 0, optimizeBranchLengths = 0, optimizeRates = 0;
 
-	double * frequencies;
-	double * rates;
+	double * frequencies = 0;
+	double * rates = 0;
 
 #ifdef BUILD_PHYML_ARGS
 	string arguments = "-b 0 -i ";

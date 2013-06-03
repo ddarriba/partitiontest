@@ -71,18 +71,18 @@ void ConsoleObserver::update(const ObservableInfo & info,
 #endif
 		break;
 	case MT_MODELSET_INIT:
-		cout << "INIT MODELSET " << *info.message << endl;
+		cout << "INIT MODELSET " << info.message << endl;
 		modelIndex = 0;
 		break;
 	case MT_MODELSET_END:
 		cout << "END MODELSET" << endl;
 		break;
 	case MT_SCHEME_INIT:
-		cout << "INIT PARTITIONING SCHEME " << *info.message << endl;
+		cout << "INIT PARTITIONING SCHEME " << info.message << endl;
 		modelIndex = 0;
 		break;
 	case MT_SCHEME_END:
-		cout << "END PARTITIONING SCHEME " << *info.message << endl;
+		cout << "END PARTITIONING SCHEME " << info.message << endl;
 		break;
 	}
 }

@@ -47,7 +47,7 @@ int ModelOptimize::optimizePartitionElement(
 #pragma omp single
 	{
 		notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL),
-				partitionElement->getId(), partitionElement->getId(), &partitionElement->getName());
+				partitionElement->getId(), partitionElement->getId(), partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
 	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
@@ -67,7 +67,7 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation) {
 
 	if (!scheme->isOptimized() || forceRecomputation) {
-		string * pString = new string(scheme->toString());
+		string pString(scheme->toString());
 
 		notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
 				scheme->getNumberOfElements(), pString);
@@ -83,7 +83,6 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 		notify_observers(MT_SCHEME_END, 0, time(NULL), 0,
 				scheme->getNumberOfElements(), pString);
-		delete pString;
 	}
 
 	return 0;

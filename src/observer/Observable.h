@@ -58,7 +58,7 @@ public:
 	 * @param[in] info The message to be sent.
 	 * @param[in] message Human readable message.
 	 */
-	void notify_observers(ObservableInfo * info, string * message = 0);
+	void notify_observers(ObservableInfo * info, string message = "");
 
 	/**
 	 * @brief Notifies something to all the Observers
@@ -73,7 +73,7 @@ public:
 	 */
 	void notify_observers(MessageType type, t_partitionElementId p_index, Model * model,
 			time_t time = 0, t_partitionElementId current_index = 0,
-			t_partitionElementId max_index = 0, string * message = 0);
+			t_partitionElementId max_index = 0, string message = "");
 
 	/**
 	 * @brief Notifies something to all the Observers
@@ -87,7 +87,7 @@ public:
 	 */
 	void notify_observers(MessageType type, t_partitionElementId p_index, time_t time =
 			0, t_partitionElementId current_index = 0, t_partitionElementId max_index = 0,
-			string * message = 0);
+			string message = "");
 
 	/**
 	 * @brief Notifies something to all the Observers
@@ -103,7 +103,7 @@ public:
 	void notify_observers(MessageType type, t_partitionElementId p_index,
 			ModelSet * modelset, time_t time = 0,
 			t_partitionElementId current_index = 0, t_partitionElementId max_index = 0,
-			string * message = 0);
+			string message = "");
 
 protected:
 
