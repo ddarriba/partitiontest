@@ -24,7 +24,7 @@ if [ $RUN_R_SCRIPT -eq 1 ]; then
 	# Generate models, partitions and trees
   echo "[1] Running R scripts"
   cd scripts
-  R --vanilla -q < build_models-dna.r 2>&1 > ../${LOG_DIR}/${R_LOG_FILE}
+  R --vanilla < build_models-dna.r 2>&1 > ../${LOG_DIR}/${R_LOG_FILE}
   cd -
 else
   echo "[1] Running R scripts (AVOID)"
