@@ -14,8 +14,7 @@
 namespace partest {
 
 struct comparePartitionInfos {
-	inline bool operator()(partitionInfo p1,
-			partitionInfo p2) {
+	inline bool operator()(partitionInfo p1, partitionInfo p2) {
 
 		if (p1.start != p2.start)
 			return p1.start < p2.start;
@@ -29,7 +28,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_BASE_PATH), outputFileModels(
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
-				DEFAULT_OUTPUT_SCHEMES_TAG) {
+				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
+				DEFAULT_OUTPUT_RESULTS_TAG) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
@@ -86,9 +86,9 @@ ConfigParser::ConfigParser(const char * configFile) :
 		free(lineBuffer);
 
 		std::sort(partitions->begin(), partitions->end(),
-								comparePartitionInfos());
+				comparePartitionInfos());
 
-		for (int i=0; i<numberOfPartitions; i++) {
+		for (int i = 0; i < numberOfPartitions; i++) {
 			partitions->at(i).partitionId = Utilities::binaryPow(i);
 		}
 		/** OUTPUT **/
@@ -96,6 +96,10 @@ ConfigParser::ConfigParser(const char * configFile) :
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
 		if (value) {
 			outputBasePath = string(value);
+		}
+		value = ini.GetValue(OUTPUT_TAG, OUTPUT_RESULTS_TAG, 0);
+		if (value) {
+			outputFileResults = outputBasePath + string(value);
 		}
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_MODELS_TAG, 0);
 		if (value) {

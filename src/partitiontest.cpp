@@ -18,6 +18,7 @@
  * details.
  */
 #include <iostream>
+#include <time.h>
 #include "util/PrintMeta.h"
 #include "util/Utilities.h"
 #include "util/GlobalDefs.h"
@@ -26,15 +27,20 @@
 #include "parser/ArgumentParser.h"
 #include "indata/PartitionMap.h"
 #include "selection/ModelSelector.h"
+#include "selection/PartitionSelector.h"
+#include "observer/ConsoleObserver.h"
 
 using namespace std;
 using namespace partest;
 
-//namespace partest {
 
 int main(int argc, char *argv[]) {
 
-	PrintMeta::print_header (cout);
+	time_t iniTime, endTime;
+
+	time(&iniTime);
+
+	PrintMeta::print_header(cout);
 
 #ifdef DEBUG
 	cout << "[TRACE] Creating argument parser" << endl;
@@ -53,44 +59,96 @@ int main(int argc, char *argv[]) {
 
 	PrintMeta::print_options(cout, *options);
 
-//	PartitionMap * partitionMap = new PartitionMap(options->getAlignment(), 3,
-//			options->getRateVariation(), options->getDataType());
-//	partitionMap->addPartitionElement(0, 1, 50, 1);
-//	partitionMap->addPartitionElement(1, 51, 114, 1);
-//	partitionMap->addPartitionElement(2, 1, 114, 1);
+	PartitionMap * partitionMap = new PartitionMap(options->getConfigFile(),
+			options->getAlignment(), options->getRateVariation(),
+			options->getDataType());
 
-	PartitionMap * partitionMap = new PartitionMap(options->getConfigFile(), options->getAlignment(),
-				options->getRateVariation(), options->getDataType());
+	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm(
+			options, partitionMap);
 
-	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm( options, partitionMap );
+#ifdef DEBUG
+	cout << "[TRACE] Starting search of the best partitioning scheme" << endl;
+#endif
 
 	PartitioningScheme * partitioningScheme = searchAlgo->start();
 
-	if(!partitioningScheme->isOptimized()) {
-		cerr << endl << "[ERROR] Logic error. Search algorithm returned a non-optimized partition" << endl;
+#ifdef DEBUG
+	cout << "[TRACE] End of search of the best partitioning scheme" << endl;
+#endif
+
+	cout << "Search done... it took " << time(NULL) - iniTime << " seconds." << endl;
+
+
+#ifdef DEBUG
+	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->toString() << endl;
+#endif
+	partitioningScheme->buildCompleteModelSet();
+	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
+	ConsoleObserver * observer = new ConsoleObserver();
+	mo->attach(observer);
+	mo->optimizePartitioningScheme(partitioningScheme);
+	PartitionSelector partSelector(&partitioningScheme, 1, options);
+
+	delete mo;
+	delete observer;
+
+#ifdef DEBUG
+	cout << "[TRACE] Done: " << partitioningScheme->toString() << endl;
+#endif
+
+	cout << "Optimization done... it took " << time(NULL) - iniTime << " seconds." << endl;
+
+	if (!partitioningScheme->isOptimized()) {
+		cerr << endl
+				<< "[ERROR] Logic error. Search algorithm returned a non-optimized partition"
+				<< endl;
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
-	cout << "***** BEST PARTITIONING SCHEME *****" << endl;
-	cout << "Partitioning scheme: " << partitioningScheme->toString() << endl;
-	cout << "Number of elements:  " << partitioningScheme->getNumberOfElements() << endl;
-	for (int i=0; i<partitioningScheme->getNumberOfElements(); i++) {
+	cout << "***** RESULTS *****" << endl;
+	PrintMeta::print_options(cout, *options);
+	cout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
+			<< endl;
+	cout << "Partitioning scheme: " << endl << partitioningScheme->toString()
+			<< endl;
+	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);
 		cout << setw(10) << right << i << " : ";
 		cout << element->getName() << endl;
-		cout << setw(10) << " " << "Best model: " << element->getBestModel()->getModel()->getName() << endl;
+		cout << setw(10) << " " << "Best model: "
+				<< element->getBestModel()->getModel()->getName() << endl;
 	}
 	cout << "************************************" << endl;
-//	ModelSet * models = unique_partition.getModelset();
-//	for (int i=0; i<models->getNumberOfModels(); i++) {
-//		models->getModel(i)->print();
-//	}
+
+	ofstream * rout = options->getResultsOutputStream();
+	PrintMeta::print_options(*rout, *options);
+	*rout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
+			<< endl;
+	*rout << "Partitioning scheme: " << endl << partitioningScheme->toString()
+			<< endl;
+	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = partitioningScheme->getElement(i);
+		*rout << setw(10) << right << i << " : ";
+		*rout << element->getName() << endl;
+		*rout << setw(10) << " " << "Best model: "
+				<< element->getBestModel()->getModel()->getName() << endl;
+	}
+
+	*rout << endl;
+
+	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = partitioningScheme->getElement(i);
+		*rout << setw(10) << right << i << " : ";
+		*rout << element->getName() << endl;
+		element->getBestModel()->getModel()->print(*rout);
+	}
+
+
 
 	delete searchAlgo;
 	delete partitionMap;
 	delete options;
 
 	return EX_OK;
-}
 
-//} /* namespace partest */
+}

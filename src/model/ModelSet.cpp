@@ -174,7 +174,7 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 #ifdef FAST_DNA
 		if (!forceCompleteSet) {
 			nm = NUC_MATRIX_GTR;
-			models[currentIndex++] = new NucleicModel(nm, RateVarG, numberOfTaxa);
+			models[currentIndex++] = new NucleicModel(nm, RateVarG | RateVarF | RateVarI, numberOfTaxa);
 		} else {
 #endif
 		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=

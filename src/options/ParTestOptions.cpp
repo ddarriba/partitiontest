@@ -41,12 +41,15 @@ ParTestOptions::ParTestOptions() {
 	sampleSize = DEFAULT_SAMPLE_SIZE;
 	strcpy(treeFile, "");
 	sampleSizeValue = 0.0;
+	resultsOutputStream = 0;
 	modelsOutputStream = 0;
 	partitionsOutputStream = 0;
 	schemesOutputStream = 0;
 }
 
 ParTestOptions::~ParTestOptions() {
+	if (resultsOutputStream && resultsOutputStream->is_open())
+			resultsOutputStream->close();
 	if (modelsOutputStream && modelsOutputStream->is_open())
 		modelsOutputStream->close();
 	if (partitionsOutputStream && partitionsOutputStream->is_open())
@@ -91,15 +94,19 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	}
 
 	ConfigParser parser(configFile);
+	this->outputFileModels = parser.getOutputFileResults();
 	this->outputFileModels = parser.getOutputFileModels();
 	this->outputFilePartitions = parser.getOutputFilePartitions();
 	this->outputFileSchemes = parser.getOutputFileSchemes();
+	resultsOutputStream = new ofstream(outputFileResults.c_str());
 	modelsOutputStream = new ofstream(outputFileModels.c_str());
 	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
 	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
+	PrintMeta::print_header(*resultsOutputStream);
 	PrintMeta::print_header(*modelsOutputStream);
 	PrintMeta::print_header(*partitionsOutputStream);
 	PrintMeta::print_header(*schemesOutputStream);
+	PrintMeta::print_options(*resultsOutputStream, *this);
 	PrintMeta::print_options(*modelsOutputStream, *this);
 	PrintMeta::print_options(*partitionsOutputStream, *this);
 	PrintMeta::print_options(*schemesOutputStream, *this);
@@ -137,6 +144,10 @@ DataType ParTestOptions::getDataType() const {
 	return dataType;
 }
 
+string ParTestOptions::getOutputFileResults(void) const {
+	return outputFileResults;
+}
+
 string ParTestOptions::getOutputFileModels(void) const {
 	return outputFileModels;
 }
@@ -147,6 +158,10 @@ string ParTestOptions::getOutputFilePartitions(void) const {
 
 string ParTestOptions::getOutputFileSchemes(void) const {
 	return outputFileSchemes;
+}
+
+ofstream * ParTestOptions::getResultsOutputStream(void) const {
+	return resultsOutputStream;
 }
 
 ofstream * ParTestOptions::getModelsOutputStream(void) const {
@@ -187,6 +202,10 @@ InformationCriterion ParTestOptions::getInformationCriterion(void) const {
 
 double ParTestOptions::getSampleSizeValue(void) {
 	return sampleSizeValue;
+}
+
+void ParTestOptions::setOutputFileResults(string outputFileResults) {
+	this->outputFileResults = outputFileResults;
 }
 
 void ParTestOptions::setOutputFileModels(string outputFileModels) {

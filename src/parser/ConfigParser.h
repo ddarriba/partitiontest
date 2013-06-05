@@ -39,10 +39,12 @@
 #define INPUT_TREE_TAG		"tree"
 #define OUTPUT_TAG 			"output"
 #define OUTPUT_BASE_PATH 	"path"
+#define OUTPUT_RESULTS_TAG 	"results"
 #define OUTPUT_MODELS_TAG 	"models"
 #define OUTPUT_PARTS_TAG 	"partitions"
 #define OUTPUT_SCHEMES_TAG 	"schemes"
 #define DEFAULT_OUTPUT_BASE_PATH 	""
+#define DEFAULT_OUTPUT_RESULTS_TAG 	"results.out"
 #define DEFAULT_OUTPUT_MODELS_TAG 	"models.out"
 #define DEFAULT_OUTPUT_PARTS_TAG 	"partitions.out"
 #define DEFAULT_OUTPUT_SCHEMES_TAG 	"schemes.out"
@@ -112,6 +114,13 @@ public:
 	static void createTemplate();
 
 	/**
+	 * @brief Gets the file name for results output.
+	 */
+	const string& getOutputFileResults() const {
+		return outputFileResults;
+	}
+
+	/**
 	 * @brief Gets the file name for model selections output.
 	 */
 	const string& getOutputFileModels() const {
@@ -160,6 +169,7 @@ private:
 	/** search algorithm **/
 	bool searchData; /** TODO: Not sure what is this doing here */
 	SearchAlgo searchAlgorithm; /** Search algorithm */
+	string outputFileResults; /** File name for results output */
 	string outputFileModels; /** File name for model selections output */
 	string outputFilePartitions; /** File name for partition selections output */
 	string outputFileSchemes; /** File name for scheme selections output */

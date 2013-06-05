@@ -175,20 +175,22 @@ void ModelSelector::print(ostream& out) {
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl<<endl;
 
 	for (int i = 0; i < selectionModels->size(); i++) {
-		Model * bestModel = selectionModels->at(i)->getModel();
+		Model * model = selectionModels->at(i)->getModel();
 
-		out << setw(5) << i + 1 << setw(15) << bestModel->getName();
-		for (int j = 0; j < bestModel->getNumberOfFrequencies(); j++) {
+		out << setw(5) << i + 1 << setw(15) << model->getName();
+		for (int j = 0; j < model->getNumberOfFrequencies(); j++) {
 			out << setw(10) << setprecision(4)
-					<< bestModel->getFrequencies()[j];
+					<< model->getFrequencies()[j];
 		}
 		if (dataType == DT_NUCLEIC) {
 			for (int j = 0; j < 6; j++) {
-				out << setw(10) << setprecision(4) << bestModel->getRates()[j];
+				out << setw(10) << setprecision(4) << model->getRates()[j];
 			}
 		}
+		out << setw(10) << setprecision(4) << model->getAlpha() << setw(10) << setprecision(4) << model->getpInv();;
 		out << endl;
 	}
+	out << endl << bestModel->getModel()->getTree() << endl;
 }
 
 void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,

@@ -153,16 +153,8 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		}
 	}
 
-	bestScheme->buildCompleteModelSet();
-#ifdef DEBUG
-	cout << "[TRACE] Hcluster - OPTIMIZING BEST SCHEME: " << bestScheme->toString() << endl;
-#endif
-	mo->optimizePartitioningScheme(bestScheme);
-	PartitionSelector partSelector(&bestScheme, 1, options);
 	delete mo;
-#ifdef DEBUG
-	cout << "[TRACE] Hcluster - END Return: " << bestScheme->toString() << endl;
-#endif
+	delete observer;
 
 	return bestScheme;
 }

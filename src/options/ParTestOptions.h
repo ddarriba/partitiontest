@@ -145,6 +145,13 @@ public:
 	double getSampleSizeValue(void);
 
 	/**
+	 * @brief Gets the output file for results.
+	 *
+	 * @return The output file for results.
+	 */
+	string getOutputFileResults(void) const;
+
+	/**
 	 * @brief Gets the output file for model selections in partitions.
 	 *
 	 * @return The output file for model selections in partitions.
@@ -164,6 +171,13 @@ public:
 	 * @return The output file for scheme selections.
 	 */
 	string getOutputFileSchemes(void) const;
+
+	/**
+	 * @brief Gets the output stream for results.
+	 *
+	 * @return The output file for results.
+	 */
+	ofstream * getResultsOutputStream(void) const;
 
 	/**
 	 * @brief Gets the output stream for model selections in partitions.
@@ -240,6 +254,13 @@ public:
 	 *
 	 * @param outputFileModels The file name for model selections output.
 	 */
+	void setOutputFileResults(string outputFileResults);
+
+	/**
+	 * @brief Sets the file name for model selections output.
+	 *
+	 * @param outputFileModels The file name for model selections output.
+	 */
 	void setOutputFileModels(string outputFileModels);
 
 	/**
@@ -268,9 +289,11 @@ private:
 	char inputFile[256]; /** Input MSA file */
 	char configFile[256]; /** Input configuration file */
 	char treeFile[256]; /** Input tree file */
+	string outputFileResults; /** Output results file */
 	string outputFileModels; /** Output models file */
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
+	ofstream * resultsOutputStream; /** Output results stream */
 	ofstream * modelsOutputStream; /** Output models stream */
 	ofstream * partitionsOutputStream; /** Output partitions stream */
 	ofstream * schemesOutputStream; /** Output schemes stream */
