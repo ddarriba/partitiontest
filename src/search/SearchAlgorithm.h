@@ -80,6 +80,7 @@ protected:
 	 */
 	PartitionElement * getPartitionElement(t_partitionElementId id);
 
+
 	/**
 	 * @brief Gets the number of mapped elements.
 	 *

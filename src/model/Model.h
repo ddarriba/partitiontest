@@ -24,7 +24,7 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
-#include "../util/GlobalDefs.h"
+#include "util/GlobalDefs.h"
 #include <string>
 
 using namespace std;

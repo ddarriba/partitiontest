@@ -108,7 +108,10 @@ public:
 	 *
 	 * @return 1 if the models were already optimized. 0 otherwise.
 	 */
-	int isOptimized(void);
+	bool isOptimized(void);
+
+	void buildCompleteModelSet(bool clearAll = false);
+
 	virtual ~PartitionElement();
 
 	/**
@@ -177,6 +180,7 @@ public:
 	 * @param[in] bestModel The best-fit model for this partition.
 	 */
 	void setBestModel(SelectionModel * bestModel);
+
 private:
 	/**
 	 * @brief Unique identifier of this partition.

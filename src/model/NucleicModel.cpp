@@ -212,10 +212,12 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
-
-	double correlation = Utilities::correlation(rates, other->rates, 6);
-	if (correlation < 0) correlation *= -1;
-	double distance = 1.0 / correlation;
+	//double rCorrelation = Utilities::correlation(rates, other->rates, 6);
+	double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
+	//double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
+	double fDistance = Utilities::euclideanDistance(frequencies, other->frequencies, 4);
+	//if (correlation < 0) correlation *= -1;
+	double distance = rDistance + fDistance;
 
 	return distance;
 }

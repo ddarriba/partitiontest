@@ -150,4 +150,28 @@ PartitionElement * PartitionMap::getPartitionElement(
 	return pInfo.partitionElement;
 }
 
+void PartitionMap::deletePartitionElement(t_partitionElementId id) {
+
+	if (!Utilities::isPowerOfTwo(id)) {
+		int index;
+		for (int i = 0; i < numberOfElements; i++) {
+			// TODO: Hashmap instead of iteration?
+			if (partitions->at(i).partitionId == id) {
+				index = i;
+				break;
+			}
+		}
+		if (index < numberOfElements) {
+			delete partitions->at(index).partitionElement;
+			partitions->erase(partitions->begin() + index);
+			numberOfElements--;
+		} else {
+			cerr
+					<< "[ERROR] Attempting to delete an inexistent partition element"
+					<< endl;
+			Utilities::exit_partest(EX_SOFTWARE);
+		}
+	}
+}
+
 } /* namespace partest */

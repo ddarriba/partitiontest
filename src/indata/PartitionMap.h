@@ -99,6 +99,14 @@ public:
 	 */
 	PartitionElement * getPartitionElement(t_partitionElementId partitionId);
 
+
+	/**
+	 * @brief Deletes a PartitionElement
+	 *
+	 * @parameter id PartitionElement's id.
+	 */
+	void deletePartitionElement(t_partitionElementId id);
+
 	/**
 	 * @brief Gets the number of elements already created in the map.
 	 *

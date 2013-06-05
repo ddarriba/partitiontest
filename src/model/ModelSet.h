@@ -47,7 +47,7 @@ public:
 	 * @param[in] dataType Whether the data is nucleotide or amino-acids.
 	 * @param[in] numberOfTaxa The number of taxa in the alignment.
 	 */
-  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa);
+  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, bool forceCompleteSet = false);
 
   /**
    * @brief Gets the total number of models.
@@ -55,6 +55,8 @@ public:
    * @return The total number of models in the set.
    */
   size_t getNumberOfModels() { return numberOfModels; }
+
+  void buildCompleteModelSet(bool clearAll = false);
 
   /**
    * @brief Gets the model with the index.
@@ -74,10 +76,11 @@ private:
    *
    * @param[out] models The set of models with the specified parameters.
    * @param[in] rateVar The set of parameters for constructing the models.
+   * @param[in] forceCompleteSet If FAST DNA SEARCH is active, this flag forces to build the complete candidate model set
    *
    * @return 0, if there was no errors.
    */
-  int buildModelSet(Model **models, bitMask rateVar);
+  int buildModelSet(Model **models, bitMask rateVar, bool forceCompleteSet = false);
 
   size_t numberOfModels; /** Number of models in the set. */
   Model **models; /** Array of models. */

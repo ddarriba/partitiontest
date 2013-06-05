@@ -66,8 +66,18 @@ void PartitionElement::setBestModel(SelectionModel * bestModel) {
 	this->bestModel = bestModel->clone();
 }
 
-int PartitionElement::isOptimized() {
-	return (modelset->getModel(0)->isOptimized());
+bool PartitionElement::isOptimized() {
+	if (bestModel) return true;
+	bool optimized = true;
+	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+		optimized &= modelset->getModel(i)->isOptimized();
+	}
+	return optimized;
+}
+
+void PartitionElement::buildCompleteModelSet(bool clearAll) {
+	modelset->buildCompleteModelSet(clearAll);
+	bestModel = 0;
 }
 
 int PartitionElement::getStart(int section) {

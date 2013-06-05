@@ -39,7 +39,7 @@ double Utilities::variance(double series[], int numberOfElements)
 
 	}
 
-	return temp / numberOfElements;
+	return temp / (numberOfElements - 1);
 
 }
 
@@ -74,18 +74,54 @@ double Utilities::covariance(double XSeries[], double YSeries[],
 
 }
 
+double Utilities::normalizedEuclideanDistance(double XSeries[],
+		double YSeries[], int numberOfElements) {
+	double meanX = mean(XSeries, numberOfElements);
+	double meanY = mean(YSeries, numberOfElements);
+	//double sdX = standardDeviation(XSeries, numberOfElements);
+	//double sdY = standardDeviation(YSeries, numberOfElements);
+	double sum = 0.0;
+	for (int i = 0; i < numberOfElements; i++) {
+		//sum += pow((XSeries[i] - meanX)/sdX - (YSeries[i] - meanY)/sdY, 2);
+		sum += pow(XSeries[i]/meanX - YSeries[i]/meanY, 2);
+	}
+	return sqrt(sum);
+}
+
+double Utilities::euclideanDistance(double XSeries[], double YSeries[],
+		int numberOfElements) {
+
+	double sum = 0.0;
+	for (int i = 0; i < numberOfElements; i++) {
+		sum += (XSeries[i] - YSeries[i]) * (XSeries[i] - YSeries[i]);
+	}
+	return sqrt(sum);
+
+}
+
 double Utilities::correlation(double XSeries[], double YSeries[],
 		int numberOfElements)
 
 		{
 
-	double cov = covariance(XSeries, YSeries, numberOfElements);
+	double meanX = mean(XSeries, numberOfElements);
+	double meanY = mean(YSeries, numberOfElements);
+	double sX = standardDeviation(XSeries, numberOfElements);
+	double sY = standardDeviation(YSeries, numberOfElements);
+	double correl = 0.0;
+	for (int i = 0; i < numberOfElements; i++) {
+		correl += ((XSeries[i] - meanX) / sX) * ((YSeries[i] - meanY) / sY);
+	}
+	correl /= numberOfElements - 1;
 
-	double correlation = cov
-			/ (standardDeviation(XSeries, numberOfElements)
-					* standardDeviation(YSeries, numberOfElements));
-
-	return correlation;
+	//	double cov = covariance(XSeries, YSeries, numberOfElements);
+//	double correlation = 1.0;
+//	if (cov > 0.0) {
+//		correlation = cov
+//			/ (standardDeviation(XSeries, numberOfElements)
+//					* standardDeviation(YSeries, numberOfElements));
+//	}
+	return correl;
 
 }
 

@@ -38,6 +38,8 @@ public:
 	static double standardDeviation(double series[], int numberOfElements);
 	static double covariance(double XSeries[], double YSeries[], int numberOfElements);
 	static double correlation(double XSeries[], double YSeries[], int numberOfElements);
+	static double euclideanDistance(double XSeries[], double YSeries[], int numberOfElements);
+	static double normalizedEuclideanDistance(double XSeries[], double YSeries[], int numberOfElements);
 
 	static bool existProperty(const string& property);
 	static string getValue(const string& property);
@@ -64,8 +66,11 @@ public:
 		return ceil(log(x) / log(2));
 	}
 	static inline double dBinaryLog(double x) {
-			return (log(x) / log(2));
-		}
+		return (log(x) / log(2));
+	}
+	static inline int iDecLog(int x) {
+		return floor(log(x)/log(10));
+	}
 	static int copyFile(string initialFilePath, string outputFilePath);
 	static char * getTempFilename();
 	static char * getStreamTempFilename();

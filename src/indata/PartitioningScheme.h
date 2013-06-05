@@ -97,9 +97,12 @@ public:
 	/**
 	 * @brief Gets whether all the PartitionElement instances were optimized or not.
 	 *
-	 * @return 1 if all the PartitionElement instances were already optimized. 0 otherwise.
+	 * @return true if all the PartitionElement instances were already optimized. false otherwise.
 	 */
-	int isOptimized(void);
+	bool isOptimized(void);
+
+	void buildCompleteModelSet(bool clearAll = false);
+	t_partitionElementId * getClosestPartitions();
 
 	/**
 	 * @brief Gets a string identifier for the scheme.
@@ -107,6 +110,7 @@ public:
 	 * @return A string identifier for the scheme.
 	 */
 	string toString();
+
 	virtual ~PartitioningScheme();
 private:
 	vector<PartitionElement*> * partitions; /** Array of reference to the partitions of this scheme */

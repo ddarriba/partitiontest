@@ -20,6 +20,8 @@ extern "C" {
 #define MAX_PARTITIONS LONG_MAX
 typedef unsigned long t_partitionElementId;
 
+#define DOUBLE_INF 1e140
+
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;
 
