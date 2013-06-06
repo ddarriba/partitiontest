@@ -18,7 +18,7 @@ TAXA_COUNT <- 20  # Number of taxa in the output trees
 GENE_LEN <- 500   # Length of each gene
 
 MIN_GENES <- 10
-MAX_GENES <- 50
+MAX_GENES <- 32
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data.11.in"      # Data input file
@@ -104,9 +104,15 @@ for(sample_index in 0:(SAMPLES-1)) {
 
 		model <- buildDNAmodel(inp, avoid)
 		models_mat[i,1:17] <- model
+		id <- as.numeric(model[17])
 
-		if (model[17] <= 80) {
-			avoid <- c(model[17], avoid)
+		if (id <= 80) {
+			avoid <- c(id, avoid)
+			if (id %% 2 > 0) {
+				avoid <- c( id + 1, avoid)
+			} else {
+				avoid <- c( id - 1, avoid)
+			}
 		}
 	}
 

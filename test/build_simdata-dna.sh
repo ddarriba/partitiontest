@@ -106,10 +106,14 @@ if [ $BUILD_INDEL_FILES -eq 1 ]; then
 	    
 	    echo [MODEL] model${each} >> ${IND_FILE}
 
-	    if [ $rA != NA && $rA != 0]; then
+	    if [ $rA != NA -a $rA != 0 ]; then
 	        echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} ${rB} >> ${IND_FILE}
 	    else
 	        echo [submodel] HKY ${kappa} >> ${IND_FILE}
+	    fi
+
+	    if [ $shape == 100 ]; then
+		shape=0
 	    fi
 
 	    echo [rates] ${pInv} ${shape} ${ncat} >> ${IND_FILE}

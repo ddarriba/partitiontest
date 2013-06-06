@@ -17,6 +17,7 @@
  */
 
 #include "ModelSet.h"
+#include <string.h>
 
 namespace partest {
 
