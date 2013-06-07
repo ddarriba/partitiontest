@@ -251,6 +251,8 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				searchAlgo = SearchRandom;
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY)) {
 				searchAlgo = SearchGreedy;
+			} else if (!strcmp(value, ARG_SEARCH_GREEDY_EXT)) {
+							searchAlgo = SearchGreedyExtended;
 			} else if (!strcmp(value, ARG_SEARCH_HIERARCHICAL)) {
 				searchAlgo = SearchHCluster;
 			} else {
@@ -265,6 +267,8 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_GREEDY
 						<< "Greedy hill climbing algorithm" << endl;
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_GREEDY_EXT
+						<< "Extended greedy hill climbing algorithm" << endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_HIERARCHICAL
 						<< "Hierarchical clustering algorithm" << endl;
 				Utilities::exit_partest(EX_USAGE);

@@ -48,8 +48,11 @@ SearchAlgorithm * ParTestFactory::createSearchAlgorithm(
 		searchAlgorithm = new RandomSearchAlgorithm(options, partitionMap);
 		break;
 	case SearchGreedy:
-		searchAlgorithm = new GreedySearchAlgorithm(options, partitionMap);
+		searchAlgorithm = new GreedySearchAlgorithm(options, partitionMap, false);
 		break;
+	case SearchGreedyExtended:
+			searchAlgorithm = new GreedySearchAlgorithm(options, partitionMap, true);
+			break;
 	case SearchHCluster:
 		searchAlgorithm = new HierarchicalSearchAlgorithm(options,
 				partitionMap);

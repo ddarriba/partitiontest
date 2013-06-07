@@ -50,6 +50,7 @@
 #define ARG_SEARCH_EXHAUSTIVE "exhaustive"	/** Argument for exhaustive search */
 #define ARG_SEARCH_RANDOM "random"			/** Argument for random search */
 #define ARG_SEARCH_GREEDY "greedy"			/** Argument for greedy search */
+#define ARG_SEARCH_GREEDY_EXT "greedyext"	/** Argument for extended greedy search */
 #define ARG_SEARCH_HIERARCHICAL "hcluster"	/** Argument for hierarchical clustering search */
 
 enum ArgIndex {

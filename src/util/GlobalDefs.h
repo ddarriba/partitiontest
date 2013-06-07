@@ -54,6 +54,7 @@ enum SearchAlgo {
 	SearchExhaustive,
 	SearchRandom,
 	SearchGreedy,
+	SearchGreedyExtended,
 	SearchHCluster
 };
 

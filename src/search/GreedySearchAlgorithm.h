@@ -36,7 +36,7 @@ namespace partest {
  */
 class GreedySearchAlgorithm: public SearchAlgorithm {
 public:
-	GreedySearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
+	GreedySearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap, bool extended=false);
 	virtual ~GreedySearchAlgorithm();
 	virtual PartitioningScheme * start();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
@@ -45,6 +45,7 @@ public:
 private:
 	int getNextPartitioningSchemes(PartitioningScheme *currentScheme, PartitioningScheme **nextSchemes);
 	int numberOfBits;
+	bool extended;
 };
 
 } /* namespace partest */
