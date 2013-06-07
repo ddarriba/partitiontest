@@ -36,7 +36,7 @@ public:
 	SelectionPartitioningScheme * getBestSelectionScheme(void) {
 		return bestSelectionScheme;
 	}
-	void print(ostream& out);
+	void print(ostream& out, int limit=-1);
 private:
 	PartitioningScheme ** schemesArray;
 	SelectionPartitioningScheme * bestSelectionScheme;

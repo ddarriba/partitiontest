@@ -15,6 +15,9 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <time.h>
+
+#define MAX_SCHEMES_SHOWN 10
 
 namespace partest {
 
@@ -33,9 +36,10 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 				options->getSampleSizeValue()), numberOfSchemes(
 				numberOfSchemes), schemesArray(schemesArray) {
 
-	int part_id, id;
 	schemesVector = new vector<SelectionPartitioningScheme *>(numberOfSchemes);
-	for (part_id = 0; part_id < numberOfSchemes; part_id++) {
+
+// #pragma omp parallel for schedule(dynamic)
+	for (int part_id = 0; part_id < numberOfSchemes; part_id++) {
 
 		PartitioningScheme * scheme = schemesArray[part_id];
 
@@ -43,8 +47,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		int parms = 0;
 		double globalSampleSize = 0.0;
 		double value = 0.0;
-
-		for (id = 0; id < scheme->getNumberOfElements(); id++) {
+		for (int id = 0; id < scheme->getNumberOfElements(); id++) {
 			PartitionElement * pe = scheme->getElement(id);
 			SelectionModel * bestModel;
 			if (!pe->getBestModel()) {
@@ -76,7 +79,6 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 			/* This means getNumberOfFreeParameters instead of getModelFreeParameters */
 			parms += bestModel->getModel()->getNumberOfFreeParameters();
 		}
-
 		//double value = ModelSelector::computeIc(ic, lk, parms, globalSampleSize);
 		(schemesVector->at(part_id)) = new SelectionPartitioningScheme();
 		(schemesVector->at(part_id))->numParameters = parms;
@@ -84,25 +86,36 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		(schemesVector->at(part_id))->scheme = scheme;
 		(schemesVector->at(part_id))->value = value;
 
-		schemesVector->at(part_id)->print(
-				*options->getPartitionsOutputStream());
-		(*options->getPartitionsOutputStream()) << endl;
-		for (int i=0; i<scheme->getNumberOfElements();i++) {
-			(*options->getPartitionsOutputStream()) << scheme->getElement(i)->getName() << endl;
-				scheme->getElement(i)->getBestModel()->getModel()->print(
-						*options->getPartitionsOutputStream());
-				(*options->getPartitionsOutputStream()) << endl;
-		}
 	}
+
 	std::sort(schemesVector->begin(), schemesVector->end(),
 			compareSelectionPartitions());
 
 	bestSelectionScheme = schemesVector->at(0);
-	print(*options->getSchemesOutputStream());
 
-//	for (part_id = 1; part_id < numberOfSchemes; part_id++) {
-//		delete schemesVector->at(part_id);
-//	}
+	int limit = min(MAX_SCHEMES_SHOWN, numberOfSchemes);
+	print(*options->getSchemesOutputStream(), limit);
+
+	for (int part_id = 0; part_id < limit; part_id++) {
+		schemesVector->at(part_id)->print(
+				*options->getPartitionsOutputStream());
+//		(*options->getPartitionsOutputStream()) << endl;
+//		for (int i = 0;
+//				i < (schemesVector->at(part_id))->scheme->getNumberOfElements();
+//				i++) {
+//			(*options->getPartitionsOutputStream())
+//					<< (schemesVector->at(part_id))->scheme->getElement(i)->getName()
+//					<< endl;
+//			(schemesVector->at(part_id))->scheme->getElement(i)->getBestModel()->getModel()->print(
+//					*options->getPartitionsOutputStream());
+//			(*options->getPartitionsOutputStream()) << endl;
+//		}
+	}
+
+	for (int part_id = 1; part_id < numberOfSchemes; part_id++) {
+		delete schemesVector->at(part_id)->scheme;
+		delete schemesVector->at(part_id);
+	}
 
 }
 
@@ -110,20 +123,23 @@ PartitionSelector::~PartitionSelector() {
 	delete schemesVector;
 }
 
-void PartitionSelector::print(ostream& out) {
+void PartitionSelector::print(ostream& out, int limit) {
 
 	out << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(5)
 			<< "K" << setw(15) << "lnL" << setw(15) << "Value" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	int id;
-	for (id = 0; id < schemesVector->size(); id++) {
+	int maxSchemes = (limit==-1?schemesVector->size():limit);
+	for (int id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
 		out << setw(5) << id + 1 << setw(15) << sp->scheme->toString()
 				<< setw(5) << sp->scheme->getNumberOfElements() << setw(5)
 				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
 				<< sp->value << endl;
+	}
+	if (limit > 0 && schemesVector->size()>limit) {
+		out << "Not showing " << schemesVector->size()-limit << " schemes more..." << endl;
 	}
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
 

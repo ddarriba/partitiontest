@@ -52,7 +52,7 @@ void Simu_Loop(t_tree *tree)
   	 (tree->max_spr_depth  < 5) ||
   	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
     }while(1);
-  
+
   tree->mod->n_catg = ori_catg;
   tree->mod->s_opt->print = ori_print;
   
@@ -74,7 +74,7 @@ void Simu_Loop(t_tree *tree)
       if(!Check_NNI_Five_Branches(tree)) break;      
     }while(1);
   /*****************************/
-  
+
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
 

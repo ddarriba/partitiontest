@@ -142,11 +142,11 @@ void ModelSelector::print(ostream& out) {
 		break;
 	}
 	out << "Sample size: " << sampleSize << endl << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(95) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15)
 			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(95) << setfill('-') << "" << setfill(' ') << endl;
 	for (int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
@@ -160,37 +160,53 @@ void ModelSelector::print(ostream& out) {
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(95) << setfill('-') << "" << setfill(' ') << endl << endl;
 
-	out << "PARAMETER IMPORTANCE" << endl;
-	out << setw(16) << "alpha: " << alphaImportance << endl;
-	out << setw(16) << "pInv: " << invImportance << endl;
-	out << setw(16) << "alpha + pInv: " << alphaInvImportance << endl;
-	out << setw(16) << "frequencies: " << fImportance << endl;
-	out << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
-	out << setw(16) << "alpha:" << overallAlpha << endl;
-	out << setw(16) << "pInv:" << overallInv << endl;
-	out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
-	out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl<<endl;
+	if (selectionModels->size() > 1) {
+		out << "PARAMETER IMPORTANCE" << endl;
+		out << setw(16) << "alpha: " << alphaImportance << endl;
+		out << setw(16) << "pInv: " << invImportance << endl;
+		out << setw(16) << "alpha + pInv: " << alphaInvImportance << endl;
+		out << setw(16) << "frequencies: " << fImportance << endl;
+		out << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
+		out << setw(16) << "alpha:" << overallAlpha << endl;
+		out << setw(16) << "pInv:" << overallInv << endl;
+		out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
+		out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
+		out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
+	}
 
+
+	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###";
+	if (dataType == DT_NUCLEIC) {
+		out << setw(10) << "f(A)" << setw(10) << "f(C)" << setw(10) << "f(G)"
+				<< setw(10) << "f(T)" << setw(10) << "R(a->c)" << setw(10)
+				<< "R(a->g)" << setw(10) << "R(a->t)" << setw(10) << "R(c->g)"
+				<< setw(10) << "R(c->t)" << setw(10) << "R(g->t)";
+	}
+	out << setw(10) << "alpha" << setw(10) << "pInv" << endl;
+	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
 	for (int i = 0; i < selectionModels->size(); i++) {
 		Model * model = selectionModels->at(i)->getModel();
 
-		out << setw(5) << i + 1 << setw(15) << model->getName();
-		for (int j = 0; j < model->getNumberOfFrequencies(); j++) {
-			out << setw(10) << setprecision(4)
-					<< model->getFrequencies()[j];
-		}
+		out << setw(5) << i + 1;
 		if (dataType == DT_NUCLEIC) {
-			for (int j = 0; j < 6; j++) {
+			for (int j = 0; j < NUM_NUC_FREQS; j++) {
+				out << setw(10) << setprecision(4)
+						<< model->getFrequencies()[j];
+			}
+			for (int j = 0; j < NUM_RATES; j++) {
 				out << setw(10) << setprecision(4) << model->getRates()[j];
 			}
 		}
-		out << setw(10) << setprecision(4) << model->getAlpha() << setw(10) << setprecision(4) << model->getpInv();;
+		out << setw(10) << setprecision(4) << model->getAlpha() << setw(10)
+				<< setprecision(4) << model->getpInv();
 		out << endl;
 	}
-	out << endl << bestModel->getModel()->getTree() << endl;
+	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
+	// bestModel->getModel()->print(out);
+	out << endl << "Tree for " << partitionElement->getName() << ": " << bestModel->getModel()->getTree() << endl;
 }
 
 void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
