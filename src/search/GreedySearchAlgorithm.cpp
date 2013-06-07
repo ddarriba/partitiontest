@@ -30,7 +30,7 @@
 #include "indata/PartitionElement.h"
 #include "indata/PartitionManager.h"
 
-#define GREEDY_EXTENDED true
+// #define GREEDY_EXTENDED true
 
 namespace partest {
 
@@ -47,13 +47,13 @@ struct nextSchemeFunctor {
 		t_partitionElementId maxIndex = 0;
 		mask = (t_partitionElementId *) malloc(
 				(numberOfElements * (1 + numberOfElements)) / 2
-						* sizeof(t_partitionElementId));
+				* sizeof(t_partitionElementId));
 		for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
 			t_partitionElementId nextId =
-					currentScheme->getElement(maskIndex)->getId();
+			currentScheme->getElement(maskIndex)->getId();
 			mask[maskIndex] = nextId;
 			if (nextId > maxIndex)
-				maxIndex = nextId;
+			maxIndex = nextId;
 		}
 
 		for (i = 0; i < numberOfElements; i++) {
@@ -62,7 +62,7 @@ struct nextSchemeFunctor {
 				t_partitionElementId nextId = mask[i] + mask[j];
 				mask[maskIndex++] = nextId;
 				if (nextId > maxIndex)
-					maxIndex = nextId;
+				maxIndex = nextId;
 			}
 		}
 		i = 0;
@@ -79,7 +79,9 @@ struct nextSchemeFunctor {
 	}
 
 	~nextSchemeFunctor() {
+#ifdef GREEDY_EXTENDED
 		free(mask);
+#endif
 		delete schemeVector;
 	}
 #ifdef GREEDY_EXTENDED
@@ -110,7 +112,8 @@ struct nextSchemeFunctor {
 		if (i == (numberOfElements - 1)) {
 			return 0;
 		}
-		PartitioningScheme * nextScheme = new PartitioningScheme(numberOfElements - 1);
+		PartitioningScheme * nextScheme = new PartitioningScheme(
+				numberOfElements - 1);
 		int k;
 
 		for (k = 0; k < numberOfElements; k++) {
@@ -120,8 +123,7 @@ struct nextSchemeFunctor {
 		}
 
 		t_partitionElementId nextId = currentScheme->getElement(i)->getId()
-		+ currentScheme->getElement(j)->getId();
-		mask[maskIndex++] = nextId;
+				+ currentScheme->getElement(j)->getId();
 		PartitionElement * nextElement = partitionMap->getPartitionElement(
 				nextId);
 		nextScheme->addElement(nextElement);
@@ -135,19 +137,27 @@ struct nextSchemeFunctor {
 		return nextScheme;
 	}
 #endif
-
+#ifdef GREEDY_EXTENDED
 	t_partitionElementId * getMask() {
 		return mask;
 	}
+#endif
 
 	unsigned int size() {
+#ifdef GREEDY_EXTENDED
 		return schemeVector->size();
+#else
+		return (numberOfElements * (numberOfElements - 1) / 2);
+#endif
 	}
 
 private:
 	t_schemesVector * schemeVector;
+#ifdef GREEDY_EXTENDED
 	t_partitionElementId * mask;
-	int i, j, maskIndex;
+	int maskIndex;
+#endif
+	int i, j;
 	int numberOfElements;
 	PartitioningScheme * currentScheme;
 	PartitionMap * partitionMap;
@@ -165,7 +175,8 @@ GreedySearchAlgorithm::~GreedySearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-PartitioningScheme * GreedySearchAlgorithm::start(PartitioningScheme * startingPoint) {
+PartitioningScheme * GreedySearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
 	Utilities::exit_partest(EX_UNAVAILABLE);
 	return 0;
