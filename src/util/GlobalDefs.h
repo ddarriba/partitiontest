@@ -18,7 +18,7 @@ extern "C" {
 
 /* this two definitions below must match */
 #define MAX_PARTITIONS LONG_MAX
-typedef unsigned long t_partitionElementId;
+typedef long long int t_partitionElementId;
 
 #define DOUBLE_INF 1e140
 

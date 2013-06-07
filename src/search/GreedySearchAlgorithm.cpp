@@ -217,6 +217,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 //				}
 //			}
 		}
+
 		PartitionSelector partSelector(partitioningSchemesVector,
 				numberOfSchemes, options);
 		reachedMaximum = (bestCriterionValue
