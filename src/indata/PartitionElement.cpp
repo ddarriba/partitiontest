@@ -15,7 +15,7 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		id(id), name(name) {
 
 #ifdef DEBUG
-	cout << "[TRACE] PartitionElement: Creating " << id << endl;
+	cout << "[TRACE] PartitionElement: Creating " << id.at(0) << endl;
 #endif
 	numberOfSections = 1;
 	this->bestModel = 0;

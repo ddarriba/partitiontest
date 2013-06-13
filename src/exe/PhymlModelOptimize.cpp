@@ -255,7 +255,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 #endif
 #endif
 
-	notify_observers(MT_SINGLE_INIT, index, model, time(NULL), index,
+	notify_observers(MT_SINGLE_INIT, partitionElement->getId(), model, time(NULL), index,
 			groupCount);
 
 	phyml_indata indata;
@@ -298,7 +298,7 @@ int PhymlModelOptimize::optimizeModel(Model * model,
 
 //	pt_free_io(io);
 
-	notify_observers(MT_SINGLE_END, index, model, time(NULL), index,
+	notify_observers(MT_SINGLE_END, partitionElement->getId(), model, time(NULL), index,
 			groupCount);
 
 	return 0;

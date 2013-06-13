@@ -13,12 +13,12 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 100   # Total number of samples
+SAMPLES <- 20  # Total number of samples
 TAXA_COUNT <- 20  # Number of taxa in the output trees
 GENE_LEN <- 500   # Length of each gene
 
-MIN_GENES <- 10
-MAX_GENES <- 32
+MIN_GENES <- 1000
+MAX_GENES <- 1000
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data.11.in"      # Data input file
@@ -57,9 +57,7 @@ current_index <- 0
 
 for(sample_index in 0:(SAMPLES-1)) {
 
-	num_genes <- sample(MIN_GENES:MAX_GENES,1,replace=T)
-
-
+	num_genes <- 1000 #sample(MIN_GENES:MAX_GENES,1,replace=T)
 
 	# Assign models to genes
 	boxes <- rchinese(num_genes,sample(1:20,1))

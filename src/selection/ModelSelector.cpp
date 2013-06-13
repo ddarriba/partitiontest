@@ -124,7 +124,7 @@ void ModelSelector::print(ostream& out) {
 	/* header */
 	out << endl;
 	out << "  Partition: " << partitionElement->getName() << endl;
-	out << "         Id: " << partitionElement->getId() << endl;
+	//out << "         Id: " << partitionElement->getId() << endl;
 	out << "  Num.genes: " << partitionElement->getNumberOfSections() << endl;
 	out << "  Criterion: ";
 	switch (ic) {

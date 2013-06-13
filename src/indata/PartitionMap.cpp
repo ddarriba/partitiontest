@@ -44,9 +44,10 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 		int end = alignment->getNumSites();
 		int stride = 0;
 
-		partitions->at(0).partitionId = 1;
-		partitions->at(0).partitionElement = new PartitionElement(1, nameStr,
-				alignment, start, end, stride, rateVariation, dataType);
+		partitions->at(0).partitionId.push_back(1);
+		partitions->at(0).partitionElement = new PartitionElement(
+				partitions->at(0).partitionId, nameStr, alignment, start, end,
+				stride, rateVariation, dataType);
 		numberOfElements = numberOfPartitions = 1;
 	}
 }
@@ -61,9 +62,6 @@ PartitionMap::PartitionMap(Alignment * alignment,
 #ifdef DEBUG
 	cout << "[TRACE] Instantiated partition map from void" << endl;
 #endif
-
-	/* check whether the number of partitions exceed the number of bits of the id mask length */
-	assert(numberOfElements < sizeof(t_partitionElementId) * 8);
 
 	partitions = partitions = new vector<partitionMappingInfo>(
 			numberOfElements);
@@ -80,11 +78,12 @@ PartitionMap::~PartitionMap() {
 bool PartitionMap::addPartitionElement(unsigned int partitionId, string name,
 		unsigned int startPosition, unsigned int endPosition, char stride) {
 
+	/* only gene-partitions can be added */
 	if (partitionId >= numberOfElements)
 		return false;
 
 	/* partitionId is translated into partition mask */
-	partitions->at(partitionId).partitionId = Utilities::binaryPow(partitionId);
+	partitions->at(partitionId).partitionId.push_back(partitionId);
 	partitions->at(partitionId).partitionElement = new PartitionElement(
 			partitions->at(partitionId).partitionId, name, alignment,
 			startPosition, endPosition, stride, rateVariation, dataType);
@@ -92,56 +91,47 @@ bool PartitionMap::addPartitionElement(unsigned int partitionId, string name,
 	return true;
 }
 
+PartitionElement * PartitionMap::getPartitionElement(unsigned int id) {
+	assert(id < numberOfPartitions);
+	return partitions->at(id).partitionElement;
+}
+
 PartitionElement * PartitionMap::getPartitionElement(
 		t_partitionElementId partitionId) {
 
-	assert(partitionId > 0);
+	assert(partitionId.size() > 0);
 
-	int i;
-	for (i = 0; i < numberOfElements; i++) {
-		// TODO: Hashmap instead of iteration?
-		if (partitions->at(i).partitionId == partitionId) {
-			return partitions->at(i).partitionElement;
-		}
+	if (partitionId.size() == 1) {
+		return partitions->at(partitionId.at(0)).partitionElement;
 	}
 
 	/* element not found */
-	if (Utilities::isPowerOfTwo(partitionId)) {
+	if (partitionId.size() == 1) {
 		/* single elements should be already mapped */
-		cerr << "Requested element (" << partitionId << ") does not exist"
+		cerr << "Requested element (" << partitionId.at(0) << ") does not exist"
 				<< endl;
 		exit(-1);
 	}
 
 	/* we need to merge partitions */
-	int numberOfSections = Utilities::setbitsCount(partitionId);
+	int numberOfSections = partitionId.size();
 	int * start = (int *) malloc(numberOfSections * sizeof(int));
 	int * end = (int *) malloc(numberOfSections * sizeof(int));
 	int * stride = (int *) malloc(numberOfSections * sizeof(int));
 	int curIndex = 0;
 	stringstream name;
 	name << "( ";
-	for (i = 0; i < Utilities::binaryLog(partitionId); i++) {
-		if (partitionId & Utilities::binaryPow(i)) {
-			start[curIndex] =
-					getPartitionElement(Utilities::binaryPow(i))->getStart();
-			end[curIndex] =
-					getPartitionElement(Utilities::binaryPow(i))->getEnd();
-			stride[curIndex] =
-					getPartitionElement(Utilities::binaryPow(i))->getStride();
-			name << getPartitionElement(Utilities::binaryPow(i))->getName()
-					<< " ";
-			curIndex++;
-		}
+	for (int i = 0; i < numberOfSections; i++) {
+		start[curIndex] = getPartitionElement(partitionId.at(i))->getStart();
+		end[curIndex] = getPartitionElement(partitionId.at(i))->getEnd();
+		stride[curIndex] = getPartitionElement(partitionId.at(i))->getStride();
+		name << getPartitionElement(partitionId.at(i))->getName() << " ";
+		curIndex++;
 	}
 	name << ")";
 
 	partitionMappingInfo pInfo;
 	pInfo.partitionId = partitionId;
-// t_partitionElementId id, Alignment * alignment,
-// int * start, int * end, int * stride, int numberOfSections,
-// bitMask rateVariation, DataType dataType
-
 	pInfo.partitionElement = new PartitionElement(partitionId, name.str(),
 			alignment, start, end, stride, numberOfSections, rateVariation,
 			dataType);
@@ -152,25 +142,18 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 
-	if (!Utilities::isPowerOfTwo(id)) {
-		int index;
-		for (int i = 0; i < numberOfElements; i++) {
-			// TODO: Hashmap instead of iteration?
+	if (id.size() > 1) {
+		for (int i = numberOfPartitions; i < numberOfElements; i++) {
 			if (partitions->at(i).partitionId == id) {
-				index = i;
-				break;
+				delete partitions->at(i).partitionElement;
+				partitions->erase(partitions->begin() + i);
+				numberOfElements--;
+				return;
 			}
 		}
-		if (index < numberOfElements) {
-			delete partitions->at(index).partitionElement;
-			partitions->erase(partitions->begin() + index);
-			numberOfElements--;
-		} else {
-			cerr
-					<< "[ERROR] Attempting to delete an inexistent partition element"
-					<< endl;
-			Utilities::exit_partest(EX_SOFTWARE);
-		}
+		cerr << "[ERROR] Attempting to delete an inexistent partition element"
+				<< endl;
+		Utilities::exit_partest(EX_SOFTWARE);
 	}
 }
 

@@ -46,8 +46,9 @@ int ModelOptimize::optimizePartitionElement(
 	//(options->getRateVariation(), options->getDataType());
 #pragma omp single
 	{
-		notify_observers(MT_MODELSET_INIT, 0, modelset, time(NULL),
-				partitionElement->getId(), partitionElement->getId(), partitionElement->getName());
+		notify_observers(MT_MODELSET_INIT, partitionElement->getId(), modelset,
+				time(NULL), 0, modelset->getNumberOfModels(),
+				partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
 	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
@@ -56,8 +57,8 @@ int ModelOptimize::optimizePartitionElement(
 	}
 #pragma omp single
 	{
-		notify_observers(MT_MODELSET_END, 0, modelset, time(NULL), 0,
-				modelset->getNumberOfModels());
+		notify_observers(MT_MODELSET_END, partitionElement->getId(), modelset,
+				time(NULL), 0, modelset->getNumberOfModels());
 	}
 
 	return 0;
@@ -69,8 +70,8 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 	if (!scheme->isOptimized() || forceRecomputation) {
 		string pString(scheme->toString());
 
-		notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
-				scheme->getNumberOfElements(), pString);
+//		notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
+//				scheme->getNumberOfElements(), pString);
 
 		for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 			PartitionElement * currentElement = scheme->getElement(i);
@@ -81,8 +82,8 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 #pragma omp end parallel
 		}
 
-		notify_observers(MT_SCHEME_END, 0, time(NULL), 0,
-				scheme->getNumberOfElements(), pString);
+//		notify_observers(MT_SCHEME_END, 0, time(NULL), 0,
+//				scheme->getNumberOfElements(), pString);
 	}
 
 	return 0;

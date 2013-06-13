@@ -44,39 +44,40 @@ struct nextSchemeFunctor {
 		schemeVector = 0;
 		mask = 0;
 		maskIndex = 0;
-		t_partitionElementId maxIndex = 0;
+//		t_partitionElementId maxIndex = 0;
 		if (extended) {
-			mask = (t_partitionElementId *) malloc(
-					(numberOfElements * (1 + numberOfElements)) / 2
-							* sizeof(t_partitionElementId));
-			for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
-				t_partitionElementId nextId = currentScheme->getElement(
-						maskIndex)->getId();
-				mask[maskIndex] = nextId;
-				if (nextId > maxIndex)
-					maxIndex = nextId;
-			}
-
-			for (i = 0; i < numberOfElements; i++) {
-				for (j = i + 1; j < numberOfElements; j++) {
-
-					t_partitionElementId nextId = mask[i] + mask[j];
-					mask[maskIndex++] = nextId;
-					if (nextId > maxIndex)
-						maxIndex = nextId;
-				}
-			}
-			i = 0;
-			schemeVector = new t_schemesVector;
-			unsigned int bitMask;
-			if (Utilities::isPowerOfTwo(maskIndex)) {
-				bitMask = maskIndex - 1;
-			} else {
-				bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex))
-						- 1;
-			}
-			PartitionManager::getPermutations(mask, maskIndex, bitMask,
-					schemeVector);
+			// TODO: NOT IMPLEMENTED YET
+//			mask = (t_partitionElementId *) malloc(
+//					(numberOfElements * (1 + numberOfElements)) / 2
+//							* sizeof(t_partitionElementId));
+//			for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
+//				t_partitionElementId nextId = currentScheme->getElement(
+//						maskIndex)->getId();
+//				mask[maskIndex] = nextId;
+//				if (nextId > maxIndex)
+//					maxIndex = nextId;
+//			}
+//
+//			for (i = 0; i < numberOfElements; i++) {
+//				for (j = i + 1; j < numberOfElements; j++) {
+//
+//					t_partitionElementId nextId = mask[i] + mask[j];
+//					mask[maskIndex++] = nextId;
+//					if (nextId > maxIndex)
+//						maxIndex = nextId;
+//				}
+//			}
+//			i = 0;
+//			schemeVector = new t_schemesVector;
+//			unsigned int bitMask;
+//			if (Utilities::isPowerOfTwo(maskIndex)) {
+//				bitMask = maskIndex - 1;
+//			} else {
+//				bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex))
+//						- 1;
+//			}
+//			PartitionManager::getPermutations(mask, maskIndex, bitMask,
+//					schemeVector);
 		}
 	}
 
@@ -125,8 +126,9 @@ struct nextSchemeFunctor {
 				}
 			}
 
-			t_partitionElementId nextId = currentScheme->getElement(i)->getId()
-					+ currentScheme->getElement(j)->getId();
+			t_partitionElementId nextId;
+			Utilities::mergeIds(nextId, currentScheme->getElement(i)->getId(),
+					currentScheme->getElement(j)->getId());
 			PartitionElement * nextElement = partitionMap->getPartitionElement(
 					nextId);
 			nextScheme->addElement(nextElement);
@@ -197,7 +199,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 			partitionMap->getNumberOfPartitions());
 	for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
 		firstScheme->addElement(
-				partitionMap->getPartitionElement(Utilities::binaryPow(i)));
+				partitionMap->getPartitionElement(i));
 	}
 
 	mo->optimizePartitioningScheme(firstScheme);

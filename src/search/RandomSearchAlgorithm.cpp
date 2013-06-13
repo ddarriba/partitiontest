@@ -20,7 +20,6 @@
  * @file RandomSearchAlgorithm.cpp
  */
 
-
 #include "RandomSearchAlgorithm.h"
 #include "util/ParTestFactory.h"
 #include "exe/ModelOptimize.h"
@@ -48,7 +47,8 @@ RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-PartitioningScheme * RandomSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+PartitioningScheme * RandomSearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
 	Utilities::exit_partest(EX_UNAVAILABLE);
 	return 0;
@@ -135,15 +135,14 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 
 	bool gotScheme = false;
 	int numberOfClasses;
-	int i;
 	t_partitionElementId classes[numberOfBits];
 
 	while (!gotScheme) {
 
 		numberOfClasses = 1;
 		// first element to the first
-		classes[0] = 1;
-		for (i = 1; i < numberOfBits; i++) {
+		classes[0].push_back(0);
+		for (int i = 1; i < numberOfBits; i++) {
 			int currentClass = 0;
 			int assigned = 0;
 
@@ -151,12 +150,12 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 			while (!assigned) {
 				double rndNumber = (double) (rand() % 500 / 500.0);
 				if (rndNumber < RND_THRESHOLD) {
-					classes[currentClass] += Utilities::binaryPow(i);
+					classes[currentClass].push_back(i);
 					assigned = 1;
 				} else {
 					currentClass++;
 					if (currentClass == numberOfClasses) {
-						classes[currentClass] = Utilities::binaryPow(i);
+						classes[currentClass].push_back(i);
 						numberOfClasses++;
 						assigned = 1;
 					}
@@ -168,7 +167,7 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 				numberOfSchemes);
 	}
 	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
-	for (i = 0; i < numberOfClasses; i++) {
+	for (int i = 0; i < numberOfClasses; i++) {
 		p->addElement(partitionMap->getPartitionElement(classes[i]));
 	}
 
@@ -193,7 +192,7 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 
 		numberOfClasses = 1;
 		// first element to the first
-		classes[0] = p0->getElement(0)->getId();
+		Utilities::mergeIds(classes[0], p0->getElement(0)->getId());
 
 		for (i = 1; i < maxClasses; i++) {
 			int currentClass = 0;
@@ -204,12 +203,14 @@ PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
 				double rndNumber = (double) (rand() % 500 / 500.0);
 				if (rndNumber < RND_THRESHOLD) {
 
-					classes[currentClass] += p0->getElement(i)->getId();
+					Utilities::mergeIds(classes[currentClass],
+							p0->getElement(i)->getId());
 					assigned = 1;
 				} else {
 					currentClass++;
 					if (currentClass == numberOfClasses) {
-						classes[currentClass] = p0->getElement(i)->getId();
+						Utilities::mergeIds(classes[currentClass],
+								p0->getElement(i)->getId());
 						numberOfClasses++;
 						assigned = 1;
 					}

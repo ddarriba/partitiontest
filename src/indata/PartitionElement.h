@@ -124,6 +124,24 @@ public:
 	}
 
 	/**
+	 * @brief Gets the higher index in the partition.
+	 *
+	 * @return The higher index in the partition.
+	 */
+	unsigned int getMaxId(void) {
+		return id.at(id.size() - 1);
+	}
+
+	/**
+	 * @brief Gets the lower index in the partition.
+	 *
+	 * @return The lower index in the partition.
+	 */
+	unsigned int getMinId(void) {
+		return id.at(0);
+	}
+
+	/**
 	 * @brief Gets the global reference to the start position of a section.
 	 *
 	 * @section The section of the partition. This value should be in [0, numberOfSections-1]

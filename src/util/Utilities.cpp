@@ -1,12 +1,32 @@
 #include "Utilities.h"
 #include "parser/ArgumentParser.h"
 #include <iomanip>
+#include <algorithm>    // std::sort
 #include <string.h>
 #include <stdlib.h>
 
 namespace partest {
 
 CfgMap Utilities::config;
+
+bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
+	for (int i=0;i<e1.size();i++) {
+		for (int j=0;j<e2.size();j++) {
+			if (e1.at(i) == e2.at(j)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void Utilities::vprint(ostream& out, t_partitionElementId & v)  {
+	out << "( ";
+	for (int i=0; i<v.size(); i++) {
+		out << v[i] << " ";
+	}
+	out << ")" << endl;
+}
 
 long Utilities::factorial(unsigned int x) {
 	if (x <= 1)
@@ -323,6 +343,19 @@ int Utilities::copyFile(string initialFilePath, string outputFilePath) {
 	outputFile.close();
 
 	return 0;
+}
+
+void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1) {
+	dest.reserve(dest.size() + id1.size());
+	dest.insert(dest.end(), id1.begin(), id1.end());
+	sort(dest.begin(), dest.end());
+}
+
+void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1, t_partitionElementId id2) {
+	dest.reserve(id1.size() + id2.size());
+	dest.insert(dest.end(), id1.begin(), id1.end());
+	dest.insert(dest.end(), id2.begin(), id2.end());
+	sort(dest.begin(), dest.end());
 }
 
 void Utilities::exit_partest(int exitValue) {

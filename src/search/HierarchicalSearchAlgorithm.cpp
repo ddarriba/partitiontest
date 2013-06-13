@@ -72,8 +72,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	cout << "[TRACE]            Creating first scheme" << endl;
 #endif
 	for (i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		PartitionElement * nextElement = partitionMap->getPartitionElement(
-				Utilities::binaryPow(i));
+		PartitionElement * nextElement = partitionMap->getPartitionElement(i);
 		nextSchemes.at(0)->addElement(nextElement);
 	}
 #ifdef DEBUG
@@ -102,7 +101,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				bestCriterionValue = criterionValue;
 				bestScheme = partSelector.getBestScheme();
 				reachedMaximum = false;
-				for (int j=0; j<bestMatch0.size(); j++) {
+				for (int j = 0; j < bestMatch0.size(); j++) {
 					partitionMap->deletePartitionElement(bestMatch0.at(j));
 					partitionMap->deletePartitionElement(bestMatch1.at(j));
 				}
@@ -117,26 +116,30 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 		if (nextSchemes.at(0)->getNumberOfElements() > 1 && !reachedMaximum) {
 
-			t_partitionElementId * closestElements = bestScheme->getClosestPartitions();
-			bestMatch0.push_back(closestElements[0]);
-			bestMatch1.push_back(closestElements[1]);
-			free(closestElements);
+			t_partitionElementId element1, element2;
+			bestScheme->getClosestPartitions(element1, element2);
+			bestMatch0.push_back(element1);
+			bestMatch1.push_back(element2);
 
 #ifdef DEBUG
 			cout << "[TRACE] Hcluster - Building next scheme " << endl;
 #endif
 
 			PartitioningScheme * prevScheme = bestScheme; //nextSchemes.at(0);
-
-			for (int i = 0; i < nextSchemes.size(); i++)
+			int size = nextSchemes.size();
+			for (int i = 0; i < size; i++) {
 				nextSchemes.pop_back();
+			}
 			int numPartitions = prevScheme->getNumberOfElements() - 1;
 			for (int i = 0; i < bestMatch0.size(); i++) {
 				nextSchemes.push_back(new PartitioningScheme(numPartitions));
+				t_partitionElementId nextId;
+				Utilities::mergeIds(nextId, bestMatch0.at(i), bestMatch1.at(i));
+				PartitionElement * newElement = partitionMap->getPartitionElement(nextId);
 				nextSchemes.at(nextSchemes.size() - 1)->addElement(
-						partitionMap->getPartitionElement(
-								bestMatch0.at(i) + bestMatch1.at(i)));
+						newElement);
 				for (int j = 0; j < prevScheme->getNumberOfElements(); j++) {
+
 					PartitionElement * element = prevScheme->getElement(j);
 					if (element->getId() != bestMatch0.at(i)
 							&& element->getId() != bestMatch1.at(i)) {
@@ -146,7 +149,6 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				}
 
 			}
-
 			if (prevScheme != bestScheme) {
 				delete prevScheme;
 			}

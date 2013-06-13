@@ -72,8 +72,8 @@ public:
 	 * @param[in] message Human readable message.
 	 */
 	void notify_observers(MessageType type, t_partitionElementId p_index, Model * model,
-			time_t time = 0, t_partitionElementId current_index = 0,
-			t_partitionElementId max_index = 0, string message = "");
+			time_t time , unsigned int current_index,
+			unsigned int max_index, string message = "");
 
 	/**
 	 * @brief Notifies something to all the Observers
@@ -85,8 +85,8 @@ public:
 	 * @param[in] max_index Maximum index within the group.
 	 * @param[in] message Human readable message.
 	 */
-	void notify_observers(MessageType type, t_partitionElementId p_index, time_t time =
-			0, t_partitionElementId current_index = 0, t_partitionElementId max_index = 0,
+	void notify_observers(MessageType type, t_partitionElementId p_index, time_t time,
+			unsigned int current_index, unsigned int max_index,
 			string message = "");
 
 	/**
@@ -101,8 +101,8 @@ public:
 	 * @param[in] message Human readable message.
 	 */
 	void notify_observers(MessageType type, t_partitionElementId p_index,
-			ModelSet * modelset, time_t time = 0,
-			t_partitionElementId current_index = 0, t_partitionElementId max_index = 0,
+			ModelSet * modelset, time_t time,
+			unsigned int current_index, unsigned int max_index,
 			string message = "");
 
 protected:

@@ -102,7 +102,8 @@ public:
 	bool isOptimized(void);
 
 	void buildCompleteModelSet(bool clearAll = false);
-	t_partitionElementId * getClosestPartitions();
+	void getClosestPartitions(t_partitionElementId & el1,
+			t_partitionElementId & el2);
 
 	/**
 	 * @brief Gets a string identifier for the scheme.

@@ -29,11 +29,7 @@ struct comparePartitionElements {
 			Utilities::exit_partest(EX_SOFTWARE);
 		}
 
-		while ((i1 & 1) == (i2 & 1)) {
-			i1 >>= 1;
-			i2 >>= 1;
-		}
-		return (i1 & 1);
+		return i1.size() < i2.size();
 	}
 };
 
@@ -53,11 +49,7 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 	partitions = new vector<PartitionElement *>(numberOfElements);
 	int i;
 #ifdef DEBUG
-	cout << "[TRACE] PARTITION (" << numberOfElements << " elements): [ ";
-	for (i = 0; i < numberOfElements; i++) {
-		cout << schemeVector->at(i) << " ";
-	}
-	cout << "]" << endl;
+	cout << "[TRACE] PARTITION (" << numberOfElements << " elements):";
 #endif
 	numberOfBits = 1;
 
@@ -65,13 +57,13 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 		int j;
 #ifdef DEBUG
 		cout << "[TRACE] ADDING ELEMENT "
-		<< i+1 << "/" << numberOfElements << " (" << schemeVector->at(i) << ")" << endl;
+		<< i+1 << "/" << numberOfElements << endl; //" (" << schemeVector->at(i) << ")" << endl;
 #endif
 		PartitionElement * newPE = partitionMap->getPartitionElement(
 				schemeVector->at(i));
 
-		if (Utilities::binaryLog(newPE->getId() | 1) > numberOfBits) {
-			numberOfBits = Utilities::binaryLog(newPE->getId() | 1);
+		if (newPE->getMaxId() >= numberOfBits) {
+			numberOfBits = (newPE->getMaxId() + 1);
 		}
 		addElement(newPE);
 	}
@@ -85,10 +77,30 @@ PartitioningScheme::~PartitioningScheme() {
 
 int PartitioningScheme::addElement(PartitionElement * element) {
 	if (currentElement < numberOfElements) {
+
+		t_partitionElementId id(element->getId());
+		// Security checks
+		for (int i = 0; i < currentElement; i++) {
+			t_partitionElementId id_c(partitions->at(i)->getId());
+			if (id_c == id) {
+				cerr << "[Error] Duplicated element" << endl;
+				Utilities::vprint(cerr, id);
+				Utilities::exit_partest(EX_SOFTWARE);
+			}
+			if (Utilities::intersec(id_c, id)) {
+				cerr << "[Error] Overlapped elements" << endl;
+				t_partitionElementId id1 = element->getId();
+				t_partitionElementId id2 = partitions->at(i)->getId();
+				Utilities::vprint(cerr, id1);
+				Utilities::vprint(cerr, id2);
+				Utilities::exit_partest(EX_SOFTWARE);
+			}
+		}
+
 		partitions->at(currentElement++) = element;
 
-		if (Utilities::binaryLog(element->getId() | 1) > numberOfBits) {
-			numberOfBits = Utilities::binaryLog(element->getId() | 1);
+		if (element->getMaxId() >= numberOfBits) {
+			numberOfBits = (element->getMaxId() + 1);
 		}
 		if (currentElement == numberOfElements) {
 			std::sort(partitions->begin(), partitions->end(),
@@ -122,7 +134,8 @@ void PartitioningScheme::buildCompleteModelSet(bool clearAll) {
 	}
 }
 
-t_partitionElementId * PartitioningScheme::getClosestPartitions() {
+void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
+		t_partitionElementId & el2) {
 	if (!isOptimized()) {
 		cerr
 				<< "[ERROR] Attempting to get differences of unoptimized partitions"
@@ -130,8 +143,6 @@ t_partitionElementId * PartitioningScheme::getClosestPartitions() {
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
-	t_partitionElementId * closestElements = (t_partitionElementId *) malloc(
-			2 * sizeof(t_partitionElementId));
 	vector<double> alphaValues(numberOfElements * (numberOfElements + 1) / 2);
 	vector<double> pinvValues(numberOfElements * (numberOfElements + 1) / 2);
 	vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
@@ -151,7 +162,6 @@ t_partitionElementId * PartitioningScheme::getClosestPartitions() {
 			distances.at(index) = mi->distanceTo(mj);
 		}
 	}
-
 	double minDistance = DOUBLE_INF;
 	for (int i = 1; i < numberOfElements; i++) {
 		for (int j = 0; j < i; j++) {
@@ -159,20 +169,16 @@ t_partitionElementId * PartitioningScheme::getClosestPartitions() {
 			//alphaValues.at(index) /= maxAlpha;
 			distances.at(index) += alphaValues[index] + pinvValues[index];
 			if (distances.at(index) < minDistance) {
-				closestElements[0] = getElement(i)->getId();
-				closestElements[1] = getElement(j)->getId();
+				el1 = getElement(i)->getId();
+				el2 = getElement(j)->getId();
 				minDistance = distances.at(index);
 			}
 		}
 	}
-
-	return closestElements;
-
 }
 
 string PartitioningScheme::toString() {
 	if (!code) {
-
 		int numDigits =
 				(numberOfElements > 10) ?
 						(Utilities::iDecLog(numberOfElements - 1) + 1) : 1;
@@ -180,38 +186,30 @@ string PartitioningScheme::toString() {
 		int hashmap[numberOfElements];
 		int intcode[numberOfBits];
 		char charcode[numDigits * numberOfBits + 1];
-		int i, j;
-
-		for (i = 0; i < numberOfElements; i++) {
+		for (int i = 0; i < numberOfElements; i++) {
 			t_partitionElementId id = getElement(i)->getId();
 			hashmap[i] = UNDEFINED;
-			for (j = 0; j < numberOfBits; j++) {
-				if (id & Utilities::binaryPow(j)) {
-					intcode[j] = i;
-				}
+			for (int j = 0; j < id.size(); j++) {
+				intcode[id.at(j)] = i;
 			}
 		}
-
 		hashmap[intcode[0]] = 0;
 		int nextCode = 0;
-		for (i = 0; i < numDigits; i++) {
+		for (int i = 0; i < numDigits; i++) {
 			charcode[i * numberOfBits + 0] = '0';
 		}
-
-		for (i = 1; i < numberOfBits; i++) {
+		for (int i = 1; i < numberOfBits; i++) {
 			if (hashmap[intcode[i]] == UNDEFINED) {
 				hashmap[intcode[i]] = ++nextCode;
 			}
-			for (j = 0; j < numDigits; j++) {
+			for (int j = 0; j < numDigits; j++) {
 				charcode[j * numberOfBits + i] = ((int) floor(
 						hashmap[intcode[i]] / pow(10, j)) % 10) + '0';
 			}
 		}
-
-		for (j = 0; j < numDigits; j++) {
+		for (int j = 0; j < numDigits; j++) {
 			charcode[j * numberOfBits + numberOfBits] = '\n';
 		}
-
 		charcode[numDigits * numberOfBits] = '\0';
 
 		code = new string(charcode);

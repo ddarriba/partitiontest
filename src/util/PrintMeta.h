@@ -12,7 +12,7 @@
 #define H_RULE_LENGTH 80
 
 #include <iostream>
-#include "../options/ParTestOptions.h"
+#include "options/ParTestOptions.h"
 
 namespace partest {
 

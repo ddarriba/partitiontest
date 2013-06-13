@@ -1,7 +1,7 @@
 PERGENE_LENGTH=500
 
 # JOB CONTROL
-RUN_R_SCRIPT=0 # [1] Execute R scripts for defining the simulations
+RUN_R_SCRIPT=1 # [1] Execute R scripts for defining the simulations
 BUILD_INDEL_FILES=1 # [2] Build INDELible control files from R results
 RUN_INDELIBLE=1 # [3] Build alignments
 BUILD_CONTROL_FILES=1 # [4] Build control files for Partitiontest

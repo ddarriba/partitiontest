@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include "util/Utilities.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -19,18 +20,14 @@ namespace partest {
 PartitionManager::PartitionManager() {
 }
 
-void vprint(const t_partitionElementId list[], t_partitionElementId size) {
-	std::cout << "{ ";
-	for (t_partitionElementId i = 0; i < size; i++)
-		std::cout << list[i] << ", ";
-	std::cout << "}" << std::endl;
-}
-
 void PartitionManager::getPermutations(t_partitionElementId * mask,
 		unsigned int size, t_partitionElementId full_mask,
 		t_schemesVector * schemesVector, t_partitionElementId limit,
 		t_partitionElementId current, int sum) {
 
+	std::cerr << "getPermutations... to be implemented, sorry :(" << std::endl;
+	Utilities::exit_partest(EX_UNAVAILABLE);
+/*
 	if (!sum && current >= limit)
 		return;
 
@@ -56,7 +53,7 @@ void PartitionManager::getPermutations(t_partitionElementId * mask,
 		getPermutations(mask, size, full_mask, schemesVector, limit, i, sum);
 		mask[i] = -mask[i];
 	}
-
+*/
 }
 
 PartitionManager::~PartitionManager() {

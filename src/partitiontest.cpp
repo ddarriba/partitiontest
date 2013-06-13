@@ -79,9 +79,12 @@ int main(int argc, char *argv[]) {
 	cout << "Search done... it took " << time(NULL) - iniTime << " seconds." << endl;
 
 
+#ifdef FAST_DNA
+
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->toString() << endl;
 #endif
+
 	partitioningScheme->buildCompleteModelSet();
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
@@ -91,6 +94,7 @@ int main(int argc, char *argv[]) {
 
 	delete mo;
 	delete observer;
+#endif
 
 #ifdef DEBUG
 	cout << "[TRACE] Done: " << partitioningScheme->toString() << endl;

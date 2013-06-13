@@ -34,6 +34,9 @@
 namespace partest {
 
 struct partitionMappingInfo {
+	partitionMappingInfo() :
+			partitionId(1), partitionElement(0) {
+	}
 	t_partitionElementId partitionId;
 	PartitionElement * partitionElement;
 	~partitionMappingInfo(void) {
@@ -99,6 +102,14 @@ public:
 	 */
 	PartitionElement * getPartitionElement(t_partitionElementId partitionId);
 
+	/**
+	 * @brief Gets the partition in a fixed position.
+	 *
+	 * @param[in] partitionId Position of the partition.
+	 *
+	 * @return The partition.
+	 */
+	PartitionElement * getPartitionElement(unsigned int id);
 
 	/**
 	 * @brief Deletes a PartitionElement
