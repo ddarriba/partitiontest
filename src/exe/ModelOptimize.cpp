@@ -66,13 +66,11 @@ int ModelOptimize::optimizePartitionElement(
 
 int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation) {
-
 	if (!scheme->isOptimized() || forceRecomputation) {
-		string pString(scheme->toString());
+//		string pString(scheme->toString());
 
 //		notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
 //				scheme->getNumberOfElements(), pString);
-
 		for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 			PartitionElement * currentElement = scheme->getElement(i);
 #pragma omp parallel

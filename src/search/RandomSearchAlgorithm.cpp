@@ -75,27 +75,33 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 				break;
 			numSchemes =
 					(NUM_PARTITIONS
-							< Utilities::bell(bestScheme->getNumberOfElements())) ?
+							< Utilities::bell(bestScheme->getNumberOfElements()-1)) ?
 							NUM_PARTITIONS :
-							Utilities::bell(bestScheme->getNumberOfElements());
+							Utilities::bell(bestScheme->getNumberOfElements()-1);
 		}
 		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
 
+			cout << "NEXT SCHEME! " << currentScheme+1 << "/" << numSchemes << endl;
 			if (!(schemesArray[currentScheme] = getRandomPartitioningScheme(
 					bestScheme, schemesArray, currentScheme))) {
 				break;
 			}
+			cout << "OPTIMIZING... " << schemesArray[currentScheme]->getNumberOfElements() << endl;
 			mo->optimizePartitioningScheme(schemesArray[currentScheme]);
+			cout << "NEXT SCHEME!" << endl;
 		}
 		PartitionSelector partSelector(schemesArray, numSchemes, options);
 
 		bestScheme = partSelector.getBestScheme();
+cout << "SELECTED " << bestScheme->toString() << endl;
+//		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
+//			if (schemesArray[currentScheme] != bestScheme)
+//				delete schemesArray[currentScheme];
+//		}
 
-		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
-			if (schemesArray[currentScheme] != bestScheme)
-				delete schemesArray[currentScheme];
-		}
+		cout << "NEXT STEP!" << endl;
 		free(schemesArray);
+		cout << "NEXT STEPPPP!" << endl;
 	}
 	delete mo;
 	delete observer;
