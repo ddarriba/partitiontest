@@ -1,0 +1,5 @@
+DEVELOPMENT NOTES:
+
+- 25/03/13 - Added partition selector. Should add a value (ML) for each Partition and select the best one (also display a sorted list of partitions)
+- 19/03/13 - Unstable commit. Partition manager selects combination from a set of partitionElements, but not subsets.
+             It's necessary to use the whole Partition set iterator.

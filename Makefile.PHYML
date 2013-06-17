@@ -1,0 +1,82 @@
+SRC_DIR = src/
+OBJ_DIR = src/
+PHYML_SRC_DIR=PHYML/
+
+CC = gcc
+CFLAGS = -DQUIET -I$(PHYML_SRC_DIR) -march=native -mtune=native \
+   -O3 -g \
+   -mssse3 -fomit-frame-pointer -funroll-loops
+CPP = g++
+CXXFLAGS = -O3 -g -I$(PHYML_SRC_DIR) -D_PHYML -DHAVE_CONFIG_H -DDEBUG # -fopenmp
+
+
+PARTEST_CXXFILES = \
+	exe/ModelOptimize.cpp \
+	exe/PhymlModelOptimize.cpp \
+	indata/Alignment.cpp \
+	indata/PhymlAlignment.cpp \
+	indata/PartitioningScheme.cpp \
+	indata/PartitionManager.cpp \
+	indata/PartitionMap.cpp \
+	indata/PartitionElement.cpp \
+	model/Model.cpp \
+	model/ModelSet.cpp \
+	model/NucleicModel.cpp \
+	model/ProteicModel.cpp \
+	observer/Observable.cpp \
+	observer/ConsoleObserver.cpp \
+	options/ParTestOptions.cpp \
+	parser/ArgumentParser.cpp \
+	parser/ConfigParser.cpp \
+	search/SearchAlgorithm.cpp \
+	search/GreedySearchAlgorithm.cpp \
+	search/RandomSearchAlgorithm.cpp \
+	search/HierarchicalSearchAlgorithm.cpp \
+	search/ExhaustiveSearchAlgorithm.cpp \
+	selection/ModelSelector.cpp \
+	selection/PartitionSelector.cpp \
+	selection/SelectionModel.cpp \
+	util/ParTestFactory.cpp \
+	util/PrintMeta.cpp \
+	util/Utilities.cpp \
+	util/Stirling.cpp \
+	partitiontest.cpp
+
+PHYML_CFILES = \
+	alrt.c bionj.c cl.c \
+	draw.c eigen.c free.c \
+	help.c interface.c lk.c \
+	m4.c mg.c mcmc.c \
+	models.c times.c \
+	optimiz.c pars.c rates.c \
+	simu.c spr.c stats.c \
+	tiporder.c utilities.c \
+	xml.c partest_to_phyml.c
+
+PARTEST_OBJ = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(PARTEST_CXXFILES))
+PHYML_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PHYML_CFILES))
+
+all: phyml partest
+	$(CPP) $(CXXFLAGS) \
+	$(PHYML_OBJ) $(PARTEST_OBJ) -o partest-phyml $(CLIBRARIES)
+
+install: all
+	install -m 0755 partest $(prefix)/bin
+clean:
+	-rm $(PHYML_OBJ) $(PARTEST_OBJ) 
+ 
+partest: $(PARTEST_OBJ)
+	@echo "==> Finished compiling PARTEST files"
+
+phyml: $(PHYML_OBJ)
+	@echo "==> Finished compiling PhyML files"
+
+
+
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
+	$(CPP) $(CXXFLAGS) -c $+ -I$(SRC_DIR) -o $@
+
+$(OBJ_DIR)%.o: $(PHYML_SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $+ -o $@
+
+.PHONY: install

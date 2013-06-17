@@ -1,0 +1,117 @@
+SRC_DIR = src/
+OBJ_DIR = src/
+PLL_SRC_DIR = PLL/
+PLLPARSER_SRC_DIR = PLL/parser/phylip/
+
+CC = gcc
+CFLAGS = -I$(PLL_SRC_DIR) -march=native -mtune=native \
+   -D_OPTIMIZED_FUNCTIONS -D__SIM_SSE3 -O2 -D_GNU_SOURCE \
+   -mssse3 -fomit-frame-pointer -funroll-loops
+CLIBRARIES = -lm -pthread
+CPP = g++
+CXXFLAGS = -O2 -IPLL/ -D_PLL -DHAVE_CONFIG_H -DDEBUG -D_OPTIMIZED_FUNCTIONS -D_GNU_SOURCE
+
+
+PARTEST_CXXFILES = \
+	exe/ModelOptimize.cpp \
+	exe/PLLModelOptimize.cpp \
+	indata/Alignment.cpp \
+	indata/PartitioningScheme.cpp \
+	indata/PartitionMap.cpp \
+	indata/PartitionManager.cpp \
+	indata/PartitionElement.cpp \
+	indata/PLLAlignment.cpp \
+	model/Model.cpp \
+	model/ModelSet.cpp \
+	model/NucleicModel.cpp \
+	model/ProteicModel.cpp \
+	observer/Observable.cpp \
+	observer/ConsoleObserver.cpp \
+	options/ParTestOptions.cpp \
+	parser/ArgumentParser.cpp \
+	parser/ConfigParser.cpp \
+	search/SearchAlgorithm.cpp \
+	search/GreedySearchAlgorithm.cpp \
+	search/RandomSearchAlgorithm.cpp \
+	search/HierarchicalSearchAlgorithm.cpp \
+	search/ExhaustiveSearchAlgorithm.cpp \
+	selection/ModelSelector.cpp \
+	selection/PartitionSelector.cpp \
+	selection/SelectionModel.cpp \
+	util/ParTestFactory.cpp \
+	util/PrintMeta.cpp \
+	util/Utilities.cpp \
+	util/Stirling.cpp \
+	partitiontest.cpp
+	
+GLOBAL_DEPS = axml.h globalVariables.h
+	
+
+PLL_CFILES   =	bipartitionList.c \
+				evaluateGenericSpecial.c \
+				evaluatePartialGenericSpecial.c \
+				hash.c \
+				makenewzGenericSpecial.c \
+				mem_alloc.c \
+				models.c \
+				optimizeModel.c \
+				queue.c \
+				restartHashTable.c \
+				searchAlgo.c \
+				stack.c \
+				topologies.c \
+				trash.c \
+				treeIO.c \
+				newviewGenericSpecial.c \
+				fastDNAparsimony.c \
+				randomTree.c \
+				recom.c \
+				utils.c
+ 
+
+#PLLPARSER_CFILES = phylip.c \
+#                lexer.c \
+#                xalloc.c \
+#                msa_sites.c \
+
+PLLPARSER_CFILES = ssort.c phylip.c
+
+PLL_OBJ= $(patsubst %.c, $(OBJ_DIR)%.o, $(PLL_CFILES))
+PLLPARSER_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PLLPARSER_CFILES))
+PARTEST_OBJ = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(PARTEST_CXXFILES))
+
+all: pll pllparser partest globals
+	$(CPP) -I$(PLL_SRC_DIR)  $(OBJ_DIR)globals.o $(CXXFLAGS) \
+	$(PLL_OBJ) \
+	$(OBJ_DIR)ssort.o \
+	$(PARTEST_OBJ) -o partest-pll $(CLIBRARIES)
+# 	$(OBJ_DIR)phylip.o $(PLL_OBJ) \
+
+
+clean:
+	-rm $(PLL_OBJ) $(PLLPARSER_OBJ) $(PARTEST_OBJ) $(OBJ_DIR)globals.o
+ 
+globals: $(OBJ_DIR)globals.o
+ 
+pll: $(PLL_OBJ)
+	@echo "==> Finished compiling PLL files"
+
+pllparser: $(PLLPARSER_OBJ)
+	@echo "==> Finished compiling PLL Parser files"
+
+partest: $(PARTEST_OBJ)
+	@echo "==> Finished compiling PARTEST files"
+
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
+	$(CPP) $(CXXFLAGS) -c $+ -I$(SRC_DIR) -o $@
+
+# $(OBJ_DIR)%.o: $(SRC_DIR)%.c
+#	$(CPP) $(CFLAGS) $(CXXFLAGS) -c $+ -I$(PLL_SRC_DIR) -o  $@
+
+$(OBJ_DIR)%.o: $(PLL_SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $+ -o $@
+
+$(OBJ_DIR)%.o: $(PLLPARSER_SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $+ -o $@ 
+
+.PHONY: pll pllparser partest
