@@ -57,6 +57,9 @@ void ConsoleObserver::update(const ObservableInfo & info,
 	//boost::mutex::scoped_lock lock(m_io_monitor);
 #pragma omp critical
 	switch (info.type) {
+	case MT_NEXT_STEP:
+		cout << Utilities::timeToString(info.time - initTime) << " [STEP] " << info.current_index << "/" << info.max_index <<  " " << info.message << endl;
+		break;
 	case MT_SINGLE_INIT:
 #ifdef DEBUG
 		cout << "[TRACE] INIT MODEL [" << info.current_index + 1 << "/" << info.max_index << "]\tOptimizing " << info.model->getName() << "..." << endl;
@@ -71,18 +74,18 @@ void ConsoleObserver::update(const ObservableInfo & info,
 #endif
 		break;
 	case MT_MODELSET_INIT:
-		cout << "INIT MODELSET " << info.message << endl;
+		cout << Utilities::timeToString(info.time - initTime) << " -- -- [MODELSET] " << info.current_index << "/" << info.max_index << endl;
 		modelIndex = 0;
 		break;
 	case MT_MODELSET_END:
-		cout << "END MODELSET" << endl;
+		cout <<  Utilities::timeToString(info.time - initTime) << " -- -- [/MODELSET] " << info.current_index << "/" << info.max_index << endl;
 		break;
 	case MT_SCHEME_INIT:
-		cout << "INIT PARTITIONING SCHEME " << info.message << endl;
+		cout <<  Utilities::timeToString(info.time - initTime) << " -- [SCHEME] " << info.current_index << "/" << info.max_index << " "<< endl;
 		modelIndex = 0;
 		break;
 	case MT_SCHEME_END:
-		cout << "END PARTITIONING SCHEME " << info.message << endl;
+		cout <<  Utilities::timeToString(info.time - initTime) << " -- [/SCHEME] " << info.current_index << "/" << info.max_index << endl;
 		break;
 	}
 }

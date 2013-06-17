@@ -133,7 +133,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 	int maxSchemes = (limit==-1?schemesVector->size():limit);
 	for (int id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
-		out << setw(5) << id + 1 << setw(15) << sp->scheme->toString()
+		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode()
 				<< setw(5) << sp->scheme->getNumberOfElements() << setw(5)
 				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
 				<< sp->value << endl;
@@ -147,7 +147,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 
 void SelectionPartitioningScheme::print(ostream & out) {
 	out << endl;
-	out << "Scheme:     " << scheme->toString() << endl;
+	out << "Scheme:     " << scheme->getCode() << endl;
 	out << "Num.Params: " << numParameters << endl;
 	out << "lnL:        " << lnL << endl;
 	out << "value:      " << value << endl;

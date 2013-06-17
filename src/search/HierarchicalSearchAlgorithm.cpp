@@ -57,10 +57,11 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	cout << "[TRACE] Hcluster - START" << endl;
 #endif
 
-	int i;
+	int current_scheme = 0;
 
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
+	this->attach(observer);
 	mo->attach(observer);
 	mo->attach(this);
 
@@ -71,7 +72,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 #ifdef DEBUG
 	cout << "[TRACE]            Creating first scheme" << endl;
 #endif
-	for (i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
+	for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
 		PartitionElement * nextElement = partitionMap->getPartitionElement(i);
 		nextSchemes.at(0)->addElement(nextElement);
 	}
@@ -84,14 +85,18 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	double distance;
 	double bestCriterionValue = DOUBLE_INF;
 	vector<t_partitionElementId> bestMatch0, bestMatch1;
-
+	t_partitionElementId nullId;
+	int currentStep = 1;
 	while (!reachedMaximum) {
 		reachedMaximum = true;
+		notify_observers(MT_NEXT_STEP, nullId, time(NULL), currentStep++,
+				numberOfBits);
 		for (int i = 0; i < nextSchemes.size(); i++) {
 #ifdef DEBUG
 			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->toString() << endl;
 #endif
-			mo->optimizePartitioningScheme(nextSchemes.at(i));
+			mo->optimizePartitioningScheme(nextSchemes.at(i), false,
+					++current_scheme, partitionMap->getNumberOfPartitions());
 #ifdef DEBUG
 			cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->toString() << endl;
 #endif
@@ -135,9 +140,9 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				nextSchemes.push_back(new PartitioningScheme(numPartitions));
 				t_partitionElementId nextId;
 				Utilities::mergeIds(nextId, bestMatch0.at(i), bestMatch1.at(i));
-				PartitionElement * newElement = partitionMap->getPartitionElement(nextId);
-				nextSchemes.at(nextSchemes.size() - 1)->addElement(
-						newElement);
+				PartitionElement * newElement =
+						partitionMap->getPartitionElement(nextId);
+				nextSchemes.at(nextSchemes.size() - 1)->addElement(newElement);
 				for (int j = 0; j < prevScheme->getNumberOfElements(); j++) {
 
 					PartitionElement * element = prevScheme->getElement(j);

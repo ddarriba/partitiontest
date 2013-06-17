@@ -93,7 +93,7 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 		PartitionSelector partSelector(schemesArray, numSchemes, options);
 
 		bestScheme = partSelector.getBestScheme();
-cout << "SELECTED " << bestScheme->toString() << endl;
+cout << "SELECTED " << bestScheme->getCode() << endl;
 //		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
 //			if (schemesArray[currentScheme] != bestScheme)
 //				delete schemesArray[currentScheme];

@@ -31,6 +31,7 @@
 #include "util/GlobalDefs.h"
 #include "indata/Alignment.h"
 #include "observer/Observer.h"
+#include "observer/Observable.h"
 
 namespace partest {
 
@@ -39,7 +40,7 @@ namespace partest {
  *
  * Generic interface for search algorithms.
  */
-class SearchAlgorithm: public Observer {
+class SearchAlgorithm: public Observer, public Observable {
 public:
 
 	/**

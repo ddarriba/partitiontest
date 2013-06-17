@@ -51,7 +51,7 @@ public:
 	 * @param[in]	forceRecomputation If true, the scheme is evaluated even if it was already evaluated before.
 	 */
 	virtual int optimizePartitioningScheme(PartitioningScheme * scheme,
-			bool forceRecomputation = false);
+			bool forceRecomputation = false, int current_index = 0, int max_index = 0);
 
 	/**
 	 * Optimizes the parameters of a single partition.
@@ -59,7 +59,7 @@ public:
 	 * @param[in]	partitionElement Partition to be evaluated
 	 * @return		0 if the evaluation ended successfully. Error code otherwise.
 	 */
-	virtual int optimizePartitionElement(PartitionElement * partitionElement);
+	virtual int optimizePartitionElement(PartitionElement * partitionElement, int current_index = 0, int max_index = 0);
 
 	/**
 	 * @brief Optimizes the parameters of a single model.

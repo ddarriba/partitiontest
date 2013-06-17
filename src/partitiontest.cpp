@@ -77,19 +77,20 @@ int main(int argc, char *argv[]) {
 #endif
 
 	cout << "Search done... it took " << time(NULL) - iniTime << " seconds." << endl;
-
+	cout << "Best Scheme:" << endl << partitioningScheme->getCode()
+			<< endl << partitioningScheme->getName() << endl;
 
 #ifdef FAST_DNA
 
 #ifdef DEBUG
-	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->toString() << endl;
+	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
 #endif
 
 	partitioningScheme->buildCompleteModelSet();
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
 	mo->attach(observer);
-	mo->optimizePartitioningScheme(partitioningScheme);
+	mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
 	PartitionSelector partSelector(&partitioningScheme, 1, options);
 
 	delete mo;
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef DEBUG
-	cout << "[TRACE] Done: " << partitioningScheme->toString() << endl;
+	cout << "[TRACE] Done: " << partitioningScheme->getCode() << endl;
 #endif
 
 	cout << "Optimization done... it took " << time(NULL) - iniTime << " seconds." << endl;
@@ -113,7 +114,7 @@ int main(int argc, char *argv[]) {
 	PrintMeta::print_options(cout, *options);
 	cout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
 			<< endl;
-	cout << "Partitioning scheme: " << endl << partitioningScheme->toString()
+	cout << "Partitioning scheme: " << endl << partitioningScheme->getCode()
 			<< endl;
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);
@@ -128,7 +129,7 @@ int main(int argc, char *argv[]) {
 	PrintMeta::print_options(*rout, *options);
 	*rout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
 			<< endl;
-	*rout << "Partitioning scheme: " << endl << partitioningScheme->toString()
+	*rout << "Partitioning scheme: " << endl << partitioningScheme->getCode()
 			<< endl;
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);

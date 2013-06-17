@@ -202,7 +202,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 				partitionMap->getPartitionElement(i));
 	}
 
-	mo->optimizePartitioningScheme(firstScheme);
+	mo->optimizePartitioningScheme(firstScheme, false, 1, 1);
 	PartitionSelector partSelector(&firstScheme, 1, options);
 	double bestCriterionValue = partSelector.getBestSelectionScheme()->value;
 
@@ -221,7 +221,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		i = 0;
 		while (PartitioningScheme * currentScheme = nextScheme()) {
 			partitioningSchemesVector[i++] = currentScheme;
-			mo->optimizePartitioningScheme(currentScheme);
+			mo->optimizePartitioningScheme(currentScheme, false, i, nextScheme.size());
 		}
 
 		PartitionSelector partSelector(partitioningSchemesVector,

@@ -41,13 +41,13 @@ ModelOptimize::~ModelOptimize() {
 //}
 
 int ModelOptimize::optimizePartitionElement(
-		PartitionElement * partitionElement) {
+		PartitionElement * partitionElement, int current_index, int max_index) {
 	ModelSet * modelset = partitionElement->getModelset();
 	//(options->getRateVariation(), options->getDataType());
 #pragma omp single
 	{
 		notify_observers(MT_MODELSET_INIT, partitionElement->getId(), modelset,
-				time(NULL), 0, modelset->getNumberOfModels(),
+				time(NULL), current_index, max_index,
 				partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
@@ -58,30 +58,32 @@ int ModelOptimize::optimizePartitionElement(
 #pragma omp single
 	{
 		notify_observers(MT_MODELSET_END, partitionElement->getId(), modelset,
-				time(NULL), 0, modelset->getNumberOfModels());
+				time(NULL), current_index, max_index, partitionElement->getName());
 	}
 
 	return 0;
 }
 
 int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
-		bool forceRecomputation) {
+		bool forceRecomputation, int current_index, int max_index) {
 	if (!scheme->isOptimized() || forceRecomputation) {
-//		string pString(scheme->toString());
+		string pString(scheme->getName());
 
-//		notify_observers(MT_SCHEME_INIT, 0, time(NULL), 0,
-//				scheme->getNumberOfElements(), pString);
+		t_partitionElementId nullId;
+		notify_observers(MT_SCHEME_INIT, nullId, time(NULL), current_index,
+				max_index, pString);
 		for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 			PartitionElement * currentElement = scheme->getElement(i);
 #pragma omp parallel
 			if (!currentElement->isOptimized() || forceRecomputation) {
-				optimizePartitionElement(currentElement);
+				optimizePartitionElement(currentElement, i+1, scheme->getNumberOfElements());
 			}
 #pragma omp end parallel
 		}
 
-//		notify_observers(MT_SCHEME_END, 0, time(NULL), 0,
-//				scheme->getNumberOfElements(), pString);
+		//pString = scheme->getLk();
+		notify_observers(MT_SCHEME_END, nullId, time(NULL), current_index,
+				max_index, pString);
 	}
 
 	return 0;

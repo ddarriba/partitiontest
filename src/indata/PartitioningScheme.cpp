@@ -177,7 +177,15 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 	}
 }
 
-string PartitioningScheme::toString() {
+string PartitioningScheme::getName() {
+	stringstream ss;
+	for (int i=0;i<numberOfElements;i++) {
+		ss << partitions->at(i)->getName() << " ";
+	}
+	return ss.str();
+}
+
+string PartitioningScheme::getCode() {
 	if (!code) {
 		int numDigits =
 				(numberOfElements > 10) ?
@@ -216,5 +224,14 @@ string PartitioningScheme::toString() {
 
 	}
 	return *code;
+}
+
+double PartitioningScheme::getLnL() {
+	if (!isOptimized()) return 0.0;
+	double lk = 0.0;
+	for (int i=0;i<numberOfElements;i++) {
+		lk += partitions->at(i)->getBestModel()->getModel()->getLnL();
+	}
+	return lk;
 }
 } /* namespace partest */

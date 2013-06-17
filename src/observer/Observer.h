@@ -35,6 +35,7 @@ namespace partest {
  * @brief Type of the message sent by the observable instances.
  */
 enum MessageType {
+  MT_NEXT_STEP,
   MT_GROUP_INIT, /** Start of a group of schemes computation */
   MT_SCHEME_INIT, /** Start of a partitioning scheme computation */
   MT_MODELSET_INIT, /** Start of a model set computation */

@@ -110,9 +110,18 @@ public:
 	 *
 	 * @return A string identifier for the scheme.
 	 */
-	string toString();
+	string getCode();
+
+	/**
+	 * @brief Gets a string name for the scheme.
+	 *
+	 * @return A string identifier for the scheme.
+	 */
+	string getName();
 
 	virtual ~PartitioningScheme();
+
+	double getLnL();
 private:
 	vector<PartitionElement*> * partitions; /** Array of reference to the partitions of this scheme */
 	int currentElement; /** Current element index for the step-by-step construction of the scheme */
