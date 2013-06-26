@@ -13,12 +13,12 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 20  # Total number of samples
-TAXA_COUNT <- 20  # Number of taxa in the output trees
-GENE_LEN <- 500   # Length of each gene
+SAMPLES <- 200  # Total number of samples
+TAXA_COUNT <- 40  # Number of taxa in the output trees
+GENE_LEN <- 1000   # Length of each gene
 
-MIN_GENES <- 1000
-MAX_GENES <- 1000
+MIN_GENES <- 10
+MAX_GENES <- 100
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data.11.in"      # Data input file
@@ -26,6 +26,7 @@ IN_MODELS_FILE  <- "data.11.in"      # Data input file
 OUT_TREE_FILE   <- "sims/treefile.out"    # Output file for trees
 OUT_MODELS_FILE <- "sims/modelsfile.out"  # Output file for models
 OUT_GENTOPART_FILE <- "sims/genestopartitions.out"  # Output file for gene mapping to partitions
+OUT_GENTOPART_FILE2 <- "sims/genestopartitions2.out"  # Output file for gene mapping to partitions
 OUT_PARTITIONS_FILE <- "sims/partitionsfile.out"  # Output file for partitions
 # GENTOPART file has the following format
 # N(NUM_GENES) K(NUM_PARTITIONS)
@@ -48,6 +49,7 @@ unlink(OUT_TREE_FILE)
 unlink(OUT_MODELS_FILE)
 unlink(OUT_PARTITIONS_FILE)
 unlink(OUT_GENTOPART_FILE)
+unlink(OUT_GENTOPART_FILE2)
 
 # load models and properties from data.in
 inp <- scan(IN_MODELS_FILE,list("",0,0,0,0,0,0,0,0,"",0))
@@ -57,13 +59,13 @@ current_index <- 0
 
 for(sample_index in 0:(SAMPLES-1)) {
 
-	num_genes <- 1000 #sample(MIN_GENES:MAX_GENES,1,replace=T)
+	num_genes <- sample(MIN_GENES:MAX_GENES,1,replace=T)
 
 	# Assign models to genes
 	boxes <- rchinese(num_genes,sample(1:20,1))
 	# boxes <- cluster(max_partitions,num_genes)
-	genes_mat <- matrix(nrow=num_genes,ncol=2,byrow=TRUE)
-	colnames(genes_mat) <- c("GeneNumber", "ModelNumber")
+	genes_mat <- matrix(nrow=num_genes,ncol=3,byrow=TRUE)
+	colnames(genes_mat) <- c("GeneNumber", "ModelNumber", "LocalNumber")
 	genes_mat <- as.table(genes_mat)
 	hash <- matrix(0, 1, length(unique(boxes)))
 	hashsize <- 1
@@ -73,6 +75,7 @@ for(sample_index in 0:(SAMPLES-1)) {
 	for(i in 1:(num_genes)) {
 	  genes_mat[i,1] <- i-1
 	  genes_mat[i,2] <- boxes[i] + current_index
+	  genes_mat[i,3] <- boxes[i]
 	  indexed <- F
 	  cur_index <- -1
 	  for(j in 1:hashsize) {
@@ -90,6 +93,16 @@ for(sample_index in 0:(SAMPLES-1)) {
 	}
 
 	num_partitions <- length(unique(boxes))
+	genes_mat2 <- matrix(nrow=num_partitions,ncol=2,byrow=TRUE)
+	colnames(genes_mat2) <- c("PartitionNumber", "Genes")
+	genes_mat2 <- as.table(genes_mat2)
+	for(i in 1:(num_genes)) {
+	  if (is.na(genes_mat2[boxes[i],2])) {
+		genes_mat2[boxes[i],2] <- i
+	  } else {
+	  	genes_mat2[boxes[i],2] <- paste(genes_mat2[boxes[i],2], i, sep=",")
+	  }
+	}
 
 	# allocate results matrix
 	models_mat <- matrix(nrow=(num_partitions),ncol=17,byrow=TRUE)
@@ -99,7 +112,7 @@ for(sample_index in 0:(SAMPLES-1)) {
 	# construct one model per partition
 	avoid <- c()
 	for(i in 1:num_partitions) {
-
+		genes_mat2[i,1] <- i
 		model <- buildDNAmodel(inp, avoid)
 		models_mat[i,1:17] <- model
 		id <- as.numeric(model[17])
@@ -132,7 +145,9 @@ for(sample_index in 0:(SAMPLES-1)) {
 	header[2] <- num_genes
 	header[3] <- num_partitions
 	write(header, file=OUT_GENTOPART_FILE, append=TRUE)
+	write(header, file=OUT_GENTOPART_FILE2, append=TRUE)
 	write.table(genes_mat,file=OUT_GENTOPART_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
+	write.table(genes_mat2,file=OUT_GENTOPART_FILE2,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
 	write(header, file=OUT_PARTITIONS_FILE, append=TRUE)
 	write(partitionstringDEC, file=OUT_PARTITIONS_FILE, append=TRUE)
@@ -157,9 +172,3 @@ for(sample_index in 0:(SAMPLES-1)) {
     write.tree(scaledTree, file=OUT_TREE_FILE, append=TRUE)
 
 } # end SAMPLES
-
-
-
-
-
-

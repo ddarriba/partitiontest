@@ -1,4 +1,4 @@
-PERGENE_LENGTH=500
+PERGENE_LENGTH=1000
 
 # JOB CONTROL
 RUN_R_SCRIPT=1 # [1] Execute R scripts for defining the simulations
@@ -13,11 +13,13 @@ LOG_DIR="log"
 INPUT_TREEFILE="scripts/sims/treefile.out"
 INPUT_MODELFILE="scripts/sims/modelsfile.out"
 INPUT_GEN2PARTFILE="scripts/sims/genestopartitions.out"
+INPUT_GEN2PARTFILE2="scripts/sims/genestopartitions2.out"
 INPUT_PARTITIONSFILE="scripts/sims/partitionsfile.out"
 
 OUTPUT_DIR="indelible"
 OUTPUT_ALIGNS_DIR="alignments"
 OUTPUT_PARTEST_DIR="partitiontest"
+OUTPUT_TRUE_DIR="truepart"
 OUTPUT_PART_SUMMARY="scripts/sims/partitionssummary.out"
 
 if [ $RUN_R_SCRIPT -eq 1 ]; then
@@ -65,7 +67,7 @@ if [ $BUILD_INDEL_FILES -eq 1 ]; then
 	  num_partitions=`echo ${part_header} | cut -d' ' -f3`
 	  echo " " >> ${AUX_FILE}
 
-	  echo "    ${sim_index}/${NUM_SIMS} : ${num_partitions} partitions out of ${num_genes} genes"
+	  echo "    ${sim_index}/${NUM_SIMS} : ${num_partitions} partitions out of ${num_genes} genes - $((num_partitions*100/num_genes))"
 
 	  # Write partitions
 	  echo [PARTITIONS] partitions >> ${AUX_FILE}
@@ -186,5 +188,36 @@ if [ $BUILD_CONTROL_FILES -eq 1 ]; then
 else
   echo "[4] Building PartitionTest control files (AVOID)"
 fi
+
+rm -rf $OUTPUT_TRUE_DIR
+mkdir $OUTPUT_TRUE_DIR
+
+# Loop over simulations
+part_header_line=1
+for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
+  part_header=`sed "${part_header_line}q;d" ${INPUT_GEN2PARTFILE2}`
+  num_genes=`echo ${part_header} | cut -d' ' -f2`
+  num_partitions=`echo ${part_header} | cut -d' ' -f3`
+
+  rm $OUTPUT_TRUE_DIR/input${sim_index}
+
+  for ((partition_index=1; partition_index<=${num_partitions}; partition_index++)); do
+    partline=`sed "$((part_header_line + partition_index))q;d" ${INPUT_GEN2PARTFILE2}`
+    genes=`echo ${partline} | cut -d' ' -f2 | sed "s/,/ /g"`
+    first=
+    for index in $genes; do
+      gene_range=`echo $(((index-1) * PERGENE_LENGTH + 1))-$((index*PERGENE_LENGTH))`
+      if [ -d $first ]; then
+      line=`echo DNA, GENE${partition_index}=$gene_range`
+	first=0
+      else
+      line=`echo $line,$gene_range`
+      fi
+    done
+    echo $line >> $OUTPUT_TRUE_DIR/input${sim_index}
+  done
+
+  part_header_line=$((part_header_line + num_partitions + 1))
+done
 
 echo "[5] Done!"
