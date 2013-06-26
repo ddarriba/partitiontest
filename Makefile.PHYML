@@ -7,7 +7,7 @@ CFLAGS = -DQUIET -I$(PHYML_SRC_DIR) -march=native -mtune=native \
    -O3 -g \
    -mssse3 -fomit-frame-pointer -funroll-loops
 CPP = g++
-CXXFLAGS = -O3 -g -I$(PHYML_SRC_DIR) -D_PHYML -DHAVE_CONFIG_H -DDEBUG # -fopenmp
+CXXFLAGS = -O3 -g -I$(PHYML_SRC_DIR) -D_PHYML -DHAVE_CONFIG_H -DDEBUG -DFAST_DNA # -fopenmp
 
 
 PARTEST_CXXFILES = \
