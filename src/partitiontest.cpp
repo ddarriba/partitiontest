@@ -30,6 +30,7 @@
 #include "selection/PartitionSelector.h"
 #include "observer/ConsoleObserver.h"
 
+
 using namespace std;
 using namespace partest;
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[]) {
 
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm(
 			options, partitionMap);
+
 
 #ifdef DEBUG
 	cout << "[TRACE] Starting search of the best partitioning scheme" << endl;

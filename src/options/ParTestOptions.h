@@ -173,6 +173,11 @@ public:
 	string getOutputFileSchemes(void) const;
 
 	/**
+	 * @brief Gets the partition definitions for PLL.
+	 */
+	string getPllPartitionsFile(void) const;
+
+	/**
 	 * @brief Gets the output stream for results.
 	 *
 	 * @return The output file for results.
@@ -293,6 +298,7 @@ private:
 	string outputFileModels; /** Output models file */
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
+	string pllPartitionsFile; /** Partitions definition for PLL */
 	ofstream * resultsOutputStream; /** Output results stream */
 	ofstream * modelsOutputStream; /** Output models stream */
 	ofstream * partitionsOutputStream; /** Output partitions stream */

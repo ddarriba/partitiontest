@@ -141,6 +141,13 @@ public:
 		return outputFileSchemes;
 	}
 
+	/**
+	 * @brief Gets the partition definitions for PLL.
+	 */
+	const string& getPllPartitionsFile() const {
+		return pllPartitionsFile;
+	}
+
 private:
 
 	/**
@@ -174,6 +181,7 @@ private:
 	string outputFilePartitions; /** File name for partition selections output */
 	string outputFileSchemes; /** File name for scheme selections output */
 	string outputBasePath; /** Base path for output files */
+	string pllPartitionsFile; /** Partitions definition for PLL */
 };
 
 } /* namespace partest */

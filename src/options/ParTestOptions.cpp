@@ -49,7 +49,7 @@ ParTestOptions::ParTestOptions() {
 
 ParTestOptions::~ParTestOptions() {
 	if (resultsOutputStream && resultsOutputStream->is_open())
-			resultsOutputStream->close();
+		resultsOutputStream->close();
 	if (modelsOutputStream && modelsOutputStream->is_open())
 		modelsOutputStream->close();
 	if (partitionsOutputStream && partitionsOutputStream->is_open())
@@ -66,11 +66,6 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 		double sampleSizeValue, const char *userTree) {
 
 	this->rateVariation = doRateVariation;
-#ifdef _PHYML
-	alignment = new PhymlAlignment(inputFile, dataType);
-#else
-	alignment = new PLLAlignment(inputFile, dataType);
-#endif
 
 	this->dataType = dataType;
 	this->startingTopology = startingTopology;
@@ -98,10 +93,18 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	this->outputFileModels = parser.getOutputFileModels();
 	this->outputFilePartitions = parser.getOutputFilePartitions();
 	this->outputFileSchemes = parser.getOutputFileSchemes();
+	this->pllPartitionsFile = parser.getPllPartitionsFile();
 	resultsOutputStream = new ofstream(outputFileResults.c_str());
 	modelsOutputStream = new ofstream(outputFileModels.c_str());
 	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
 	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
+
+#ifdef _PHYML
+	alignment = new PhymlAlignment(inputFile, dataType);
+#else
+	alignment = new PLLAlignment(inputFile, dataType, pllPartitionsFile);
+#endif
+
 	PrintMeta::print_header(*resultsOutputStream);
 	PrintMeta::print_header(*modelsOutputStream);
 	PrintMeta::print_header(*partitionsOutputStream);
@@ -158,6 +161,10 @@ string ParTestOptions::getOutputFilePartitions(void) const {
 
 string ParTestOptions::getOutputFileSchemes(void) const {
 	return outputFileSchemes;
+}
+
+string ParTestOptions::getPllPartitionsFile() const {
+	return pllPartitionsFile;
 }
 
 ofstream * ParTestOptions::getResultsOutputStream(void) const {

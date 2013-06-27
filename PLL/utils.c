@@ -53,6 +53,7 @@
 #include <limits.h>
 #include <assert.h>
 #include "cycle.h"
+#include "parser/phylip/ssort.h"
 
 
 #if ! (defined(__ppc) || defined(__powerpc__) || defined(PPC))
@@ -1008,7 +1009,6 @@ void init_default(pllInstance *tr)
   tr->manyPartitions = PLL_FALSE;
 
   tr->startingTree = randomTree;
-  tr->randomNumberSeed = 12345;
 
   tr->categories             = 25;
 
@@ -1207,6 +1207,7 @@ void initializePartitionData(pllInstance *localTree, partitionList * localPartit
 
       localPartitions->partitionData[model]->substRates        = (double *)rax_malloc((size_t)pl->substRatesLength * sizeof(double));
       localPartitions->partitionData[model]->frequencies       = (double*)rax_malloc((size_t)pl->frequenciesLength * sizeof(double));
+      localPartitions->partitionData[model]->freqExponents     = (double*)rax_malloc(pl->frequenciesLength * sizeof(double));
       localPartitions->partitionData[model]->empiricalFrequencies       = (double*)rax_malloc((size_t)pl->frequenciesLength * sizeof(double));
       localPartitions->partitionData[model]->tipVector         = (double *)rax_malloc_aligned((size_t)pl->tipVectorLength * sizeof(double));
       
@@ -1434,11 +1435,43 @@ void initializePartitions(pllInstance *tr, pllInstance *localTree, partitionList
 #endif
 }
 
+static void freeLinkageList( linkageList* ll)
+{
+  int i;    
+
+  for(i = 0; i < ll->entries; i++)    
+    rax_free(ll->ld[i].partitionList);         
+
+  rax_free(ll->ld);
+  rax_free(ll);   
+}
+
+/** @brief free all data structures associated to a partition
+    
+    frees all data structures allocated for this partition
+
+    @param partitions
+      the pointer to the partition list
+
+    @param models
+      number of models in this partition
+
+    @param tips  
+       number of tips in the tree      
+
+    @todo
+      why is models passed as separate parameter, it's part of the 
+      partition structure
+*/
 void 
 pllPartitionsDestroy (partitionList ** partitions, int models, int tips)
 {
   int i, j;
   partitionList * pl = *partitions;
+
+  freeLinkageList(pl->alphaList);
+  freeLinkageList(pl->freqList); 
+  freeLinkageList(pl->rateList);
 
   for (i = 0; i < models; ++ i)
    {
@@ -1452,6 +1485,7 @@ pllPartitionsDestroy (partitionList ** partitions, int models, int tips)
      rax_free (pl->partitionData[i]->EI);
      rax_free (pl->partitionData[i]->substRates);
      rax_free (pl->partitionData[i]->frequencies);
+     rax_free (pl->partitionData[i]->freqExponents);
      rax_free (pl->partitionData[i]->empiricalFrequencies);
      rax_free (pl->partitionData[i]->tipVector);
      rax_free (pl->partitionData[i]->symmetryVector);
@@ -1626,24 +1660,27 @@ createPartitions (struct pllQueue * parts, int * bounds)
      pl->partitionData[i]->lower = bounds[i << 1];
      pl->partitionData[i]->upper = bounds[(i << 1) + 1];
      pl->partitionData[i]->width = bounds[(i << 1) + 1] - bounds[i << 1];
+
+     if (pi->dataType == DNA_DATA)
+      {
+        pl->partitionData[i]->protModels                = -1;
+        pl->partitionData[i]->protFreqs                 = -1;
+        pl->partitionData[i]->dataType                  = DNA_DATA;
+        pl->partitionData[i]->maxTipStates              = 16;
+        pl->partitionData[i]->optimizeBaseFrequencies   = pi->optimizeBaseFrequencies;
+      }
+     else /* AA_DATA */
+      {
+        pl->partitionData[i]->dataType                  = AA_DATA; 
+        pl->partitionData[i]->protModels                = pi->protModels;
+        pl->partitionData[i]->maxTipStates              = 23;
+        pl->partitionData[i]->protFreqs                 = pi->protFreqs;
+        pl->partitionData[i]->protModels                = pi->protModels;
+        pl->partitionData[i]->optimizeBaseFrequencies   = pi->optimizeBaseFrequencies;
+      }
      
-     // TODO: get the model parameters, currently some defaults
-     if (!strcmp (pi->partitionModel, "DNA"))  /* DNA */
-      {
-        pl->partitionData[i]->dataType           = DNA_DATA;
-        pl->partitionData[i]->maxTipStates       = 16;
-      }
-     else  /* AA */
-      {
-        pl->partitionData[i]->dataType           = AA_DATA; 
-        pl->partitionData[i]->protModels         = pi->protModels;
-        pl->partitionData[i]->maxTipStates       = 23;
-      }
      pl->partitionData[i]->states                = pLengths[pl->partitionData[i]->dataType].states;
-     //pl->partitionData[i]->dataType              = DNA_DATA;
-     //pl->partitionData[i]->protModels            =        0;
      pl->partitionData[i]->numberOfCategories    =        1;
-     //pl->partitionData[i]->protModels            =        2;
      pl->partitionData[i]->autoProtModels        =        0;
      pl->partitionData[i]->nonGTR                =        0;
      pl->partitionData[i]->protFreqs             =        0;
@@ -2173,7 +2210,7 @@ pllLoadAlignment (pllInstance * tr, struct pllPhylip * phylip, partitionList * p
                          
   /* place sequences to tips */                              
   for (i = 1; i <= phylip->nTaxa; ++ i)                      
-   {                     
+   {
      if (!pllHashSearch (tr->nameHash, phylip->label[i],(void **)&node)) 
       {
         //rax_free (tr->originalCrunchedLength);
@@ -2217,7 +2254,7 @@ pllLoadAlignment (pllInstance * tr, struct pllPhylip * phylip, partitionList * p
       On success returns an instance to PLL, otherwise \b NULL
 */
 pllInstance *
-pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRecom)
+pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed)
 {
   pllInstance * tr;
 
@@ -2230,6 +2267,8 @@ pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRec
   tr->fastScaling  = fastScaling;
   tr->saveMemory   = saveMemory;
   tr->useRecom     = useRecom;
+  
+  tr->randomNumberSeed = randomNumberSeed;
 
   /* remove it from the library */
   tr->useMedian    = PLL_FALSE;
@@ -2281,7 +2320,7 @@ void pllTreeInitDefaults (pllInstance * tr, int nodes, int tips)
 
 
   /* TODO: FIX THIS! */
-  tr->fracchange = -1;
+  //tr->fracchange = -1;
 
   for (i = 1; i <= tips; ++ i)
    {
@@ -2442,7 +2481,8 @@ pllTreeInitTopologyNewick (pllInstance * tr, struct pllNewickTree * nt, int bUse
   
   pllStackClear (&nodeStack);
 
-  if (bUseDefaultZ == PLL_TRUE) resetBranches (tr);
+  if (bUseDefaultZ == PLL_TRUE) 
+    resetBranches (tr);
 }
 
 /** @brief Initialize PLL tree with a random topology
@@ -2473,8 +2513,64 @@ pllTreeInitTopologyRandom (pllInstance * tr, int tips, char ** nameList)
      strcpy (tr->nameList[i], nameList[i]);
      pllHashAdd (tr->nameHash, tr->nameList[i], (void *) (tr->nodep[i]));
    }
+  
 
   makeRandomTree (tr);
+}
+
+
+/** @brief Initialize a tree that corresponds to a given (already parsed) alignment 
+
+    Initializes the PLL tree such that it corresponds to the given alignment
+
+    @todo
+      nothing 
+
+    @param tr
+      The PLL instance
+
+    @param phylip
+      Parsed alignment
+*/
+void 
+pllTreeInitTopologyForAlignment (pllInstance * tr, struct pllPhylip * phylip)
+{
+  int
+    tips = phylip->nTaxa,
+    i;
+
+  char 
+    **nameList = phylip->label;
+  
+  pllTreeInitDefaults (tr, 2 * tips - 1, tips);
+
+  for (i = 1; i <= tips; ++ i)
+   {
+     tr->nameList[i] = (char *) rax_malloc ((strlen (nameList[i]) + 1) * sizeof (char));
+     strcpy (tr->nameList[i], nameList[i]);
+     pllHashAdd (tr->nameHash, tr->nameList[i], (void *) (tr->nodep[i]));
+   }
+}
+
+
+/** @brief Compute a randomized stepwise addition oder parsimony tree
+
+    Implements the RAxML randomized stepwise addition order algorithm 
+
+    @todo
+      check functions that are invoked for potential memory leaks!
+
+    @param tr
+      The PLL instance
+
+    @param partitions
+      The partitions
+*/
+void pllComputeRandomizedStepwiseAdditionParsimonyTree(pllInstance * tr, partitionList * partitions)
+{
+  allocateParsimonyDataStructures(tr, partitions);
+  makeParsimonyTreeFast(tr, partitions);
+  freeParsimonyDataStructures(tr, partitions);
 }
 
 void
@@ -2640,6 +2736,336 @@ pllTreeDestroy (pllInstance * tr)
   rax_free (tr);
 }
 
+/* initializwe a parameter linkage list for a certain parameter type (can be whatever).
+   the input is an integer vector that contaions NumberOfModels (numberOfPartitions) elements.
+
+   if we want to have all alpha parameters unlinked and have say 4 partitions the input 
+   vector would look like this: {0, 1, 2, 3}, if we want to link partitions 0 and 3 the vector 
+   should look like this: {0, 1, 2, 0} 
+*/
+
+
+
+static void init_Q_MatrixSymmetries(char *linkageString, partitionList * pr, int model)
+{
+  int 
+    states = pr->partitionData[model]->states,
+    numberOfRates = ((states * states - states) / 2), 
+    *list = (int *)rax_malloc(sizeof(int) * numberOfRates),
+    j,
+    max = -1;
+
+  char
+    *str1,
+    *saveptr,
+    *ch,
+    *token;
+
+  ch = (char *) rax_malloc (strlen (linkageString) + 1);
+  strcpy (ch, linkageString);
+
+
+  for(j = 0, str1 = ch; ;j++, str1 = (char *)NULL) 
+    {
+      token = strtok_r(str1, ",", &saveptr);
+      if(token == (char *)NULL)
+	break;
+      assert(j < numberOfRates);
+      list[j] = atoi(token);     
+    }
+  
+  rax_free(ch);
+
+  for(j = 0; j < numberOfRates; j++)
+    {
+      assert(list[j] <= j);
+      assert(list[j] <= max + 1);
+      
+      if(list[j] > max)
+	max = list[j];
+    }  
+
+  assert(numberOfRates == 6);
+  
+  for(j = 0; j < numberOfRates; j++)  
+    pr->partitionData[model]->symmetryVector[j] = list[j];    
+
+  //less than the maximum possible number of rate parameters
+
+  if(max < numberOfRates - 1)    
+    pr->partitionData[model]->nonGTR = PLL_TRUE;
+
+  rax_free(list);
+}
+
+static void checkMatrixSymnmetriesAndLinkage(partitionList *pr, linkageList *ll)
+{
+  int 
+    i;
+  
+  for(i = 0; i < ll->entries; i++)
+    {
+      int
+	partitions = ll->ld[i].partitions;
+
+      if(partitions > 1)
+	{
+	  int
+	    k, 
+	    reference = ll->ld[i].partitionList[0];
+
+	  for(k = 1; k < partitions; k++)
+	    {
+	      int 
+		index = ll->ld[i].partitionList[k];
+
+	      int
+		states = pr->partitionData[index]->states,
+		rates = ((states * states - states) / 2);
+	      
+	      if(pr->partitionData[reference]->nonGTR != pr->partitionData[index]->nonGTR)
+		assert(0);
+	      
+	      if(pr->partitionData[reference]->nonGTR)
+		{
+		  int 
+		    j;
+		  
+		  for(j = 0; j < rates; j++)
+		    {
+		      if(pr->partitionData[reference]->symmetryVector[j] != pr->partitionData[index]->symmetryVector[j])
+			assert(0);
+		    }
+		}
+	    }	    
+	}
+    }
+}
+/** @brief Set symmetries among parameters in the Q matrix
+    
+    Allows to link some or all rate parameters in the Q-matrix 
+    for obtaining simpler models than GTR
+
+    @param string
+      string describing the symmetry pattern among the rates in the Q matrix
+
+    @param pr
+      List of partitions
+      
+    @param model
+      Index of the partition for which we want to set the Q matrix symmetries
+
+    @todo
+      nothing
+*/
+void pllSetSubstitutionRateMatrixSymmetries(char *string, partitionList * pr, int model)
+{
+  init_Q_MatrixSymmetries(string, pr, model);
+
+  checkMatrixSymnmetriesAndLinkage(pr, pr->rateList);
+}
+
+/* initializwe a parameter linkage list for a certain parameter type (can be whatever).
+   the input is an integer vector that contaions NumberOfModels (numberOfPartitions) elements.
+
+   if we want to have all alpha parameters unlinked and have say 4 partitions the input 
+   vector would look like this: {0, 1, 2, 3}, if we want to link partitions 0 and 3 the vector 
+   should look like this: {0, 1, 2, 0} 
+*/
+
+linkageList* initLinkageList(int *linkList, partitionList *pr)
+{
+  int 
+    k,
+    partitions,
+    numberOfModels = 0,
+    i,
+    pos;
+  
+  linkageList 
+    *ll = (linkageList*)rax_malloc(sizeof(linkageList));
+    
+  /* figure out how many distinct parameters we need to estimate 
+     in total, if all parameters are linked the result will be 1 if all 
+     are unlinked the result will be pr->numberOfPartitions */
+  
+  for(i = 0; i < pr->numberOfPartitions; i++)
+    {
+      assert(linkList[i] >= 0 && linkList[i] < pr->numberOfPartitions);
+
+      assert (linkList[i] <= i && linkList[i] <= numberOfModels + 1);
+
+      if(linkList[i] > numberOfModels)
+	numberOfModels = linkList[i];
+
+    }
+
+  numberOfModels++;
+  
+  /* allocate the linkage list data structure that containes information which parameters of which partition are 
+     linked with each other.
+
+     Note that we need a separate invocation of initLinkageList() and a separate linkage list 
+     for each parameter type */
+
+  ll->entries = numberOfModels;
+  ll->ld      = (linkageData*)rax_malloc(sizeof(linkageData) * numberOfModels);
+
+  /* noe loop over the number of free parameters and assign the corresponding partitions to each parameter */
+
+  for(i = 0; i < numberOfModels; i++)
+    {
+      /* 
+	 the valid flag is used for distinguishing between DNA and protein data partitions.
+	 This can be used to enable/disable parameter optimization for the paremeter 
+	 associated to the corresponding partitions. This deature is used in optRatesGeneric 
+	 to first optimize all DNA GTR rate matrices and then all PROT GTR rate matrices */
+
+      ll->ld[i].valid = PLL_TRUE;
+      partitions = 0;
+
+      /* now figure out how many partitions share this joint parameter */
+
+      for(k = 0; k < pr->numberOfPartitions; k++)
+	if(linkList[k] == i)
+	  partitions++;	    
+
+      /* assign a list to store the partitions that share the parameter */
+
+      ll->ld[i].partitions = partitions;
+      ll->ld[i].partitionList = (int*)rax_malloc(sizeof(int) * partitions);
+      
+      /* now store the respective partition indices in this list */
+      
+      for(k = 0, pos = 0; k < pr->numberOfPartitions; k++)
+	if(linkList[k] == i)
+	  ll->ld[i].partitionList[pos++] = k;
+    }
+
+  /* return the linkage list for the parameter */
+
+  return ll;
+}
+
+
+
+static linkageList* initLinkageListString(char *linkageString, partitionList * pr)
+{
+  int 
+    *list = (int*)rax_malloc(sizeof(int) * pr->numberOfPartitions),
+    j;
+
+  linkageList 
+    *l;
+
+  char
+    *str1,
+    *saveptr,
+//    *ch = strdup(linkageString),
+    *ch,
+    *token;
+  
+  ch = (char *) rax_malloc (strlen (linkageString) + 1);
+  strcpy (ch, linkageString);
+
+  for(j = 0, str1 = ch; ;j++, str1 = (char *)NULL) 
+    {
+      token = strtok_r(str1, ",", &saveptr);
+      if(token == (char *)NULL)
+	break;
+      assert(j < pr->numberOfPartitions);
+      list[j] = atoi(token);
+      //printf("%d: %s\n", j, token);
+    }
+  
+  rax_free(ch);
+
+  l = initLinkageList(list, pr);
+  
+  rax_free(list);
+
+  return l;
+}
+
+/** @brief Link alpha parameters across partitions
+    
+    Links alpha paremeters across partitions (GAMMA model of rate heterogeneity)
+
+    @param string
+      string describing the linkage pattern    
+
+    @param pr
+      List of partitions
+
+    @todo
+      test behavior/impact/mem-leaks of this when PSR model is used 
+      it shouldn't do any harm, but it would be better to check!
+*/
+void pllLinkAlphaParameters(char *string, partitionList *pr)
+{
+  //assumes that it has already been assigned once
+  freeLinkageList(pr->alphaList);
+  
+  pr->alphaList = initLinkageListString(string, pr);
+}
+
+/** @brief Link base frequency parameters across partitions
+    
+    Links base frequency paremeters across partitions
+
+    @param string
+      string describing the linkage pattern    
+
+    @param pr
+      List of partitions
+
+    @todo
+      semantics of this function not clear yet: right now this only has an effect 
+      when we do a ML estimate of base frequencies 
+      when we use empirical or model-defined (protein data) base frequencies, one could 
+      maybe average over the per-partition frequencies, but the averages would need to be weighted 
+      accodring on the number of patterns per partition 
+*/
+void pllLinkFrequencies(char *string, partitionList *pr)
+{
+  //assumes that it has already been assigned once
+  freeLinkageList(pr->freqList);
+
+  pr->freqList = initLinkageListString(string, pr);
+}
+
+/** @brief Link Substitution matrices across partitions
+    
+    Links substitution matrices (Q matrices) across partitions
+
+    @param string
+      string describing the linkage pattern    
+
+    @param pr
+      List of partitions
+
+    @todo
+      re-think/re-design how this is done for protein
+      models
+*/
+void pllLinkRates(char *string, partitionList *pr)
+{
+  //assumes that it has already been assigned once
+  freeLinkageList(pr->rateList);
+  
+  pr->rateList = initLinkageListString(string, pr);
+  
+  //check if the per-partition Q matrix symmetries are 
+  //identical to each other if the partitions are linked
+  //we need to do this check here as well because 
+  //we don't know in which order users might call
+  //these functions
+  checkMatrixSymnmetriesAndLinkage(pr, pr->rateList);
+}
+
+
+
+
 /** @brief Initialize partitions according to model parameters
     
     Initializes partitions according to model parameters.
@@ -2665,9 +3091,46 @@ pllTreeDestroy (pllInstance * tr)
 void pllInitModel (pllInstance * tr, int bEmpiricalFreqs, struct pllPhylip * phylip, partitionList * partitions)
 {
   double ** ef;
+  int
+    i,
+    *unlinked = (int *)rax_malloc(sizeof(int) * partitions->numberOfPartitions);
 
   ef = pllBaseFrequenciesGTR (partitions, phylip);
+  
+
   initializePartitions (tr, tr, partitions, partitions, 0, 0);
   initModel (tr, ef, partitions);
   pllEmpiricalFrequenciesDestroy (&ef, partitions->numberOfPartitions);
+
+  for(i = 0; i < partitions->numberOfPartitions; i++)
+    unlinked[i] = i;
+
+  //by default everything is unlinked initially 
+  partitions->alphaList = initLinkageList(unlinked, partitions);
+  partitions->freqList  = initLinkageList(unlinked, partitions);
+  partitions->rateList  = initLinkageList(unlinked, partitions);
+
+  rax_free(unlinked);
+}
+
+/** @brief Optimize all free model parameters of the likelihood model
+    
+    Initializes partitions according to model parameters.
+
+    @param tr
+      The PLL instance
+
+    @param pr
+      List of partitions
+
+    @param likelihoodEpsilon
+      Specifies up to which epsilon in likelihood values the iterative routine will 
+      be optimizing the parameters  
+
+    @todo
+      nothing
+*/
+void pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon)
+{
+  modOpt(tr, pr, likelihoodEpsilon);
 }

@@ -6,6 +6,13 @@
 #include "parser/newick/newick.h"
 #include "queue.h"
 
+//linkageList* initLinkageList(int *linkList, partitionList *pr);
+//void freeLinkageList( linkageList* ll);
+
+void pllLinkAlphaParameters(char *string, partitionList *pr);
+void pllLinkFrequencies(char *string, partitionList *pr);
+void pllLinkRates(char *string, partitionList *pr);
+void pllSetSubstitutionRateMatrixSymmetries(char *string, partitionList * pr, int model);
 
 //void read_msa(pllInstance *tr, const char *filename);
 void makeParsimonyTree(pllInstance *tr);
@@ -18,8 +25,11 @@ void pllTreeInitTopologyNewick (pllInstance * tr, struct pllNewickTree * nt, int
 int pllLoadAlignment (pllInstance * tr, struct pllPhylip * phylip, partitionList *, int);
 void pllEmpiricalFrequenciesDestroy (double *** empiricalFrequencies, int models);
 void pllTreeInitTopologyRandom (pllInstance * tr, int tips, char ** nameList);
+void pllTreeInitTopologyForAlignment (pllInstance * tr, struct pllPhylip * phylip);
 void pllBaseSubstitute (struct pllPhylip * phylip, partitionList * partitions);
 void  pllTreeDestroy (pllInstance * t);
-pllInstance * pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRecom);
+pllInstance * pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed);
 void pllInitModel (pllInstance *, int, struct pllPhylip *, partitionList *);
+void pllComputeRandomizedStepwiseAdditionParsimonyTree(pllInstance * tr, partitionList * partitions);
+void pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
 #endif /* UTILS_H_ */

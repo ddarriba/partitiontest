@@ -93,12 +93,12 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				numberOfBits);
 		for (int i = 0; i < nextSchemes.size(); i++) {
 #ifdef DEBUG
-			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->toString() << endl;
+			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->getName() << endl;
 #endif
 			mo->optimizePartitioningScheme(nextSchemes.at(i), false,
 					++current_scheme, partitionMap->getNumberOfPartitions());
 #ifdef DEBUG
-			cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->toString() << endl;
+			//cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->toString() << endl;
 #endif
 			PartitionSelector partSelector(&(nextSchemes.at(i)), 1, options);
 			double criterionValue = partSelector.getBestSelectionScheme()->value;

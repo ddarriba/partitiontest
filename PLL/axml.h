@@ -539,7 +539,7 @@ typedef struct
 typedef struct
 {
   boolean valid;
-  int partitions;
+  int partitions;  
   int *partitionList;
 }
   linkageData;
@@ -865,6 +865,7 @@ typedef struct {
   /* In GTR we can write Q = S * D, where S is a symmetrical matrix and D a diagonal with the state frequencies */
   double *substRates;       /**< TRANSITION MODEL Entries in S, e.g. 6 free parameters in DNA */   
   double *frequencies;      /**< State frequencies, entries in D, are initialized as empiricalFrequencies */
+  double *freqExponents;
   /* Matrix decomposition: @todo map this syntax to Explanation of the mathematical background */
   double *EIGN;             /**< eigenvalues */
   double *EV;               /**< eigenvectors */
@@ -891,6 +892,7 @@ typedef struct {
   int     protFreqs;                    /** TODO: Is this the flag for empirical protein frequencies? (0 use default) */ 
   /* specific for secondary structures ?? */
   boolean nonGTR;
+  boolean optimizeBaseFrequencies;
   int    *symmetryVector;
   int    *frequencyGrouping;
 
@@ -947,6 +949,9 @@ typedef struct
    pInfo **partitionData;
    int numberOfPartitions;
    boolean perGeneBranchLengths;
+   linkageList *alphaList;
+   linkageList *rateList;
+   linkageList *freqList;
  }  partitionList;
 
 
@@ -1340,6 +1345,7 @@ typedef struct
   int frequencyGroupingLength;
 
   boolean nonGTR;
+  boolean optimizeBaseFrequencies;
 
   int undetermined;
 
@@ -1460,9 +1466,11 @@ extern boolean testInsertRestoreBIG ( pllInstance *tr, partitionList *pr, nodept
 extern void restoreTreeFast ( pllInstance *tr, partitionList *pr );
 extern int determineRearrangementSetting ( pllInstance *tr, partitionList *pr, analdef *adef, bestlist *bestT, bestlist *bt );
 extern void computeBIGRAPID ( pllInstance *tr, partitionList *pr, analdef *adef, boolean estimateModel);
+extern void evaluate ( pllInstance *tr, partitionList *pr, analdef *adef, boolean estimateModel);
+
 extern boolean treeEvaluate ( pllInstance *tr, partitionList *pr, int maxSmoothIterations );
 extern boolean treeEvaluatePartition ( pllInstance *tr, double smoothFactor, int model );
-
+extern void computeBIGRAPID_Test (pllInstance *tr, partitionList *pr, boolean estimateModel);
 extern void meshTreeSearch(pllInstance *tr, analdef *adef, int thorough);
 
 extern void initTL ( topolRELL_LIST *rl, pllInstance *tr, int n );
@@ -1623,8 +1631,6 @@ extern double getBranchLength(pllInstance *tr, partitionList *pr, int perGene, n
 
 inline boolean isGap(unsigned int *x, int pos);
 inline boolean noGap(unsigned int *x, int pos);
-
-
 
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS) )
