@@ -1,6 +1,5 @@
 #ifndef __pll_PHYLIP__
 #define __pll_PHYLIP__
-#include "../../lexer.h"
 
 #define PHYLIP_KEEP_UNIQUE      1 << 0
 #define PHYLIP_LEX_SORT         1 << 1

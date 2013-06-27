@@ -29,7 +29,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG) {
+				DEFAULT_OUTPUT_RESULTS_TAG),
+				pllPartitionsFile("pllConfig.tmp") {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
@@ -86,9 +87,21 @@ ConfigParser::ConfigParser(const char * configFile) :
 		std::sort(partitions->begin(), partitions->end(),
 				comparePartitionInfos());
 
+#ifdef _PLL
+		/* create PLL partitions file */
+		ofstream * pllOutputStream = new ofstream(pllPartitionsFile.c_str());
+#endif
 		for (int i = 0; i < numberOfPartitions; i++) {
-			partitions->at(i).partitionId .push_back(i);
+			partitions->at(i).partitionId.push_back(i);
+#ifdef _PLL
+			(*pllOutputStream) << "DNA, " << partitions->at(i).name << "=" << partitions->at(i).start << "-" << partitions->at(i).end << endl;
+#endif
 		}
+#ifdef _PLL
+		pllOutputStream->close();
+		delete pllOutputStream;
+#endif
+
 		/** OUTPUT **/
 
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);

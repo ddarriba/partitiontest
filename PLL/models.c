@@ -2838,7 +2838,9 @@ static void updateFracChange(pllInstance *tr, partitionList *pr)
   if(numberOfModels == 1)
     {   
       assert(pr->partitionData[0]->fracchange != -1.0);
-      tr->fracchange = pr->partitionData[0]->fracchange;
+     
+      tr->fracchange = pr->partitionData[0]->fracchange; 
+      //printf("Set %f\n", tr->fracchange);
       pr->partitionData[0]->fracchange = -1.0;
     }      
   else
@@ -3372,7 +3374,7 @@ void initReversibleGTR(pllInstance * tr, partitionList * pr, int model)
 
 	 for(i = 0; i < 4; i++)
 	   {
-	     fracchanges_LG4[i]  = (double *)malloc(pr->numberOfPartitions * sizeof(double));
+	     fracchanges_LG4[i]  = (double *)rax_malloc(pr->numberOfPartitions * sizeof(double));
 	     initGeneric(states, bitVectorAA, 23, fracchanges_LG4[i],
 			 pr->partitionData[model]->EIGN_LG4[i],  pr->partitionData[model]->EV_LG4[i],  pr->partitionData[model]->EI_LG4[i], pr->partitionData[model]->frequencies_LG4[i], pr->partitionData[model]->substRates_LG4[i],
 			 pr->partitionData[model]->tipVector_LG4[i], 
@@ -3382,7 +3384,7 @@ void initReversibleGTR(pllInstance * tr, partitionList * pr, int model)
 	 for(i = 0; i < 4; i++)
 	   {	    
 	     acc += fracchanges_LG4[i][model];
-	     free(fracchanges_LG4[i]);
+	     rax_free(fracchanges_LG4[i]);
 	   }
 
 	 //tr->fracchanges[model] = acc / 4;
@@ -3668,8 +3670,13 @@ static void setRates(double *r, int rates)
 {
   int i;
 
+  //changed to 1.0 instead of 0.5 for making the 
+  //implementation of an interface function to set other models 
+  //than GTR easier 
+
   for(i = 0; i < rates - 1; i++)
-    r[i] = 0.5;
+    r[i] = 1.0;
+
   r[rates - 1] = 1.0;
 }
 
@@ -3992,6 +3999,9 @@ void initModel(pllInstance *tr, double **empiricalFrequencies, partitionList * p
   
   for(model = 0; model < partitions->numberOfPartitions; model++)
    {
+     int
+       k;
+
      partitions->partitionData[model]->alpha = 1.0;
      if(partitions->partitionData[model]->dataType == AA_DATA && partitions->partitionData[model]->protModels == AUTO)
        partitions->partitionData[model]->autoProtModels = WAG; /* initialize by WAG per default */
@@ -3999,6 +4009,9 @@ void initModel(pllInstance *tr, double **empiricalFrequencies, partitionList * p
      initReversibleGTR(tr, partitions, model); /* Decomposition of Q matrix */
       /* GAMMA model init */
      makeGammaCats(partitions->partitionData[model]->alpha, partitions->partitionData[model]->gammaRates, 4, tr->useMedian);
+
+     for(k = 0; k < partitions->partitionData[model]->states; k++)
+       partitions->partitionData[model]->freqExponents[k] = 0.0;	
    }                   		       
   
    
