@@ -1678,7 +1678,6 @@ createPartitions (struct pllQueue * parts, int * bounds)
         pl->partitionData[i]->protModels                = pi->protModels;
         pl->partitionData[i]->optimizeBaseFrequencies   = pi->optimizeBaseFrequencies;
       }
-     
      pl->partitionData[i]->states                = pLengths[pl->partitionData[i]->dataType].states;
      pl->partitionData[i]->numberOfCategories    =        1;
      pl->partitionData[i]->autoProtModels        =        0;
@@ -1688,7 +1687,6 @@ createPartitions (struct pllQueue * parts, int * bounds)
      pl->partitionData[i]->partitionLH           =      0.0;
      pl->partitionData[i]->fracchange            =      1.0;
      pl->partitionData[i]->executeModel          =     PLL_TRUE;
-
 
      pl->partitionData[i]->partitionName         = (char *) rax_malloc ((strlen (pi->partitionName) + 1) * sizeof (char));
      strcpy (pl->partitionData[i]->partitionName, pi->partitionName);
@@ -1770,7 +1768,6 @@ pllPartitionsCommit (struct pllQueue * parts, struct pllPhylip * phylip)
 
   rax_free (newBounds);
   rax_free (oi);
-
   return (pl);
 }
 
@@ -1867,11 +1864,9 @@ pllPhylipRemoveDuplicate (struct pllPhylip * phylip, partitionList * pl)
          }
       }
    }
-
   /* allocate memory for the alignment without duplicates*/
   rax_free (phylip->seq[1]);
   rax_free (phylip->weights);
-
   phylip->seqLen = phylip->seqLen - dups;
   phylip->seq[0] = (unsigned char *) rax_malloc ((phylip->seqLen + 1) * sizeof (unsigned char) * phylip->nTaxa);
   for (i = 0; i < phylip->nTaxa; ++ i)
@@ -1879,10 +1874,8 @@ pllPhylipRemoveDuplicate (struct pllPhylip * phylip, partitionList * pl)
      phylip->seq[i + 1] = (unsigned char *) (phylip->seq[0] + i * (phylip->seqLen + 1) * sizeof (unsigned char));
      phylip->seq[i + 1][phylip->seqLen] = 0;
    }
-
   phylip->weights    = (int *) rax_malloc ((phylip->seqLen) * sizeof (int));
   phylip->weights[0] = 1;
-
   /* transpose sites back to alignment */
   for (p = 0, k = 0; p < pl->numberOfPartitions; ++ p)
    {
@@ -1907,7 +1900,6 @@ pllPhylipRemoveDuplicate (struct pllPhylip * phylip, partitionList * pl)
      pl->partitionData[p]->upper = k;
      pl->partitionData[p]->width = k - lower;
    }
-
   /* deallocate storage for transposed alignment (sites) */
   for (p = 0; p < pl->numberOfPartitions; ++ p)
    {
@@ -2179,6 +2171,7 @@ pllLoadAlignment (pllInstance * tr, struct pllPhylip * phylip, partitionList * p
 {
   int i;
   nodeptr node;
+
 
   if (tr->mxtips != phylip->nTaxa) return (0);
 

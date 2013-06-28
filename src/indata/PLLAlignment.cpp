@@ -18,7 +18,6 @@
 extern "C" {
 #include "parser/phylip/phylip.h"
 #include "utils.h"
-#include "parser/partition/part.h"
 }
 
 namespace partest {
@@ -31,6 +30,89 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
 		int lastPosition) {
+	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
+	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, 12345);
+
+	numSeqs = alignment->phylip->nTaxa;
+	numSites = lastPosition - firstPosition + 1;
+	/* create new phylip structure */
+	phylip = (struct pllPhylip *) malloc(sizeof(struct pllPhylip));
+	phylip->nTaxa = numSeqs;
+	phylip->label = alignment->phylip->label;
+	phylip->seqLen = numSites;
+	phylip->seq = (unsigned char **) malloc(
+			(numSeqs + 1) * sizeof(unsigned char *));
+	for (int i = 1; i <= numSeqs; i++) {
+		phylip->seq[i] = (unsigned char *) malloc(
+				numSites * sizeof(unsigned char));
+		for (int site = 0; site < numSites; site++) {
+			phylip->seq[i][site] = alignment->phylip->seq[i][firstPosition
+					+ site - 1];
+		}
+	}
+	phylip->weights = (int *) rax_malloc((phylip->seqLen) * sizeof(int));
+	for (int site = 0; site < numSites; site++) {
+		phylip->weights[site] = 1;
+	}
+
+	struct pllPartitionInfo * pi;
+	struct pllPartitionRegion * region;
+	struct pllQueue * parts;
+	pi = (struct pllPartitionInfo *) rax_calloc(1,
+			sizeof(struct pllPartitionInfo));
+	pllQueueInit(&parts);
+	pllQueueInit(&(pi->regionList));
+	pllQueueAppend(parts, (void *) pi);
+	pi->partitionModel = (char *) malloc(5 * sizeof(char));
+	strcpy(pi->partitionModel, "DNA");
+
+	for (int i = 0; i < alignment->partitions->numberOfPartitions; i++) {
+		if (alignment->partitions->partitionData[i]->lower
+				== (firstPosition - 1)) {
+			pi->partitionName =
+					alignment->partitions->partitionData[i]->partitionName;
+			break;
+		}
+	}
+	pi->optimizeBaseFrequencies = PLL_TRUE;
+	pi->dataType = DNA_DATA;
+	pi->protFreqs = PLL_FALSE;
+	//pi->dataType  = AA_DATA;
+	//pi->protFreqs = PLL_FALSE;
+	//pi->optimizeBaseFrequencies = PLL_FALSE;
+	region = (struct pllPartitionRegion *) rax_malloc(
+			sizeof(struct pllPartitionRegion));
+	region->start = 1;
+	region->stride = 1;
+	region->end = numSites;
+	pllQueueAppend(pi->regionList, (void *) region);
+
+	/* commit the partitions and build a partitions structure */
+	partitions = pllPartitionsCommit(parts, phylip);
+
+	pllPartitionsValidate(parts, phylip);
+
+	pllPhylipRemoveDuplicate(phylip, partitions);
+	/* destroy the  intermedia partition queue structure */
+	pllQueuePartitionsDestroy(&parts);
+
+	//read_phylip_msa(tr, (char *) alignmentFile.c_str(), PHYLIP_SEQUENTIAL, 0);
+
+	numPatterns = phylip->seqLen;
+
+	cout << "INIT TOPO FOR ALIGN" << endl;
+	pllTreeInitTopologyForAlignment(tr, phylip);
+cout << "BUILDING TOPO " << phylip->nTaxa << " " <<phylip->label[1] << " " << phylip->label[6] << endl;
+	/* Connect the alignment with the tree structure */
+	if (!pllLoadAlignment(tr, phylip, partitions, PLL_SHALLOW_COPY)) {
+		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
+		Utilities::exit_partest(EX_SOFTWARE);
+	}
+		pllTreeInitTopologyRandom (tr, phylip->nTaxa, phylip->label);
+cout << "INIT MODEL" << endl;
+	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
+	pllInitModel(tr, PLL_TRUE, phylip, partitions);
+cout << "DONE" << endl;
 }
 
 PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
@@ -41,12 +123,11 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, 12345);
 	phylip = pllPhylipParse(alignmentFile.c_str());
 
-	struct pllQueue * parts = pllPartitionParse(partitionsFile.c_str());
+	parts = pllPartitionParse(partitionsFile.c_str());
 	/* commit the partitions and build a partitions structure */
 	partitions = pllPartitionsCommit(parts, phylip);
 	/* destroy the  intermedia partition queue structure */
-	pllQueuePartitionsDestroy(&parts);
-
+	//pllQueuePartitionsDestroy(&parts);
 	cout << "NTAXA = " << phylip->nTaxa << endl;
 	cout << "SEQLEN = " << phylip->seqLen << endl;
 
@@ -54,7 +135,26 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	numSeqs = phylip->nTaxa;
 	//TODO: Temporary both are equal
 	numSites = phylip->seqLen;
+	//pllPhylipRemoveDuplicate(phylip, partitions);
+
 	numPatterns = phylip->seqLen;
+
+	/* Set the topology of the PLL tree from a parsed newick tree */
+	//pllTreeInitTopologyNewick (tr, newick, PLL_TRUE);
+	/* Or instead of the previous function use the next commented line to create
+	 a random tree topology
+	 pllTreeInitTopologyRandom (tr, phylip->nTaxa, phylip->label); */
+
+	pllTreeInitTopologyForAlignment(tr, phylip);
+
+	/* Connect the alignment with the tree structure */
+	if (!pllLoadAlignment(tr, phylip, partitions, PLL_SHALLOW_COPY)) {
+		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
+		Utilities::exit_partest(EX_SOFTWARE);
+	}
+
+	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
+	pllInitModel(tr, PLL_TRUE, phylip, partitions);
 }
 
 PLLAlignment::~PLLAlignment() {
@@ -62,6 +162,8 @@ PLLAlignment::~PLLAlignment() {
 }
 
 Alignment * PLLAlignment::splitAlignment(int firstPosition, int lastPosition) {
+
+	cout << "SPLITTING " << firstPosition << " to " << lastPosition << endl;
 
 	PLLAlignment * newAlign = new PLLAlignment(this, firstPosition,
 			lastPosition);
@@ -72,6 +174,8 @@ Alignment * PLLAlignment::splitAlignment(int firstPosition, int lastPosition) {
 Alignment * PLLAlignment::splitAlignment(int * firstPosition,
 		int * lastPosition, int numberOfSections) {
 
+	cout << "SPLITTING " << numberOfSections << " " << firstPosition[0]
+			<< " to " << lastPosition[0] << endl;
 	return this;
 //	PLLAlignment * newAlign = new PLLAlignment(this, firstPosition,
 //			lastPosition, numberOfSections);

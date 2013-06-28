@@ -49,38 +49,35 @@ PLLModelOptimize::~PLLModelOptimize() {
 int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation, int current_index, int max_index) {
 
-	cout << "PLL OPTIMIZE STAGE 1" << endl;
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		PartitionElement * element = scheme->getElement(i);
+		optimizePartitionElement(element, i + 1, scheme->getNumberOfElements());
+	}
+	return 0;
 	partitionList * partitions = alignment->getPartitions();
-	struct pllPhylip * phylip = alignment->getPhylip();
+	partitionList * nextPartitions;
 
-	pllPhylipRemoveDuplicate(phylip, partitions);
+	/* build new partitioning scheme */
+	if (scheme->getNumberOfElements() == partitions->numberOfPartitions) {
+		nextPartitions = partitions;
+	} else {
 
-	/* Set the topology of the PLL tree from a parsed newick tree */
-	//pllTreeInitTopologyNewick (tr, newick, PLL_TRUE);
-	/* Or instead of the previous function use the next commented line to create
-	 a random tree topology
-	 pllTreeInitTopologyRandom (tr, phylip->nTaxa, phylip->label); */
-
-	pllTreeInitTopologyForAlignment(tr, phylip);
-	cout << "PLL OPTIMIZE STAGE 2" << endl;
-	/* Connect the alignment with the tree structure */
-	if (!pllLoadAlignment(tr, phylip, partitions, PLL_DEEP_COPY)) {
-		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
-	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	pllInitModel(tr, PLL_TRUE, phylip, partitions);
+//	cout << partitions->partitionData[0]->partition << endl;
+	if (tr->likelihood == 0) {
 
-	//pllPhylipDestroy(phylip);
-	cout << "PLL OPTIMIZE STAGE 3" << endl;
-	pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
-	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
-			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
-			PLL_FALSE, PLL_FALSE);
-	printf("Tree: %s %d\n", tr->tree_string, tr->start->number);
-	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+		//pllPhylipDestroy(phylip);
 
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
+		Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
+				PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+				PLL_FALSE, PLL_FALSE);
+		printf("Tree: %s %d\n", tr->tree_string, tr->start->number);
+
+		evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	}
+	cout << "PLL OPTIMIZE STAGE 1" << endl;
 	/* now start the ML search algorithm */
 	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
 	adef->max_rearrange = 21;
@@ -98,13 +95,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 	strcpy(infoFileName, "pll-info.out");
 	strcpy(logFileName, "pll-log.out");
 
-	cout << "PARSED " << partitions->numberOfPartitions << " PARTITIONS:"
-			<< endl;
-	for (int i = 0; i < partitions->numberOfPartitions; i++) {
-		cout << i + 1 << ": " << partitions->partitionData[i]->partitionName
-				<< endl;
-	}
-
+	cout << "PLL OPTIMIZE STAGE 1" << endl;
 	//  treeEvaluate(tr, 32);
 	evaluate(tr, partitions, adef, PLL_TRUE);
 	printf("tree evaluated: %f\n", tr->likelihood);
@@ -119,7 +110,8 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		Model * model = element->getModelset()->getModel(0);
 		model->setLnL(partitions->partitionData[i]->partitionLH);
 		model->setFrequencies(partitions->partitionData[i]->frequencies);
-		model->setAlpha(partitions->partitionData[i]->alpha);
+		if (model->isGamma())
+			model->setAlpha(partitions->partitionData[i]->alpha);
 		model->setRates(partitions->partitionData[i]->substRates);
 		model->print(cout);
 	}
@@ -148,6 +140,39 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		free(freqs);
 	}
 #else
+	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
+	adef->max_rearrange = 21;
+	adef->stepwidth = 5;
+	adef->initial = 10;
+	adef->bestTrav = 10;
+	adef->initialSet = PLL_FALSE;
+	adef->mode = BIG_RAPID_MODE;
+	adef->likelihoodEpsilon = 0.1;
+	adef->permuteTreeoptimize = PLL_FALSE;
+	adef->perGeneBranchLengths = PLL_FALSE;
+	adef->useCheckpoint = PLL_FALSE;
+
+	PLLAlignment * alignment = static_cast<PLLAlignment *>(partitionElement->getAlignment());
+	pllInstance * tree = alignment->getTree();
+	partitionList * partitions = alignment->getPartitions();
+	//pllPhylipDestroy(phylip);
+	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
+	Tree2String(tree->tree_string, tree, partitions, tree->start->back, PLL_TRUE,
+			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+			PLL_FALSE, PLL_FALSE);
+	printf("Tree: %s\n", tree->tree_string);
+
+	strcpy(resultFileName, "pll-result.out");
+	strcpy(infoFileName, "pll-info.out");
+	strcpy(logFileName, "pll-log.out");
+
+	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
+
+	cout << "DONE " <<  tr->likelihood << endl;
+		//  treeEvaluate(tr, 32);
+		evaluate(tr, partitions, adef, PLL_TRUE);
+	cout << "DONE " <<  tr->likelihood << endl;
+
 	cerr << "ERROR: Only full schemes should be optimized with PLL" << endl;
 	Utilities::exit_partest(EX_SOFTWARE);
 #endif

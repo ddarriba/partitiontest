@@ -1220,7 +1220,7 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 	     So pr->partitionData[model]->xSpaceVector[i] provides the length of the allocated conditional array of partition model
 	     and node i 
 	  */
-	  
+
 	  availableLength = pr->partitionData[model]->xSpaceVector[p_slot],
 	  requiredLength = 0;	     
 	
@@ -3321,7 +3321,7 @@ static void newviewGTRGAMMA(int tipCase,
           uX2 = &umpX2[16 * tipX2[i]];	   	    	    
 
           for (j = 0; j < 4; j++)
-          {				 		  		  		   
+          {
             __m128d uX1_k0_sse = _mm_load_pd( &uX1[j * 4] );
             __m128d uX1_k2_sse = _mm_load_pd( &uX1[j * 4 + 2] );
 

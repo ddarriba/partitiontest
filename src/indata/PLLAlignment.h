@@ -27,10 +27,11 @@
 #include "Alignment.h"
 
 extern "C" {
-	#include "parser/phylip/phylip.h"
-	//#include "parser/phylip/phylip.h"
-	//#include "utils.h"
-	//struct pllPhylip * pllPhylipParse (const char *);
+#include "parser/phylip/phylip.h"
+#include "parser/partition/part.h"
+//#include "parser/phylip/phylip.h"
+//#include "utils.h"
+//struct pllPhylip * pllPhylipParse (const char *);
 }
 
 using namespace std;
@@ -41,11 +42,11 @@ namespace partest {
  */
 class PLLAlignment: public Alignment {
 public:
-	PLLAlignment(PLLAlignment * alignment, int firstPosition,
-			int lastPosition);
+	PLLAlignment(PLLAlignment * alignment, int firstPosition, int lastPosition);
 	PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 			int * lastPosition, int numberOfSections);
-	PLLAlignment(string alignmentFile, DataType dataType, string partitionsFile);
+	PLLAlignment(string alignmentFile, DataType dataType,
+			string partitionsFile);
 	virtual ~PLLAlignment();
 	Alignment * splitAlignment(int firstPosition, int lastPosition);
 	Alignment * splitAlignment(int * firstPosition, int * lastPosition,
@@ -55,10 +56,17 @@ public:
 	 *
 	 * @return The tree data structure.
 	 */
-	pllInstance * getTree() { return tr; }
-	pllPhylip * getPhylip() { return phylip; }
-	partitionList * getPartitions() { return partitions; }
+	pllInstance * getTree() {
+		return tr;
+	}
+	pllPhylip * getPhylip() {
+		return phylip;
+	}
+	partitionList * getPartitions() {
+		return partitions;
+	}
 private:
+	struct pllQueue * parts; /** Single parsed partitions */
 	pllInstance * tr; /** Tree structure for working with PLL. */
 	partitionList * partitions; /** Partition definitions */
 	struct pllPhylip * phylip; /** Alignment */
