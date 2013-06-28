@@ -29,6 +29,9 @@
 #include "util/GlobalDefs.h"
 #include "indata/Alignment.h"
 #include "selection/SelectionModel.h"
+extern "C" {
+#include "parser/partition/part.h"
+}
 
 namespace partest {
 
@@ -199,6 +202,20 @@ public:
 	 */
 	void setBestModel(SelectionModel * bestModel);
 
+	/**
+	 * @brief Gets the Partition Info structure for PLL
+	 */
+	pInfo * getPartitionInfo(void) {
+		return partitionInfo;
+	}
+
+	/**
+	 * @brief Sets the Partition Info structure for PLL
+	 */
+	void setPartitionInfo(pInfo * pInfo) {
+		partitionInfo = pInfo;
+	}
+
 private:
 	/**
 	 * @brief Unique identifier of this partition.
@@ -221,6 +238,7 @@ private:
 	string name; /** The name of the partition. */
 	SelectionModel * bestModel; /** The best-fit model for this partition. */
 	ModelSet * modelset; /** The set of candidate models. */
+	pInfo * partitionInfo; /** Partition info for PLL */
 };
 
 } /* namespace partest */

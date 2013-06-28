@@ -27,6 +27,8 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 	this->stride[0] = stride;
 	this->alignment = alignment->splitAlignment(start, end);
 	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+
+	partitionInfo = 0;
 }
 
 PartitionElement::PartitionElement(t_partitionElementId id, string name,
@@ -40,6 +42,8 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 
 	this->alignment = alignment->splitAlignment(start, end, numberOfSections);
 	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+
+	partitionInfo = 0;
 }
 
 PartitionElement::~PartitionElement() {
