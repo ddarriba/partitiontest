@@ -2534,9 +2534,8 @@ pllTreeInitTopologyForAlignment (pllInstance * tr, struct pllPhylip * phylip)
 
   char 
     **nameList = phylip->label;
-  
-  pllTreeInitDefaults (tr, 2 * tips - 1, tips);
 
+  pllTreeInitDefaults (tr, 2 * tips - 1, tips);
   for (i = 1; i <= tips; ++ i)
    {
      tr->nameList[i] = (char *) rax_malloc ((strlen (nameList[i]) + 1) * sizeof (char));
@@ -2675,6 +2674,7 @@ pllBaseSubstitute (struct pllPhylip * phylip, partitionList * partitions)
   meaningAA['*'] = 
   meaningAA['-'] = 22;
 
+  if (phylip->seq[1][1] > 22) {
   for (i = 0; i < partitions->numberOfPartitions; ++ i)
    {
      d = (partitions->partitionData[i]->dataType == DNA_DATA) ? meaningDNA : meaningAA;
@@ -2687,6 +2687,7 @@ pllBaseSubstitute (struct pllPhylip * phylip, partitionList * partitions)
          }
       }
    }
+  }
 }
 
 /** @brief Deallocate the PLL instance

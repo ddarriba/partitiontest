@@ -1713,10 +1713,8 @@ void evaluate(pllInstance *tr, partitionList *pr, analdef *adef,
 	if (!adef->initialSet) {
 		bestTrav = adef->bestTrav = determineRearrangementSetting(tr, pr, adef,
 				bestT, bt);
-		printBothOpen("\nBest rearrangement radius: %d\n", bestTrav);
 	} else {
 		bestTrav = adef->bestTrav = adef->initial;
-		printBothOpen("\nUser-defined rearrangement radius: %d\n", bestTrav);
 	}
 
 	/* optimize model params more thoroughly or just optimize branch lengths */
