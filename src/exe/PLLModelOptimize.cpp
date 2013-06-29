@@ -49,9 +49,14 @@ PLLModelOptimize::~PLLModelOptimize() {
 int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation, int current_index, int max_index) {
 
+	cout << "SCHEME " << scheme->getName() << endl;
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
-		optimizePartitionElement(element, i + 1, scheme->getNumberOfElements());
+		if (!element->getBestModel()) {
+			cout << "ELEMENT " << element->getName() << endl;
+			optimizePartitionElement(element, i + 1,
+					scheme->getNumberOfElements());
+		}
 	}
 	return 0;
 	partitionList * partitions = alignment->getPartitions();
@@ -73,8 +78,6 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 				PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
 				PLL_FALSE, PLL_FALSE);
-		printf("Tree: %s %d\n", tr->tree_string, tr->start->number);
-
 		evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 	}
 	cout << "PLL OPTIMIZE STAGE 1" << endl;
@@ -152,15 +155,16 @@ int PLLModelOptimize::optimizeModel(Model * model,
 	adef->perGeneBranchLengths = PLL_FALSE;
 	adef->useCheckpoint = PLL_FALSE;
 
-	PLLAlignment * alignment = static_cast<PLLAlignment *>(partitionElement->getAlignment());
+	PLLAlignment * alignment =
+			static_cast<PLLAlignment *>(partitionElement->getAlignment());
 	pllInstance * tree = alignment->getTree();
 	partitionList * partitions = alignment->getPartitions();
 	//pllPhylipDestroy(phylip);
 	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
-	Tree2String(tree->tree_string, tree, partitions, tree->start->back, PLL_TRUE,
-			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
-			PLL_FALSE, PLL_FALSE);
-	printf("Tree: %s\n", tree->tree_string);
+//	Tree2String(tree->tree_string, tree, partitions, tree->start->back, PLL_TRUE,
+//			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+//			PLL_FALSE, PLL_FALSE);
+//	printf("Tree: %s\n", tree->tree_string);
 
 	strcpy(resultFileName, "pll-result.out");
 	strcpy(infoFileName, "pll-info.out");
@@ -168,11 +172,17 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
 
-	cout << "DONE " <<  tr->likelihood << endl;
-		//  treeEvaluate(tr, 32);
-		evaluate(tr, partitions, adef, PLL_TRUE);
-	cout << "DONE " <<  tr->likelihood << endl;
+	//  treeEvaluate(tr, 32);
+	evaluate(tree, partitions, adef, PLL_TRUE);
 
+	model->setLnL(tree->likelihood);
+	model->setFrequencies(partitions->partitionData[0]->frequencies);
+	if (model->isGamma())
+		model->setAlpha(partitions->partitionData[0]->alpha);
+	model->setRates(partitions->partitionData[0]->substRates);
+
+	cout << "MODEL " << partitions->partitionData[0]->lower << " TO " << partitions->partitionData[0]->upper  << " : "<< model->getLnL() << endl;
+	return 0;
 	cerr << "ERROR: Only full schemes should be optimized with PLL" << endl;
 	Utilities::exit_partest(EX_SOFTWARE);
 #endif
