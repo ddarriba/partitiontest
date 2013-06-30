@@ -54,7 +54,6 @@ public:
 private:
 	PLLAlignment * alignment;
 	pllInstance * tr; /** Tree structure from PLL */
-	double **empiricalFrequencies; /** Empirical frequencies of the site states. */
 };
 
 } /* namespace partest */

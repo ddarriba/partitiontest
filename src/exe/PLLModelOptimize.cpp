@@ -26,21 +26,6 @@ PLLModelOptimize::PLLModelOptimize(ParTestOptions * options) :
 	alignment = static_cast<PLLAlignment *>(options->getAlignment());
 	tr = alignment->getTree();
 
-//  tr = options->getAlignment()->getTree();
-//  empiricalFrequencies = (double **)malloc(sizeof(double *));
-//  empiricalFrequencies[0] = (double *)malloc(4*sizeof(double));
-//  empiricalFrequencies[0][0] = empiricalFrequencies[0][1] = empiricalFrequencies[0][2] = empiricalFrequencies[0][3] = 0.25;
-//  cout << tr << " " << empiricalFrequencies << endl;
-// // read_phylip_msa (tr[0], (char *) dataFileName.c_str(), PHYLIP|  _SEQUENTIAL, 0);
-//
-//#ifndef _MOCK_COMPUTATION
-////  initModel(tr, empiricalFrequencies);
-//    makeRandomTree(tr);
-////  evaluateGeneric(tr, tr->start, TRUE);
-//#endif
-//  ModelSet modelset(options->getRateVariation(), options->getDataType(), options->getAlignment()->getNumSeqs());
-//  cout << tr << " " << empiricalFrequencies << endl;
-//  for (int i=0; i<modelset.getNumberOfModels(); i++) optimizeModel(modelset.getModel(i), i);
 }
 
 PLLModelOptimize::~PLLModelOptimize() {
@@ -49,11 +34,9 @@ PLLModelOptimize::~PLLModelOptimize() {
 int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation, int current_index, int max_index) {
 
-	cout << "SCHEME " << scheme->getName() << endl;
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 		if (!element->getBestModel()) {
-			cout << "ELEMENT " << element->getName() << endl;
 			optimizePartitionElement(element, i + 1,
 					scheme->getNumberOfElements());
 		}
@@ -80,7 +63,6 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 				PLL_FALSE, PLL_FALSE);
 		evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 	}
-	cout << "PLL OPTIMIZE STAGE 1" << endl;
 	/* now start the ML search algorithm */
 	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
 	adef->max_rearrange = 21;
@@ -171,17 +153,14 @@ int PLLModelOptimize::optimizeModel(Model * model,
 	strcpy(logFileName, "pll-log.out");
 
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
-
 	//  treeEvaluate(tr, 32);
 	evaluate(tree, partitions, adef, PLL_TRUE);
-
 	model->setLnL(tree->likelihood);
 	model->setFrequencies(partitions->partitionData[0]->frequencies);
 	if (model->isGamma())
 		model->setAlpha(partitions->partitionData[0]->alpha);
 	model->setRates(partitions->partitionData[0]->substRates);
 
-	cout << "MODEL " << partitions->partitionData[0]->lower << " TO " << partitions->partitionData[0]->upper  << " : "<< model->getLnL() << endl;
 	return 0;
 	cerr << "ERROR: Only full schemes should be optimized with PLL" << endl;
 	Utilities::exit_partest(EX_SOFTWARE);
