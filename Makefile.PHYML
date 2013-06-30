@@ -39,7 +39,6 @@ PARTEST_CXXFILES = \
 	util/ParTestFactory.cpp \
 	util/PrintMeta.cpp \
 	util/Utilities.cpp \
-	util/Stirling.cpp \
 	partitiontest.cpp
 
 PHYML_CFILES = \

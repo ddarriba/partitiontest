@@ -70,6 +70,7 @@ private:
 	pllInstance * tr; /** Tree structure for working with PLL. */
 	partitionList * partitions; /** Partition definitions */
 	struct pllPhylip * phylip; /** Alignment */
+	void buildTopology(void);
 };
 
 } /* namespace partest */
