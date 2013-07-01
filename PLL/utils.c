@@ -2252,20 +2252,16 @@ pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRec
   pllInstance * tr;
 
   if (rateHetModel != GAMMA && rateHetModel != CAT) return NULL;
-
   tr = (pllInstance *) rax_calloc (1, sizeof (pllInstance));
-
   tr->threadID     = 0;
   tr->rateHetModel = rateHetModel;
   tr->fastScaling  = fastScaling;
   tr->saveMemory   = saveMemory;
   tr->useRecom     = useRecom;
-  
   tr->randomNumberSeed = randomNumberSeed;
 
   /* remove it from the library */
   tr->useMedian    = PLL_FALSE;
-
   tr->maxCategories = (rateHetModel == GAMMA) ? 4 : 25;
   
   return (tr);

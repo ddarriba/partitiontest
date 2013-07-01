@@ -105,12 +105,12 @@ PartitionElement * PartitionMap::getPartitionElement(
 		return partitions->at(partitionId.at(0)).partitionElement;
 	}
 
-	/* element not found */
-	if (partitionId.size() == 1) {
-		/* single elements should be already mapped */
-		cerr << "Requested element (" << partitionId.at(0) << ") does not exist"
-				<< endl;
-		exit(-1);
+	/* search for element */
+	for (int i = 0; i < partitions->size(); i++) {
+		partitionMappingInfo pInfo = partitions->at(i);
+		if (pInfo.partitionId == partitionId) {
+			return pInfo.partitionElement;
+		}
 	}
 
 	/* we need to merge partitions */
@@ -132,9 +132,11 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 	partitionMappingInfo pInfo;
 	pInfo.partitionId = partitionId;
+
 	pInfo.partitionElement = new PartitionElement(partitionId, name.str(),
 			alignment, start, end, stride, numberOfSections, rateVariation,
 			dataType);
+
 	partitions->push_back(pInfo);
 	numberOfElements++;
 	return pInfo.partitionElement;

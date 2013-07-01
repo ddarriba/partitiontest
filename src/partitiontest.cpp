@@ -151,7 +151,6 @@ int main(int argc, char *argv[]) {
 	}
 
 
-
 	delete searchAlgo;
 	delete partitionMap;
 	delete options;

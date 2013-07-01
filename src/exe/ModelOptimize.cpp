@@ -51,7 +51,8 @@ int ModelOptimize::optimizePartitionElement(
 				partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
-	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+	//for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+		for (int i = modelset->getNumberOfModels() -1; i>=0; i--) {
 		optimizeModel(modelset->getModel(i), partitionElement, i,
 				modelset->getNumberOfModels());
 	}

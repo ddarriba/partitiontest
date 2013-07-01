@@ -53,12 +53,11 @@ PartitionElement::~PartitionElement() {
 	free(end);
 	free(stride);
 
-	delete (alignment);
+	delete alignment;
 	delete modelset;
 
 	if (bestModel != 0)
 		delete bestModel;
-
 }
 
 SelectionModel * PartitionElement::getBestModel(void) {
