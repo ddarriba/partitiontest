@@ -933,7 +933,7 @@ int rearrangeBIG(pllInstance *tr, partitionList *pr, nodeptr p, int mintrav,
 	return 1;
 }
 
-static double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
+double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 		int maxtrav, analdef *adef, bestlist *bt, infoList *iList) {
 	int i, index, *perm = (int*) NULL;
 

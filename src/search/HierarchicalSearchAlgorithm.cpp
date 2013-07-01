@@ -98,7 +98,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 			mo->optimizePartitioningScheme(nextSchemes.at(i), false,
 					++current_scheme, partitionMap->getNumberOfPartitions());
 #ifdef DEBUG
-			//cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->toString() << endl;
+			cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->getName() << endl;
 #endif
 			PartitionSelector partSelector(&(nextSchemes.at(i)), 1, options);
 			double criterionValue = partSelector.getBestSelectionScheme()->value;
@@ -135,6 +135,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 			for (int i = 0; i < size; i++) {
 				nextSchemes.pop_back();
 			}
+
 			int numPartitions = prevScheme->getNumberOfElements() - 1;
 			for (int i = 0; i < bestMatch0.size(); i++) {
 				nextSchemes.push_back(new PartitioningScheme(numPartitions));
@@ -152,7 +153,6 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 								element);
 					}
 				}
-
 			}
 			if (prevScheme != bestScheme) {
 				delete prevScheme;
