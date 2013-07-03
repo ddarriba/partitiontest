@@ -168,6 +168,10 @@ Model * ModelSet::getModel(unsigned int index) {
 int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 		bool forceCompleteSet) {
 
+#ifdef _PLL
+	rateVar |= RateVarG;
+#endif
+
 	int currentIndex = 0;
 	NucMatrix nm;
 	switch (dataType) {

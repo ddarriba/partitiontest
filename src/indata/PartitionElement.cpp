@@ -15,7 +15,7 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		id(id), name(name) {
 
 #ifdef DEBUG
-	cout << "[TRACE] PartitionElement: Creating " << id.at(0) << endl;
+	cout << "[TRACE] PartitionElement: Creating " << name << endl;
 #endif
 	numberOfSections = 1;
 	this->bestModel = 0;
@@ -36,6 +36,11 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		Alignment * alignment, int * start, int * end, int * stride,
 		int numberOfSections, bitMask rateVariation, DataType dataType) :
 		id(id), name(name), numberOfSections(numberOfSections) {
+
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Creating " << name << endl;
+#endif
+
 	this->bestModel = 0;
 	this->start = start;
 	this->end = end;

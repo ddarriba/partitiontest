@@ -29,7 +29,7 @@ struct comparePartitionElements {
 			Utilities::exit_partest(EX_SOFTWARE);
 		}
 
-		return i1.size() < i2.size();
+		return i1 < i2;
 	}
 };
 

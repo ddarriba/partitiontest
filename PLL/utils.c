@@ -1656,7 +1656,6 @@ createPartitions (struct pllQueue * parts, int * bounds)
    {
      pi = (struct pllPartitionInfo *) elm->item;
      pl->partitionData[i] = (pInfo *) rax_malloc (sizeof (pInfo));
-
      pl->partitionData[i]->lower = bounds[i << 1];
      pl->partitionData[i]->upper = bounds[(i << 1) + 1];
      pl->partitionData[i]->width = bounds[(i << 1) + 1] - bounds[i << 1];
@@ -1691,8 +1690,7 @@ createPartitions (struct pllQueue * parts, int * bounds)
      pl->partitionData[i]->partitionName         = (char *) rax_malloc ((strlen (pi->partitionName) + 1) * sizeof (char));
      strcpy (pl->partitionData[i]->partitionName, pi->partitionName);
    }
-
-  return (pl);
+   return (pl);
 }
 
 
@@ -1733,17 +1731,14 @@ pllPartitionsCommit (struct pllQueue * parts, struct pllPhylip * phylip)
 
   nparts = pllQueueSize (parts);
   newBounds = (int *) rax_malloc (2 * nparts * sizeof (int));
-
   /* reposition the sites in the alignment */
   for (elm = parts->head; elm; elm = elm->next, ++ k)
    {
      pi = (struct pllPartitionInfo *) elm->item;
-     
      newBounds[k << 1] = dst;   /* set the lower column for this partition */
      for (regionItem = pi->regionList->head; regionItem; regionItem = regionItem->next)
       {
         region = (struct pllPartitionRegion *) regionItem->item;
-
         for (i = region->start - 1; i < region->end; i += region->stride)
          {
            if (oi[i] == i)
@@ -1765,7 +1760,6 @@ pllPartitionsCommit (struct pllQueue * parts, struct pllPhylip * phylip)
    }
   pl = createPartitions (parts, newBounds);
   pl->numberOfPartitions = nparts;
-
   rax_free (newBounds);
   rax_free (oi);
   return (pl);
@@ -2718,6 +2712,9 @@ pllTreeDestroy (pllInstance * tr)
   rax_free (tr->td[0].executeModel);
   rax_free (tr->td[0].ti);
   rax_free (tr->nameList);
+//  for (i=0; i<2*tr->mxtips; i++) {
+//	  rax_free (tr->nodep[i]);
+//  }
   rax_free (tr->nodep);
   rax_free (tr->nodeBaseAddress);
   rax_free (tr->tree_string);
@@ -2750,7 +2747,6 @@ static void init_Q_MatrixSymmetries(char *linkageString, partitionList * pr, int
     *saveptr,
     *ch,
     *token;
-
   ch = (char *) rax_malloc (strlen (linkageString) + 1);
   strcpy (ch, linkageString);
 

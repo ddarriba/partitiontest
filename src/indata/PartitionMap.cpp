@@ -105,6 +105,8 @@ PartitionElement * PartitionMap::getPartitionElement(
 		return partitions->at(partitionId.at(0)).partitionElement;
 	}
 
+	std::sort(partitionId.begin(), partitionId.end());
+
 	/* search for element */
 	for (int i = 0; i < partitions->size(); i++) {
 		partitionMappingInfo pInfo = partitions->at(i);
