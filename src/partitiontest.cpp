@@ -95,6 +95,8 @@ int main(int argc, char *argv[]) {
 	mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
 	PartitionSelector partSelector(&partitioningScheme, 1, options);
 
+	static_cast<PLLModelOptimize* >(mo)->optimizePartitioningSchemeAtOnce(partitioningScheme);
+
 	delete mo;
 	delete observer;
 #endif
@@ -150,6 +152,9 @@ int main(int argc, char *argv[]) {
 		element->getBestModel()->getModel()->print(*rout);
 	}
 
+	if (partitioningScheme->getNumberOfElements() == 1) {
+		cout << "BEST TREE: " << partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree() << endl;
+	}
 
 	delete searchAlgo;
 	delete partitionMap;
