@@ -45,6 +45,7 @@ ParTestOptions::ParTestOptions() {
 	modelsOutputStream = 0;
 	partitionsOutputStream = 0;
 	schemesOutputStream = 0;
+	treeString = 0;
 }
 
 ParTestOptions::~ParTestOptions() {
@@ -143,6 +144,10 @@ char* ParTestOptions::getTreeFile() {
 	return treeFile;
 }
 
+char* ParTestOptions::getTreeString() {
+	return treeString;
+}
+
 DataType ParTestOptions::getDataType() const {
 	return dataType;
 }
@@ -187,16 +192,25 @@ void ParTestOptions::setAlignment(Alignment *alignment) {
 	this->alignment = alignment;
 }
 
-void ParTestOptions::setConfigFile(char* configFile) {
+void ParTestOptions::setConfigFile(const char * configFile) {
 	strcpy(this->configFile, configFile);
 }
 
-void ParTestOptions::setInputFile(char* inputFile) {
+void ParTestOptions::setInputFile(const char * inputFile) {
 	strcpy(this->inputFile, inputFile);
 }
 
-void ParTestOptions::setTreeFile(char* treeFile) {
+void ParTestOptions::setTreeFile(const char * treeFile) {
 	strcpy(this->treeFile, treeFile);
+}
+
+void ParTestOptions::setTreeString(char * treeString, bool eager) {
+	if (eager) {
+		this->treeString = (char *) malloc(strlen(treeString) + 1);
+		strcpy(this->treeString, treeString);
+	} else {
+		this->treeString = treeString;
+	}
 }
 
 SampleSize ParTestOptions::getSampleSize(void) const {

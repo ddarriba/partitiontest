@@ -27,7 +27,7 @@ using namespace std;
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
-	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, 12345);
+	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, rand());
 
 	numSeqs = alignment->phylip->nTaxa;
 	numSites = 0;
@@ -36,9 +36,10 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	}
 	phylip = (struct pllPhylip *) malloc(sizeof(struct pllPhylip));
 	phylip->nTaxa = numSeqs;
-	phylip->label = (char **) calloc ((numSeqs + 1), sizeof (char *));
-	for (int i=0; i<numSeqs; i++) {
-		phylip->label[i + 1] = strndup (alignment->phylip->label[i+1], strlen(alignment->phylip->label[i+1]));
+	phylip->label = (char **) calloc((numSeqs + 1), sizeof(char *));
+	for (int i = 0; i < numSeqs; i++) {
+		phylip->label[i + 1] = strndup(alignment->phylip->label[i + 1],
+				strlen(alignment->phylip->label[i + 1]));
 	}
 	phylip->seqLen = numSites;
 	phylip->seq = (unsigned char **) malloc(
@@ -76,7 +77,8 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	for (int i = 0; i < alignment->partitions->numberOfPartitions; i++) {
 		if (alignment->partitions->partitionData[i]->lower
 				== (firstPosition[0] - 1)) {
-			pi->partitionName = strdup(alignment->partitions->partitionData[i]->partitionName);
+			pi->partitionName = strdup(
+					alignment->partitions->partitionData[i]->partitionName);
 			break;
 		}
 	}
@@ -130,14 +132,14 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 		Alignment(alignmentFile, dataType) {
 
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
-	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, 12345);
+	tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE, rand());
 	phylip = pllPhylipParse(alignmentFile.c_str());
 
-	parts = pllPartitionParse(partitionsFile.c_str());
-
 	/* commit the partitions and build a partitions structure */
+	parts = pllPartitionParse(partitionsFile.c_str());
 	partitions = pllPartitionsCommit(parts, phylip);
-//pllQueuePartitionsDestroy(&parts);
+	pllQueuePartitionsDestroy(&parts);
+
 	cout << "NTAXA = " << phylip->nTaxa << endl;
 	cout << "SEQLEN = " << phylip->seqLen << endl;
 
@@ -165,9 +167,22 @@ PLLAlignment::~PLLAlignment() {
 		pllPhylipDestroy(phylip);
 	if (partitions)
 		pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
-			tr->mxtips);
+				tr->mxtips);
 	if (tr)
 		pllTreeDestroy(tr);
+}
+
+void PLLAlignment::destroyStructures(void) {
+	if (phylip)
+		pllPhylipDestroy(phylip);
+	if (partitions)
+		pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
+				tr->mxtips);
+	if (tr)
+		pllTreeDestroy(tr);
+	phylip = 0;
+	partitions = 0;
+	tr = 0;
 }
 
 Alignment * PLLAlignment::splitAlignment(int firstPosition, int lastPosition) {

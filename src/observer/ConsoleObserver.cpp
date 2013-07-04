@@ -58,7 +58,9 @@ void ConsoleObserver::update(const ObservableInfo & info,
 #pragma omp critical
 	switch (info.type) {
 	case MT_NEXT_STEP:
-		cout << Utilities::timeToString(info.time - initTime) << " [STEP] " << info.current_index << "/" << info.max_index <<  " " << info.message << endl;
+		cout << Utilities::timeToString(info.time - initTime) << " [STEP] "
+				<< info.current_index << "/" << info.max_index << " "
+				<< info.message << endl;
 		break;
 	case MT_SINGLE_INIT:
 #ifdef DEBUG
@@ -71,21 +73,36 @@ void ConsoleObserver::update(const ObservableInfo & info,
 		cout << "[TRACE] [" << info.current_index + 1 << "/" << info.max_index << "]\tOptimized "
 		<< setw(15) << info.model->getName() << info.model->getLnL()
 		<< endl;
+#else
+		cout << Utilities::timeToString(info.time - initTime)
+				<< " -- -- -- [/MODEL] " << info.current_index << "/"
+				<< info.max_index << " " << info.model->getName() << " ("
+				<< info.model->getLnL() << ")";
+		cout << endl;
 #endif
 		break;
 	case MT_MODELSET_INIT:
-		cout << Utilities::timeToString(info.time - initTime) << " -- -- [MODELSET] " << info.current_index << "/" << info.max_index << endl;
+		cout << Utilities::timeToString(info.time - initTime)
+				<< " -- -- [MODELSET] " << info.current_index << "/"
+				<< info.max_index << endl;
 		modelIndex = 0;
 		break;
 	case MT_MODELSET_END:
-		cout <<  Utilities::timeToString(info.time - initTime) << " -- -- [/MODELSET] " << info.current_index << "/" << info.max_index << endl;
+		cout << Utilities::timeToString(info.time - initTime)
+				<< " -- -- [/MODELSET] " << info.current_index << "/"
+				<< info.max_index << " " << info.model->getName() << " ("
+				<< info.model->getLnL() << ")";
+		cout << endl;
 		break;
 	case MT_SCHEME_INIT:
-		cout <<  Utilities::timeToString(info.time - initTime) << " -- [SCHEME] " << info.current_index << "/" << info.max_index << " "<< endl;
+		cout << Utilities::timeToString(info.time - initTime) << " -- [SCHEME] "
+				<< info.current_index << "/" << info.max_index << " " << endl;
 		modelIndex = 0;
 		break;
 	case MT_SCHEME_END:
-		cout <<  Utilities::timeToString(info.time - initTime) << " -- [/SCHEME] " << info.current_index << "/" << info.max_index << endl;
+		cout << Utilities::timeToString(info.time - initTime)
+				<< " -- [/SCHEME] " << info.current_index << "/"
+				<< info.max_index << endl;
 		break;
 	}
 }

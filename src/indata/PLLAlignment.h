@@ -51,6 +51,7 @@ public:
 	Alignment * splitAlignment(int firstPosition, int lastPosition);
 	Alignment * splitAlignment(int * firstPosition, int * lastPosition,
 			int numberOfSections);
+	void destroyStructures(void);
 	/**
 	 * @brief Gets the tree data structure from PLL.
 	 *

@@ -28,7 +28,6 @@
 #include "selection/PartitionSelector.h"
 #include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
-#include "indata/PartitionManager.h"
 
 namespace partest {
 
@@ -252,6 +251,7 @@ int GreedySearchAlgorithm::getNextPartitioningSchemes(
 	int numberOfPartitions = currentScheme->getNumberOfElements()
 			* (currentScheme->getNumberOfElements() - 1);
 
+	return 0;
 }
 
 } /* namespace partest */

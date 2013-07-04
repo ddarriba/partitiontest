@@ -114,7 +114,14 @@ public:
 	 *
 	 * @return The input tree file name.
 	 */
-	char* getTreeFile(void);
+	char * getTreeFile(void);
+
+	/**
+	 * @brief Gets the input tree in Newick format.
+	 *
+	 * @return The input tree.
+	 */
+	char * getTreeString(void);
 
 	/**
 	 * @brief Gets the search algorithm.
@@ -217,21 +224,29 @@ public:
 	 *
 	 * @param configFile The configuration file name.
 	 */
-	void setConfigFile(char* configFile);
+	void setConfigFile(const char* configFile);
 
 	/**
 	 * @brief Sets the input alignment file.
 	 *
 	 * @param inputFile The input alignment filename.
 	 */
-	void setInputFile(char* inputFile);
+	void setInputFile(const char* inputFile);
 
 	/**
 	 * @brief Sets the input tree file.
 	 *
 	 * @param treeFile The input tree file name.
 	 */
-	void setTreeFile(char* treeFile);
+	void setTreeFile(const char* treeFile);
+
+	/**
+	 * @brief Sets the input tree in Newick format.
+	 *
+	 * @param treeString The input tree.
+	 * @param eager If false, the variable maintains just a reference to the tree
+	 */
+	void setTreeString(char* treeString, bool eager = false);
 
 	/**
 	 * @brief Sets the criterion for selection.
@@ -294,6 +309,7 @@ private:
 	char inputFile[256]; /** Input MSA file */
 	char configFile[256]; /** Input configuration file */
 	char treeFile[256]; /** Input tree file */
+	char * treeString; /** Input tree in Newick format */
 	string outputFileResults; /** Output results file */
 	string outputFileModels; /** Output models file */
 	string outputFilePartitions; /** Output partitions file */

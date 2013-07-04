@@ -67,7 +67,7 @@ struct ObservableInfo {
     		unsigned int current_index = 0, unsigned int max_index = 0, string message = 0) :
         type(type), model(model), time(time), current_index(current_index), max_index(
             max_index), p_index(p_index), message(message) {
-    	assert(type != MT_MODELSET_INIT && type != MT_MODELSET_END);
+    	assert(type != MT_MODELSET_INIT);
     	modelset = 0;
     }
     /**
