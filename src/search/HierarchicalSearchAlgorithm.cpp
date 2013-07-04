@@ -68,42 +68,40 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	mo->attach(observer);
 	mo->attach(this);
 
-	/* Starting topology */
-	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
-	adef->max_rearrange = 100;
-	adef->stepwidth = 5;
-	adef->initial = 10;
-	adef->bestTrav = 10;
-	adef->initialSet = PLL_FALSE;
-	adef->mode = BIG_RAPID_MODE;
-	adef->likelihoodEpsilon = 0.1;
-	adef->permuteTreeoptimize = PLL_FALSE;
-	adef->perGeneBranchLengths = PLL_FALSE;
-	adef->useCheckpoint = PLL_FALSE;
+	if (options->getStartingTopology() == StartTopoFIXED) {
+		/* Starting topology */
+		analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
+		adef->max_rearrange = 100;
+		adef->stepwidth = 5;
+		adef->initial = 10;
+		adef->bestTrav = 10;
+		adef->initialSet = PLL_FALSE;
+		adef->mode = BIG_RAPID_MODE;
+		adef->likelihoodEpsilon = 0.1;
+		adef->permuteTreeoptimize = PLL_FALSE;
+		adef->perGeneBranchLengths = PLL_FALSE;
+		adef->useCheckpoint = PLL_FALSE;
 
-	PLLAlignment * alignment =
-			static_cast<PLLAlignment *>(options->getAlignment());
+		PLLAlignment * alignment =
+				static_cast<PLLAlignment *>(options->getAlignment());
 
-	pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
-			alignment->getPartitions());
-	evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
-			alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
-	mo->evaluate(alignment->getTree(), alignment->getPartitions(), adef, true);
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
+				alignment->getPartitions());
+		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
+				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
+		mo->evaluate(alignment->getTree(), alignment->getPartitions(), adef,
+				true);
 
-	Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
-			alignment->getPartitions(), alignment->getTree()->start->back,
-			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-	rax_free(adef);
+		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
+				alignment->getPartitions(), alignment->getTree()->start->back,
+				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+		rax_free(adef);
 
-	options->setTreeString(alignment->getTree()->tree_string);
+		options->setTreeString(alignment->getTree()->tree_string);
 
-	cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
-
-
-
-
-
+		cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
+	}
 
 	/* 1. start with k=n groups */
 	vector<PartitioningScheme *> nextSchemes;

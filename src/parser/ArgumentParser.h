@@ -29,8 +29,12 @@
 
 #define ARG_DT_NUCLEIC "nt"		/** Argument for nucleotide datatype */
 #define ARG_DT_PROTEIC "aa"		/** Argument for amino-acid datatype */
+#ifndef _PLL
 #define ARG_TOPO_BIONJ "bionj"	/** Argument for NJ starting topology */
 #define ARG_TOPO_ML    "ml"		/** Argument for ML starting topology */
+#else
+#define ARG_TOPO_MP    "mp"		/** Argument for MP starting topology */
+#endif
 #define ARG_TOPO_FIXED "fixed"	/** Argument for fixed JC/JTT starting topology */
 #define ARG_TOPO_USER  "user"	/** Argument for custom starting topology */
 #define ARG_IC_AIC     "aic"	/** Argument for using AIC for model selection */
@@ -54,66 +58,65 @@
 #define ARG_SEARCH_HIERARCHICAL "hcluster"	/** Argument for hierarchical clustering search */
 
 enum ArgIndex {
-  ARG_NULL,
-  ARG_INPUT_FILE,		/** Argument for input data file */
-  ARG_INPUT_FORMAT,		/** Argument for input data format */
-  ARG_USER_TREE,		/** Argument for input user tree file */
-  ARG_DATA_TYPE,		/** Argument for data type (aa/nt) */
-  ARG_IC_TYPE,			/** Argument for selection criterion */
-  ARG_FREQUENCIES,		/** Argument for including +F models */
-  ARG_INV,				/** Argument for including +I models */
-  ARG_GAMMA,			/** Argument for including +G models */
-  ARG_TOPOLOGY,			/** Argument for starting topology type */
-  ARG_CONFIG_FILE,		/** Argument for configuration file name */
-  ARG_NUM_PROCS,		/** Argument for number of processors */
-  ARG_SAMPLE_SIZE,		/** Argument for sample size type */
-  ARG_SEARCH_ALGORITHM,	/** Argument for search algorithm */
-  ARG_HELP,				/** Argument for show help */
-  ARG_CONFIG_HELP,		/** Argument for show help about configuration */
-  ARG_CONFIG_TEMPLATE,	/** Argument for show a configuration template */
-  ARG_END
+	ARG_NULL, ARG_INPUT_FILE, /** Argument for input data file */
+	ARG_INPUT_FORMAT, /** Argument for input data format */
+	ARG_USER_TREE, /** Argument for input user tree file */
+	ARG_DATA_TYPE, /** Argument for data type (aa/nt) */
+	ARG_IC_TYPE, /** Argument for selection criterion */
+	ARG_FREQUENCIES, /** Argument for including +F models */
+	ARG_INV, /** Argument for including +I models */
+	ARG_GAMMA, /** Argument for including +G models */
+	ARG_TOPOLOGY, /** Argument for starting topology type */
+	ARG_CONFIG_FILE, /** Argument for configuration file name */
+	ARG_NUM_PROCS, /** Argument for number of processors */
+	ARG_SAMPLE_SIZE, /** Argument for sample size type */
+	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
+	ARG_HELP, /** Argument for show help */
+	ARG_CONFIG_HELP, /** Argument for show help about configuration */
+	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */
+	ARG_END
 };
 
 struct option {
-    ArgIndex index;			/** Argument index */
-    char char_code;			/** Short option (single char) */
-    const char *long_code;	/** Long option */
-    bool required_value;	/** Whether a value is required or not */
+	ArgIndex index; /** Argument index */
+	char char_code; /** Short option (single char) */
+	const char *long_code; /** Long option */
+	bool required_value; /** Whether a value is required or not */
 };
 
 namespace partest {
 
 class ArgumentParser {
 
-  public:
-    ArgumentParser();
-    ~ArgumentParser();
+public:
+	ArgumentParser();
+	~ArgumentParser();
 
-    /**
-     * @brief Gets the next argument.
-     *
-     * @param argc Arguments array.
-     * @param argv Number of arguments.
-     * @param[out] argument Read argument (starting with "-" or "--").
-     * @param[out] value Read value (if any).
-     *
-     * @return The index of the parsed argument.
-     */
-    ArgIndex get_opt(int argc, char *argv[], char *argument, char *value);
+	/**
+	 * @brief Gets the next argument.
+	 *
+	 * @param argc Arguments array.
+	 * @param argv Number of arguments.
+	 * @param[out] argument Read argument (starting with "-" or "--").
+	 * @param[out] value Read value (if any).
+	 *
+	 * @return The index of the parsed argument.
+	 */
+	ArgIndex get_opt(int argc, char *argv[], char *argument, char *value);
 
-    /**
-     * @brief Fills an options instance with the arguments array.
-     *
-     * @param argc Arguments array.
-     * @param argv Number of arguments.
-     * @param[in,out] options The options instance.
-     */
-    void fill_options(int argc, char *argv[], ParTestOptions * options);
-  private:
-    void init();
-    int index;			/** Current argument index within the arguments array. */
-    int subindex;		/** Current artument subindex within an arguments chain. */
-    option* arguments;	/** Read arguments. */
+	/**
+	 * @brief Fills an options instance with the arguments array.
+	 *
+	 * @param argc Arguments array.
+	 * @param argv Number of arguments.
+	 * @param[in,out] options The options instance.
+	 */
+	void fill_options(int argc, char *argv[], ParTestOptions * options);
+private:
+	void init();
+	int index; /** Current argument index within the arguments array. */
+	int subindex; /** Current artument subindex within an arguments chain. */
+	option* arguments; /** Read arguments. */
 };
 
 } /* namespace partest */
