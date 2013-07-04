@@ -23,6 +23,7 @@
  */
 
 #include "ModelOptimize.h"
+#include "selection/ModelSelector.h"
 
 namespace partest {
 
@@ -40,8 +41,8 @@ ModelOptimize::~ModelOptimize() {
 //  return 0;
 //}
 
-int ModelOptimize::optimizePartitionElement(
-		PartitionElement * partitionElement, int current_index, int max_index) {
+int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
+		int current_index, int max_index) {
 	ModelSet * modelset = partitionElement->getModelset();
 	//(options->getRateVariation(), options->getDataType());
 #pragma omp single
@@ -51,15 +52,42 @@ int ModelOptimize::optimizePartitionElement(
 				partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
-	//for (int i = 0; i < modelset->getNumberOfModels(); i++) {
-		for (int i = modelset->getNumberOfModels() -1; i>=0; i--) {
+	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+		//for (int i = modelset->getNumberOfModels() - 1; i >= 0; i--) {
+		notify_observers(MT_SINGLE_INIT, partitionElement->getId(),
+				modelset->getModel(i), time(NULL), i + 1,
+				modelset->getNumberOfModels(),
+				modelset->getModel(i)->getName());
+
 		optimizeModel(modelset->getModel(i), partitionElement, i,
 				modelset->getNumberOfModels());
+
+		notify_observers(MT_SINGLE_END, partitionElement->getId(),
+				modelset->getModel(i), time(NULL), i + 1,
+				modelset->getNumberOfModels(),
+				modelset->getModel(i)->getName());
 	}
 #pragma omp single
 	{
-		notify_observers(MT_MODELSET_END, partitionElement->getId(), modelset,
-				time(NULL), current_index, max_index, partitionElement->getName());
+		double pSampleSize = 0.0;
+		switch (options->getSampleSize()) {
+		case SS_ALIGNMENT:
+			pSampleSize = partitionElement->getAlignment()->getNumSites()
+					* partitionElement->getAlignment()->getNumSeqs();
+			break;
+		case SS_SHANNON:
+			pSampleSize = partitionElement->getAlignment()->getShannonEntropy();
+			break;
+		default:
+			pSampleSize = options->getSampleSize();
+			break;
+		}
+		ModelSelector selector = ModelSelector(partitionElement,
+				options->getInformationCriterion(), pSampleSize);
+
+		notify_observers(MT_MODELSET_END, partitionElement->getId(),
+				partitionElement->getBestModel()->getModel(), time(NULL),
+				current_index, max_index, partitionElement->getName());
 	}
 
 	return 0;
@@ -77,7 +105,8 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 			PartitionElement * currentElement = scheme->getElement(i);
 #pragma omp parallel
 			if (!currentElement->isOptimized() || forceRecomputation) {
-				optimizePartitionElement(currentElement, i+1, scheme->getNumberOfElements());
+				optimizePartitionElement(currentElement, i + 1,
+						scheme->getNumberOfElements());
 			}
 #pragma omp end parallel
 		}

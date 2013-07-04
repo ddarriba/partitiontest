@@ -32,6 +32,7 @@
 #include "indata/Alignment.h"
 #include "observer/Observer.h"
 #include "observer/Observable.h"
+#include <string>
 
 namespace partest {
 

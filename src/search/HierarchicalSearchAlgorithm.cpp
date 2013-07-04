@@ -28,8 +28,9 @@
 #include "selection/PartitionSelector.h"
 #include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
-#include "indata/PartitionManager.h"
-
+extern "C" {
+#include "utils.h"
+}
 namespace partest {
 
 HierarchicalSearchAlgorithm::HierarchicalSearchAlgorithm(
@@ -59,11 +60,50 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 	int current_scheme = 0;
 
-	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
+	PLLModelOptimize * mo =
+			static_cast<PLLModelOptimize *>(ParTestFactory::createModelOptimize(
+					options));
 	ConsoleObserver * observer = new ConsoleObserver();
 	this->attach(observer);
 	mo->attach(observer);
 	mo->attach(this);
+
+	/* Starting topology */
+	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
+	adef->max_rearrange = 100;
+	adef->stepwidth = 5;
+	adef->initial = 10;
+	adef->bestTrav = 10;
+	adef->initialSet = PLL_FALSE;
+	adef->mode = BIG_RAPID_MODE;
+	adef->likelihoodEpsilon = 0.1;
+	adef->permuteTreeoptimize = PLL_FALSE;
+	adef->perGeneBranchLengths = PLL_FALSE;
+	adef->useCheckpoint = PLL_FALSE;
+
+	PLLAlignment * alignment =
+			static_cast<PLLAlignment *>(options->getAlignment());
+
+	pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
+			alignment->getPartitions());
+	evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
+			alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
+	mo->evaluate(alignment->getTree(), alignment->getPartitions(), adef, true);
+
+	Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
+			alignment->getPartitions(), alignment->getTree()->start->back,
+			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+	rax_free(adef);
+
+	options->setTreeString(alignment->getTree()->tree_string);
+
+	cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
+
+
+
+
+
 
 	/* 1. start with k=n groups */
 	vector<PartitioningScheme *> nextSchemes;

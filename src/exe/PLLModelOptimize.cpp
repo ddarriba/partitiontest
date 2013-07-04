@@ -14,6 +14,7 @@
 extern "C" {
 #include "globalVariables.h"
 #include "parser/phylip/phylip.h"
+#include "parser/newick/newick.h"
 #include "utils.h"
 #include "parser/partition/part.h"
 
@@ -346,7 +347,12 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 				current_part->gammaRates, 4, tr->useMedian);
 	}
 
-	pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
+	if (options->getTreeString() == 0) {
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
+	} else {
+		struct pllNewickTree * nt = pllNewickParseString (options->getTreeString());
+		pllTreeInitTopologyNewick (tr, nt, PLL_TRUE);
+	}
 
 	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
 	adef->max_rearrange = 100;
@@ -362,6 +368,8 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 	evaluate(tr, partitions, adef, false);
+
+	rax_free(adef);
 
 	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
@@ -422,9 +430,14 @@ int PLLModelOptimize::optimizeModel(Model * model,
 	pllInstance * tree = alignment->getTree();
 	partitionList * partitions = alignment->getPartitions();
 //pllPhylipDestroy(phylip);
-	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
 
-//	printf("Tree: %s\n", tree->tree_string);
+	if (options->getTreeString() == 0) {
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
+	} else {
+		struct pllNewickTree * nt = pllNewickParseString (options->getTreeString());
+		pllTreeInitTopologyNewick (tree, nt, PLL_FALSE);
+		pllNewickParseDestroy(&nt);
+	}
 
 	const char * m = model->getMatrixName().c_str();
 	char * symmetryPar = (char *) malloc(12 * sizeof(char));
@@ -464,16 +477,14 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	initReversibleGTR(tree, partitions, 0);
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
-//  treeEvaluate(tr, 32);
 	evaluate(tree, partitions, adef);
+
+	rax_free(adef);
+
 	Tree2String(tree->tree_string, tree, partitions, tree->start->back,
 			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 
-//	for (int i = 0; i < 6; i++) {
-//		cout << partitions->partitionData[0]->substRates[i] << " ";
-//	}
-//	cout << endl << endl;
 	model->setLnL(tree->likelihood);
 	model->setTree(tree->tree_string);
 	model->setFrequencies(partitions->partitionData[0]->frequencies);
@@ -481,11 +492,7 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		model->setAlpha(partitions->partitionData[0]->alpha);
 	model->setRates(partitions->partitionData[0]->substRates);
 
-	cout << model->getName() << " " << model->getLnL() << endl;
-
 	return 0;
-	cerr << "ERROR: Only full schemes should be optimized with PLL" << endl;
-	Utilities::exit_partest(EX_SOFTWARE);
 #endif
 }
 

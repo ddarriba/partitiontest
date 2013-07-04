@@ -46,6 +46,8 @@ namespace partest {
 class PLLModelOptimize: public ModelOptimize {
 public:
 	PLLModelOptimize(ParTestOptions * options);
+	double evaluate(pllInstance * tr, partitionList *pr, analdef * adef,
+			bool estimateModel = true);
 	int optimizePartitioningScheme(PartitioningScheme * scheme,
 			bool forceRecomputation = false, int current_index = 0,
 			int max_index = 0);
@@ -54,8 +56,6 @@ public:
 			int index, int groupCount);
 	virtual ~PLLModelOptimize();
 private:
-	double evaluate(pllInstance * tr, partitionList *pr, analdef * adef,
-			bool estimateModel = true);
 	PLLAlignment * alignment;
 	pllInstance * tr; /** Tree structure from PLL */
 };
