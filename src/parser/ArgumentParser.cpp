@@ -47,8 +47,10 @@ ArgumentParser::ArgumentParser() {
 			ARG_USER_TREE, 'u', "user-tree", true }, {
 			ARG_DATA_TYPE, 'd', "data-type", true }, {
 			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
+#ifndef _PLL
 			ARG_INV, 'I', "invariant-sites", false }, {
 			ARG_GAMMA, 'G', "gamma-rates", false }, {
+#endif
 			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
 			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
@@ -220,10 +222,15 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			}
 			break;
 		case ARG_TOPOLOGY:
+#ifndef _PLL
 			if (!strcmp(value, ARG_TOPO_BIONJ)) {
 				startingTopology = StartTopoBIONJ;
 			} else if (!strcmp(value, ARG_TOPO_ML)) {
 				startingTopology = StartTopoML;
+#else
+				if (!strcmp(value, ARG_TOPO_MP)) {
+					startingTopology = StartTopoMP;
+#endif
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
 				startingTopology = StartTopoFIXED;
 			} else if (!strcmp(value, ARG_TOPO_USER)) {
@@ -232,6 +239,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				cerr << "[ERROR] \"-t " << value
 						<< "\" is not a valid input topology. Use one of the following:"
 						<< endl;
+#ifndef _PLL
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_BIONJ
 						<< "BIONJ topology" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
@@ -239,6 +247,12 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_ML
 						<< "Maximum Likelihood topology (DEFAULT, slowest)"
 						<< endl;
+#else
+				cerr << "  -t " << setw(8) << left << ARG_TOPO_MP
+				<< "MP topology" << endl;
+				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
+				<< "Fixed ML topology for every model" << endl;
+#endif
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_USER
 						<< "User-defined topology" << endl;
 				Utilities::exit_partest(EX_USAGE);
@@ -252,7 +266,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY)) {
 				searchAlgo = SearchGreedy;
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY_EXT)) {
-							searchAlgo = SearchGreedyExtended;
+				searchAlgo = SearchGreedyExtended;
 			} else if (!strcmp(value, ARG_SEARCH_HIERARCHICAL)) {
 				searchAlgo = SearchHCluster;
 			} else {

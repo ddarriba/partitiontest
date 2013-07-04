@@ -43,12 +43,20 @@ enum RateVar {
   RateVarG = 8
 };
 
+#ifndef _PLL
 enum StartTopo {
 	StartTopoBIONJ,
 	StartTopoML,
 	StartTopoFIXED,
 	StartTopoUSER
 };
+#else
+enum StartTopo {
+	StartTopoMP,
+	StartTopoFIXED,
+	StartTopoUSER
+};
+#endif
 
 enum SearchAlgo {
 	SearchExhaustive,
@@ -129,7 +137,11 @@ enum NucMatrix {
 };
 
 #define DEFAULT_DATA_TYPE DT_NUCLEIC
+#ifndef _PLL
 #define DEFAULT_STARTING_TOPOLOGY StartTopoML
+#else
+#define DEFAULT_STARTING_TOPOLOGY StartTopoMP
+#endif
 #define DEFAULT_SEARCH_ALGO SearchGreedy
 #define DEFAULT_IC_TYPE BIC
 #define DEFAULT_SAMPLE_SIZE SS_ALIGNMENT

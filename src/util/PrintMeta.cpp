@@ -25,17 +25,17 @@ namespace partest {
 
 void PrintMeta::print_header(ostream& output) {
 	output << endl;
-	output << "-------------------------------------------" << endl;
-	output << "|            GENOMIC MODEL TEST           |" << endl;
-	output << "|          (c) Diego Darriba 2012         |" << endl;
-	output << "|                                         |" << endl;
-	output << "| Model selection for genomic alignments  |" << endl;
-#ifdef RAXML
-	output << "| raXml version                           |" << endl;
+	output << "--------------------------------------------" << endl;
+	output << "|               PARTITIONTEST              |" << endl;
+	output << "|          (c) Diego Darriba 2012          |" << endl;
+	output << "|                                          |" << endl;
+	output << "| Model selection for genomic alignments   |" << endl;
+#ifdef _PLL
+	output << "| PLL version (Stamatakis et.al)           |" << endl;
 #else
-	output << "| PhyML version                           |" << endl;
+	output << "| PhyML version (Guindon and Gascuel 2011) |" << endl;
 #endif
-	output << "-------------------------------------------" << endl << endl;
+	output << "--------------------------------------------" << endl << endl;
 }
 
 void PrintMeta::print_options(ostream& output, ParTestOptions & options) {
@@ -143,6 +143,7 @@ void PrintMeta::print_options(ostream& output, ParTestOptions & options) {
 
 void PrintMeta::print_usage(std::ostream& out) {
 	out << "Usage: " << PACKAGE << " -i INPUT_FILE [OPTION]..." << endl;
+	out << endl;
 	out << "Selects the best-fit model of amino acid or nucleotide replacement."
 			<< endl << endl;
 	out
@@ -150,16 +151,20 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< endl << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
 			<< "Displays this help message" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -i, --input-file INPUT_FILE"
 			<< "Sets the input alignment file (REQUIRED)" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -d, --data-type DATA_TYPE"
 			<< "Sets the type of the input data" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--data-type nt" << "Nucleotide sequences (DEFAULT)" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--data-type aa" << "Amino-acid sequences" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
 			<< "Sets the starting topology for optimization" << endl;
+#ifndef _PLL
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--topology ml"
 			<< "Creates a Maximum-Likelihood tree for each model optimization"
@@ -170,8 +175,16 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "--topology bionj"
 			<< "Creates a BIONJ for each model optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology fixed"
-			<< "Uses a fixed BIONJ for every model optimization" << endl;
+				<< "--topology fixed"
+				<< "Uses a fixed BIONJ for every model optimization" << endl;
+#else
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--topology mp"
+				<< "(DEFAULT) Creates a maximum parsimony topology for each model optimization" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--topology fixed"
+				<< "Uses a fixed ML topology for every model optimization" << endl;
+#endif
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--topology user"
 			<< "Uses a user-defined topology. Requires the \"-u\" argument"
@@ -179,29 +192,45 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << " "
 			<< "However, if \"-u\" argument is used this option is automatically set"
 			<< endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -u, --user-tree TREE_FILE"
-			<< "Sets a user-defined topology. This option is not compatible with"
+			<< "Sets a user-defined topology. This option ignores all"
 			<< endl;
 	out << setw(MAX_OPT_LENGTH) << " "
-			<< "with a starting topology different than \"user-defined\""
+			<< "starting topologies different from \"user-defined\""
 			<< endl;
 	out << setw(MAX_OPT_LENGTH) << " " << "The tree must be in Newick format"
 			<< endl;
+	out << endl;
+#ifndef _PLL
+	/** PLL does not support +I */
 	out << setw(MAX_OPT_LENGTH) << left << "  -I, --invariant-sites"
 			<< "Includes models with a proportion of invariant sites (+I)"
 			<< endl;
+	out << endl;
+	/** PLL includes +G by default */
 	out << setw(MAX_OPT_LENGTH) << left << "  -G, --gamma-rates"
 			<< "Includes models with rate variation among sites (+G)" << endl;
+	out << endl;
+#endif
 	out << setw(MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
 			<< "Includes models with empirical frequencies (+F)" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
 			<< "Sets the search algorithm" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search greedyext"
+			<< "Extended greedy search algorithm (DEFAULT)" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search hcluster" << "Hierarchical clustering algorithm"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search random" << "Multiple step random sampling" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search exhaustive" << "Exhaustive search" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left
 			<< "  -s, --selection-criterion CRITERION"
 			<< "Sets the criterion for model selection" << endl;
@@ -219,6 +248,7 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "Corrected Akaike Information Criterion" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--selection-criterion dt" << "Decision Theory" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
 			<< "Sets the input configuration file for gene partition" << endl;
 	out << setw(MAX_OPT_LENGTH) << " "
