@@ -33,7 +33,11 @@ using namespace std;
 
 namespace partest {
 
+#ifndef _PLL
 #define NUM_ARGUMENTS 16
+#else
+#define NUM_ARGUMENTS 14
+#endif
 
 void ArgumentParser::init() {
 	index = 1;

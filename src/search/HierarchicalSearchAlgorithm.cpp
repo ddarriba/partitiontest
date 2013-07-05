@@ -82,8 +82,11 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		adef->perGeneBranchLengths = PLL_FALSE;
 		adef->useCheckpoint = PLL_FALSE;
 
+
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
+
+		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(), alignment->getPhylip());
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 				alignment->getPartitions());

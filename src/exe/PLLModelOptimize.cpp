@@ -24,6 +24,22 @@ extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 
 namespace partest {
 
+void PLLModelOptimize::initializeStructs(pllInstance * tree, partitionList * partitions,
+		pllPhylip * phylip) {
+
+	pllTreeInitTopologyForAlignment(tree, phylip);
+
+	/* Connect the alignment with the tree structure */
+	if (!pllLoadAlignment(tree, phylip, partitions, PLL_SHALLOW_COPY)) {
+		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
+		Utilities::exit_partest(EX_SOFTWARE);
+	}
+
+	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
+	pllInitModel(tree, PLL_TRUE, phylip, partitions);
+
+}
+
 double PLLModelOptimize::evaluate(pllInstance * tr, partitionList *pr,
 		analdef * adef, bool estimateModel) {
 	int i, impr, bestTrav = 0, rearrangementsMax = 0, rearrangementsMin = 0,
@@ -279,10 +295,8 @@ double PLLModelOptimize::evaluate(pllInstance * tr, partitionList *pr,
 
 PLLModelOptimize::PLLModelOptimize(ParTestOptions * options) :
 		ModelOptimize(options) {
-	cout << "CREATING " << endl;
 	alignment = static_cast<PLLAlignment *>(options->getAlignment());
 	tr = alignment->getTree();
-
 }
 
 PLLModelOptimize::~PLLModelOptimize() {
@@ -310,12 +324,14 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	struct pllQueue * parts = pllPartitionParse("pllConfig2.tmp");
 	partitionList * partitions = pllPartitionsCommit(parts,
 			alignment->getPhylip());
+	pllQueuePartitionsDestroy(&parts);
+
 	pllInstance * tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 			12345);
 	pllTreeInitTopologyForAlignment(tr, alignment->getPhylip());
 	/* Connect the alignment with the tree structure */
 	if (!pllLoadAlignment(tr, alignment->getPhylip(), partitions,
-	PLL_SHALLOW_COPY)) {
+	PLL_DEEP_COPY)) {
 		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
@@ -343,15 +359,18 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 				4 * sizeof(double));
 		memcpy(current_part->substRates, model->getRates(), 6 * sizeof(double));
 		initReversibleGTR(tr, partitions, i);
-		makeGammaCats(current_part->alpha,
-				current_part->gammaRates, 4, tr->useMedian);
+		makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+				tr->useMedian);
 	}
 
 	if (options->getTreeString() == 0) {
+		rax_free(tr->ti);
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
 	} else {
-		struct pllNewickTree * nt = pllNewickParseString (options->getTreeString());
-		pllTreeInitTopologyNewick (tr, nt, PLL_TRUE);
+		rax_free(tr->ti);
+		struct pllNewickTree * nt = pllNewickParseString(
+				options->getTreeString());
+		pllTreeInitTopologyNewick(tr, nt, PLL_TRUE);
 	}
 
 	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
@@ -376,6 +395,11 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 			PLL_FALSE, PLL_FALSE);
 
 	cout << "FINAL TREE: " << tr->tree_string << endl;
+
+	pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
+			tr->mxtips);
+	pllTreeDestroy(tr);
+
 	return 0;
 }
 
@@ -385,6 +409,25 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 		if (!element->getBestModel()) {
+
+			PLLAlignment * alignment =
+					static_cast<PLLAlignment *>(element->getAlignment());
+			pllInstance * tree = alignment->getTree();
+			partitionList * partitions = alignment->getPartitions();
+			pllPhylip * phylip = alignment->getPhylip();
+
+			initializeStructs(tree, partitions, phylip);
+
+			if (options->getTreeString() == 0) {
+				pllComputeRandomizedStepwiseAdditionParsimonyTree(tree,
+						partitions);
+			} else {
+				struct pllNewickTree * nt = pllNewickParseString(
+						options->getTreeString());
+				pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
+				pllNewickParseDestroy(&nt);
+			}
+
 			optimizePartitionElement(element, i + 1,
 					scheme->getNumberOfElements());
 		}
@@ -429,15 +472,6 @@ int PLLModelOptimize::optimizeModel(Model * model,
 			static_cast<PLLAlignment *>(partitionElement->getAlignment());
 	pllInstance * tree = alignment->getTree();
 	partitionList * partitions = alignment->getPartitions();
-//pllPhylipDestroy(phylip);
-
-	if (options->getTreeString() == 0) {
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
-	} else {
-		struct pllNewickTree * nt = pllNewickParseString (options->getTreeString());
-		pllTreeInitTopologyNewick (tree, nt, PLL_FALSE);
-		pllNewickParseDestroy(&nt);
-	}
 
 	const char * m = model->getMatrixName().c_str();
 	char * symmetryPar = (char *) malloc(12 * sizeof(char));

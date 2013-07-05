@@ -49,14 +49,26 @@ ParTestOptions::ParTestOptions() {
 }
 
 ParTestOptions::~ParTestOptions() {
-	if (resultsOutputStream && resultsOutputStream->is_open())
-		resultsOutputStream->close();
-	if (modelsOutputStream && modelsOutputStream->is_open())
-		modelsOutputStream->close();
-	if (partitionsOutputStream && partitionsOutputStream->is_open())
-		partitionsOutputStream->close();
-	if (schemesOutputStream && schemesOutputStream->is_open())
-		schemesOutputStream->close();
+	if (resultsOutputStream) {
+		if (resultsOutputStream->is_open())
+			resultsOutputStream->close();
+		delete resultsOutputStream;
+	}
+	if (modelsOutputStream) {
+		if (modelsOutputStream->is_open())
+			modelsOutputStream->close();
+		delete modelsOutputStream;
+	}
+	if (partitionsOutputStream) {
+		if (partitionsOutputStream->is_open())
+			partitionsOutputStream->close();
+		delete partitionsOutputStream;
+	}
+	if (schemesOutputStream) {
+		if (schemesOutputStream->is_open())
+			schemesOutputStream->close();
+		delete schemesOutputStream;
+	}
 	delete alignment;
 }
 
