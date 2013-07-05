@@ -46,6 +46,8 @@ namespace partest {
 class PLLModelOptimize: public ModelOptimize {
 public:
 	PLLModelOptimize(ParTestOptions * options);
+	static void initializeStructs(pllInstance * tree, partitionList * partitions,
+			pllPhylip * phylip);
 	double evaluate(pllInstance * tr, partitionList *pr, analdef * adef,
 			bool estimateModel = true);
 	int optimizePartitioningScheme(PartitioningScheme * scheme,

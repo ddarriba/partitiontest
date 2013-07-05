@@ -2693,7 +2693,6 @@ pllTreeDestroy (pllInstance * tr)
   int i;
   for (i = 1; i <= tr->mxtips; ++ i)
     rax_free (tr->nameList[i]);
-  
   pllHashDestroy (&(tr->nameHash), PLL_FALSE);
   if (tr->yVector)
    {

@@ -44,10 +44,14 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	phylip->seqLen = numSites;
 	phylip->seq = (unsigned char **) malloc(
 			(numSeqs + 1) * sizeof(unsigned char *));
+
+	phylip->seq[1] = (unsigned char *) malloc(
+			(numSites + 1) * numSeqs * sizeof(unsigned char));
+
 	phylip->weights = (int *) rax_malloc(numSites * sizeof(int));
 	for (int i = 1; i <= numSeqs; i++) {
-		phylip->seq[i] = (unsigned char *) malloc(
-				numSites * sizeof(unsigned char));
+		phylip->seq[i] = phylip->seq[1] + (i - 1) * (numSites + 1);
+		phylip->seq[i][numSites] = 0;
 		int cur_position = 0;
 
 		for (int cur_part = 0; cur_part < numberOfSections; cur_part++) {
@@ -103,18 +107,6 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pllQueuePartitionsDestroy(&parts);
 
 	numPatterns = phylip->seqLen;
-	pllTreeInitTopologyForAlignment(tr, phylip);
-
-	/* Connect the alignment with the tree structure */
-	if (!pllLoadAlignment(tr, phylip, partitions, PLL_DEEP_COPY)) {
-		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
-	}
-
-	pllTreeInitTopologyRandom(tr, phylip->nTaxa, phylip->label);
-
-	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	pllInitModel(tr, PLL_TRUE, phylip, partitions);
 
 }
 
@@ -143,13 +135,6 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	cout << "NTAXA = " << phylip->nTaxa << endl;
 	cout << "SEQLEN = " << phylip->seqLen << endl;
 
-	numSeqs = phylip->nTaxa;
-	numSites = phylip->seqLen;
-
-//pllPhylipRemoveDuplicate(phylip, partitions);
-
-	numPatterns = phylip->seqLen;
-
 	pllTreeInitTopologyForAlignment(tr, phylip);
 
 	/* Connect the alignment with the tree structure */
@@ -160,16 +145,28 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 
 	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
 	pllInitModel(tr, PLL_TRUE, phylip, partitions);
+
+	numSeqs = phylip->nTaxa;
+	numSites = phylip->seqLen;
+
+//pllPhylipRemoveDuplicate(phylip, partitions);
+
+	numPatterns = phylip->seqLen;
+
 }
 
 PLLAlignment::~PLLAlignment() {
 	if (phylip)
 		pllPhylipDestroy(phylip);
-	if (partitions)
-		pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
-				tr->mxtips);
-	if (tr)
+	if (tr && tr->mxtips > 0) {
+		if (partitions) {
+			pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
+					tr->mxtips);
+		}
 		pllTreeDestroy(tr);
+	} else if (tr) {
+		pllTreeDestroy(tr);
+	}
 }
 
 void PLLAlignment::destroyStructures(void) {
@@ -186,19 +183,15 @@ void PLLAlignment::destroyStructures(void) {
 }
 
 Alignment * PLLAlignment::splitAlignment(int firstPosition, int lastPosition) {
-
 	PLLAlignment * newAlign = new PLLAlignment(this, &firstPosition,
 			&lastPosition, 1);
-
 	return newAlign;
 }
 
 Alignment * PLLAlignment::splitAlignment(int * firstPosition,
 		int * lastPosition, int numberOfSections) {
-
 	PLLAlignment * newAlign = new PLLAlignment(this, firstPosition,
 			lastPosition, numberOfSections);
-
 	return newAlign;
 }
 

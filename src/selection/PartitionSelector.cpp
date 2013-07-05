@@ -120,6 +120,9 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 }
 
 PartitionSelector::~PartitionSelector() {
+	for (int i=0; i<schemesVector->size(); i++) {
+		delete schemesVector->at(i);
+	}
 	delete schemesVector;
 }
 
