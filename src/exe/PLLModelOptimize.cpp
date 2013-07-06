@@ -24,8 +24,8 @@ extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 
 namespace partest {
 
-void PLLModelOptimize::initializeStructs(pllInstance * tree, partitionList * partitions,
-		pllPhylip * phylip) {
+void PLLModelOptimize::initializeStructs(pllInstance * tree,
+		partitionList * partitions, pllPhylip * phylip) {
 
 	pllTreeInitTopologyForAlignment(tree, phylip);
 
@@ -367,7 +367,16 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		rax_free(tr->ti);
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
 	} else {
-		rax_free(tr->ti);
+		rax_free(tr->nodep);
+		rax_free(tr->td[0].ti);
+		rax_free(tr->td[0].parameterValues);
+		rax_free(tr->td[0].executeModel);
+		rax_free(tr->nodeBaseAddress);
+		for (int j = 0; j < tr->nameHash->tableSize; ++j) {
+			rax_free(tr->nameHash->table[j]);
+		}
+		rax_free(tr->nameHash);
+		tr->nameHash = NULL;
 		struct pllNewickTree * nt = pllNewickParseString(
 				options->getTreeString());
 		pllTreeInitTopologyNewick(tr, nt, PLL_TRUE);
@@ -422,6 +431,17 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 				pllComputeRandomizedStepwiseAdditionParsimonyTree(tree,
 						partitions);
 			} else {
+				rax_free(tree->nodep);
+				rax_free(tree->td[0].ti);
+				rax_free(tree->td[0].parameterValues);
+				rax_free(tree->td[0].executeModel);
+				rax_free(tree->nodeBaseAddress);
+				for (int j = 0; j < tree->nameHash->tableSize; ++j) {
+					rax_free(tree->nameHash->table[j]);
+				}
+				rax_free(tree->nameHash);
+				tree->nameHash = NULL;
+
 				struct pllNewickTree * nt = pllNewickParseString(
 						options->getTreeString());
 				pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
