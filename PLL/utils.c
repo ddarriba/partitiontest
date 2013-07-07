@@ -2358,7 +2358,6 @@ void pllTreeInitDefaults (pllInstance * tr, int nodes, int tips)
   tr->h          = NULL;
 
   /* TODO: Fix hash type */
-  printf("INITHASH\n");
   tr->nameHash   = pllHashInit (10 * tr->mxtips);
 
   /* TODO: do these options really fit here or should they be put elsewhere? */
