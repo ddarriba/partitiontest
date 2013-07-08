@@ -75,7 +75,8 @@ public:
 	 *
 	 * @param configFile Configuration file name.
 	 */
-	ConfigParser(const char * configFile);
+	ConfigParser(const char * configFile, bool buildTempFiles = true);
+
 	virtual ~ConfigParser();
 
 	/**
