@@ -13,12 +13,14 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 200  # Total number of samples
-TAXA_COUNT <- 40  # Number of taxa in the output trees
-GENE_LEN <- 1000   # Length of each gene
+SAMPLES <- 20  # Total number of samples
 
 MIN_GENES <- 10
 MAX_GENES <- 100
+MIN_TAXA <- 20
+MAX_TAXA <- 50
+MIN_GENELENGTH <- 300
+MAX_GENELENGTH <- 2000
 MIN_PARTITIONS <- 1
 
 IN_MODELS_FILE  <- "data.11.in"      # Data input file
@@ -64,8 +66,8 @@ for(sample_index in 0:(SAMPLES-1)) {
 	# Assign models to genes
 	boxes <- rchinese(num_genes,sample(1:20,1))
 	# boxes <- cluster(max_partitions,num_genes)
-	genes_mat <- matrix(nrow=num_genes,ncol=3,byrow=TRUE)
-	colnames(genes_mat) <- c("GeneNumber", "ModelNumber", "LocalNumber")
+	genes_mat <- matrix(nrow=num_genes,ncol=4,byrow=TRUE)
+	colnames(genes_mat) <- c("GeneNumber", "ModelNumber", "LocalNumber", "NumSites")
 	genes_mat <- as.table(genes_mat)
 	hash <- matrix(0, 1, length(unique(boxes)))
 	hashsize <- 1
@@ -76,6 +78,7 @@ for(sample_index in 0:(SAMPLES-1)) {
 	  genes_mat[i,1] <- i-1
 	  genes_mat[i,2] <- boxes[i] + current_index
 	  genes_mat[i,3] <- boxes[i]
+	  genes_mat[i,4] <- sample(MIN_GENELENGTH:MAX_GENELENGTH,1,replace=T)
 	  indexed <- F
 	  cur_index <- -1
 	  for(j in 1:hashsize) {
@@ -157,7 +160,8 @@ for(sample_index in 0:(SAMPLES-1)) {
 
 
 	   ###SIMULATE TREE
-    # Generate a random non-ultrametric tree with branches according to a exponential with mean 1/10=0.1. Note that a rooted tree has 2n-2 branches (40 taxa => 78 branches => expected treeLength = 7.8) although this does not matter because we are going to scale the treelength next) 
+    # Generate a random non-ultrametric tree with branches according to a exponential with mean 1/10=0.1. Note that a rooted tree has 2n-2 branches (40 taxa => 78 branches => expected treeLength = 7.8) although this does not matter because we are going to scale the treelength next)
+    TAXA_COUNT <- sample(MIN_TAXA:MAX_TAXA,1,replace=T)  # Number of taxa in the output trees
     tree <- rtree(TAXA_COUNT,TRUE,NULL,rexp,rate=10)
     PhyloSim(tree)$treeLength
     write.tree(tree)

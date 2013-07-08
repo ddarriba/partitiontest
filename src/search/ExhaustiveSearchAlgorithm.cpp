@@ -22,7 +22,6 @@
 
 #include "ExhaustiveSearchAlgorithm.h"
 
-#include "indata/PartitionManager.h"
 #include "util/ParTestFactory.h"
 #include "exe/ModelOptimize.h"
 #include "observer/ConsoleObserver.h"
