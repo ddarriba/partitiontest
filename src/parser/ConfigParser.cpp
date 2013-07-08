@@ -23,14 +23,13 @@ struct comparePartitionInfos {
 	}
 };
 
-ConfigParser::ConfigParser(const char * configFile) :
+ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 		configFile(configFile), partitions(0), numberOfPartitions(0), outputBasePath(
 				DEFAULT_OUTPUT_BASE_PATH), outputFileModels(
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG),
-				pllPartitionsFile("pllConfig.tmp") {
+				DEFAULT_OUTPUT_RESULTS_TAG), pllPartitionsFile(tmpnam(NULL)) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
@@ -88,20 +87,27 @@ ConfigParser::ConfigParser(const char * configFile) :
 				comparePartitionInfos());
 
 #ifdef _PLL
-		/* create PLL partitions file */
-		ofstream * pllOutputStream = new ofstream(pllPartitionsFile.c_str());
+		ofstream * pllOutputStream;
+		if (buildTempFiles) {
+			/* create PLL partitions file */
+			pllOutputStream = new ofstream(pllPartitionsFile.c_str());
+		}
 #endif
+
 		for (int i = 0; i < numberOfPartitions; i++) {
 			partitions->at(i).partitionId.push_back(i);
 #ifdef _PLL
-			(*pllOutputStream) << "DNA, " << partitions->at(i).name << "=" << partitions->at(i).start << "-" << partitions->at(i).end << endl;
+			if (buildTempFiles) {
+				(*pllOutputStream) << "DNA, " << partitions->at(i).name << "=" << partitions->at(i).start << "-" << partitions->at(i).end << endl;
+			}
 #endif
 		}
 #ifdef _PLL
-		pllOutputStream->close();
-		delete pllOutputStream;
+		if (buildTempFiles) {
+			pllOutputStream->close();
+			delete pllOutputStream;
+		}
 #endif
-
 		/** OUTPUT **/
 
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
@@ -158,6 +164,9 @@ int ConfigParser::parsePartitionLine(char * line,
 }
 
 ConfigParser::~ConfigParser() {
+#ifdef _PLL
+	remove( pllPartitionsFile.c_str() );
+#endif
 	if (partitions)
 		delete partitions;
 }

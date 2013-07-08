@@ -30,6 +30,7 @@
 #include "PartitionElement.h"
 #include "parser/ConfigParser.h"
 #include "util/GlobalDefs.h"
+#include "options/ParTestOptions.h"
 
 namespace partest {
 
@@ -52,6 +53,7 @@ struct partitionMappingInfo {
  */
 class PartitionMap {
 public:
+
 	/**
 	 * @brief Constructs a new partition map.
 	 *

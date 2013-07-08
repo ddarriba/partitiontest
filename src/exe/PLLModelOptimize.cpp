@@ -306,8 +306,8 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		PartitioningScheme * scheme) {
 
 	/* build the whole alignment */
-	string pllPartitionsFile("pllConfig2.tmp");
-	ofstream pllOutputStream(pllPartitionsFile.c_str());
+	char * pllPartitionsFile = tmpnam(NULL);
+	ofstream pllOutputStream(pllPartitionsFile);
 
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
@@ -321,7 +321,11 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	}
 	pllOutputStream.close();
 
-	struct pllQueue * parts = pllPartitionParse("pllConfig2.tmp");
+	struct pllQueue * parts = pllPartitionParse(pllPartitionsFile);
+
+	if (remove(pllPartitionsFile) != 0)
+		cerr << "Error deleting temporary file" << endl;
+
 	partitionList * partitions = pllPartitionsCommit(parts,
 			alignment->getPhylip());
 	pllQueuePartitionsDestroy(&parts);

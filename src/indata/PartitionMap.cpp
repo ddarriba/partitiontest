@@ -22,7 +22,7 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 
 	if (strcmp(configFile, "")) {
 
-		ConfigParser parser(configFile);
+		ConfigParser parser(configFile, false);
 
 		partitions = new vector<partitionMappingInfo>(
 				parser.getNumberOfPartitions());

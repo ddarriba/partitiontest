@@ -101,7 +101,7 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 		strcpy(this->treeFile, userTree);
 	}
 
-	ConfigParser parser(configFile);
+	ConfigParser parser(configFile, true);
 	this->outputFileModels = parser.getOutputFileResults();
 	this->outputFileModels = parser.getOutputFileModels();
 	this->outputFilePartitions = parser.getOutputFilePartitions();
