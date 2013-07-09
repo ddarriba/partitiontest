@@ -13,7 +13,7 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-SAMPLES <- 20  # Total number of samples
+SAMPLES <- 12500  # Total number of samples
 
 MIN_GENES <- 10
 MAX_GENES <- 100
