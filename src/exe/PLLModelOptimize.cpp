@@ -306,7 +306,9 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		PartitioningScheme * scheme) {
 
 	/* build the whole alignment */
-	char * pllPartitionsFile = tmpnam(NULL);
+	char * pllPartitionsFile = strdup("/tmp/tmpfileXXXXXX");
+	mkstemp(pllPartitionsFile);
+
 	ofstream pllOutputStream(pllPartitionsFile);
 
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {

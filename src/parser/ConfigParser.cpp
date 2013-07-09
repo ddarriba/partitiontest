@@ -29,7 +29,7 @@ ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG), pllPartitionsFile(tmpnam(NULL)) {
+				DEFAULT_OUTPUT_RESULTS_TAG), pllPartitionsFile() {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
@@ -85,6 +85,11 @@ ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 
 		std::sort(partitions->begin(), partitions->end(),
 				comparePartitionInfos());
+
+		char *tmpname = strdup("/tmp/tmpfileXXXXXX");
+		mkstemp(tmpname);
+
+		pllPartitionsFile.append(tmpname);
 
 #ifdef _PLL
 		ofstream * pllOutputStream;
