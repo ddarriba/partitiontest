@@ -4,8 +4,6 @@
 #include <assert.h>
 #include "phylip.h"
 #include "ssort.h"
-#include "../../lexer.h"
-#include "../../mem_alloc.h"
 
 //struct rawdata
 // {
