@@ -92,8 +92,8 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				alignment->getPartitions());
 		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
-		mo->evaluate(alignment->getTree(), alignment->getPartitions(), adef,
-				true);
+		mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
+		//mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), adef, true);
 
 		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,

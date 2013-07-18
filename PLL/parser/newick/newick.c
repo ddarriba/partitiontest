@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <math.h>
 #include "newick.h"
-#include "../../lexer.h"
 
 static char * 
 readFile (const char * filename, int * n)

@@ -48,7 +48,9 @@ public:
 	PLLModelOptimize(ParTestOptions * options);
 	static void initializeStructs(pllInstance * tree, partitionList * partitions,
 			pllPhylip * phylip);
-	double evaluate(pllInstance * tr, partitionList *pr, analdef * adef,
+	double evaluateSPR(pllInstance * tr, partitionList *pr, analdef * adef,
+			bool estimateModel = true);
+	double evaluateNNI(pllInstance * tr, partitionList *pr,
 			bool estimateModel = true);
 	int optimizePartitioningScheme(PartitioningScheme * scheme,
 			bool forceRecomputation = false, int current_index = 0,
