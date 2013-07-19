@@ -2,6 +2,7 @@
 #define __pll_NEWICK__
 #include "../../mem_alloc.h"
 #include "../../stack.h"
+#include "../../lexer.h"
 #include "../../axml.h"
 
 struct pllNewickTree

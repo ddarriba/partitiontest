@@ -66,6 +66,7 @@ extern "C" {
 
 #include "genericParallelization.h"
 #include "mem_alloc.h"
+#include "errcodes.h"
 
 #define PLL_MAX_TIP_EV                          0.999999999 /* max tip vector value, sum of EVs needs to be smaller than 1.0, otherwise the numerics break down */
 #define PLL_MAX_LOCAL_SMOOTHING_ITERATIONS      32          /** @brief maximum iterations of smoothings per insert in the */
@@ -98,6 +99,9 @@ extern "C" {
 #define PLL_DEEP_COPY                           1 << 0
 #define PLL_SHALLOW_COPY                        1 << 1
 
+#define PLL_NNI_P_NEXT                          1       /**< Use p->next for the NNI move */
+#define PLL_NNI_P_NEXTNEXT                      2       /**< Use p->next->next for the NNI move */
+
 /* 18446744073709551616.0 */
 
 /*4294967296.0*/
@@ -109,7 +113,7 @@ extern "C" {
 
 #define PLL_BADREAR                             -1
 
-#define NUM_BRANCHES     100
+#define NUM_BRANCHES     16
 
 #define PLL_TRUE                                1
 #define PLL_FALSE                               0
@@ -379,9 +383,6 @@ typedef struct
 #endif
 } recompVectors;
 /* E recomp */
-
-
-
 
 /** @brief ???Expected likelihood weight
  * @todo add explanation, is this ever used?  */
@@ -893,6 +894,8 @@ typedef struct {
   /* specific for secondary structures ?? */
   boolean nonGTR;
   boolean optimizeBaseFrequencies;
+  boolean optimizeAlphaParameter;
+  boolean optimizeSubstitutionRates;
   int    *symmetryVector;
   int    *frequencyGrouping;
 
@@ -949,6 +952,7 @@ typedef struct
    pInfo **partitionData;
    int numberOfPartitions;
    boolean perGeneBranchLengths;
+   boolean dirty;
    linkageList *alphaList;
    linkageList *rateList;
    linkageList *freqList;
@@ -1084,8 +1088,8 @@ typedef  struct  {
   int             *aliaswgt;    /**< weight by pattern */ 
   boolean    manyPartitions;
 
-  boolean grouped;
-  boolean constrained;
+  boolean grouped;              /**< No idea what this is, but is always set to PLL_FALSE */
+  boolean constrained;          /**< No idea what this is, but is always set to PLL_FALSE */
   int threadID;
   volatile int numberOfThreads;
 
@@ -1140,7 +1144,7 @@ typedef  struct  {
   int              *secondaryStructurePairs;
 
 
-  double            fracchange;
+  double            fracchange;      /**< Average substitution rate */
   double            lhCutoff;
   double            lhAVG;
   unsigned long     lhDEC;
@@ -1155,10 +1159,10 @@ typedef  struct  {
  
   node           **nodep;                /**< pointer to the list of nodes, which describe the current topology */
   nodeptr          nodeBaseAddress;
-  node            *start;                /**< starting node by default for full traversals */
+  node            *start;                /**< starting node by default for full traversals (must be a tip contained in the tree we are operating on) */
   int              mxtips;  /**< Number of tips in the topology */
 
-  int              *constraintVector;
+  int              *constraintVector;   /**< @todo What is this? */
   int              numberOfSecondaryColumns;
   boolean          searchConvergenceCriterion;
   int              ntips;
@@ -1203,7 +1207,7 @@ typedef  struct  {
 
   unsigned int vLength;
 
-  hashtable *h;
+  hashtable *h;                 /**< hashtable for ML convergence criterion */
  
   int optimizeRateCategoryInvocations;
 
@@ -1213,6 +1217,16 @@ typedef  struct  {
 
 } pllInstance;
 
+/** @brief Stores data related to a NNI move  */
+typedef struct {
+	pllInstance * tr;
+	nodeptr p;
+	int nniType;
+	double z[NUM_BRANCHES]; // optimize branch lengths
+	double z0[NUM_BRANCHES]; // unoptimized branch lengths
+	double likelihood;
+	double deltaLH;
+} nniMove;
 
 /***************************************************************/
 
@@ -1273,7 +1287,7 @@ typedef  struct {
     int              nextlink;    /**< index of next available connect */
                                   /**< tr->start = tpl->links->p */
     int              ntips;
-    int              nextnode;
+    int              nextnode;    /**< next available inner node for tree parsing */
     int              scrNum;      /**< position in sorted list of scores */
     int              tplNum;      /**< position in sorted list of trees */
     } topol;
@@ -1312,14 +1326,14 @@ typedef struct {
 /** @brief Parameters (raxml-specific)
 *   */
 typedef  struct {
-  int              bestTrav;
-  int              max_rearrange;
-  int              stepwidth;
-  int              initial;
-  boolean          initialSet;
-  int              mode; 
+  int              bestTrav;            /**< best rearrangement radius */
+  int              max_rearrange;       /**< max. rearrangemenent radius */
+  int              stepwidth;           /**< step in rearrangement radius */
+  int              initial;             /**< user defined rearrangement radius which also sets bestTrav if initialSet is set */
+  boolean          initialSet;          /**< set bestTrav according to initial */
+  int              mode;                /**< candidate for removal */
   boolean        perGeneBranchLengths;
-  boolean        permuteTreeoptimize; 
+  boolean        permuteTreeoptimize;   /**< randomly select subtrees for SPR moves */
   boolean        compressPatterns;
   double         likelihoodEpsilon;
   boolean        useCheckpoint;
@@ -1450,6 +1464,7 @@ extern void smooth ( pllInstance *tr, partitionList *pr, nodeptr p );
 extern void smoothTree ( pllInstance *tr, partitionList *pr, int maxtimes );
 extern void localSmooth ( pllInstance *tr, partitionList *pr, nodeptr p, int maxtimes );
 extern boolean localSmoothMulti(pllInstance *tr, nodeptr p, int maxtimes, int model);
+extern int pllNniSearch(pllInstance * tr, partitionList *pr, int estimateModel);
 extern void NNI(pllInstance * tr, nodeptr p, int swap);
 
 extern void smoothRegion ( pllInstance *tr, partitionList *pr, nodeptr p, int region );
@@ -1466,7 +1481,6 @@ extern boolean testInsertRestoreBIG ( pllInstance *tr, partitionList *pr, nodept
 extern void restoreTreeFast ( pllInstance *tr, partitionList *pr );
 extern int determineRearrangementSetting ( pllInstance *tr, partitionList *pr, analdef *adef, bestlist *bestT, bestlist *bt );
 extern void computeBIGRAPID ( pllInstance *tr, partitionList *pr, analdef *adef, boolean estimateModel);
-extern void evaluate ( pllInstance *tr, partitionList *pr, analdef *adef, boolean estimateModel);
 
 extern boolean treeEvaluate ( pllInstance *tr, partitionList *pr, int maxSmoothIterations );
 extern boolean treeEvaluatePartition ( pllInstance *tr, double smoothFactor, int model );
@@ -1631,6 +1645,8 @@ extern double getBranchLength(pllInstance *tr, partitionList *pr, int perGene, n
 
 inline boolean isGap(unsigned int *x, int pos);
 inline boolean noGap(unsigned int *x, int pos);
+
+
 
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS) )
