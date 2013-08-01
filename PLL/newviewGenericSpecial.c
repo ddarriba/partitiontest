@@ -74,7 +74,7 @@ const union __attribute__ ((aligned (BYTE_ALIGNMENT)))
 
 #endif
 
-extern const char binaryStateNames[2];
+extern const char binaryStateNames[2];   
 extern const char dnaStateNames[4];
 extern const char protStateNames[20];
 extern const char genericStateNames[32];
@@ -88,7 +88,7 @@ extern const unsigned int mask32[32];
 /** @brief Computation of P matrix
  *
  * Generic function for computing the P matrices, for computing the conditional likelihood at a node p, given child nodes q and r 
-   we compute P(z1) and P(z2) here
+   we compute P(z1) and P(z2) here 
  *
  *The following value is computed here: 
  *\f[
@@ -118,16 +118,16 @@ extern const unsigned int mask32[32];
 
 void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int numberOfCategories, double *left, double *right, boolean saveMem, int maxCat, const int states)
 {
-  int
-    i,
-    j,
+  int 
+    i, 
+    j, 
     k,
     /* square of the number of states = P-matrix size */
     statesSquare = states * states;
 
   /* assign some space for pre-computing and later re-using functions */
 
-  double
+  double 
     *lz1 = (double*)rax_malloc(sizeof(double) * states),
     *lz2 = (double*)rax_malloc(sizeof(double) * states),
     *d1 = (double*)rax_malloc(sizeof(double) * states),
@@ -142,7 +142,7 @@ void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int nu
   }
 
 
-  /* loop over the number of rate categories, this will be 4 for the GAMMA model and
+  /* loop over the number of rate categories, this will be 4 for the GAMMA model and 
      variable for the CAT model */
 
   for(i = 0; i < numberOfCategories; i++)
@@ -162,7 +162,7 @@ void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int nu
       /* left and right are pre-allocated arrays */
 
       left[statesSquare * i  + states * j] = 1.0;
-      right[statesSquare * i + states * j] = 1.0;
+      right[statesSquare * i + states * j] = 1.0;	  
 
       for(k = 1; k < states; k++)
       {
@@ -173,7 +173,7 @@ void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int nu
   }
 
 
-  /* if memory saving is enabled and we are using CAT we need to do one additional P matrix
+  /* if memory saving is enabled and we are using CAT we need to do one additional P matrix 
      calculation for a rate of 1.0 to compute the entries of a column/tree site comprising only gaps */
 
 
@@ -211,20 +211,20 @@ void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int nu
 
 static void makeP_FlexLG4(double z1, double z2, double *rptr, double *EI[4],  double *EIGN[4], int numberOfCategories, double *left, double *right, const int numStates)
 {
-  int
+  int 
     i,
     j,
     k;
-
+  
   const int
     statesSquare = numStates * numStates;
 
-  double
-    d1[64],
+  double    
+    d1[64],  
     d2[64];
 
   assert(numStates <= 64);
-
+       
   for(i = 0; i < numberOfCategories; i++)
     {
       for(j = 1; j < numStates; j++)
@@ -244,12 +244,12 @@ static void makeP_FlexLG4(double z1, double z2, double *rptr, double *EI[4],  do
 	      right[statesSquare * i + numStates * j + k] = d2[k] * EI[i][numStates * j + k];
 	    }
 	}
-    }
+    }  
 }
 
 /* The functions here are organized in a similar way as in evaluateGenericSpecial.c 
-   I provide generic, slow but readable function implementations for computing the
-   conditional likelihood arrays at p, given child nodes q and r. Once again we need
+   I provide generic, slow but readable function implementations for computing the 
+   conditional likelihood arrays at p, given child nodes q and r. Once again we need 
    two generic function implementations, one for CAT and one for GAMMA */
 
 /** @brief Computation of conditional likelihood arrays for CAT
@@ -271,30 +271,30 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
 			    int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling, const int states)
 {
   double
-    *le,
-    *ri,
-    *v,
-    *vl,
+    *le, 
+    *ri, 
+    *v, 
+    *vl, 
     *vr,
-    ump_x1,
-    ump_x2,
+    ump_x1, 
+    ump_x2, 
     x1px2;
 
-  int
-    i,
-    l,
-    j,
-    scale,
+  int 
+    i, 
+    l, 
+    j, 
+    scale, 
     addScale = 0;
 
-  const int
+  const int 
     statesSquare = states * states;
 
 
-  /* here we switch over the different cases for efficiency, but also because
+  /* here we switch over the different cases for efficiency, but also because 
      each case accesses different data types.
 
-     We consider three cases: either q and r are both tips, q or r are tips, and q and r are inner
+     We consider three cases: either q and r are both tips, q or r are tips, and q and r are inner 
      nodes.
      */
 
@@ -305,7 +305,7 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
   {
 
     /* both child nodes of p weher we want to update the conditional likelihood are tips */
-    case TIP_TIP:
+    case TIP_TIP:     
       /* loop over sites */
       for (i = 0; i < n; i++)
       {
@@ -313,13 +313,13 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
         le = &left[cptr[i] * statesSquare];
         ri = &right[cptr[i] * statesSquare];
 
-        /* pointers to the likelihood entries of the tips q (vl) and r (vr)
+        /* pointers to the likelihood entries of the tips q (vl) and r (vr) 
            We will do reading accesses to these values only.
            */
         vl = &(tipVector[states * tipX1[i]]);
         vr = &(tipVector[states * tipX2[i]]);
 
-        /* address of the conditional likelihood array entres at site i. This is
+        /* address of the conditional likelihood array entres at site i. This is 
            a writing access to v */
         v  = &x3[states * i];
 
@@ -330,7 +330,7 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
         /* loop over states to compute the cond likelihoods at p (v) */
 
         for(l = 0; l < states; l++)
-        {
+        {	      
           ump_x1 = 0.0;
           ump_x2 = 0.0;
 
@@ -348,13 +348,13 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
 
           for(j = 0; j < states; j++)
             v[j] += x1px2 * extEV[l * states + j];
-        }
-      }
+        }	   
+      }    
       break;
-    case TIP_INNER:
+    case TIP_INNER:      
 
-      /* same as above, only that now vl is a tip and vr is the conditional probability vector
-         at an inner node. Note that, if we have the case that either q or r is a tip, the
+      /* same as above, only that now vl is a tip and vr is the conditional probability vector 
+         at an inner node. Note that, if we have the case that either q or r is a tip, the 
          nodes will be flipped to ensure that tipX1 always points to the sequence at the tip.
          */
 
@@ -393,37 +393,37 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
             v[j] += x1px2 * extEV[l * states + j];
         }
 
-        /* now let's check for numerical scaling.
-           The maths in RAxML are a bit non-standard to avoid/economize on arithmetic operations
-           at the virtual root and for branch length optimization and hence values stored
+        /* now let's check for numerical scaling. 
+           The maths in RAxML are a bit non-standard to avoid/economize on arithmetic operations 
+           at the virtual root and for branch length optimization and hence values stored 
            in the conditional likelihood vectors can become negative.
-           Below we check if all absolute values stored at position i of v are smaller
-           than a pre-defined value in axml.h. If they are all smaller we can then safely
-           multiply them by a large, constant number PLL_TWOTOTHE256 (without numerical overflow)
+           Below we check if all absolute values stored at position i of v are smaller 
+           than a pre-defined value in axml.h. If they are all smaller we can then safely 
+           multiply them by a large, constant number PLL_TWOTOTHE256 (without numerical overflow) 
            that is also speced in axml.h */
 
         scale = 1;
         for(l = 0; scale && (l < states); l++)
-          scale = ((v[l] < PLL_MINLIKELIHOOD) && (v[l] > PLL_MINUSMINLIKELIHOOD));
+          scale = ((v[l] < PLL_MINLIKELIHOOD) && (v[l] > PLL_MINUSMINLIKELIHOOD));	   
 
         if(scale)
         {
           for(l = 0; l < states; l++)
             v[l] *= PLL_TWOTOTHE256;
 
-          /* if we have scaled the entries to prevent underflow, we need to keep track of how many scaling
-             multiplications we did per node such as to undo them at the virtual root, e.g., in
-             evaluateGeneric()
-             Note here, that, if we scaled the site we need to increment the scaling counter by the wieght, i.e.,
-             the number of sites this potentially compressed pattern represents ! */
+          /* if we have scaled the entries to prevent underflow, we need to keep track of how many scaling 
+             multiplications we did per node such as to undo them at the virtual root, e.g., in 
+             evaluateGeneric() 
+             Note here, that, if we scaled the site we need to increment the scaling counter by the wieght, i.e., 
+             the number of sites this potentially compressed pattern represents ! */ 
 
 	  if(!fastScaling)
 	    ex3[i] += 1;
 	  else
-	    addScale += wgt[i];
-
+	    addScale += wgt[i];	  
+	  
         }
-      }
+      }   
       break;
     case INNER_INNER:
 
@@ -457,7 +457,7 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
           x1px2 =  ump_x1 * ump_x2;
 
           for(j = 0; j < states; j++)
-            v[j] += x1px2 * extEV[l * states + j];
+            v[j] += x1px2 * extEV[l * states + j];	      
         }
 
         scale = 1;
@@ -468,11 +468,11 @@ static void newviewCAT_FLEX(int tipCase, double *extEV,
         {
           for(l = 0; l < states; l++)
             v[l] *= PLL_TWOTOTHE256;
-
+	  
 	  if(!fastScaling)
 	    ex3[i] += 1;
 	  else
-	    addScale += wgt[i];
+	    addScale += wgt[i];	   
         }
       }
       break;
@@ -502,31 +502,31 @@ static void newviewGAMMA_FLEX(int tipCase,
 			      int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 			      int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling, const int states, const int maxStateValue)
 {
-  double
-    *uX1,
-    *uX2,
-    *v,
-    x1px2,
-    *vl,
-    *vr,
-    al,
+  double  
+    *uX1, 
+    *uX2, 
+    *v, 
+    x1px2, 
+    *vl, 
+    *vr, 
+    al, 
     ar;
 
-  int
-    i,
-    j,
-    l,
-    k,
-    scale,
+  int  
+    i, 
+    j, 
+    l, 
+    k, 
+    scale, 
     addScale = 0;
 
-  const int
+  const int     
     statesSquare = states * states,
                  span = states * 4,
-                 /* this is required for doing some pre-computations that help to save
-                    numerical operations. What we are actually computing here are additional lookup tables
+                 /* this is required for doing some pre-computations that help to save 
+                    numerical operations. What we are actually computing here are additional lookup tables 
                     for each possible state a certain data-type can assume.
-                    for DNA with ambuguity coding this is 15, for proteins this is 22 or 23, since there
+                    for DNA with ambuguity coding this is 15, for proteins this is 22 or 23, since there 
                     also exist one or two amibguity codes for protein data.
                     Essentially this is very similar to the tip vectors which we also use as lookup tables */
                  precomputeLength = maxStateValue * span;
@@ -537,11 +537,11 @@ static void newviewGAMMA_FLEX(int tipCase,
       {
         /* allocate pre-compute memory space */
 
-        double
+        double 
           *umpX1 = (double*)rax_malloc(sizeof(double) * precomputeLength),
           *umpX2 = (double*)rax_malloc(sizeof(double) * precomputeLength);
 
-        /* multiply all possible tip state vectors with the respective P-matrices
+        /* multiply all possible tip state vectors with the respective P-matrices 
         */
 
         for(i = 0; i < maxStateValue; i++)
@@ -565,7 +565,7 @@ static void newviewGAMMA_FLEX(int tipCase,
 
         for(i = 0; i < n; i++)
         {
-          /* access the precomputed arrays (pre-computed multiplication of conditional with the tip state)
+          /* access the precomputed arrays (pre-computed multiplication of conditional with the tip state) 
           */
 
           uX1 = &umpX1[span * tipX1[i]];
@@ -582,14 +582,14 @@ static void newviewGAMMA_FLEX(int tipCase,
               v[k] = 0.0;
 
             for(k = 0; k < states; k++)
-            {
+            {		   
               x1px2 = uX1[j * states + k] * uX2[j * states + k];
 
-              for(l = 0; l < states; l++)
-                v[l] += x1px2 * extEV[states * k + l];
+              for(l = 0; l < states; l++)		      					
+                v[l] += x1px2 * extEV[states * k + l];		     
             }
 
-          }
+          }	   
         }
 
         /* free precomputed vectors */
@@ -600,10 +600,10 @@ static void newviewGAMMA_FLEX(int tipCase,
       break;
     case TIP_INNER:
       {
-        /* we do analogous pre-computations as above, with the only difference that we now do them
+        /* we do analogous pre-computations as above, with the only difference that we now do them 
            only for one tip vector */
 
-        double
+        double 
           *umpX1 = (double*)rax_malloc(sizeof(double) * precomputeLength),
           *ump_x2 = (double*)rax_malloc(sizeof(double) * states);
 
@@ -658,13 +658,13 @@ static void newviewGAMMA_FLEX(int tipCase,
             }
           }
 
-          /* also do numerical scaling as above. Note that here we need to scale
+          /* also do numerical scaling as above. Note that here we need to scale 
              4 * 4 values for DNA or 4 * 20 values for protein data.
              If they are ALL smaller than our threshold, we scale. Note that,
-             this can cause numerical problems with GAMMA, if the values generated
+             this can cause numerical problems with GAMMA, if the values generated 
              by the four discrete GAMMA rates are too different.
 
-             For details, see:
+             For details, see: 
 
              F. Izquierdo-Carrasco, S.A. Smith, A. Stamatakis: "Algorithms, Data Structures, and Numerics for Likelihood-based Phylogenetic Inference of Huge Trees"
 
@@ -681,11 +681,11 @@ static void newviewGAMMA_FLEX(int tipCase,
           {
             for(l = 0; l < span; l++)
               v[l] *= PLL_TWOTOTHE256;
-
+	    
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];		    
           }
         }
 
@@ -711,7 +711,7 @@ static void newviewGAMMA_FLEX(int tipCase,
 
 
           for(l = 0; l < states; l++)
-          {
+          {		 
 
             al = 0.0;
             ar = 0.0;
@@ -736,14 +736,14 @@ static void newviewGAMMA_FLEX(int tipCase,
           scale = ((ABS(v[l]) <  PLL_MINLIKELIHOOD));
 
         if(scale)
-        {
+        {  
           for(l = 0; l < span; l++)
             v[l] *= PLL_TWOTOTHE256;
-
+	  
 	  if(!fastScaling)
 	    ex3[i] += 1;
 	  else
-	    addScale += wgt[i];
+	    addScale += wgt[i];	    	  
         }
       }
       break;
@@ -751,7 +751,7 @@ static void newviewGAMMA_FLEX(int tipCase,
       assert(0);
   }
 
-  /* as above, increment the global counter that counts scaling multiplications by the scaling multiplications
+  /* as above, increment the global counter that counts scaling multiplications by the scaling multiplications 
      carried out for computing the likelihood array at node p */
 
   if(fastScaling)
@@ -762,12 +762,12 @@ static void newviewGAMMA_FLEX(int tipCase,
 
 
 
-/* The function below computes partial traversals only down to the point/node in the tree where the
+/* The function below computes partial traversals only down to the point/node in the tree where the 
    conditional likelihhod vector summarizing a subtree is already oriented in the correct direction */
 /** @brief Computes partial traversals
  *
  *The function computes partial traversals only down to the point/node in the tree where the 
-   conditional likelihhod vector summarizing a subtree is already oriented in the correct direction
+   conditional likelihhod vector summarizing a subtree is already oriented in the correct direction 
 
 
    @todo Document the parameters, the description is insufficient
@@ -783,18 +783,18 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
     return;
 
   {
-    int
+    int 
       i;
 
     /* recom default values */
     int slot = -1,
-        unpin1 = -1,
+        unpin1 = -1, 
         unpin2 = -1;
     /* get the left and right descendants */
 
-    nodeptr
+    nodeptr 
       q = p->next->back,
-        r = p->next->next->back;
+        r = p->next->next->back;   
 
     /* if the left and right children are tips there is not that much to do */
 
@@ -803,7 +803,7 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
       /* fix the orientation of p->x */
 
       if (! p->x)
-        getxnode(p);
+        getxnode(p);	
       assert(p->x);
 
       /* add the current node triplet p,q,r to the traversal descriptor */
@@ -817,7 +817,7 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
       /* copy branches to traversal descriptor */
 
       for(i = 0; i < numBranches; i++)
-      {
+      {	    
         ti[*counter].qz[i] = q->z[i];
         ti[*counter].rz[i] = r->z[i];
       }
@@ -837,25 +837,25 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
     }
     else
     {
-      /* if either r or q are tips, flip them to make sure that the tip data is stored
+      /* if either r or q are tips, flip them to make sure that the tip data is stored 
          for q */
 
       if(isTip(r->number, maxTips) || isTip(q->number, maxTips))
-      {
+      {	    
         if(isTip(r->number, maxTips))
         {
-          nodeptr
+          nodeptr 
             tmp = r;
           r = q;
           q = tmp;
         }
 
 
-        /* if the orientation of the liklihood vector at r is not correct we need to re-compute it
-           and descend into its subtree to figure out if there are more vrctors in there to re-compute and
+        /* if the orientation of the liklihood vector at r is not correct we need to re-compute it 
+           and descend into its subtree to figure out if there are more vrctors in there to re-compute and 
            re-orient */
 
-        if(needsRecomp(useRecom, rvec, r, maxTips) || !partialTraversal)
+        if(needsRecomp(useRecom, rvec, r, maxTips) || !partialTraversal) 
           computeTraversalInfo(r, ti, counter, maxTips, numBranches, partialTraversal, rvec, useRecom);
         else
           {
@@ -865,7 +865,7 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
           }
         /* Now that r is oriented, we can safely set the orientation of p */
         if(! p->x)
-          getxnode(p);
+          getxnode(p);	 
 
         /* make sure that everything is consistent now */
 
@@ -879,7 +879,7 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
         ti[*counter].rNumber = r->number;
 
         for(i = 0; i < numBranches; i++)
-        {
+        {	
           ti[*counter].qz[i] = q->z[i];
           ti[*counter].rz[i] = r->z[i];
         }
@@ -901,14 +901,14 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
       }
       else
       {
-        /* same as above, only now q and r are inner nodes. Hence if they are not
-           oriented correctly they will need to be recomputed and we need to descend into the
-           respective subtrees to check if everything is consistent in there, potentially expanding
+        /* same as above, only now q and r are inner nodes. Hence if they are not 
+           oriented correctly they will need to be recomputed and we need to descend into the 
+           respective subtrees to check if everything is consistent in there, potentially expanding 
            the traversal descriptor */
-        if(( useRecom && (!partialTraversal) ) ||
+        if(( useRecom && (!partialTraversal) ) || 
             ( useRecom && needsRecomp(useRecom, rvec, q, maxTips) && needsRecomp(useRecom, rvec, r, maxTips) ))
         {
-          /* INNER_INNER and recomputation implies that the order we descend q and r matters,
+          /* INNER_INNER and recomputation implies that the order we descend q and r matters, 
            * if we are in a partial traversal, this is only relevant if both require recomputation
            * see TODOFER add ref. */
 
@@ -985,7 +985,7 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
         }
 
         for(i = 0; i < numBranches; i++)
-        {
+        {	
           ti[*counter].qz[i] = q->z[i];
           ti[*counter].rz[i] = r->z[i];
         }
@@ -1002,8 +1002,8 @@ void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTip
   }
 }
 
-/* below are the optimized unrolled, and vectorized versions of the above generi cfunctions
-   for computing the conditional likelihood at p given child nodes q and r. The actual implementation is located at the end/bottom of this
+/* below are the optimized unrolled, and vectorized versions of the above generi cfunctions 
+   for computing the conditional likelihood at p given child nodes q and r. The actual implementation is located at the end/bottom of this 
    file.
    */
 #if 1
@@ -1019,7 +1019,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 					double *EV, double *tipVector,
 					int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 					const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling,
-					unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+					unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
 					double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn);
 
 static void newviewGTRGAMMA(int tipCase,
@@ -1046,7 +1046,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 					    double *x1, double *x2, double *x3, double *extEV, double *tipVector,
 					    int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 					    int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling,
-					    unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+					    unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,  
 					    double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn
 					    );
 
@@ -1075,8 +1075,8 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 
 /* now this is the function that just iterates over the length of the traversal descriptor and 
    just computes the conditional likelihhod arrays in the order given by the descriptor.
-   So in a sense, this function has no clue that there is any tree-like structure
-   in the traversal descriptor, it just operates on an array of structs of given length */
+   So in a sense, this function has no clue that there is any tree-like structure 
+   in the traversal descriptor, it just operates on an array of structs of given length */ 
 
 void newviewCAT_FLEX_reorder(int tipCase, double *extEV,
     int *cptr,
@@ -1093,27 +1093,27 @@ void newviewGAMMA_FLEX_reorder(int tipCase, double *x1, double *x2, double *x3, 
  *
  * @note This function just iterates over the length of the traversal descriptor and 
    computes the conditional likelihhod arrays in the order given by the descriptor.
-   So in a sense, this function has no clue that there is any tree-like structure
+   So in a sense, this function has no clue that there is any tree-like structure 
    in the traversal descriptor, it just operates on an array of structs of given length
  * 
  */
 
 void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 {
-  traversalInfo
+  traversalInfo 
     *ti   = tr->td[0].ti;
 
-  int
-    i,
+  int 
+    i, 
     model;
   //int nvc = 0;
   //double *last_x3 = 0;
 
   //int last_width = -1;
 
-  int
-    p_slot = -1,
-    q_slot = -1,
+  int 
+    p_slot = -1, 
+    q_slot = -1, 
     r_slot = -1;
 
 #ifdef _DEBUG_RECOMPUTATION
@@ -1125,15 +1125,15 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
   /* E recom */
 #endif
 
-  /* loop over traversal descriptor length. Note that on average we only re-compute the conditionals on 3 -4
+  /* loop over traversal descriptor length. Note that on average we only re-compute the conditionals on 3 -4 
      nodes in RAxML */
 
   for(i = startIndex; i < tr->td[0].count; i++)
   {
 
-    traversalInfo
+    traversalInfo 
       *tInfo = &ti[i];
-
+    
     /* Note that the slots refer to different things if recomputation is applied */
     if(tr->useRecom)
       {
@@ -1155,19 +1155,19 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
     for(model = 0; model < pr->numberOfPartitions; model++)
     {
       /* number of sites in this partition */
-      size_t
+      size_t		
         width  = (size_t)pr->partitionData[model]->width;
 
       /* this conditional statement is exactly identical to what we do in evaluateIterative */
 
       if(tr->td[0].executeModel[model] && width > 0)
-      {
+      {	      
         double
           *x1_start = (double*)NULL,
           *x2_start = (double*)NULL,
           *x3_start = pr->partitionData[model]->xVector[p_slot],
           *left     = (double*)NULL,
-          *right    = (double*)NULL,
+          *right    = (double*)NULL,		
           *x1_gapColumn = (double*)NULL,
           *x2_gapColumn = (double*)NULL,
           *x3_gapColumn = (double*)NULL,
@@ -1182,8 +1182,8 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
           *wgt = pr->partitionData[model]->wgt;
 
 	/* pointers for per-site scaling array at node p */
-
-	int
+	
+	int 	 
 	  *ex3 = (int*)NULL;
 
 	/* select fastScaling or per-site scaling of conidtional likelihood entries */
@@ -1200,39 +1200,39 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
           *tipX1 = (unsigned char *)NULL,
           *tipX2 = (unsigned char *)NULL;
 
-        double
-          qz,
-          rz;
+        double 
+          qz, 
+          rz;	     
 
         size_t
           gapOffset = 0,
 	  rateHet = discreteRateCategories(tr->rateHetModel),
 
 	  /* get the number of states in the data stored in partition model */
-
+	  
 	  states = (size_t)pr->partitionData[model]->states,
-
-	  /* get the length of the current likelihood array stored at node p. This is
+	  
+	  /* get the length of the current likelihood array stored at node p. This is 
 	     important mainly for the SEV-based memory saving option described in here:
-
+	     
 	     F. Izquierdo-Carrasco, S.A. Smith, A. Stamatakis: "Algorithms, Data Structures, and Numerics for Likelihood-based Phylogenetic Inference of Huge Trees".
-
+	     
 	     So pr->partitionData[model]->xSpaceVector[i] provides the length of the allocated conditional array of partition model
-	     and node i
+	     and node i 
 	  */
-
+	  
 	  availableLength = pr->partitionData[model]->xSpaceVector[p_slot],
-	  requiredLength = 0;
-
+	  requiredLength = 0;	     
+	
         /* figure out what kind of rate heterogeneity approach we are using */
 
         if(tr->rateHetModel == CAT)
-	  {
+	  {		 
 	    rateCategories = pr->partitionData[model]->perSiteRates;
 	    categories = pr->partitionData[model]->numberOfCategories;
 	  }
         else
-	  {
+	  {		  		 
 	    rateCategories = pr->partitionData[model]->gammaRates;
 	    categories = 4;
 	  }
@@ -1243,59 +1243,59 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 	  {
 	    size_t
 	      j,
-	      setBits = 0;
-
+	      setBits = 0;		  
+	    
 	    gapOffset = states * (size_t)getUndetermined(pr->partitionData[model]->dataType);
-
+	    
 	    x1_gap = &(pr->partitionData[model]->gapVector[tInfo->qNumber * pr->partitionData[model]->gapVectorLength]);
 	    x2_gap = &(pr->partitionData[model]->gapVector[tInfo->rNumber * pr->partitionData[model]->gapVectorLength]);
 	    x3_gap = &(pr->partitionData[model]->gapVector[tInfo->pNumber * pr->partitionData[model]->gapVectorLength]);
-
+	    
 	    for(j = 0; j < (size_t)pr->partitionData[model]->gapVectorLength; j++)
-	      {
+	      {		     
 		x3_gap[j] = x1_gap[j] & x2_gap[j];
-		setBits += (size_t)(bitcount_32_bit(x3_gap[j]));
+		setBits += (size_t)(bitcount_32_bit(x3_gap[j])); 
 	      }
-
-	    requiredLength = (width - setBits)  * rateHet * states * sizeof(double);
+	    
+	    requiredLength = (width - setBits)  * rateHet * states * sizeof(double);		
 	  }
         else
 	  {
-	    /* if we are not trying to save memory the space required to store an inner likelihood array
-	       is the number of sites in the partition times the number of states of the data type in the partition
+	    /* if we are not trying to save memory the space required to store an inner likelihood array 
+	       is the number of sites in the partition times the number of states of the data type in the partition 
 	       times the number of discrete GAMMA rates (1 for CAT essentially) times 8 bytes */
 	    requiredLength  =  virtual_width( width ) * rateHet * states * sizeof(double);
-
+	    
 	    //                   printf( "req: %d %d %d %d\n", requiredLength, width, virtual_width(width), model );
 	  }
-
-        /* Initially, even when not using memory saving no space is allocated for inner likelihood arrats hence
+	
+        /* Initially, even when not using memory saving no space is allocated for inner likelihood arrats hence 
            availableLength will be zero at the very first time we traverse the tree.
            Hence we need to allocate something here */
 
         if(requiredLength != availableLength)
-	  {
-	    /* if there is a vector of incorrect length assigned here i.e., x3 != NULL we must free
+	  {		  
+	    /* if there is a vector of incorrect length assigned here i.e., x3 != NULL we must free 
 	       it first */
 	    if(x3_start)
 	      rax_free(x3_start);
-
+	    
 	    /* allocate memory: note that here we use a byte-boundary aligned malloc, because we need the vectors
 	       to be aligned at 16 BYTE (SSE3) or 32 BYTE (AVX) boundaries! */
-
-	    x3_start = (double*)rax_malloc_aligned(requiredLength);
-
+	    
+	    x3_start = (double*)rax_malloc_aligned(requiredLength);		 
+	    
 	    /* update the data structures for consistent bookkeeping */
 	    pr->partitionData[model]->xVector[p_slot] = x3_start;
 	    pr->partitionData[model]->xSpaceVector[p_slot] = requiredLength;
 	  }
+	
 
-
-	/*
-	   if we are not using fast scaling, we need to assign memory for storing
-	   integer vectors at each inner node that are as long as the sites of the
-	   partition. IMPORTANT: while this looks as if this might be a memory saving trick
-	   it is not. The ex3 vectors will be allocated once during the very first tree
+	/* 
+	   if we are not using fast scaling, we need to assign memory for storing 
+	   integer vectors at each inner node that are as long as the sites of the 
+	   partition. IMPORTANT: while this looks as if this might be a memory saving trick 
+	   it is not. The ex3 vectors will be allocated once during the very first tree 
 	   traversal and then never again because they will always have the required length!
 	*/
 
@@ -1304,28 +1304,28 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 	    size_t
 	      availableExpLength = pr->partitionData[model]->expSpaceVector[p_slot],
 	      requiredExpLength  = width * sizeof(int);
-
+	    
 	    ex3 = pr->partitionData[model]->expVector[p_slot];
-
+	    
 	    if(requiredExpLength != availableExpLength)
 	      {
 		if(ex3)
 		  rax_free(ex3);
-
-		ex3 = (int*)rax_malloc_aligned(requiredExpLength);
-
+		
+		ex3 = (int*)rax_malloc_aligned(requiredExpLength);		 
+		
 		pr->partitionData[model]->expVector[p_slot] = ex3;
-
+		
 		pr->partitionData[model]->expSpaceVector[p_slot] = requiredExpLength;
 	      }
 	  }
 
-        /* now just set the pointers for data accesses in the newview() implementations above to the corresponding values
+        /* now just set the pointers for data accesses in the newview() implementations above to the corresponding values 
            according to the tip case */
-
+	
         switch(tInfo->tipCase)
 	  {
-          case TIP_TIP:
+          case TIP_TIP:		  
             tipX1    = pr->partitionData[model]->yVector[tInfo->qNumber];
             tipX2    = pr->partitionData[model]->yVector[tInfo->rNumber];
 
@@ -1335,53 +1335,53 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 		x2_gapColumn   = &(pr->partitionData[model]->tipVector[gapOffset]);
 		x3_gapColumn   = &(pr->partitionData[model]->gapColumn[(tInfo->pNumber - tr->mxtips - 1) * states * rateHet]);
 	      }
-
+	    
 	    /* if we do per-site log likelihood scaling, and both child nodes are tips,
 	       just initialize the vector with zeros, i.e., no scaling events */
 
 	    if(!fastScaling)
 	      {
 		size_t
-		  k;
+		  k;		      		     
 
 		for(k = 0; k < width; k++)
 		  ex3[k] = 0;
 	      }
             break;
-          case TIP_INNER:
+          case TIP_INNER:		 
             tipX1    =  pr->partitionData[model]->yVector[tInfo->qNumber];
             x2_start = pr->partitionData[model]->xVector[r_slot];
             assert(r_slot != p_slot);
-
+	    
             if(tr->saveMemory)
-	      {
+	      {	
 		x1_gapColumn   = &(pr->partitionData[model]->tipVector[gapOffset]);
 		x2_gapColumn   = &pr->partitionData[model]->gapColumn[(tInfo->rNumber - tr->mxtips - 1) * states * rateHet];
 		x3_gapColumn   = &pr->partitionData[model]->gapColumn[(tInfo->pNumber - tr->mxtips - 1) * states * rateHet];
 	      }
-
-	    /* if one child node is not a tip, just copy the values from there, coudl also be done with memcpy of course
-	       the elements of ex3[] will then potentially be further incremented in the actual newview() if scaling events
+	    
+	    /* if one child node is not a tip, just copy the values from there, coudl also be done with memcpy of course 
+	       the elements of ex3[] will then potentially be further incremented in the actual newview() if scaling events 
 	       take place */
 
 	    if(!fastScaling)
 	      {
-		size_t
+		size_t 
 		  k;
 		int
-		  *ex2 = pr->partitionData[model]->expVector[r_slot];
-
+		  *ex2 = pr->partitionData[model]->expVector[r_slot];		     
+		      
 		for(k = 0; k < width; k++)
 		  ex3[k] = ex2[k];
 	      }
             break;
-          case INNER_INNER:
+          case INNER_INNER:		 		 
             x1_start       = pr->partitionData[model]->xVector[q_slot];
             x2_start       = pr->partitionData[model]->xVector[r_slot];
             assert(r_slot != p_slot);
             assert(q_slot != p_slot);
             assert(q_slot != r_slot);
-
+	    
             if(tr->saveMemory)
 	      {
 		x1_gapColumn   = &pr->partitionData[model]->gapColumn[(tInfo->qNumber - tr->mxtips - 1) * states * rateHet];
@@ -1389,18 +1389,18 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 		x3_gapColumn   = &pr->partitionData[model]->gapColumn[(tInfo->pNumber - tr->mxtips - 1) * states * rateHet];
 	      }
 
-	    /* both child nodes are inner nodes, thus the initial value of the scaling vector
+	    /* both child nodes are inner nodes, thus the initial value of the scaling vector 
 	       ex3 is the sum of the scaling values of the left and right child node */
 
 	    if(!fastScaling)
 	      {
 		size_t
 		  k;
-
-		int
+		      
+		int	       
 		  *ex1      = pr->partitionData[model]->expVector[q_slot],
-		  *ex2      = pr->partitionData[model]->expVector[r_slot];
-
+		  *ex2      = pr->partitionData[model]->expVector[r_slot];		      
+		      
 		  for(k = 0; k < width; k++)
 		    ex3[k] = ex1[k] + ex2[k];
 	      }
@@ -1414,15 +1414,15 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
         left  = pr->partitionData[model]->left;
         right = pr->partitionData[model]->right;
 
-        /* if we use per-partition branch length optimization
-           get the branch length of partition model and take the log otherwise
-           use the joint branch length among all partitions that is always stored
+        /* if we use per-partition branch length optimization 
+           get the branch length of partition model and take the log otherwise 
+           use the joint branch length among all partitions that is always stored 
            at index [0] */
 
         if(pr->perGeneBranchLengths)
         {
-          qz = tInfo->qz[model];
-          rz = tInfo->rz[model];
+          qz = tInfo->qz[model];		  		    
+          rz = tInfo->rz[model];		  
         }
         else
         {
@@ -1430,12 +1430,12 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
           rz = tInfo->rz[0];
         }
 
-        qz = (qz > PLL_ZMIN) ? log(qz) : log(PLL_ZMIN);
-        rz = (rz > PLL_ZMIN) ? log(rz) : log(PLL_ZMIN);
+        qz = (qz > PLL_ZMIN) ? log(qz) : log(PLL_ZMIN);		  	       
+        rz = (rz > PLL_ZMIN) ? log(rz) : log(PLL_ZMIN);	          	      
 
         /* compute the left and right P matrices */
 
-	if(pr->partitionData[model]->dataType == AA_DATA && pr->partitionData[model]->protModels == LG4)
+	if(pr->partitionData[model]->dataType == AA_DATA && pr->partitionData[model]->protModels == LG4)		     
 		makeP_FlexLG4(qz, rz, pr->partitionData[model]->gammaRates,
 			      pr->partitionData[model]->EI_LG4,
 			      pr->partitionData[model]->EIGN_LG4,
@@ -1513,15 +1513,15 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 
         }
 #else
-        /* dedicated highly optimized functions. Analogously to the functions in evaluateGeneric()
+        /* dedicated highly optimized functions. Analogously to the functions in evaluateGeneric() 
            we also siwtch over the state number */
 
         switch(states)
-        {
+        {		
 	case 4:	/* DNA */
 	  if(tr->rateHetModel == CAT)
-            {
-
+            {		    		     
+	      
               if(tr->saveMemory)
 #ifdef __AVX
 		newviewGTRCAT_AVX_GAPPED_SAVE(tInfo->tipCase,  pr->partitionData[model]->EV, pr->partitionData[model]->rateCategory,
@@ -1551,21 +1551,21 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
             }
 	  else
             {
-
+	      
               if(tr->saveMemory)
 #ifdef ___AVX
 		newviewGTRGAMMA_AVX_GAPPED_SAVE(tInfo->tipCase,
 						x1_start, x2_start, x3_start, pr->partitionData[model]->EV, pr->partitionData[model]->tipVector,
 						ex3, tipX1, tipX2,
 						width, left, right, wgt, &scalerIncrement, fastScaling,
-						x1_gap, x2_gap, x3_gap,
+						x1_gap, x2_gap, x3_gap, 
 						x1_gapColumn, x2_gapColumn, x3_gapColumn);
 #else
 	      newviewGTRGAMMA_GAPPED_SAVE(tInfo->tipCase,
 					  x1_start, x2_start, x3_start, pr->partitionData[model]->EV, pr->partitionData[model]->tipVector,
 					  ex3, tipX1, tipX2,
 					  width, left, right, wgt, &scalerIncrement, fastScaling,
-					  x1_gap, x2_gap, x3_gap,
+					  x1_gap, x2_gap, x3_gap, 
 					  x1_gapColumn, x2_gapColumn, x3_gapColumn);
 #endif
               else
@@ -1582,7 +1582,7 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 #endif
             }
 
-            break;
+            break;		    
           case 20: /* proteins */
 
             if(tr->rateHetModel == CAT)
@@ -1593,7 +1593,7 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 #ifdef __AVX
                 newviewGTRCATPROT_AVX_GAPPED_SAVE(tInfo->tipCase,  pr->partitionData[model]->EV, pr->partitionData[model]->rateCategory,
 						  x1_start, x2_start, x3_start, pr->partitionData[model]->tipVector,
-						  ex3, tipX1, tipX2, width, left, right, wgt, &scalerIncrement, fastScaling,
+						  ex3, tipX1, tipX2, width, left, right, wgt, &scalerIncrement, fastScaling, 
 						  x1_gap, x2_gap, x3_gap,
 						  x1_gapColumn, x2_gapColumn, x3_gapColumn, tr->maxCategories);
 #else
@@ -1610,13 +1610,13 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 #else
               newviewGTRCATPROT(tInfo->tipCase,  pr->partitionData[model]->EV, pr->partitionData[model]->rateCategory,
 				x1_start, x2_start, x3_start, pr->partitionData[model]->tipVector,
-				ex3, tipX1, tipX2, width, left, right, wgt, &scalerIncrement, fastScaling);
+				ex3, tipX1, tipX2, width, left, right, wgt, &scalerIncrement, fastScaling);			
 #endif
             }
             else
             {
 
-
+	      
 
               if(tr->saveMemory)
 #ifdef __AVX
@@ -1638,12 +1638,12 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 						x1_gap, x2_gap, x3_gap,
 						x1_gapColumn, x2_gapColumn, x3_gapColumn);
 #endif
-
+	    
 	     else
 			{
 			  if(pr->partitionData[model]->protModels == LG4)
 			    {
-#ifdef __AVX
+#ifdef __AVX 
 			      newviewGTRGAMMAPROT_AVX_LG4(tInfo->tipCase,
 							  x1_start, x2_start, x3_start,
 							  pr->partitionData[model]->EV_LG4,
@@ -1656,9 +1656,9 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 						      pr->partitionData[model]->EV_LG4,
 						      pr->partitionData[model]->tipVector_LG4,
 						      (int*)NULL, tipX1, tipX2,
-						      width, left, right,
+						      width, left, right, 
 						      wgt, &scalerIncrement, PLL_TRUE);
-#endif
+#endif			    
 			    }
               else
 #ifdef __AVX
@@ -1671,19 +1671,19 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 				  x1_start, x2_start, x3_start, pr->partitionData[model]->EV, pr->partitionData[model]->tipVector,
 				  ex3, tipX1, tipX2,
 				  width, left, right, wgt, &scalerIncrement, fastScaling);
-#endif
-            }
+#endif		       
+            }	
 	}
-
-            break;
+	    
+            break;	
           default:
             assert(0);
         }
 #endif
 
 
-        /* important step, here we essentiallt recursively compute the number of scaling multiplications
-           at node p: it's the sum of the number of scaling multiplications already conducted
+        /* important step, here we essentiallt recursively compute the number of scaling multiplications 
+           at node p: it's the sum of the number of scaling multiplications already conducted 
            for computing nodes q and r plus the scaling multiplications done at node p */
 
 	if(fastScaling)
@@ -1692,22 +1692,22 @@ void newviewIterative (pllInstance *tr, partitionList *pr, int startIndex)
 	      pr->partitionData[model]->globalScaler[tInfo->qNumber] +
 	      pr->partitionData[model]->globalScaler[tInfo->rNumber] +
 	      (unsigned int)scalerIncrement;
-
+	    
 	    /* check that we are not getting an integer overflow ! */
 
 	    assert(pr->partitionData[model]->globalScaler[tInfo->pNumber] < INT_MAX);
 	  }
-
+	
 	/* show the output vector */
-      }
+      }	
     }
   }
 }
 
 /** @brief Compute traversal descriptor
-
-    Convenience function for computing the traversal descriptor of the subtree
-    with root node \a p.
+    
+    Convenience function for computing the traversal descriptor of the subtree 
+    with root node \a p. 
 
     @todo Describe also the usage of tr->useRecom (ancestral state reconstruction flag) and also
     rename this flag to something more meaningful, i.e. tr->bAncestral
@@ -1729,22 +1729,22 @@ void computeTraversal(pllInstance *tr, nodeptr p, boolean partialTraversal, int 
 
 /** @brief Re-computes the vector at node p
  *
- * This is the generic function that could be called from the user program
-   it re-computes the vector at node p (regardless of whether it's orientation is
-   correct) and re-computes, recursively, the likelihood arrays
-   in the subtrees of p as needed and if needed
+ * This is the generic function that could be called from the user program 
+   it re-computes the vector at node p (regardless of whether it's orientation is 
+   correct) and re-computes, recursively, the likelihood arrays 
+   in the subtrees of p as needed and if needed 
  *
  *
  */
 void newviewGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean masked)
-{
+{  
   /* if it's a tip there is nothing to do */
 
   if(isTip(p->number, tr->mxtips))
     return;
 
   /* the first entry of the traversal descriptor is always reserved for evaluate or branch length optimization calls,
-     hence we start filling the array at the second entry with index one. This is not very nice and should be fixed
+     hence we start filling the array at the second entry with index one. This is not very nice and should be fixed 
      at some point */
 
   tr->td[0].count = 0;
@@ -1752,22 +1752,22 @@ void newviewGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean mask
   /* compute the traversal descriptor, which will include nodes-that-need-update descending the subtree  p */
   computeTraversal(tr, p, PLL_TRUE, pr->perGeneBranchLengths?pr->numberOfPartitions:1);
 
-  /* the traversal descriptor has been recomputed -> not sure if it really always changes, something to
+  /* the traversal descriptor has been recomputed -> not sure if it really always changes, something to 
      optimize in the future */
   tr->td[0].traversalHasChanged = PLL_TRUE;
 
-  /* We do a masked newview, i.e., do not execute newvies for each partition, when for example
+  /* We do a masked newview, i.e., do not execute newvies for each partition, when for example 
      doing a branch length optimization on the entire tree when branches are estimated on a per partition basis.
 
-     you may imagine that for partition 5 the branch length optimization has already converged whereas
+     you may imagine that for partition 5 the branch length optimization has already converged whereas 
      for partition 6 we still need to go over the tree again.
 
      This is explained in more detail in:
 
      A. Stamatakis, M. Ott: "Load Balance in the Phylogenetic Likelihood Kernel". Proceedings of ICPP 2009
 
-     The external boolean array tr->partitionConverged[] contains exactly that information and is copied
-     to executeModel and subsequently to the executeMask of the traversal descriptor
+     The external boolean array tr->partitionConverged[] contains exactly that information and is copied 
+     to executeModel and subsequently to the executeMask of the traversal descriptor 
 
 */
 
@@ -1795,7 +1795,7 @@ void newviewGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean mask
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
     /* do the parallel for join for pthreads
-       not that we do not need a reduction operation here, but just a barrier to make
+       not that we do not need a reduction operation here, but just a barrier to make 
        sure that all threads are done with their partition */
 
     masterBarrier(THREAD_NEWVIEW, tr, pr);
@@ -1827,50 +1827,50 @@ void newviewGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean mask
  *
  */
 static void ancestralCat(double *x3, double *ancestralBuffer, double *diagptable, const int n, const int numStates, int *cptr)
-{
-  double
+{ 
+  double 
     *term = (double*)rax_malloc(sizeof(double) * numStates);
 
-  int
+  int 
     i;
 
   const int
     statesSquare = numStates * numStates;
-
+  
   for(i = 0; i < n; i++)
     {
-      double
+      double 
 	sum = 0.0,
 	*v = &x3[numStates * i],
 	*ancestral = &ancestralBuffer[numStates * i],
-	*d = &diagptable[cptr[i] * statesSquare];
+	*d = &diagptable[cptr[i] * statesSquare];            
 
-      int
+      int 
 	l,
 	j;
 
       for(l = 0; l < numStates; l++)
 	{
-	  double
+	  double 
 	    ump_x1 = 0.0;
-
-	  for(j = 0; j < numStates; j++)
+      
+	  for(j = 0; j < numStates; j++)	
 	    ump_x1 += v[j] * d[l * numStates + j];
 
 	  sum += ump_x1;
-	  term[l] = ump_x1;
+	  term[l] = ump_x1;      
 	}
-
-      for(l = 0; l < numStates; l++)
-	ancestral[l] = term[l] / sum;
+		
+      for(l = 0; l < numStates; l++)          
+	ancestral[l] = term[l] / sum;	
     }
-
+   
   rax_free(term);
 }
 
 
 /* compute marginal ancestral states for GAMMA models,
-   for the euqation to obtain marginal ancestral states
+   for the euqation to obtain marginal ancestral states 
    see Ziheng Yang's book */
 /** @brief Function to compute the marginal ancestral probability vector at a node p for GAMMA model
  *
@@ -1878,52 +1878,52 @@ static void ancestralCat(double *x3, double *ancestralBuffer, double *diagptable
  */
 static void ancestralGamma(double *x3, double *ancestralBuffer, double *diagptable, const int n, const int numStates, const int gammaStates)
 {
-  int
+  int 
     i;
 
   const int
     statesSquare = numStates * numStates;
 
-  double
-    *term = (double*)rax_malloc(sizeof(double) * numStates);
-
+  double    
+    *term = (double*)rax_malloc(sizeof(double) * numStates);	      	      
+  
   for(i = 0; i < n; i++)
     {
-      double
+      double 
 	sum = 0.0,
 	*_v = &x3[gammaStates * i],
-	*ancestral = &ancestralBuffer[numStates * i];
-
+	*ancestral = &ancestralBuffer[numStates * i];  
+      
       int
 	k,
 	j,
 	l;
-
+      
       for(l = 0; l < numStates; l++)
 	term[l] = 0.0;
 
       for(k = 0; k < 4; k++)
 	{
-	  double
+	  double 
 	    *v =  &(_v[numStates * k]);
 
 	  for(l = 0; l < numStates; l++)
 	    {
 	      double
 		al = 0.0;
-
-	      for(j = 0; j < numStates; j++)
+	      
+	      for(j = 0; j < numStates; j++)	    
 		al += v[j] * diagptable[k * statesSquare + l * numStates + j];
-
+	  
 	      term[l] += al;
 	      sum += al;
 	    }
 	}
-
-      for(l = 0; l < numStates; l++)
-	ancestral[l] = term[l] / sum;
+  
+      for(l = 0; l < numStates; l++)        
+	ancestral[l] = term[l] / sum;       
     }
-
+   
   rax_free(term);
 }
 
@@ -1934,40 +1934,40 @@ static void ancestralGamma(double *x3, double *ancestralBuffer, double *diagptab
  */
 static void calc_diagp_Ancestral(double *rptr, double *EI,  double *EIGN, int numberOfCategories, double *left, const int numStates)
 {
-  int
+  int 
     i,
     j,
     k;
-
-  const int
+  
+  const int   
     statesSquare = numStates * numStates;
 
-  double
+  double 
     z1 = 0.0,
     lz1[64],
     d1[64];
 
   assert(numStates <= 64);
-
-  for(i = 0; i < numStates; i++)
+     
+  for(i = 0; i < numStates; i++)    
     lz1[i] = EIGN[i] * z1;
-
+     
 
   for(i = 0; i < numberOfCategories; i++)
     {
       d1[0] = 1.0;
 
-      for(j = 1; j < numStates; j++)
+      for(j = 1; j < numStates; j++)	
 	d1[j] = EXP(rptr[i] * lz1[j]);
-
+	 
       for(j = 0; j < numStates; j++)
 	{
-	  left[statesSquare * i  + numStates * j] = 1.0;
+	  left[statesSquare * i  + numStates * j] = 1.0;	 
 
-	  for(k = 1; k < numStates; k++)
-	    left[statesSquare * i + numStates * j + k]  = d1[k] * EI[numStates * j + k];
+	  for(k = 1; k < numStates; k++)	    
+	    left[statesSquare * i + numStates * j + k]  = d1[k] * EI[numStates * j + k];	     
 	}
-    }
+    }  
 }
 
 /** @brief A very simple iterative function, we only access the conditional likelihood vector at node p
@@ -1976,11 +1976,11 @@ static void calc_diagp_Ancestral(double *rptr, double *EI,  double *EIGN, int nu
  */
 void newviewAncestralIterative(pllInstance *tr, partitionList *pr)
 {
-  traversalInfo
+  traversalInfo 
     *ti    = tr->td[0].ti,
     *tInfo = &ti[0];
 
-  int
+  int    
     model,
     p_slot = -1;
 
@@ -1991,87 +1991,87 @@ void newviewAncestralIterative(pllInstance *tr, partitionList *pr)
 
   /* get the index to the conditional likelihood vector depending on whether recomputation is used or not */
 
-  if(tr->useRecom)
-    p_slot = tInfo->slot_p;
-  else
-    p_slot = tInfo->pNumber - tr->mxtips - 1;
+  if(tr->useRecom)    
+    p_slot = tInfo->slot_p;         
+  else    
+    p_slot = tInfo->pNumber - tr->mxtips - 1;         
 
   /* now loop over all partitions for nodes p of the current traversal vector entry */
 
   for(model = 0; model < pr->numberOfPartitions; model++)
     {
       /* number of sites in this partition */
-      size_t
+      size_t		
         width  = (size_t)pr->partitionData[model]->width;
 
       /* this conditional statement is exactly identical to what we do in evaluateIterative */
 
       if(tr->td[0].executeModel[model] && width > 0)
-	{
-	  double
+	{	      
+	  double	 
 	    *x3_start = pr->partitionData[model]->xVector[p_slot],
 //	    *left     = (double*)NULL,
-//	    *right    = (double*)NULL,
+//	    *right    = (double*)NULL,		       
 	    *rateCategories = (double*)NULL,
 	    *diagptable = (double*)NULL;
 
 	  int
 	    categories;
-
-	  size_t
+	
+	  size_t         	  
 	    states = (size_t)pr->partitionData[model]->states,
 	    availableLength = pr->partitionData[model]->xSpaceVector[p_slot],
 	    requiredLength = 0,
-	    rateHet = discreteRateCategories(tr->rateHetModel);
+	    rateHet = discreteRateCategories(tr->rateHetModel);   
 
         /* figure out what kind of rate heterogeneity approach we are using */
 
 	  if(tr->rateHetModel == CAT)
-	    {
+	    {		 
 	      rateCategories = pr->partitionData[model]->perSiteRates;
 	      categories = pr->partitionData[model]->numberOfCategories;
 	    }
 	  else
-	    {
+	    {		  		 
 	      rateCategories = pr->partitionData[model]->gammaRates;
 	      categories = 4;
 	    }
-
-	  /* allocate some space for a special P matrix with a branch length of 0 into which we mingle
-	     the eignevalues. This will allow us to obtain real probabilites from the internal RAxML
+	  
+	  /* allocate some space for a special P matrix with a branch length of 0 into which we mingle 
+	     the eignevalues. This will allow us to obtain real probabilites from the internal RAxML 
 	     representation */
 
 	  diagptable = (double*)rax_malloc_aligned(categories * states * states * sizeof(double));
-
+	  
 	  requiredLength  =  virtual_width( width ) * rateHet * states * sizeof(double);
-
+	  
 	  /* make sure that this vector had already been allocated. This must be PLL_TRUE since we first invoked a standard newview() on this */
 
-	  assert(requiredLength == availableLength);
+	  assert(requiredLength == availableLength);                        	  	 
 
 	  /* now compute the special P matrix */
 
 	  calc_diagp_Ancestral(rateCategories, pr->partitionData[model]->EI,  pr->partitionData[model]->EIGN, categories, diagptable, states);
-
-	  /* switch over the rate heterogeneity model
-	     and call generic functions that compute the marginal ancestral states and
+	  
+	  /* switch over the rate heterogeneity model 
+	     and call generic functions that compute the marginal ancestral states and 
 	     store them in pr->partitionData[model]->ancestralBuffer
 	  */
 
-	  if(tr->rateHetModel == CAT)
+	  if(tr->rateHetModel == CAT)	    
 	    ancestralCat(x3_start, pr->partitionData[model]->ancestralBuffer, diagptable, width, states, pr->partitionData[model]->rateCategory);
 	  else
 	    ancestralGamma(x3_start, pr->partitionData[model]->ancestralBuffer, diagptable, width, states, categories * states);
-
-	  rax_free(diagptable);
-	}
+	  
+	  rax_free(diagptable);	  	  	  
+	}	
     }
 }
 
-/* this is very similar to newviewGeneric, except that it also computes the marginal ancestral probabilities
+/* this is very similar to newviewGeneric, except that it also computes the marginal ancestral probabilities 
    at node p. To simplify the code I am re-using newview() here to first get the likelihood vector p->x at p
    and then I deploy newviewAncestralIterative(tr); that should always only have a traversal descriptor of lenth 1,
-   to do some mathematical transformations that are required to obtain the marginal ancestral probabilities from
+   to do some mathematical transformations that are required to obtain the marginal ancestral probabilities from 
    the conditional likelihood array at p.
 
    Note that the marginal ancestral probability vector summarizes the subtree rooted at p! */
@@ -2079,14 +2079,14 @@ void newviewAncestralIterative(pllInstance *tr, partitionList *pr)
 void newviewGenericAncestral(pllInstance *tr, partitionList *pr, nodeptr p)
 {
   /* error check, we don't need to compute anything for tips */
-
+  
   if(isTip(p->number, tr->mxtips))
     {
       printf("You are trying to compute the ancestral states on a tip node of the tree\n");
       assert(0);
     }
 
-  /* doesn't work yet in conjunction with SEVs, can be implemented though at some point
+  /* doesn't work yet in conjunction with SEVs, can be implemented though at some point 
      if urgently required */
 
   if(tr->saveMemory)
@@ -2101,7 +2101,7 @@ void newviewGenericAncestral(pllInstance *tr, partitionList *pr, nodeptr p)
   newviewGeneric(tr, pr, p, PLL_FALSE);
 
   /* now let's compute the ancestral states using this vector ! */
-
+  
   /* to make things easy and reduce code size, let's re-compute a standard traversal descriptor for node p,
      hence we need to set the count to 0 */
 
@@ -2113,16 +2113,16 @@ void newviewGenericAncestral(pllInstance *tr, partitionList *pr, nodeptr p)
 
   /* here we actually assert, that the traversal descriptor only contains one node triplet p, p->next->back, p->next->next->back
      this must be PLL_TRUE because we have alread invoked the standard newviewGeneric() on p.
-  */
+  */ 
 
-  assert(tr->td[0].count == 1);
-
+  assert(tr->td[0].count == 1);  
+  
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
   /* use the pthreads barrier to invoke newviewAncestralIterative() on a per-thread basis */
 
   masterBarrier(THREAD_NEWVIEW_ANCESTRAL, tr, pr);
 #else
-  /* now call the dedicated function that does the mathematical transformation of the
+  /* now call the dedicated function that does the mathematical transformation of the 
      conditional likelihood vector at p to obtain the marginal ancestral states */
 
   newviewAncestralIterative(tr, pr);
@@ -2131,13 +2131,13 @@ void newviewGenericAncestral(pllInstance *tr, partitionList *pr, nodeptr p)
   tr->td[0].traversalHasChanged = PLL_FALSE;
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-  /* invoke another parallel region to gather the marginal ancestral probabilities
+  /* invoke another parallel region to gather the marginal ancestral probabilities 
      from the threads/MPI processes */
 
   masterBarrier(THREAD_GATHER_ANCESTRAL, tr, pr);
 #endif
 
-
+  
 }
 
 /* returns the character representation of an enumerated DNA or AA state */
@@ -2147,17 +2147,17 @@ void newviewGenericAncestral(pllInstance *tr, partitionList *pr, nodeptr p)
  */
 static char getStateCharacter(int dataType, int state)
 {
-  char
+  char 
     result;
 
   switch(dataType)
-    {
+    {    
     case DNA_DATA:
        result = dnaStateNames[state];
       break;
     case AA_DATA:
       result =  protStateNames[state];
-      break;
+      break;    
     default:
       assert(0);
     }
@@ -2172,7 +2172,7 @@ static char getStateCharacter(int dataType, int state)
 void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pllInstance *tr, partitionList *pr)
 {
 #ifdef _USE_PTHREADS
-  size_t
+  size_t 
     accumulatedOffset = 0;
 #endif
 
@@ -2181,31 +2181,31 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
     k,
     model,
     globalIndex = 0;
-
+  
   /* allocate an array of structs for storing ancestral prob vector info/data */
 
-  ancestralState
-    *a = (ancestralState *)rax_malloc(sizeof(ancestralState) * tr->originalCrunchedLength);
+  ancestralState 
+    *a = (ancestralState *)rax_malloc(sizeof(ancestralState) * tr->originalCrunchedLength);   
 
   /* loop over partitions */
 
   for(model = 0; model < pr->numberOfPartitions; model++)
     {
-      int
+      int	     
 	i,
 	width = pr->partitionData[model]->upper - pr->partitionData[model]->lower,
 	states = pr->partitionData[model]->states;
-
+      
       /* set pointer to ancestral probability vector */
 
 #ifdef _USE_PTHREADS
       double
 	*ancestral = &tr->ancestralVector[accumulatedOffset];
 #else
-      double
+      double 
 	*ancestral = pr->partitionData[model]->ancestralBuffer;
-#endif
-
+#endif        
+      
       /* loop over the sites of the partition */
 
       for(i = 0; i < width; i++, globalIndex++)
@@ -2213,15 +2213,15 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
 	  double
 	    equal = 1.0 / (double)states,
 	    max = -1.0;
-
+	    
 	  boolean
 	    approximatelyEqual = PLL_TRUE;
 
 	  int
 	    max_l = -1,
 	    l;
-
-	  char
+	  
+	  char 
 	    c;
 
 	  /* stiore number of states for this site */
@@ -2231,12 +2231,12 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
 	  /* alloc space for storing marginal ancestral probabilities */
 
 	  a[globalIndex].probs = (double *)rax_malloc(sizeof(double) * states);
-
+	  
 	  /* loop over states to store probabilities and find the maximum */
 
 	  for(l = 0; l < states; l++)
 	    {
-	      double
+	      double 
 		value = ancestral[states * i + l];
 
 	      if(value > max)
@@ -2244,29 +2244,29 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
 		  max = value;
 		  max_l = l;
 		}
-
-	      /* this is used for discretizing the ancestral state sequence, if all marginal ancestral
+	      
+	      /* this is used for discretizing the ancestral state sequence, if all marginal ancestral 
 		 probabilities are approximately equal we output a ? */
 
 	      approximatelyEqual = approximatelyEqual && (ABS(equal - value) < 0.000001);
-
-	      a[globalIndex].probs[l] = value;
+	      
+	      a[globalIndex].probs[l] = value;	      	      
 	    }
 
-
+	  
 	  /* figure out the discrete ancestral nucleotide */
 
 	  if(approximatelyEqual)
-	    c = '?';
+	    c = '?';	  
 	  else
 	    c = getStateCharacter(pr->partitionData[model]->dataType, max_l);
-
-	  a[globalIndex].c = c;
+	  
+	  a[globalIndex].c = c;	  
 	}
 
 #ifdef _USE_PTHREADS
       accumulatedOffset += width * states;
-#endif
+#endif            
     }
 
   /* print marginal ancestral probs to terminal */
@@ -2274,33 +2274,33 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
   if(printProbs)
     {
       printf("%d\n", p->number);
-
+      
       for(k = 0; k < tr->originalCrunchedLength; k++)
 	{
 	  for(j = 0; j < a[k].states; j++)
 	    printf("%f ", a[k].probs[j]);
-	  printf("\n");
+	  printf("\n");      
 	}
-
+      
       printf("\n");
     }
-
+ 
   /* print discrete state ancestrakl sequence to terminal */
 
   if(printStates)
     {
       printf("%d ", p->number);
 
-      for(k = 0; k < tr->originalCrunchedLength; k++)
-	printf("%c", a[k].c);
-
+      for(k = 0; k < tr->originalCrunchedLength; k++)          
+	printf("%c", a[k].c);   
+  
       printf("\n");
     }
-
+  
   /* free the ancestral state data structure */
-
+          
   for(j = 0; j < tr->originalCrunchedLength; j++)
-    rax_free(a[j].probs);
+    rax_free(a[j].probs);  
 
   rax_free(a);
 }
@@ -2319,7 +2319,7 @@ void printAncestralState(nodeptr p, boolean printStates, boolean printProbs, pll
 /** @ingroup group1
  *  @brief Optimized function implementations for conditional likelihood implementation
  *
- * Optimized unrolled, and vectorized versions of the above generi cfunctions
+ * Optimized unrolled, and vectorized versions of the above generi cfunctions 
    for computing the conditional likelihood at p given child nodes q and r. The procedure is the same as for the slow generic implementations.
  *
  */
@@ -2328,15 +2328,15 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 					double *EV, double *tipVector,
 					int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 					const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling,
-					unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+					unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
 					double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn)
 {
-  int
-    i,
-    j,
-    k,
+  int     
+    i, 
+    j, 
+    k, 
     l,
-    addScale = 0,
+    addScale = 0, 
     scaleGap = 0;
 
   double
@@ -2344,21 +2344,21 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
     *x2,
     *x3,
     *x1_ptr = x1_start,
-    *x2_ptr = x2_start,
+    *x2_ptr = x2_start,       
     max,
-    maxima[2] __attribute__ ((aligned (BYTE_ALIGNMENT))),
-    EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+    maxima[2] __attribute__ ((aligned (BYTE_ALIGNMENT))),        
+    EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));      
 
-  __m128d
+  __m128d 
     values[8],
-    EVV[8];
+    EVV[8];  
 
   for(k = 0; k < 4; k++)
     for (l=0; l < 4; l++)
       EV_t[4 * l + k] = EV[4 * k + l];
 
   for(k = 0; k < 8; k++)
-    EVV[k] = _mm_load_pd(&EV_t[k * 2]);
+    EVV[k] = _mm_load_pd(&EV_t[k * 2]);      
 
 
 
@@ -2370,13 +2370,13 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
 
         for (i = 1; i < 16; i++)
-        {
+        {	    
           __m128d x1_1 = _mm_load_pd(&(tipVector[i*4]));
-          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));
+          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));	   
 
           for (j = 0; j < 4; j++)
             for (k = 0; k < 4; k++)
-            {
+            {			 	 
               __m128d left1 = _mm_load_pd(&left[j*16 + k*4]);
               __m128d left2 = _mm_load_pd(&left[j*16 + k*4 + 2]);
 
@@ -2404,13 +2404,13 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
               _mm_storel_pd(&umpX2[i*16 + j*4 + k], acc);
 
             }
-        }
+        }   		  
 
         uX1 = &umpX1[240];
-        uX2 = &umpX2[240];
+        uX2 = &umpX2[240];	   	    	    
 
         for (j = 0; j < 4; j++)
-        {
+        {				 		  		  		   
           __m128d uX1_k0_sse = _mm_load_pd( &uX1[j * 4] );
           __m128d uX1_k2_sse = _mm_load_pd( &uX1[j * 4 + 2] );
 
@@ -2418,7 +2418,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           __m128d uX2_k2_sse = _mm_load_pd( &uX2[j * 4 + 2] );
 
           __m128d x1px2_k0 = _mm_mul_pd( uX1_k0_sse, uX2_k0_sse );
-          __m128d x1px2_k2 = _mm_mul_pd( uX1_k2_sse, uX2_k2_sse );
+          __m128d x1px2_k2 = _mm_mul_pd( uX1_k2_sse, uX2_k2_sse );		    		    		   
 
           __m128d EV_t_l0_k0 = EVV[0];
           __m128d EV_t_l0_k2 = EVV[1];
@@ -2426,7 +2426,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           __m128d EV_t_l1_k2 = EVV[3];
           __m128d EV_t_l2_k0 = EVV[4];
           __m128d EV_t_l2_k2 = EVV[5];
-          __m128d EV_t_l3_k0 = EVV[6];
+          __m128d EV_t_l3_k0 = EVV[6]; 
           __m128d EV_t_l3_k2 = EVV[7];
 
           EV_t_l0_k0 = _mm_mul_pd( x1px2_k0, EV_t_l0_k0 );
@@ -2450,21 +2450,21 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
 
           _mm_store_pd( &x3_gapColumn[j * 4 + 0], EV_t_l0_k0 );
-          _mm_store_pd( &x3_gapColumn[j * 4 + 2], EV_t_l2_k0 );
-        }
+          _mm_store_pd( &x3_gapColumn[j * 4 + 2], EV_t_l2_k0 );	   
+        }  
 
 
         x3 = x3_start;
 
         for (i = 0; i < n; i++)
-        {
-          if(!(x3_gap[i / 32] & mask32[i % 32]))
+        {	    
+          if(!(x3_gap[i / 32] & mask32[i % 32]))	     
           {
             uX1 = &umpX1[16 * tipX1[i]];
-            uX2 = &umpX2[16 * tipX2[i]];
+            uX2 = &umpX2[16 * tipX2[i]];	   	    	    		
 
             for (j = 0; j < 4; j++)
-            {
+            {				 		  		  		   
               __m128d uX1_k0_sse = _mm_load_pd( &uX1[j * 4] );
               __m128d uX1_k2_sse = _mm_load_pd( &uX1[j * 4 + 2] );
 
@@ -2491,7 +2491,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
               __m128d EV_t_l1_k2 = EVV[3];
               __m128d EV_t_l2_k0 = EVV[4];
               __m128d EV_t_l2_k2 = EVV[5];
-              __m128d EV_t_l3_k0 = EVV[6];
+              __m128d EV_t_l3_k0 = EVV[6]; 
               __m128d EV_t_l3_k2 = EVV[7];
 
               EV_t_l0_k0 = _mm_mul_pd( x1px2_k0, EV_t_l0_k0 );
@@ -2524,19 +2524,19 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
       }
       break;
     case TIP_INNER:
-      {
-        double
-          *uX1,
-          umpX1[256] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+      {	
+        double 
+          *uX1, 
+          umpX1[256] __attribute__ ((aligned (BYTE_ALIGNMENT)));		 
 
         for (i = 1; i < 16; i++)
         {
           __m128d x1_1 = _mm_load_pd(&(tipVector[i*4]));
-          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));
+          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));	   
 
           for (j = 0; j < 4; j++)
             for (k = 0; k < 4; k++)
-            {
+            {		 
               __m128d left1 = _mm_load_pd(&left[j*16 + k*4]);
               __m128d left2 = _mm_load_pd(&left[j*16 + k*4 + 2]);
 
@@ -2546,7 +2546,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
               acc = _mm_add_pd(acc, _mm_mul_pd(left2, x1_2));
 
               acc = _mm_hadd_pd(acc, acc);
-              _mm_storel_pd(&umpX1[i*16 + j*4 + k], acc);
+              _mm_storel_pd(&umpX1[i*16 + j*4 + k], acc);		 
             }
         }
 
@@ -2555,13 +2555,13 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
           scaleGap = 0;
 
-          x2 = x2_gapColumn;
+          x2 = x2_gapColumn;			 
           x3 = x3_gapColumn;
 
-          uX1 = &umpX1[240];
+          uX1 = &umpX1[240];	     
 
           for (j = 0; j < 4; j++)
-          {
+          {		     		   
             double *x2_p = &x2[j*4];
             double *right_k0_p = &right[j*16];
             double *right_k1_p = &right[j*16 + 1*4];
@@ -2611,7 +2611,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
             __m128d EV_t_l1_k2 = EVV[3];
             __m128d EV_t_l2_k0 = EVV[4];
             __m128d EV_t_l2_k2 = EVV[5];
-            __m128d EV_t_l3_k0 = EVV[6];
+            __m128d EV_t_l3_k0 = EVV[6]; 
             __m128d EV_t_l3_k2 = EVV[7];
 
             EV_t_l0_k0 = _mm_mul_pd( x1px2_k0, EV_t_l0_k0 );
@@ -2635,10 +2635,10 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
             EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
 
             values[j * 2]     = EV_t_l0_k0;
-            values[j * 2 + 1] = EV_t_l2_k0;
+            values[j * 2 + 1] = EV_t_l2_k0;		   		   
 
             maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
-            maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
+            maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));		   	     		   
           }
 
 
@@ -2652,45 +2652,45 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
             __m128d sv = _mm_set1_pd(PLL_TWOTOTHE256);
 
-            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
             _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
             _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
             _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
             _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
             _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     	      	     
           }
           else
           {
-            _mm_store_pd(&x3[0], values[0]);
+            _mm_store_pd(&x3[0], values[0]);	   
             _mm_store_pd(&x3[2], values[1]);
             _mm_store_pd(&x3[4], values[2]);
             _mm_store_pd(&x3[6], values[3]);
-            _mm_store_pd(&x3[8], values[4]);
+            _mm_store_pd(&x3[8], values[4]);	   
             _mm_store_pd(&x3[10], values[5]);
             _mm_store_pd(&x3[12], values[6]);
             _mm_store_pd(&x3[14], values[7]);
           }
-        }
+        }		       	
 
         x3 = x3_start;
 
         for (i = 0; i < n; i++)
         {
           if((x3_gap[i / 32] & mask32[i % 32]))
-          {
+          {	       
             if(scaleGap)
-            {
+            {	
 	      if(!fastScaling)
 		ex3[i] += 1;
 	      else
-		addScale += wgt[i];
+		addScale += wgt[i];		     
             }
           }
           else
-          {
-            __m128d maxv =_mm_setzero_pd();
+          {				 
+            __m128d maxv =_mm_setzero_pd();		 
 
             if(x2_gap[i / 32] & mask32[i % 32])
               x2 = x2_gapColumn;
@@ -2700,11 +2700,11 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
               x2_ptr += 16;
             }
 
-            uX1 = &umpX1[16 * tipX1[i]];
+            uX1 = &umpX1[16 * tipX1[i]];	     
 
 
             for (j = 0; j < 4; j++)
-            {
+            {		     		   
               double *x2_p = &x2[j*4];
               double *right_k0_p = &right[j*16];
               double *right_k1_p = &right[j*16 + 1*4];
@@ -2764,7 +2764,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
                 //
                 // multiply with EV matrix (!?)
-                //
+                //		   		  
 
                 __m128d EV_t_l0_k0 = EVV[0];
                 __m128d EV_t_l0_k2 = EVV[1];
@@ -2772,7 +2772,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
                 __m128d EV_t_l1_k2 = EVV[3];
                 __m128d EV_t_l2_k0 = EVV[4];
                 __m128d EV_t_l2_k2 = EVV[5];
-                __m128d EV_t_l3_k0 = EVV[6];
+                __m128d EV_t_l3_k0 = EVV[6]; 
                 __m128d EV_t_l3_k2 = EVV[7];
 
 
@@ -2797,11 +2797,11 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
                 EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
 
                 values[j * 2]     = EV_t_l0_k0;
-                values[j * 2 + 1] = EV_t_l2_k0;
+                values[j * 2 + 1] = EV_t_l2_k0;		   		   
 
                 maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
-                maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
-              }
+                maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));		   
+              }		   
             }
 
 
@@ -2813,14 +2813,14 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
             {
               __m128d sv = _mm_set1_pd(PLL_TWOTOTHE256);
 
-              _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+              _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
               _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
               _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
               _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-              _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+              _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
               _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
               _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-              _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+              _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     
 
 	      if(!fastScaling)
 		ex3[i] += 1;
@@ -2830,29 +2830,29 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
             }
             else
             {
-              _mm_store_pd(&x3[0], values[0]);
+              _mm_store_pd(&x3[0], values[0]);	   
               _mm_store_pd(&x3[2], values[1]);
               _mm_store_pd(&x3[4], values[2]);
               _mm_store_pd(&x3[6], values[3]);
-              _mm_store_pd(&x3[8], values[4]);
+              _mm_store_pd(&x3[8], values[4]);	   
               _mm_store_pd(&x3[10], values[5]);
               _mm_store_pd(&x3[12], values[6]);
               _mm_store_pd(&x3[14], values[7]);
-            }
+            }		 
 
             x3 += 16;
           }
         }
       }
       break;
-    case INNER_INNER:
+    case INNER_INNER:         
       {
         __m128d maxv =_mm_setzero_pd();
 
         scaleGap = 0;
 
-        x1 = x1_gapColumn;
-        x2 = x2_gapColumn;
+        x1 = x1_gapColumn;	     	    
+        x2 = x2_gapColumn;	    
         x3 = x3_gapColumn;
 
         for (j = 0; j < 4; j++)
@@ -2932,10 +2932,10 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
           right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
           right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   		 		
 
           __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
-          __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
+          __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );		 		 	   
 
           __m128d EV_t_l0_k0 = EVV[0];
           __m128d EV_t_l0_k2 = EVV[1];
@@ -2943,7 +2943,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           __m128d EV_t_l1_k2 = EVV[3];
           __m128d EV_t_l2_k0 = EVV[4];
           __m128d EV_t_l2_k2 = EVV[5];
-          __m128d EV_t_l3_k0 = EVV[6];
+          __m128d EV_t_l3_k0 = EVV[6]; 
           __m128d EV_t_l3_k2 = EVV[7];
 
           EV_t_l0_k0 = _mm_mul_pd( x1px2_k0, EV_t_l0_k0 );
@@ -2968,7 +2968,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
 
           values[j * 2] = EV_t_l0_k0;
-          values[j * 2 + 1] = EV_t_l2_k0;
+          values[j * 2 + 1] = EV_t_l2_k0;            	   	    
 
           maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
           maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
@@ -2984,22 +2984,22 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
           scaleGap = 1;
 
-          _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+          _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
           _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
           _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
           _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-          _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+          _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
           _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
           _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-          _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+          _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     	    	 
         }
         else
         {
-          _mm_store_pd(&x3[0], values[0]);
+          _mm_store_pd(&x3[0], values[0]);	   
           _mm_store_pd(&x3[2], values[1]);
           _mm_store_pd(&x3[4], values[2]);
           _mm_store_pd(&x3[6], values[3]);
-          _mm_store_pd(&x3[8], values[4]);
+          _mm_store_pd(&x3[8], values[4]);	   
           _mm_store_pd(&x3[10], values[5]);
           _mm_store_pd(&x3[12], values[6]);
           _mm_store_pd(&x3[14], values[7]);
@@ -3010,20 +3010,20 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
       x3 = x3_start;
 
       for (i = 0; i < n; i++)
-      {
+      { 
         if(x3_gap[i / 32] & mask32[i % 32])
-        {
+        {	     
           if(scaleGap)
-          {
+          {	
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];		 	       
           }
         }
         else
         {
-          __m128d maxv =_mm_setzero_pd();
+          __m128d maxv =_mm_setzero_pd();	     	    
 
           if(x1_gap[i / 32] & mask32[i % 32])
             x1 = x1_gapColumn;
@@ -3123,7 +3123,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
             right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
             right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-            right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+            right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
             //
             // multiply left * right
@@ -3135,7 +3135,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
             //
             // multiply with EV matrix (!?)
-            //
+            //	     
 
             __m128d EV_t_l0_k0 = EVV[0];
             __m128d EV_t_l0_k2 = EVV[1];
@@ -3143,7 +3143,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
             __m128d EV_t_l1_k2 = EVV[3];
             __m128d EV_t_l2_k0 = EVV[4];
             __m128d EV_t_l2_k2 = EVV[5];
-            __m128d EV_t_l3_k0 = EVV[6];
+            __m128d EV_t_l3_k0 = EVV[6]; 
             __m128d EV_t_l3_k2 = EVV[7];
 
 
@@ -3170,7 +3170,7 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
 
 
             values[j * 2] = EV_t_l0_k0;
-            values[j * 2 + 1] = EV_t_l2_k0;
+            values[j * 2 + 1] = EV_t_l2_k0;            	   	    
 
             maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
             maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
@@ -3185,14 +3185,14 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           {
             __m128d sv = _mm_set1_pd(PLL_TWOTOTHE256);
 
-            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
             _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
             _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
             _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
             _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
             _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     
 
 	    if(!fastScaling)
 	      ex3[i] += 1;
@@ -3202,15 +3202,15 @@ static void newviewGTRGAMMA_GAPPED_SAVE(int tipCase,
           }
           else
           {
-            _mm_store_pd(&x3[0], values[0]);
+            _mm_store_pd(&x3[0], values[0]);	   
             _mm_store_pd(&x3[2], values[1]);
             _mm_store_pd(&x3[4], values[2]);
             _mm_store_pd(&x3[6], values[3]);
-            _mm_store_pd(&x3[8], values[4]);
+            _mm_store_pd(&x3[8], values[4]);	   
             _mm_store_pd(&x3[10], values[5]);
             _mm_store_pd(&x3[12], values[6]);
             _mm_store_pd(&x3[14], values[7]);
-          }
+          }	 
 
 
 
@@ -3240,10 +3240,10 @@ static void newviewGTRGAMMA(int tipCase,
 			    const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling
 			    )
 {
-  int
-    i,
-    j,
-    k,
+  int 
+    i, 
+    j, 
+    k, 
     l,
     addScale = 0;
 
@@ -3254,12 +3254,12 @@ static void newviewGTRGAMMA(int tipCase,
     *x2,
     *x3,
     max,
-    maxima[2] __attribute__ ((aligned (BYTE_ALIGNMENT))),
-    EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+    maxima[2] __attribute__ ((aligned (BYTE_ALIGNMENT))),       
+    EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));      
 
-  __m128d
+  __m128d 
     values[8],
-    EVV[8];
+    EVV[8];  
 
   for(k = 0; k < 4; k++)
     for (l=0; l < 4; l++)
@@ -3278,7 +3278,7 @@ static void newviewGTRGAMMA(int tipCase,
         for (i = 1; i < 16; i++)
         {
           __m128d x1_1 = _mm_load_pd(&(tipVector[i*4]));
-          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));
+          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));	   
 
           for (j = 0; j < 4; j++)
 
@@ -3310,7 +3310,7 @@ static void newviewGTRGAMMA(int tipCase,
               _mm_storel_pd(&umpX2[i*16 + j*4 + k], acc);
 
             }
-        }
+        }   	
 
         for (i = 0; i < n; i++)
         {
@@ -3318,7 +3318,7 @@ static void newviewGTRGAMMA(int tipCase,
 
 
           uX1 = &umpX1[16 * tipX1[i]];
-          uX2 = &umpX2[16 * tipX2[i]];
+          uX2 = &umpX2[16 * tipX2[i]];	   	    	    
 
           for (j = 0; j < 4; j++)
           {
@@ -3348,7 +3348,7 @@ static void newviewGTRGAMMA(int tipCase,
             __m128d EV_t_l1_k2 = EVV[3];
             __m128d EV_t_l2_k0 = EVV[4];
             __m128d EV_t_l2_k2 = EVV[5];
-            __m128d EV_t_l3_k0 = EVV[6];
+            __m128d EV_t_l3_k0 = EVV[6]; 
             __m128d EV_t_l3_k2 = EVV[7];
 
             EV_t_l0_k0 = _mm_mul_pd( x1px2_k0, EV_t_l0_k0 );
@@ -3378,18 +3378,18 @@ static void newviewGTRGAMMA(int tipCase,
       }
       break;
     case TIP_INNER:
-      {
+      {	
         double *uX1, umpX1[256] __attribute__ ((aligned (BYTE_ALIGNMENT)));
 
 
         for (i = 1; i < 16; i++)
         {
           __m128d x1_1 = _mm_load_pd(&(tipVector[i*4]));
-          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));
+          __m128d x1_2 = _mm_load_pd(&(tipVector[i*4 + 2]));	   
 
           for (j = 0; j < 4; j++)
             for (k = 0; k < 4; k++)
-            {
+            {		 
               __m128d left1 = _mm_load_pd(&left[j*16 + k*4]);
               __m128d left2 = _mm_load_pd(&left[j*16 + k*4 + 2]);
 
@@ -3399,7 +3399,7 @@ static void newviewGTRGAMMA(int tipCase,
               acc = _mm_add_pd(acc, _mm_mul_pd(left2, x1_2));
 
               acc = _mm_hadd_pd(acc, acc);
-              _mm_storel_pd(&umpX1[i*16 + j*4 + k], acc);
+              _mm_storel_pd(&umpX1[i*16 + j*4 + k], acc);		 
             }
         }
 
@@ -3410,7 +3410,7 @@ static void newviewGTRGAMMA(int tipCase,
           x2 = &x2_start[i * 16];
           x3 = &x3_start[i * 16];
 
-          uX1 = &umpX1[16 * tipX1[i]];
+          uX1 = &umpX1[16 * tipX1[i]];	     
 
           for (j = 0; j < 4; j++)
           {
@@ -3478,7 +3478,7 @@ static void newviewGTRGAMMA(int tipCase,
 
               //
               // multiply with EV matrix (!?)
-              //
+              //		   		  
 
               __m128d EV_t_l0_k0 = EVV[0];
               __m128d EV_t_l0_k2 = EVV[1];
@@ -3486,7 +3486,7 @@ static void newviewGTRGAMMA(int tipCase,
               __m128d EV_t_l1_k2 = EVV[3];
               __m128d EV_t_l2_k0 = EVV[4];
               __m128d EV_t_l2_k2 = EVV[5];
-              __m128d EV_t_l3_k0 = EVV[6];
+              __m128d EV_t_l3_k0 = EVV[6]; 
               __m128d EV_t_l3_k2 = EVV[7];
 
 
@@ -3511,10 +3511,10 @@ static void newviewGTRGAMMA(int tipCase,
               EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
 
               values[j * 2]     = EV_t_l0_k0;
-              values[j * 2 + 1] = EV_t_l2_k0;
+              values[j * 2 + 1] = EV_t_l2_k0;		   		   
 
               maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
-              maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
+              maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));		   
             }
           }
 
@@ -3527,14 +3527,14 @@ static void newviewGTRGAMMA(int tipCase,
           {
             __m128d sv = _mm_set1_pd(PLL_TWOTOTHE256);
 
-            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+            _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
             _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
             _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
             _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+            _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
             _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
             _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+            _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     
 
 	     if(!fastScaling)
 	       ex3[i] += 1;
@@ -3544,11 +3544,11 @@ static void newviewGTRGAMMA(int tipCase,
           }
           else
           {
-            _mm_store_pd(&x3[0], values[0]);
+            _mm_store_pd(&x3[0], values[0]);	   
             _mm_store_pd(&x3[2], values[1]);
             _mm_store_pd(&x3[4], values[2]);
             _mm_store_pd(&x3[6], values[3]);
-            _mm_store_pd(&x3[8], values[4]);
+            _mm_store_pd(&x3[8], values[4]);	   
             _mm_store_pd(&x3[10], values[5]);
             _mm_store_pd(&x3[12], values[6]);
             _mm_store_pd(&x3[14], values[7]);
@@ -3648,7 +3648,7 @@ static void newviewGTRGAMMA(int tipCase,
 
           right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
           right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
           //
           // multiply left * right
@@ -3660,7 +3660,7 @@ static void newviewGTRGAMMA(int tipCase,
 
           //
           // multiply with EV matrix (!?)
-          //
+          //	     
 
           __m128d EV_t_l0_k0 = EVV[0];
           __m128d EV_t_l0_k2 = EVV[1];
@@ -3668,7 +3668,7 @@ static void newviewGTRGAMMA(int tipCase,
           __m128d EV_t_l1_k2 = EVV[3];
           __m128d EV_t_l2_k0 = EVV[4];
           __m128d EV_t_l2_k2 = EVV[5];
-          __m128d EV_t_l3_k0 = EVV[6];
+          __m128d EV_t_l3_k0 = EVV[6]; 
           __m128d EV_t_l3_k2 = EVV[7];
 
 
@@ -3695,7 +3695,7 @@ static void newviewGTRGAMMA(int tipCase,
 
 
           values[j * 2] = EV_t_l0_k0;
-          values[j * 2 + 1] = EV_t_l2_k0;
+          values[j * 2 + 1] = EV_t_l2_k0;            	   	    
 
           maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l0_k0, absMask.m));
           maxv = _mm_max_pd(maxv, _mm_and_pd(EV_t_l2_k0, absMask.m));
@@ -3710,31 +3710,31 @@ static void newviewGTRGAMMA(int tipCase,
         {
           __m128d sv = _mm_set1_pd(PLL_TWOTOTHE256);
 
-          _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));
+          _mm_store_pd(&x3[0], _mm_mul_pd(values[0], sv));	   
           _mm_store_pd(&x3[2], _mm_mul_pd(values[1], sv));
           _mm_store_pd(&x3[4], _mm_mul_pd(values[2], sv));
           _mm_store_pd(&x3[6], _mm_mul_pd(values[3], sv));
-          _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));
+          _mm_store_pd(&x3[8], _mm_mul_pd(values[4], sv));	   
           _mm_store_pd(&x3[10], _mm_mul_pd(values[5], sv));
           _mm_store_pd(&x3[12], _mm_mul_pd(values[6], sv));
-          _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));
+          _mm_store_pd(&x3[14], _mm_mul_pd(values[7], sv));	     
 
 	   if(!fastScaling)
 	     ex3[i] += 1;
 	   else
-	     addScale += wgt[i];
+	     addScale += wgt[i];        
         }
         else
         {
-          _mm_store_pd(&x3[0], values[0]);
+          _mm_store_pd(&x3[0], values[0]);	   
           _mm_store_pd(&x3[2], values[1]);
           _mm_store_pd(&x3[4], values[2]);
           _mm_store_pd(&x3[6], values[3]);
-          _mm_store_pd(&x3[8], values[4]);
+          _mm_store_pd(&x3[8], values[4]);	   
           _mm_store_pd(&x3[10], values[5]);
           _mm_store_pd(&x3[12], values[6]);
           _mm_store_pd(&x3[14], values[7]);
-        }
+        }	 
       }
 
       break;
@@ -3760,20 +3760,20 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
     *le,
     *ri,
     *x1,
-    *x2,
-    *x3,
+    *x2, 
+    *x3, 
     EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));
 
-  int
-    i,
-    j,
-    scale,
+  int 
+    i, 
+    j, 
+    scale, 
     addScale = 0;
 
   __m128d
     minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD ),
                       sc = _mm_set1_pd(PLL_TWOTOTHE256),
-                      EVV[8];
+                      EVV[8];  
 
   for(i = 0; i < 4; i++)
     for (j=0; j < 4; j++)
@@ -3784,9 +3784,9 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
 
   switch(tipCase)
   {
-    case TIP_TIP:
+    case TIP_TIP:      
       for (i = 0; i < n; i++)
-      {
+      {	 
         x1 = &(tipVector[4 * tipX1[i]]);
         x2 = &(tipVector[4 * tipX2[i]]);
 
@@ -3857,10 +3857,10 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
 
         right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
         right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
         __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
-        __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
+        __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );	  	  
 
         __m128d EV_t_l0_k0 = EVV[0];
         __m128d EV_t_l0_k2 = EVV[1];
@@ -3889,13 +3889,13 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
         EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
         EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	 
 
         _mm_store_pd(x3, EV_t_l0_k0);
-        _mm_store_pd(&x3[2], EV_t_l2_k0);
+        _mm_store_pd(&x3[2], EV_t_l2_k0);	  	 	   	    
       }
       break;
-    case TIP_INNER:
+    case TIP_INNER:      
       for (i = 0; i < n; i++)
       {
         x1 = &(tipVector[4 * tipX1[i]]);
@@ -3967,7 +3967,7 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
 
         right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
         right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
         __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
         __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
@@ -4000,7 +4000,7 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
         EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
         EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	  	 	    		  
 
         scale = 1;
 
@@ -4017,15 +4017,15 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
         }
 
         if(scale)
-        {
+        {		      
           _mm_store_pd(&x3[0], _mm_mul_pd(EV_t_l0_k0, sc));
-          _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));
+          _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));	      	      
 
 	   if(!fastScaling)
 	     ex3[i] += 1;
 	   else
-	     addScale += wgt[i];
-        }
+	     addScale += wgt[i];	  
+        }	
         else
         {
           _mm_store_pd(x3, EV_t_l0_k0);
@@ -4107,7 +4107,7 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
 
         right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
         right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+        right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
         __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
         __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
@@ -4140,7 +4140,7 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
         EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
         EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+        EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	  	 	    		  	 
 
         scale = 1;
 
@@ -4157,15 +4157,15 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
         }
 
         if(scale)
-        {
+        {		      
           _mm_store_pd(&x3[0], _mm_mul_pd(EV_t_l0_k0, sc));
-          _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));
+          _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));	      	      
 
 	  if(!fastScaling)
 	    ex3[i] += 1;
 	  else
-	    addScale += wgt[i];
-        }
+	    addScale += wgt[i];	  
+        }	
         else
         {
           _mm_store_pd(x3, EV_t_l0_k0);
@@ -4182,12 +4182,18 @@ static void newviewGTRCAT( int tipCase,  double *EV,  int *cptr,
     *scalerIncrement = addScale;
 }
 
-inline boolean isGap(unsigned int *x, int pos)
+#ifndef __APPLE__
+inline 
+#endif
+boolean isGap(unsigned int *x, int pos)
 {
   return (x[pos / 32] & mask32[pos % 32]);
 }
 
-inline boolean noGap(unsigned int *x, int pos)
+#ifndef __APPLE__
+inline 
+#endif
+boolean noGap(unsigned int *x, int pos)
 {
   return (!(x[pos / 32] & mask32[pos % 32]));
 }
@@ -4206,21 +4212,21 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
     *x2,
     *x3,
     *x1_ptr = x1_start,
-    *x2_ptr = x2_start,
-    *x3_ptr = x3_start,
+    *x2_ptr = x2_start, 
+    *x3_ptr = x3_start, 
     EV_t[16] __attribute__ ((aligned (BYTE_ALIGNMENT)));
 
-  int
-    i,
-    j,
-    scale,
+  int 
+    i, 
+    j, 
+    scale, 
     scaleGap = 0,
     addScale = 0;
 
   __m128d
     minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD ),
                       sc = _mm_set1_pd(PLL_TWOTOTHE256),
-                      EVV[8];
+                      EVV[8];  
 
   for(i = 0; i < 4; i++)
     for (j=0; j < 4; j++)
@@ -4230,12 +4236,12 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
     EVV[i] = _mm_load_pd(&EV_t[i * 2]);
 
   {
-    x1 = x1_gapColumn;
+    x1 = x1_gapColumn;	      
     x2 = x2_gapColumn;
     x3 = x3_gapColumn;
 
-    le =  &left[maxCats * 16];
-    ri =  &right[maxCats * 16];
+    le =  &left[maxCats * 16];	     	 
+    ri =  &right[maxCats * 16];		   	  	  	  	         
 
     __m128d x1_0 = _mm_load_pd( &x1[0] );
     __m128d x1_2 = _mm_load_pd( &x1[2] );
@@ -4299,7 +4305,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
     right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
     right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-    right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+    right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
     __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
     __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
@@ -4331,10 +4337,10 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
     EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
     EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-    EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+    EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	  	 	    		  
 
     if(tipCase != TIP_TIP)
-    {
+    {    
       scale = 1;
 
       __m128d v1 = _mm_and_pd(EV_t_l0_k0, absMask.m);
@@ -4350,12 +4356,12 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
       }
 
       if(scale)
-      {
+      {		      
         _mm_store_pd(&x3[0], _mm_mul_pd(EV_t_l0_k0, sc));
-        _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));
+        _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));	      	      
 
-        scaleGap = PLL_TRUE;
-      }
+        scaleGap = PLL_TRUE;	   
+      }	
       else
       {
         _mm_store_pd(x3, EV_t_l0_k0);
@@ -4372,7 +4378,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
   switch(tipCase)
   {
-    case TIP_TIP:
+    case TIP_TIP:      
       for (i = 0; i < n; i++)
       {
         if(noGap(x3_gap, i))
@@ -4384,12 +4390,12 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
           if(isGap(x1_gap, i))
             le =  &left[maxCats * 16];
-          else
-            le =  &left[cptr[i] * 16];
+          else	  	  
+            le =  &left[cptr[i] * 16];	  
 
           if(isGap(x2_gap, i))
             ri =  &right[maxCats * 16];
-          else
+          else	 	  
             ri =  &right[cptr[i] * 16];
 
           __m128d x1_0 = _mm_load_pd( &x1[0] );
@@ -4454,10 +4460,10 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
           right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
           right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
           __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
-          __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
+          __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );	  	  
 
           __m128d EV_t_l0_k0 = EVV[0];
           __m128d EV_t_l0_k2 = EVV[1];
@@ -4486,18 +4492,18 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
           EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
           EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	 
 
           _mm_store_pd(x3, EV_t_l0_k0);
-          _mm_store_pd(&x3[2], EV_t_l2_k0);
+          _mm_store_pd(&x3[2], EV_t_l2_k0);	  	 	   	    
 
           x3_ptr += 4;
         }
       }
       break;
-    case TIP_INNER:
+    case TIP_INNER:      
       for (i = 0; i < n; i++)
-      {
+      { 
         if(isGap(x3_gap, i))
         {
           if(scaleGap)
@@ -4509,7 +4515,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 	    }
         }
         else
-        {
+        {	      
           x1 = &(tipVector[4 * tipX1[i]]);
 
           x2 = x2_ptr;
@@ -4521,7 +4527,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
             le =  &left[cptr[i] * 16];
 
           if(isGap(x2_gap, i))
-          {
+          {		 
             ri =  &right[maxCats * 16];
             x2 = x2_gapColumn;
           }
@@ -4530,7 +4536,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
             ri =  &right[cptr[i] * 16];
             x2 = x2_ptr;
             x2_ptr += 4;
-          }
+          }	  	  	  	  
 
           __m128d x1_0 = _mm_load_pd( &x1[0] );
           __m128d x1_2 = _mm_load_pd( &x1[2] );
@@ -4594,7 +4600,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
           right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
           right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
           __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
           __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
@@ -4627,7 +4633,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
           EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
           EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	  	 	    		  
 
           scale = 1;
 
@@ -4644,15 +4650,15 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
           }
 
           if(scale)
-          {
+          {		      
             _mm_store_pd(&x3[0], _mm_mul_pd(EV_t_l0_k0, sc));
-            _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));
-
+            _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));	      	      
+	    
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
-          }
+	      addScale += wgt[i];	  
+          }	
           else
           {
             _mm_store_pd(x3, EV_t_l0_k0);
@@ -4666,7 +4672,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
       break;
     case INNER_INNER:
       for (i = 0; i < n; i++)
-      {
+      { 
         if(isGap(x3_gap, i))
         {
           if(scaleGap)
@@ -4678,7 +4684,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 	    }
         }
         else
-        {
+        {	     
           x3 = x3_ptr;
 
           if(isGap(x1_gap, i))
@@ -4693,17 +4699,17 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
             x1_ptr += 4;
           }
 
-          if(isGap(x2_gap, i))
+          if(isGap(x2_gap, i))	
           {
             x2 = x2_gapColumn;
-            ri =  &right[maxCats * 16];
+            ri =  &right[maxCats * 16];	    
           }
           else
           {
             ri =  &right[cptr[i] * 16];
             x2 = x2_ptr;
             x2_ptr += 4;
-          }
+          }	 	  	  	  
 
           __m128d x1_0 = _mm_load_pd( &x1[0] );
           __m128d x1_2 = _mm_load_pd( &x1[2] );
@@ -4767,7 +4773,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
 
           right_k2_0 = _mm_hadd_pd( right_k2_0, right_k2_2);
           right_k3_0 = _mm_hadd_pd( right_k3_0, right_k3_2);
-          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);
+          right_k2_0 = _mm_hadd_pd( right_k2_0, right_k3_0);	   
 
           __m128d x1px2_k0 = _mm_mul_pd( left_k0_0, right_k0_0 );
           __m128d x1px2_k2 = _mm_mul_pd( left_k2_0, right_k2_0 );
@@ -4800,7 +4806,7 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
           EV_t_l3_k2 = _mm_mul_pd( x1px2_k2, EV_t_l3_k2 );
           EV_t_l3_k0 = _mm_hadd_pd( EV_t_l3_k0, EV_t_l3_k2 );
 
-          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );
+          EV_t_l2_k0 = _mm_hadd_pd( EV_t_l2_k0, EV_t_l3_k0 );	  	 	    		  	 
 
           scale = 1;
 
@@ -4817,15 +4823,15 @@ static void newviewGTRCAT_SAVE( int tipCase,  double *EV,  int *cptr,
           }
 
           if(scale)
-          {
+          {		      
             _mm_store_pd(&x3[0], _mm_mul_pd(EV_t_l0_k0, sc));
-            _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));
+            _mm_store_pd(&x3[2], _mm_mul_pd(EV_t_l2_k0, sc));	      	      
 
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
-          }
+	      addScale += wgt[i];	  
+          }	
           else
           {
             _mm_store_pd(x3, EV_t_l0_k0);
@@ -4849,15 +4855,15 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 					    double *x1, double *x2, double *x3, double *extEV, double *tipVector,
 					    int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 					    int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean fastScaling,
-					    unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+					    unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,  
 					    double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn
 					    )
 {
   double  *uX1, *uX2, *v;
   double x1px2;
-  int  i, j, l, k, scale, addScale = 0,
+  int  i, j, l, k, scale, addScale = 0,   
        gapScaling = 0;
-  double
+  double 
     *vl, *vr, *x1v, *x2v,
     *x1_ptr = x1,
     *x2_ptr = x2,
@@ -4887,7 +4893,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             {
               __m128d vv = _mm_load_pd(&v[l]);
               umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
-              umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));
+              umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));					
             }
 
             umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
@@ -4907,11 +4913,11 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             v = &x3_gapColumn[j * 20];
 
             __m128d zero =  _mm_setzero_pd();
-            for(k = 0; k < 20; k+=2)
+            for(k = 0; k < 20; k+=2)		  		    
               _mm_store_pd(&v[k], zero);
 
             for(k = 0; k < 20; k++)
-            {
+            { 
               double *eev = &extEV[k * 20];
               x1px2 = uX1[j * 20 + k] * uX2[j * 20 + k];
               __m128d x1px2v = _mm_set1_pd(x1px2);
@@ -4926,8 +4932,8 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                 _mm_store_pd(&v[l], vv);
               }
             }
-          }
-        }
+          }	   
+        }	
 
         for(i = 0; i < n; i++)
         {
@@ -4942,11 +4948,11 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
 
               __m128d zero =  _mm_setzero_pd();
-              for(k = 0; k < 20; k+=2)
+              for(k = 0; k < 20; k+=2)		  		    
                 _mm_store_pd(&v[k], zero);
 
               for(k = 0; k < 20; k++)
-              {
+              { 
                 double *eev = &extEV[k * 20];
                 x1px2 = uX1[j * 20 + k] * uX2[j * 20 + k];
                 __m128d x1px2v = _mm_set1_pd(x1px2);
@@ -4961,7 +4967,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                   _mm_store_pd(&v[l], vv);
                 }
               }
-            }
+            }	   
             x3_ptr += 80;
           }
         }
@@ -4985,11 +4991,11 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             for(l = 0; l < 20; l+=2)
             {
               __m128d vv = _mm_load_pd(&v[l]);
-              umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
+              umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));		    					
             }
 
-            umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
-            _mm_storel_pd(&umpX1[80 * i + k], umpX1v);
+            umpX1v = _mm_hadd_pd(umpX1v, umpX1v);				
+            _mm_storel_pd(&umpX1[80 * i + k], umpX1v);		
 
           }
         }
@@ -5002,9 +5008,9 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             v = &(x2_gapColumn[k * 20]);
 
             for(l = 0; l < 20; l++)
-            {
+            {		   
               double *r =  &right[k * 400 + l * 20];
-              __m128d ump_x2v = _mm_setzero_pd();
+              __m128d ump_x2v = _mm_setzero_pd();	    
 
               for(j = 0; j < 20; j+= 2)
               {
@@ -5015,13 +5021,13 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
               ump_x2v = _mm_hadd_pd(ump_x2v, ump_x2v);
 
-              _mm_storel_pd(&ump_x2[l], ump_x2v);
+              _mm_storel_pd(&ump_x2[l], ump_x2v);		   		     
             }
 
             v = &(x3_gapColumn[20 * k]);
 
             __m128d zero =  _mm_setzero_pd();
-            for(l = 0; l < 20; l+=2)
+            for(l = 0; l < 20; l+=2)		  		    
               _mm_store_pd(&v[l], zero);
 
             for(l = 0; l < 20; l++)
@@ -5038,12 +5044,12 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                 vv = _mm_add_pd(vv, _mm_mul_pd(x1px2v,ee));
 
                 _mm_store_pd(&v[j], vv);
-              }
-            }
+              }		     		    
+            }			
 
           }
 
-          {
+          { 
             v = x3_gapColumn;
             __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5055,7 +5061,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
               v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
               if(_mm_movemask_pd( v1 ) != 3)
                 scale = 0;
-            }
+            }	    	  
           }
 
 
@@ -5066,22 +5072,22 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
             for(l = 0; l < 80; l+=2)
             {
-              __m128d ex3v = _mm_load_pd(&v[l]);
-              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-            }
+              __m128d ex3v = _mm_load_pd(&v[l]);		  
+              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+            }		   		  	      	    	       
           }
         }
 
         for (i = 0; i < n; i++)
-        {
+        {	    
           if((x3_gap[i / 32] & mask32[i % 32]))
-          {
+          {	       
             if(gapScaling)
-            {
+            {	
 	      if(!fastScaling)
 		ex3[i] += 1;
 	      else
-		addScale += wgt[i];
+		addScale += wgt[i];		     
             }
           }
           else
@@ -5101,9 +5107,9 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
               v = &(x2v[k * 20]);
 
               for(l = 0; l < 20; l++)
-              {
+              {		   
                 double *r =  &right[k * 400 + l * 20];
-                __m128d ump_x2v = _mm_setzero_pd();
+                __m128d ump_x2v = _mm_setzero_pd();	    
 
                 for(j = 0; j < 20; j+= 2)
                 {
@@ -5114,13 +5120,13 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
                 ump_x2v = _mm_hadd_pd(ump_x2v, ump_x2v);
 
-                _mm_storel_pd(&ump_x2[l], ump_x2v);
+                _mm_storel_pd(&ump_x2[l], ump_x2v);		   		     
               }
 
               v = &x3_ptr[20 * k];
 
               __m128d zero =  _mm_setzero_pd();
-              for(l = 0; l < 20; l+=2)
+              for(l = 0; l < 20; l+=2)		  		    
                 _mm_store_pd(&v[l], zero);
 
               for(l = 0; l < 20; l++)
@@ -5137,13 +5143,13 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                   vv = _mm_add_pd(vv, _mm_mul_pd(x1px2v,ee));
 
                   _mm_store_pd(&v[j], vv);
-                }
-              }
+                }		     		    
+              }			
 
             }
 
 
-            {
+            { 
               v = x3_ptr;
               __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5155,7 +5161,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                 v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
                 if(_mm_movemask_pd( v1 ) != 3)
                   scale = 0;
-              }
+              }	    	  
             }
 
 
@@ -5165,14 +5171,14 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
               for(l = 0; l < 80; l+=2)
               {
-                __m128d ex3v = _mm_load_pd(&v[l]);
-                _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-              }
-
+                __m128d ex3v = _mm_load_pd(&v[l]);		  
+                _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+              }		   		  
+	      
 	      if(!fastScaling)
 		ex3[i] += 1;
 	      else
-		addScale += wgt[i];
+		addScale += wgt[i];		      
             }
 
             x3_ptr += 80;
@@ -5189,11 +5195,11 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
           v =  &(x3_gapColumn[20 * k]);
 
           __m128d zero =  _mm_setzero_pd();
-          for(l = 0; l < 20; l+=2)
+          for(l = 0; l < 20; l+=2)		  		    
             _mm_store_pd(&v[l], zero);
 
           for(l = 0; l < 20; l++)
-          {
+          {		 
             {
               __m128d al = _mm_setzero_pd();
               __m128d ar = _mm_setzero_pd();
@@ -5211,7 +5217,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
                 al = _mm_add_pd(al, _mm_mul_pd(vll, lv));
                 ar = _mm_add_pd(ar, _mm_mul_pd(vrr, rv));
-              }
+              }  		 
 
               al = _mm_hadd_pd(al, al);
               ar = _mm_hadd_pd(ar, ar);
@@ -5226,14 +5232,14 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                 vv = _mm_add_pd(vv, _mm_mul_pd(al, EVV));
 
                 _mm_store_pd(&v[j], vv);
-              }
-            }
+              }		  		   		  
+            }		 
 
           }
         }
 
 
-        {
+        { 
           v = x3_gapColumn;
           __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5245,7 +5251,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
             if(_mm_movemask_pd( v1 ) != 3)
               scale = 0;
-          }
+          }	    	  
         }
 
         if (scale)
@@ -5255,9 +5261,9 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
           for(l = 0; l < 80; l+=2)
           {
-            __m128d ex3v = _mm_load_pd(&v[l]);
-            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-          }
+            __m128d ex3v = _mm_load_pd(&v[l]);		  
+            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+          }		   		  
 
 
         }
@@ -5266,13 +5272,13 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
       for (i = 0; i < n; i++)
       {
         if(x3_gap[i / 32] & mask32[i % 32])
-        {
+        {	     
           if(gapScaling)
-          {
+          {	
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];			       
           }
         }
         else
@@ -5300,11 +5306,11 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
             v =  &x3_ptr[20 * k];
 
             __m128d zero =  _mm_setzero_pd();
-            for(l = 0; l < 20; l+=2)
+            for(l = 0; l < 20; l+=2)		  		    
               _mm_store_pd(&v[l], zero);
 
             for(l = 0; l < 20; l++)
-            {
+            {		 
               {
                 __m128d al = _mm_setzero_pd();
                 __m128d ar = _mm_setzero_pd();
@@ -5322,7 +5328,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
                   al = _mm_add_pd(al, _mm_mul_pd(vll, lv));
                   ar = _mm_add_pd(ar, _mm_mul_pd(vrr, rv));
-                }
+                }  		 
 
                 al = _mm_hadd_pd(al, al);
                 ar = _mm_hadd_pd(ar, ar);
@@ -5337,15 +5343,15 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
                   vv = _mm_add_pd(vv, _mm_mul_pd(al, EVV));
 
                   _mm_store_pd(&v[j], vv);
-                }
-              }
+                }		  		   		  
+              }		 
 
             }
           }
 
 
 
-          {
+          { 
             v = x3_ptr;
             __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5357,7 +5363,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
               v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
               if(_mm_movemask_pd( v1 ) != 3)
                 scale = 0;
-            }
+            }	    	  
           }
 
 
@@ -5367,14 +5373,14 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
 
             for(l = 0; l < 80; l+=2)
             {
-              __m128d ex3v = _mm_load_pd(&v[l]);
-              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-            }
+              __m128d ex3v = _mm_load_pd(&v[l]);		  
+              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+            }		   		  
 
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];		 	  
           }
           x3_ptr += 80;
         }
@@ -5385,7 +5391,7 @@ static void newviewGTRGAMMAPROT_GAPPED_SAVE(int tipCase,
   }
 
   if(fastScaling)
-    *scalerIncrement = addScale;
+    *scalerIncrement = addScale;  
 }
 
 
@@ -5424,7 +5430,7 @@ static void newviewGTRGAMMAPROT(int tipCase,
             {
               __m128d vv = _mm_load_pd(&v[l]);
               umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
-              umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));
+              umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));					
             }
 
             umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
@@ -5447,11 +5453,11 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
 
             __m128d zero =  _mm_setzero_pd();
-            for(k = 0; k < 20; k+=2)
+            for(k = 0; k < 20; k+=2)		  		    
               _mm_store_pd(&v[k], zero);
 
             for(k = 0; k < 20; k++)
-            {
+            { 
               double *eev = &extEV[k * 20];
               x1px2 = uX1[j * 20 + k] * uX2[j * 20 + k];
               __m128d x1px2v = _mm_set1_pd(x1px2);
@@ -5468,7 +5474,7 @@ static void newviewGTRGAMMAPROT(int tipCase,
             }
 
 
-          }
+          }	   
         }
       }
       break;
@@ -5490,11 +5496,11 @@ static void newviewGTRGAMMAPROT(int tipCase,
             for(l = 0; l < 20; l+=2)
             {
               __m128d vv = _mm_load_pd(&v[l]);
-              umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
+              umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));		    					
             }
 
-            umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
-            _mm_storel_pd(&umpX1[80 * i + k], umpX1v);
+            umpX1v = _mm_hadd_pd(umpX1v, umpX1v);				
+            _mm_storel_pd(&umpX1[80 * i + k], umpX1v);		
 
 
           }
@@ -5509,9 +5515,9 @@ static void newviewGTRGAMMAPROT(int tipCase,
             v = &(x2[80 * i + k * 20]);
 
             for(l = 0; l < 20; l++)
-            {
+            {		   
               double *r =  &right[k * 400 + l * 20];
-              __m128d ump_x2v = _mm_setzero_pd();
+              __m128d ump_x2v = _mm_setzero_pd();	    
 
               for(j = 0; j < 20; j+= 2)
               {
@@ -5522,13 +5528,13 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
               ump_x2v = _mm_hadd_pd(ump_x2v, ump_x2v);
 
-              _mm_storel_pd(&ump_x2[l], ump_x2v);
+              _mm_storel_pd(&ump_x2[l], ump_x2v);		   		     
             }
 
             v = &(x3[80 * i + 20 * k]);
 
             __m128d zero =  _mm_setzero_pd();
-            for(l = 0; l < 20; l+=2)
+            for(l = 0; l < 20; l+=2)		  		    
               _mm_store_pd(&v[l], zero);
 
             for(l = 0; l < 20; l++)
@@ -5545,13 +5551,13 @@ static void newviewGTRGAMMAPROT(int tipCase,
                 vv = _mm_add_pd(vv, _mm_mul_pd(x1px2v,ee));
 
                 _mm_store_pd(&v[j], vv);
-              }
-            }
+              }		     		    
+            }			
 
           }
 
 
-          {
+          { 
             v = &(x3[80 * i]);
             __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5563,7 +5569,7 @@ static void newviewGTRGAMMAPROT(int tipCase,
               v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
               if(_mm_movemask_pd( v1 ) != 3)
                 scale = 0;
-            }
+            }	    	  
           }
 
 
@@ -5574,9 +5580,9 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
             for(l = 0; l < 80; l+=2)
             {
-              __m128d ex3v = _mm_load_pd(&v[l]);
-              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-            }
+              __m128d ex3v = _mm_load_pd(&v[l]);		  
+              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+            }		   		  
 
 
 	    if(!fastScaling)
@@ -5599,12 +5605,12 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
 
           __m128d zero =  _mm_setzero_pd();
-          for(l = 0; l < 20; l+=2)
+          for(l = 0; l < 20; l+=2)		  		    
             _mm_store_pd(&v[l], zero);
 
 
           for(l = 0; l < 20; l++)
-          {
+          {		 
 
             {
               __m128d al = _mm_setzero_pd();
@@ -5623,7 +5629,7 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
                 al = _mm_add_pd(al, _mm_mul_pd(vll, lv));
                 ar = _mm_add_pd(ar, _mm_mul_pd(vrr, rv));
-              }
+              }  		 
 
               al = _mm_hadd_pd(al, al);
               ar = _mm_hadd_pd(ar, ar);
@@ -5638,15 +5644,15 @@ static void newviewGTRGAMMAPROT(int tipCase,
                 vv = _mm_add_pd(vv, _mm_mul_pd(al, EVV));
 
                 _mm_store_pd(&v[j], vv);
-              }
-            }
+              }		  		   		  
+            }		 
 
           }
         }
 
 
 
-        {
+        { 
           v = &(x3[80 * i]);
           __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
@@ -5658,7 +5664,7 @@ static void newviewGTRGAMMAPROT(int tipCase,
             v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
             if(_mm_movemask_pd( v1 ) != 3)
               scale = 0;
-          }
+          }	    	  
         }
 
 
@@ -5669,9 +5675,9 @@ static void newviewGTRGAMMAPROT(int tipCase,
 
           for(l = 0; l < 80; l+=2)
           {
-            __m128d ex3v = _mm_load_pd(&v[l]);
-            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-          }
+            __m128d ex3v = _mm_load_pd(&v[l]);		  
+            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+          }		   		  
 
 
 	  if(!fastScaling)
@@ -5716,21 +5722,21 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
           v  = &x3[20 * i];
 
           for(l = 0; l < 20; l+=2)
-            _mm_store_pd(&v[l], _mm_setzero_pd());
+            _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
 
           for(l = 0; l < 20; l++)
           {
             __m128d x1v = _mm_setzero_pd();
-            __m128d x2v = _mm_setzero_pd();
-            double
+            __m128d x2v = _mm_setzero_pd();	 
+            double 
               *ev = &extEV[l * 20],
               *lv = &le[l * 20],
               *rv = &ri[l * 20];
 
             for(j = 0; j < 20; j+=2)
             {
-              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
               x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
             }
 
@@ -5744,9 +5750,9 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
               __m128d vv = _mm_load_pd(&v[j]);
               vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
               _mm_store_pd(&v[j], vv);
-            }
+            }		    
 
-          }
+          }	   
         }
       }
       break;
@@ -5762,7 +5768,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
           v  = &x3[20 * i];
 
           for(l = 0; l < 20; l+=2)
-            _mm_store_pd(&v[l], _mm_setzero_pd());
+            _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
 
 
@@ -5770,15 +5776,15 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
           {
 
             __m128d x1v = _mm_setzero_pd();
-            __m128d x2v = _mm_setzero_pd();
-            double
+            __m128d x2v = _mm_setzero_pd();	
+            double 
               *ev = &extEV[l * 20],
               *lv = &le[l * 20],
               *rv = &ri[l * 20];
 
             for(j = 0; j < 20; j+=2)
             {
-              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
               x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
             }
 
@@ -5792,11 +5798,11 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
               __m128d vv = _mm_load_pd(&v[j]);
               vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
               _mm_store_pd(&v[j], vv);
-            }
+            }		    
 
           }
 
-          {
+          { 	    
             __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
             scale = 1;
@@ -5807,7 +5813,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
               v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
               if(_mm_movemask_pd( v1 ) != 3)
                 scale = 0;
-            }
+            }	    	  
           }
 
 
@@ -5819,13 +5825,13 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
             for(l = 0; l < 20; l+=2)
             {
               __m128d ex3v = _mm_load_pd(&v[l]);
-              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
+              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));		    
             }
 
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];	  
           }
         }
       }
@@ -5842,7 +5848,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
 
 
         for(l = 0; l < 20; l+=2)
-          _mm_store_pd(&v[l], _mm_setzero_pd());
+          _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
 
         for(l = 0; l < 20; l++)
@@ -5850,7 +5856,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
 
           __m128d x1v = _mm_setzero_pd();
           __m128d x2v = _mm_setzero_pd();
-          double
+          double 
             *ev = &extEV[l * 20],
             *lv = &le[l * 20],
             *rv = &ri[l * 20];
@@ -5858,7 +5864,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
 
           for(j = 0; j < 20; j+=2)
           {
-            x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+            x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
             x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
           }
 
@@ -5872,11 +5878,11 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
             __m128d vv = _mm_load_pd(&v[j]);
             vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
             _mm_store_pd(&v[j], vv);
-          }
+          }		    
 
         }
 
-        {
+        { 	    
           __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
           scale = 1;
@@ -5887,7 +5893,7 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
             v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
             if(_mm_movemask_pd( v1 ) != 3)
               scale = 0;
-          }
+          }	    	  
         }
 
 
@@ -5898,15 +5904,15 @@ static void newviewGTRCATPROT(int tipCase, double *extEV,
 
           for(l = 0; l < 20; l+=2)
           {
-            __m128d ex3v = _mm_load_pd(&v[l]);
-            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-          }
+            __m128d ex3v = _mm_load_pd(&v[l]);		  
+            _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+          }		   		  
 
 
 	  if(!fastScaling)
 	    ex3[i] += 1;
 	  else
-	    addScale += wgt[i];
+	    addScale += wgt[i];	   
         }
       }
       break;
@@ -5927,39 +5933,39 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 				   double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats)
 {
   double
-    *le,
-    *ri,
-    *v,
-    *vl,
+    *le, 
+    *ri, 
+    *v, 
+    *vl, 
     *vr,
     *x1_ptr = x1,
-    *x2_ptr = x2,
+    *x2_ptr = x2, 
     *x3_ptr = x3;
 
-  int
-    i,
-    l,
-    j,
-    scale,
+  int 
+    i, 
+    l, 
+    j, 
+    scale, 
     scaleGap = 0,
     addScale = 0;
 
   {
-    vl = x1_gapColumn;
+    vl = x1_gapColumn;	      
     vr = x2_gapColumn;
     v = x3_gapColumn;
 
     le = &left[maxCats * 400];
-    ri = &right[maxCats * 400];
+    ri = &right[maxCats * 400];	  
 
     for(l = 0; l < 20; l+=2)
-      _mm_store_pd(&v[l], _mm_setzero_pd());
+      _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
     for(l = 0; l < 20; l++)
     {
       __m128d x1v = _mm_setzero_pd();
       __m128d x2v = _mm_setzero_pd();
-      double
+      double 
         *ev = &extEV[l * 20],
         *lv = &le[l * 20],
         *rv = &ri[l * 20];
@@ -5967,7 +5973,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 
       for(j = 0; j < 20; j+=2)
       {
-        x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+        x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
         x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
       }
 
@@ -5981,11 +5987,11 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
         __m128d vv = _mm_load_pd(&v[j]);
         vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
         _mm_store_pd(&v[j], vv);
-      }
+      }		    	
     }
 
     if(tipCase != TIP_TIP)
-    {
+    { 	    
       __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
       scale = 1;
@@ -5996,7 +6002,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
         v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
         if(_mm_movemask_pd( v1 ) != 3)
           scale = 0;
-      }
+      }	    	        
 
       if(scale)
       {
@@ -6004,11 +6010,11 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 
         for(l = 0; l < 20; l+=2)
         {
-          __m128d ex3v = _mm_load_pd(&v[l]);
-          _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-        }
+          __m128d ex3v = _mm_load_pd(&v[l]);		  
+          _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+        }		   		  
 
-        scaleGap = PLL_TRUE;
+        scaleGap = PLL_TRUE;	   
       }
     }
   }
@@ -6020,36 +6026,36 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
         for (i = 0; i < n; i++)
         {
           if(noGap(x3_gap, i))
-          {
+          {		
             vl = &(tipVector[20 * tipX1[i]]);
             vr = &(tipVector[20 * tipX2[i]]);
             v  = x3_ptr;
 
             if(isGap(x1_gap, i))
               le =  &left[maxCats * 400];
-            else
-              le =  &left[cptr[i] * 400];
+            else	  	  
+              le =  &left[cptr[i] * 400];	  
 
             if(isGap(x2_gap, i))
               ri =  &right[maxCats * 400];
-            else
+            else	 	  
               ri =  &right[cptr[i] * 400];
 
             for(l = 0; l < 20; l+=2)
-              _mm_store_pd(&v[l], _mm_setzero_pd());
+              _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
             for(l = 0; l < 20; l++)
             {
               __m128d x1v = _mm_setzero_pd();
-              __m128d x2v = _mm_setzero_pd();
-              double
+              __m128d x2v = _mm_setzero_pd();	 
+              double 
                 *ev = &extEV[l * 20],
                 *lv = &le[l * 20],
                 *rv = &ri[l * 20];
 
               for(j = 0; j < 20; j+=2)
               {
-                x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+                x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
                 x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
               }
 
@@ -6063,12 +6069,12 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
                 __m128d vv = _mm_load_pd(&v[j]);
                 vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
                 _mm_store_pd(&v[j], vv);
-              }
+              }		   
             }
 
             x3_ptr += 20;
 
-          }
+          }   
         }
       }
       break;
@@ -6087,7 +6093,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 	      }
           }
           else
-          {
+          {	 
             vl = &(tipVector[20 * tipX1[i]]);
 
             vr = x2_ptr;
@@ -6099,7 +6105,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
               le =  &left[cptr[i] * 400];
 
             if(isGap(x2_gap, i))
-            {
+            {		 
               ri =  &right[maxCats * 400];
               vr = x2_gapColumn;
             }
@@ -6108,23 +6114,23 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
               ri =  &right[cptr[i] * 400];
               vr = x2_ptr;
               x2_ptr += 20;
-            }
+            }	  	  	  	  		  
 
             for(l = 0; l < 20; l+=2)
-              _mm_store_pd(&v[l], _mm_setzero_pd());
+              _mm_store_pd(&v[l], _mm_setzero_pd());	      			   
 
             for(l = 0; l < 20; l++)
             {
               __m128d x1v = _mm_setzero_pd();
-              __m128d x2v = _mm_setzero_pd();
-              double
+              __m128d x2v = _mm_setzero_pd();	
+              double 
                 *ev = &extEV[l * 20],
                 *lv = &le[l * 20],
                 *rv = &ri[l * 20];
 
               for(j = 0; j < 20; j+=2)
               {
-                x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+                x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
                 x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
               }
 
@@ -6138,10 +6144,10 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
                 __m128d vv = _mm_load_pd(&v[j]);
                 vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
                 _mm_store_pd(&v[j], vv);
-              }
+              }		    
             }
 
-            {
+            { 	    
               __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
               scale = 1;
@@ -6152,7 +6158,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
                 v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
                 if(_mm_movemask_pd( v1 ) != 3)
                   scale = 0;
-              }
+              }	    	  
             }
 
 
@@ -6163,13 +6169,13 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
               for(l = 0; l < 20; l+=2)
               {
                 __m128d ex3v = _mm_load_pd(&v[l]);
-                _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
+                _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));		    
               }
-
+	      
 	      if(!fastScaling)
 		ex3[i] += 1;
 	      else
-		addScale += wgt[i];
+		addScale += wgt[i];	  
             }
             x3_ptr += 20;
           }
@@ -6178,7 +6184,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
       break;
     case INNER_INNER:
       for(i = 0; i < n; i++)
-      {
+      { 
         if(isGap(x3_gap, i))
         {
           if(scaleGap)
@@ -6190,7 +6196,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 	    }
         }
         else
-        {
+        {	  	     
           v = x3_ptr;
 
           if(isGap(x1_gap, i))
@@ -6205,33 +6211,33 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
             x1_ptr += 20;
           }
 
-          if(isGap(x2_gap, i))
+          if(isGap(x2_gap, i))	
           {
             vr = x2_gapColumn;
-            ri =  &right[maxCats * 400];
+            ri =  &right[maxCats * 400];	    
           }
           else
           {
             ri =  &right[cptr[i] * 400];
             vr = x2_ptr;
             x2_ptr += 20;
-          }
+          }	 	  	  	  
 
           for(l = 0; l < 20; l+=2)
-            _mm_store_pd(&v[l], _mm_setzero_pd());
+            _mm_store_pd(&v[l], _mm_setzero_pd());	      		
 
           for(l = 0; l < 20; l++)
           {
             __m128d x1v = _mm_setzero_pd();
             __m128d x2v = _mm_setzero_pd();
-            double
+            double 
               *ev = &extEV[l * 20],
               *lv = &le[l * 20],
               *rv = &ri[l * 20];
 
             for(j = 0; j < 20; j+=2)
             {
-              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));
+              x1v = _mm_add_pd(x1v, _mm_mul_pd(_mm_load_pd(&vl[j]), _mm_load_pd(&lv[j])));		    
               x2v = _mm_add_pd(x2v, _mm_mul_pd(_mm_load_pd(&vr[j]), _mm_load_pd(&rv[j])));
             }
 
@@ -6245,11 +6251,11 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
               __m128d vv = _mm_load_pd(&v[j]);
               vv = _mm_add_pd(vv, _mm_mul_pd(x1v, _mm_load_pd(&ev[j])));
               _mm_store_pd(&v[j], vv);
-            }
+            }		    
 
           }
 
-          {
+          { 	    
             __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
 
             scale = 1;
@@ -6260,7 +6266,7 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
               v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
               if(_mm_movemask_pd( v1 ) != 3)
                 scale = 0;
-            }
+            }	    	  
           }
 
           if(scale)
@@ -6269,14 +6275,14 @@ static void newviewGTRCATPROT_SAVE(int tipCase, double *extEV,
 
             for(l = 0; l < 20; l+=2)
             {
-              __m128d ex3v = _mm_load_pd(&v[l]);
-              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-            }
+              __m128d ex3v = _mm_load_pd(&v[l]);		  
+              _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+            }		   		  
 
 	    if(!fastScaling)
 	      ex3[i] += 1;
 	    else
-	      addScale += wgt[i];
+	      addScale += wgt[i];	   
           }
           x3_ptr += 20;
         }
@@ -6314,16 +6320,16 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 
 	for(i = 0; i < 23; i++)
 	  {
-
+	   
 
 	    for(k = 0; k < 80; k++)
 	      {
-
+		
 		v = &(tipVector[k / 20][20 * i]);
 #ifdef __SIM_SSE3
 		double *ll =  &left[k * 20];
 		double *rr =  &right[k * 20];
-
+		
 		__m128d umpX1v = _mm_setzero_pd();
 		__m128d umpX2v = _mm_setzero_pd();
 
@@ -6331,12 +6337,12 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		  {
 		    __m128d vv = _mm_load_pd(&v[l]);
 		    umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
-		    umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));
+		    umpX2v = _mm_add_pd(umpX2v, _mm_mul_pd(vv, _mm_load_pd(&rr[l])));					
 		  }
-
+		
 		umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
 		umpX2v = _mm_hadd_pd(umpX2v, umpX2v);
-
+		
 		_mm_storel_pd(&umpX1[80 * i + k], umpX1v);
 		_mm_storel_pd(&umpX2[80 * i + k], umpX2v);
 #else
@@ -6363,11 +6369,11 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 
 #ifdef __SIM_SSE3
 		__m128d zero =  _mm_setzero_pd();
-		for(k = 0; k < 20; k+=2)
+		for(k = 0; k < 20; k+=2)		  		    
 		  _mm_store_pd(&v[k], zero);
 
 		for(k = 0; k < 20; k++)
-		  {
+		  { 
 		    double *eev = &extEV[j][k * 20];
 		    x1px2 = uX1[j * 20 + k] * uX2[j * 20 + k];
 		    __m128d x1px2v = _mm_set1_pd(x1px2);
@@ -6378,7 +6384,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 			__m128d ee = _mm_load_pd(&eev[l]);
 
 			vv = _mm_add_pd(vv, _mm_mul_pd(x1px2v,ee));
-
+			
 			_mm_store_pd(&v[l], vv);
 		      }
 		  }
@@ -6389,14 +6395,14 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		  v[k] = 0.0;
 
 		for(k = 0; k < 20; k++)
-		  {
+		  {		   
 		    x1px2 = uX1[j * 20 + k] * uX2[j * 20 + k];
-
-		    for(l = 0; l < 20; l++)
-		      v[l] += x1px2 * extEV[j][20 * k + l];
+		   
+		    for(l = 0; l < 20; l++)		      					
+		      v[l] += x1px2 * extEV[j][20 * k + l];		     
 		  }
 #endif
-	      }
+	      }	   
 	  }
       }
       break;
@@ -6407,24 +6413,24 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 
 	for(i = 0; i < 23; i++)
 	  {
-
+	   
 
 	    for(k = 0; k < 80; k++)
-	      {
+	      { 
 		v = &(tipVector[k / 20][20 * i]);
 #ifdef __SIM_SSE3
 		double *ll =  &left[k * 20];
-
+				
 		__m128d umpX1v = _mm_setzero_pd();
-
+		
 		for(l = 0; l < 20; l+=2)
 		  {
 		    __m128d vv = _mm_load_pd(&v[l]);
-		    umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));
+		    umpX1v = _mm_add_pd(umpX1v, _mm_mul_pd(vv, _mm_load_pd(&ll[l])));		    					
 		  }
-
-		umpX1v = _mm_hadd_pd(umpX1v, umpX1v);
-		_mm_storel_pd(&umpX1[80 * i + k], umpX1v);
+		
+		umpX1v = _mm_hadd_pd(umpX1v, umpX1v);				
+		_mm_storel_pd(&umpX1[80 * i + k], umpX1v);		
 #else	    
 		umpX1[80 * i + k] = 0.0;
 
@@ -6444,44 +6450,44 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		v = &(x2[80 * i + k * 20]);
 #ifdef __SIM_SSE3	       
 		for(l = 0; l < 20; l++)
-		  {
+		  {		   
 		    double *r =  &right[k * 400 + l * 20];
-		    __m128d ump_x2v = _mm_setzero_pd();
-
+		    __m128d ump_x2v = _mm_setzero_pd();	    
+		    
 		    for(j = 0; j < 20; j+= 2)
 		      {
 			__m128d vv = _mm_load_pd(&v[j]);
 			__m128d rr = _mm_load_pd(&r[j]);
 			ump_x2v = _mm_add_pd(ump_x2v, _mm_mul_pd(vv, rr));
 		      }
-
+		     
 		    ump_x2v = _mm_hadd_pd(ump_x2v, ump_x2v);
-
-		    _mm_storel_pd(&ump_x2[l], ump_x2v);
+		    
+		    _mm_storel_pd(&ump_x2[l], ump_x2v);		   		     
 		  }
 
 		v = &(x3[80 * i + 20 * k]);
 
 		__m128d zero =  _mm_setzero_pd();
-		for(l = 0; l < 20; l+=2)
+		for(l = 0; l < 20; l+=2)		  		    
 		  _mm_store_pd(&v[l], zero);
-
+		  
 		for(l = 0; l < 20; l++)
 		  {
 		    double *eev = &extEV[k][l * 20];
 		    x1px2 = uX1[k * 20 + l]  * ump_x2[l];
 		    __m128d x1px2v = _mm_set1_pd(x1px2);
-
+		  
 		    for(j = 0; j < 20; j+=2)
 		      {
 			__m128d vv = _mm_load_pd(&v[j]);
 			__m128d ee = _mm_load_pd(&eev[j]);
-
+			
 			vv = _mm_add_pd(vv, _mm_mul_pd(x1px2v,ee));
-
+			
 			_mm_store_pd(&v[j], vv);
-		      }
-		  }
+		      }		     		    
+		  }			
 #else
 		for(l = 0; l < 20; l++)
 		  {
@@ -6504,12 +6510,12 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		  }
 #endif
 	      }
-
+	   
 #ifdef __SIM_SSE3
-	    {
+	    { 
 	      v = &(x3[80 * i]);
 	      __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
-
+	      
 	      scale = 1;
 	      for(l = 0; scale && (l < 80); l += 2)
 		{
@@ -6518,7 +6524,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		  v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
 		  if(_mm_movemask_pd( v1 ) != 3)
 		    scale = 0;
-		}
+		}	    	  
 	    }
 #else
 	    v = &x3[80 * i];
@@ -6531,12 +6537,12 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 	      {
 #ifdef __SIM_SSE3
 	       __m128d twoto = _mm_set_pd(PLL_TWOTOTHE256, PLL_TWOTOTHE256);
-
+	       
 	       for(l = 0; l < 80; l+=2)
 		 {
-		   __m128d ex3v = _mm_load_pd(&v[l]);
-		   _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-		 }
+		   __m128d ex3v = _mm_load_pd(&v[l]);		  
+		   _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+		 }		   		  
 #else
 		for(l = 0; l < 80; l++)
 		  v[l] *= PLL_TWOTOTHE256;
@@ -6545,7 +6551,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		if(useFastScaling)
 		  addScale += wgt[i];
 		else
-		  ex3[i]  += 1;
+		  ex3[i]  += 1;	       
 	      }
 	  }
       }
@@ -6561,7 +6567,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 
 #ifdef __SIM_SSE3
 	     __m128d zero =  _mm_setzero_pd();
-	     for(l = 0; l < 20; l+=2)
+	     for(l = 0; l < 20; l+=2)		  		    
 	       _mm_store_pd(&v[l], zero);
 #else
 	     for(l = 0; l < 20; l++)
@@ -6569,7 +6575,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 #endif
 
 	     for(l = 0; l < 20; l++)
-	       {
+	       {		 
 #ifdef __SIM_SSE3
 		 {
 		   __m128d al = _mm_setzero_pd();
@@ -6578,21 +6584,21 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		   double *ll   = &left[k * 400 + l * 20];
 		   double *rr   = &right[k * 400 + l * 20];
 		   double *EVEV = &extEV[k][20 * l];
-
+		   
 		   for(j = 0; j < 20; j+=2)
 		     {
 		       __m128d lv  = _mm_load_pd(&ll[j]);
 		       __m128d rv  = _mm_load_pd(&rr[j]);
 		       __m128d vll = _mm_load_pd(&vl[j]);
 		       __m128d vrr = _mm_load_pd(&vr[j]);
-
+		       
 		       al = _mm_add_pd(al, _mm_mul_pd(vll, lv));
 		       ar = _mm_add_pd(ar, _mm_mul_pd(vrr, rv));
-		     }
-
+		     }  		 
+		       
 		   al = _mm_hadd_pd(al, al);
 		   ar = _mm_hadd_pd(ar, ar);
-
+		   
 		   al = _mm_mul_pd(al, ar);
 
 		   for(j = 0; j < 20; j+=2)
@@ -6603,8 +6609,8 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 		       vv = _mm_add_pd(vv, _mm_mul_pd(al, EVV));
 
 		       _mm_store_pd(&v[j], vv);
-		     }
-		 }
+		     }		  		   		  
+		 }		 
 #else
 		 al = 0.0;
 		 ar = 0.0;
@@ -6622,13 +6628,13 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 #endif
 	       }
 	   }
-
+	 
 
 #ifdef __SIM_SSE3
-	 {
+	 { 
 	   v = &(x3[80 * i]);
 	   __m128d minlikelihood_sse = _mm_set1_pd( PLL_MINLIKELIHOOD );
-
+	   
 	   scale = 1;
 	   for(l = 0; scale && (l < 80); l += 2)
 	     {
@@ -6637,7 +6643,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 	       v1 = _mm_cmplt_pd(v1,  minlikelihood_sse);
 	       if(_mm_movemask_pd( v1 ) != 3)
 		 scale = 0;
-	     }
+	     }	    	  
 	 }
 #else
 	 v = &(x3[80 * i]);
@@ -6650,12 +6656,12 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 	   {
 #ifdef __SIM_SSE3
 	       __m128d twoto = _mm_set_pd(PLL_TWOTOTHE256, PLL_TWOTOTHE256);
-
+	       
 	       for(l = 0; l < 80; l+=2)
 		 {
-		   __m128d ex3v = _mm_load_pd(&v[l]);
-		   _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));
-		 }
+		   __m128d ex3v = _mm_load_pd(&v[l]);		  
+		   _mm_store_pd(&v[l], _mm_mul_pd(ex3v,twoto));	
+		 }		   		  
 #else	     
 	     for(l = 0; l < 80; l++)
 	       v[l] *= PLL_TWOTOTHE256;
@@ -6664,7 +6670,7 @@ static void newviewGTRGAMMAPROT_LG4(int tipCase,
 	     if(useFastScaling)
 	       addScale += wgt[i];
 	     else
-	       ex3[i]  += 1;
+	       ex3[i]  += 1;	  
 	   }
        }
       break;

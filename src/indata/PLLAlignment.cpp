@@ -65,6 +65,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 			cur_position += partNumSites;
 		}
 	}
+	phylip->isReady = alignment->phylip->isReady;
 	for (int site = 0; site < numSites; site++) {
 		phylip->weights[site] = 1;
 	}

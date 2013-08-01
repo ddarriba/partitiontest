@@ -45,7 +45,7 @@
 struct ltoken_t
  {
 #ifdef __cplusplus
-	int 		__class;
+   int 	        __class;
 #else
    int          class;
 #endif

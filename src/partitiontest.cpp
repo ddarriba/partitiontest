@@ -95,6 +95,10 @@ int main(int argc, char *argv[]) {
 	mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
 	PartitionSelector partSelector(&partitioningScheme, 1, options);
 
+#ifdef DEBUG
+	cout << "[TRACE] Optimizing best scheme at once" << endl;
+#endif
+
 	static_cast<PLLModelOptimize* >(mo)->optimizePartitioningSchemeAtOnce(partitioningScheme);
 
 	delete mo;

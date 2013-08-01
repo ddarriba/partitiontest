@@ -43,9 +43,20 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 double PLLModelOptimize::evaluateNNI(pllInstance * tr, partitionList *pr,
 		bool estimateModel) {
 
+#ifdef DEBUG
+	cout << "[TRACE] START EVALUATING NNI WITH PLL" << endl;
+#endif
 	if (pllNniSearch(tr, pr, estimateModel)) {
+#ifdef DEBUG
+	cout << "[TRACE] DONE EVALUATING NNI WITH PLL " << endl;
+	cout << "[TRACE] LIKELIHOOD IS " << tr->likelihood << endl;
+#endif
 		return tr->likelihood;
 	} else {
+#ifdef DEBUG
+	cout << "[TRACE] ERROR EVALUATING NNI WITH PLL" << endl;
+	exit(-1);
+#endif
 		return 0;
 	}
 
@@ -354,27 +365,52 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	}
 	pllOutputStream.close();
 
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Parsing partitions" << endl;
+#endif
 	struct pllQueue * parts = pllPartitionParse(pllPartitionsFile);
 
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Removing temporary file" << endl;
+#endif
 	if (remove(pllPartitionsFile) != 0)
 		cerr << "Error deleting temporary file" << endl;
 
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Committing partitions" << endl;
+#endif
 	partitionList * partitions = pllPartitionsCommit(parts,
 			alignment->getPhylip());
 	pllQueuePartitionsDestroy(&parts);
 
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Creating tree instance" << endl;
+#endif
 	pllInstance * tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 			12345);
+
+	#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
+#endif
 	pllTreeInitTopologyForAlignment(tr, alignment->getPhylip());
 	/* Connect the alignment with the tree structure */
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Connecting tree with alignment" << endl;
+#endif
 	if (!pllLoadAlignment(tr, alignment->getPhylip(), partitions,
-	PLL_DEEP_COPY)) {
+	PLL_SHALLOW_COPY)) {
 		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Initializing model" << endl;
+#endif
 	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	pllInitModel(tr, PLL_TRUE, alignment->getPhylip(), partitions);
+	pllInitModel(tr, PLL_FALSE, alignment->getPhylip(), partitions);
+#ifdef DEBUG
+	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
+#endif
 
 	/* set best-fit models */
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
