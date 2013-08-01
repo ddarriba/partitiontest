@@ -6,13 +6,18 @@
 #include "parser/newick/newick.h"
 #include "queue.h"
 
-//linkageList* initLinkageList(int *linkList, partitionList *pr);
+linkageList* initLinkageList(int *linkList, partitionList *pr);
 //void freeLinkageList( linkageList* ll);
 
-void pllLinkAlphaParameters(char *string, partitionList *pr);
-void pllLinkFrequencies(char *string, partitionList *pr);
-void pllLinkRates(char *string, partitionList *pr);
-void pllSetSubstitutionRateMatrixSymmetries(char *string, partitionList * pr, int model);
+int pllLinkAlphaParameters(char *string, partitionList *pr);
+int pllLinkFrequencies(char *string, partitionList *pr);
+int pllLinkRates(char *string, partitionList *pr);
+int pllSetSubstitutionRateMatrixSymmetries(char *string, partitionList * pr, int model);
+
+void pllSetFixedAlpha(double alpha, int model, partitionList * pr, pllInstance *tr);
+void pllSetFixedBaseFrequencies(double *f, int length, int model, partitionList * pr, pllInstance *tr);
+int  pllSetOptimizeBaseFrequencies(int model, partitionList * pr, pllInstance *tr);
+void pllSetFixedSubstitutionMatrix(double *q, int length, int model, partitionList * pr,  pllInstance *tr);
 
 //void read_msa(pllInstance *tr, const char *filename);
 void makeParsimonyTree(pllInstance *tr);
@@ -29,7 +34,7 @@ void pllTreeInitTopologyForAlignment (pllInstance * tr, struct pllPhylip * phyli
 void pllBaseSubstitute (struct pllPhylip * phylip, partitionList * partitions);
 void  pllTreeDestroy (pllInstance * t);
 pllInstance * pllCreateInstance (int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed);
-void pllInitModel (pllInstance *, int, struct pllPhylip *, partitionList *);
+int pllInitModel (pllInstance *, int, struct pllPhylip *, partitionList *);
 void pllComputeRandomizedStepwiseAdditionParsimonyTree(pllInstance * tr, partitionList * partitions);
-void pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
+int pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
 #endif /* UTILS_H_ */

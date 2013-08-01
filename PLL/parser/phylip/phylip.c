@@ -101,6 +101,7 @@ alloc_phylip_struct (int nTaxa, int seqLen)
    phylip->nTaxa   = nTaxa;
    phylip->seqLen  = seqLen;
    phylip->weights = NULL;
+   phylip->isReady = PLL_FALSE;
 
    return (phylip);
  }

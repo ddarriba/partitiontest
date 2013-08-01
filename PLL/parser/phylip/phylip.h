@@ -16,6 +16,7 @@ struct pllPhylip
    char          ** label;
    unsigned char ** seq;
    int            * weights;
+   int              isReady;
  };
 
 struct pllPhylip * pllPhylipParse (const char *);
