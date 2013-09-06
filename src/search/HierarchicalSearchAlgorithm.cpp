@@ -28,9 +28,7 @@
 #include "selection/PartitionSelector.h"
 #include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
-extern "C" {
-#include "utils.h"
-}
+
 namespace partest {
 
 HierarchicalSearchAlgorithm::HierarchicalSearchAlgorithm(
@@ -70,36 +68,31 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
 		/* Starting topology */
-		analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
-		adef->max_rearrange = 100;
-		adef->stepwidth = 5;
-		adef->initial = 10;
-		adef->bestTrav = 10;
-		adef->initialSet = PLL_FALSE;
-		adef->mode = BIG_RAPID_MODE;
-		adef->likelihoodEpsilon = 0.1;
-		adef->permuteTreeoptimize = PLL_FALSE;
-		adef->perGeneBranchLengths = PLL_FALSE;
-		adef->useCheckpoint = PLL_FALSE;
-
 
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
 
-		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(), alignment->getPhylip());
+						cout << alignment->getPartitions() << endl;
+				cout << " " << alignment->getPhylip() << endl;
+
+		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
+				alignment->getPhylip());
+		cout << "[TRACE] Hcluster - A " << alignment->getTree() << endl;
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 				alignment->getPartitions());
+		cout << "[TRACE] Hcluster - C" << endl;
 		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
+		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
 		mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
-		//mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), adef, true);
+
+		cout << "[TRACE] Hcluster - D" << endl;
 
 		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-		rax_free(adef);
 
 		options->setTreeString(alignment->getTree()->tree_string);
 

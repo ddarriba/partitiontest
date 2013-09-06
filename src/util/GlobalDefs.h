@@ -12,7 +12,7 @@
 #include <climits>
 #ifdef _PLL
 extern "C" {
-#include "axml.h"
+#include "pll.h"
 }
 #endif
 
@@ -28,7 +28,7 @@ typedef std::vector<t_partitioningScheme> t_schemesVector;
 #ifdef _PLL
 #ifndef AXML_H
 #define AXML_H
-#include "axml.h"
+#include "pll.h"
 #endif
 #endif
 

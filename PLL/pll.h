@@ -1,39 +1,8 @@
-/*  RAxML-VI-HPC (version 2.2) a program for sequential and parallel estimation of phylogenetic trees
- *  Copyright August 2006 by Alexandros Stamatakis
- *
- *  Partially derived from
- *  fastDNAml, a program for estimation of phylogenetic trees from sequences by Gary J. Olsen
- *
- *  and
- *
- *  Programs of the PHYLIP package by Joe Felsenstein.
- *
- *  This program is free software; you may redistribute it and/or modify its
- *  under the terms of the GNU General Public License as published by the Free
- *  Software Foundation; either version 2 of the License, or (at your option)
- *  any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *
- *  For any other enquiries send an Email to Alexandros Stamatakis
- *  Alexandros.Stamatakis@epfl.ch
- *
- *  When publishing work that is based on the results from RAxML-VI-HPC please cite:
- *
- *  Alexandros Stamatakis:"RAxML-VI-HPC: maximum likelihood-based phylogenetic analyses
- *  with thousands of taxa and mixed models".
- *  Bioinformatics 2006; doi: 10.1093/bioinformatics/btl446
- */
-
-/** @file axml.h
+/** @file pll.h
   * @brief Data structures for tree and model 
-  */
-#ifndef AXML_H
-#define AXML_H
+*/
+#ifndef __pll__
+#define __pll__
 #include <stdint.h>
 #include <stdio.h>
 
@@ -51,7 +20,7 @@ extern "C" {
 
 #else
 
-#ifdef __SIM_SSE3
+#ifdef __SSE3
 
 #include <xmmintrin.h>
 #include <pmmintrin.h>
@@ -65,8 +34,16 @@ extern "C" {
 
 
 #include "genericParallelization.h"
-#include "mem_alloc.h"
 #include "errcodes.h"
+#include "stack.h"
+#include "queue.h"
+#include "hash.h"
+#include "parser/newick/newick.h"
+#include "lexer.h"
+#include "parser/common.h"
+#include "parser/partition/part.h"
+#include "parser/alignment/alignment.h"
+#include "mem_alloc.h"
 
 #define PLL_MAX_TIP_EV                          0.999999999 /* max tip vector value, sum of EVs needs to be smaller than 1.0, otherwise the numerics break down */
 #define PLL_MAX_LOCAL_SMOOTHING_ITERATIONS      32          /** @brief maximum iterations of smoothings per insert in the */
@@ -204,46 +181,9 @@ extern double exp_approx (double x);
 
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
 
-#define programName        "RAxML-Light"
-#define programVersion     "1.0.5"
-#define programDate        "June 2011"
-
-
-#define  TREE_EVALUATION            0
-#define  BIG_RAPID_MODE             1
-#define  CALC_BIPARTITIONS          3
-#define  SPLIT_MULTI_GENE           4
-#define  CHECK_ALIGNMENT            5
-#define  PER_SITE_LL                6
-#define  PARSIMONY_ADDITION         7
-#define  CLASSIFY_ML                9
-#define  DISTANCE_MODE              11
-#define  GENERATE_BS                12
-#define  COMPUTE_ELW                13
-#define  BOOTSTOP_ONLY              14
-#define  COMPUTE_LHS                17
-#define  COMPUTE_BIPARTITION_CORRELATION 18
-#define  THOROUGH_PARSIMONY         19
-#define  COMPUTE_RF_DISTANCE        20
-#define  MORPH_CALIBRATOR           21
-#define  CONSENSUS_ONLY             22
-#define  MESH_TREE_SEARCH           23
-#define  FAST_SEARCH                24
-#define  MORPH_CALIBRATOR_PARSIMONY 25
-#define  SH_LIKE_SUPPORTS           28
-
-#define  GPU_BENCHMARK              29
-
-#define M_GTRCAT         1
-#define M_GTRGAMMA       2
-#define M_BINCAT         3
-#define M_BINGAMMA       4
-#define M_PROTCAT        5
-#define M_PROTGAMMA      6
-#define M_32CAT          7
-#define M_32GAMMA        8
-#define M_64CAT          9
-#define M_64GAMMA        10
+#define programName        "PLL"
+#define programVersion     "1.0.0"
+#define programDate        "September 2013"
 
 
 #define DAYHOFF    0
@@ -272,36 +212,9 @@ extern double exp_approx (double x);
 
 /* bipartition stuff */
 
-#define BIPARTITIONS_ALL       0
-#define GET_BIPARTITIONS_BEST  1
-#define DRAW_BIPARTITIONS_BEST 2
-#define BIPARTITIONS_BOOTSTOP  3
 #define BIPARTITIONS_RF  4
 
 
-
-/* bootstopping stuff */
-
-#define BOOTSTOP_PERMUTATIONS 100
-#define START_BSTOP_TEST      10
-
-#define FC_THRESHOLD          99
-#define FC_SPACING            50
-#define FC_LOWER              0.99
-#define FC_INIT               20
-
-#define FREQUENCY_STOP 0
-#define MR_STOP        1
-#define MRE_STOP       2
-#define MRE_IGN_STOP   3
-
-#define MR_CONSENSUS 0
-#define MRE_CONSENSUS 1
-#define STRICT_CONSENSUS 2
-
-
-
-/* bootstopping stuff end */
 
 
 #define TIP_TIP     0
@@ -367,6 +280,17 @@ extern double exp_approx (double x);
 
 typedef  int boolean;
 
+/* @brief PLL instance attribute structure */
+typedef struct
+{
+  int rateHetModel;
+  int fastScaling;
+  int saveMemory;
+  int useRecom;
+  long randomNumberSeed;
+  int numberOfThreads;
+} pllInstanceAttr;
+
 /** @brief Stores the recomputation-state of likelihood vectors  */
 typedef struct
 {
@@ -383,14 +307,6 @@ typedef struct
 #endif
 } recompVectors;
 /* E recomp */
-
-/** @brief ???Expected likelihood weight
- * @todo add explanation, is this ever used?  */
-typedef struct {
-  double lh;
-  int tree;
-  double weight;
-} elw;
 
 /** @brief ???
  * @todo add explanation, is this ever used?  */
@@ -415,17 +331,6 @@ typedef unsigned int hashNumberType;
 /*typedef uint_fast32_t parsimonyNumber;*/
 
 #define PCF 32
-
-/*
-  typedef uint64_t parsimonyNumber;
-
-  #define PCF 16
-
-
-typedef unsigned char parsimonyNumber;
-
-#define PCF 2
-*/
 
 /** @brief ???Hash tables 
  * @todo add explanation of all hash tables  */
@@ -960,30 +865,6 @@ typedef struct
 
 
 
-/** @brief LH entries @warning UNUSED???
-  */
-typedef struct 
-{
-  int left;
-  int right;
-  double likelihood;
-} lhEntry;
-/** @brief LH list. @warning UNUSED???
-  */
-typedef struct 
-{
-  int count;
-  int size;
-  lhEntry *entries;
-} lhList;
-
-
-typedef struct List_{
-  void *value; 			
-  struct List_ *next; 
-} List;
-
-
 #define REARR_SETTING 1
 #define FAST_SPRS     2
 #define SLOW_SPRS     3
@@ -1081,7 +962,7 @@ typedef  struct  {
   int              startingTree;
   long             randomNumberSeed;
 
-  double          *lhs;
+  double          *lhs;         /**< Array to store per-site log likelihoods of \a originalCrunchedLength (compressed) sites */
   double          *patrat;      /**< rates per pattern */
   double          *patratStored; 
   int             *rateCategory;
@@ -1215,6 +1096,23 @@ typedef  struct  {
   boolean thoroughInsertion; /**< true if the neighbor branches should be optimized when a subtree is inserted (slower)*/
   boolean useMedian;
 
+  pllStack * sprHistory;
+
+
+  /* analdef defines */
+  /* TODO: Do some initialization */
+  int              bestTrav;            /**< best rearrangement radius */
+  int              max_rearrange;       /**< max. rearrangemenent radius */
+  int              stepwidth;           /**< step in rearrangement radius */
+  int              initial;             /**< user defined rearrangement radius which also sets bestTrav if initialSet is set */
+  boolean          initialSet;          /**< set bestTrav according to initial */
+  int              mode;                /**< candidate for removal */
+  boolean        perGeneBranchLengths;
+  boolean        permuteTreeoptimize;   /**< randomly select subtrees for SPR moves */
+  boolean        compressPatterns;
+  double         likelihoodEpsilon;
+  boolean        useCheckpoint;
+
 } pllInstance;
 
 /** @brief Stores data related to a NNI move  */
@@ -1319,10 +1217,6 @@ typedef struct {
     boolean          improved;
     } bestlist;
 
-#define randomTree    0
-#define givenTree     1 
-#define parsimonyTree 2
-
 /** @brief Parameters (raxml-specific)
 *   */
 typedef  struct {
@@ -1373,21 +1267,61 @@ typedef struct
 
 } partitionLengths;
 
+
+typedef struct {
+  double * zp;
+  double * zpn;
+  double * zpnn;
+  double * zqr;
+  nodeptr pn;
+  nodeptr pnn;
+  nodeptr r;
+  nodeptr p;
+  nodeptr q;
+} sprInfoRollback;
+
+typedef struct
+ {
+   nodeptr removeNode;
+   nodeptr insertNode;
+   double likelihood;
+   double zqr[NUM_BRANCHES];
+ } pllInfoSPR;
+
+typedef struct
+ {
+   int max_entries;
+   int entries;
+   pllInfoSPR * sprInfo;
+ } pllListSPR;
+
+
+
+
+
+
+
 /****************************** FUNCTIONS ****************************************************/
 
 
 #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
 boolean isThisMyPartition(partitionList *pr, int tid, int model);
-void printParallelTimePerRegion(); 
+void printParallelTimePerRegion(void); 
 #endif
 
-extern void computePlacementBias(pllInstance *tr, analdef *adef);
+#ifdef _FINE_GRAIN_MPI
+extern void pllFinalizeMPI (void);
+#endif
 
+
+extern void pllStartPthreads (pllInstance *tr, partitionList *pr);
+extern void pllStopPthreads (pllInstance * tr);
 extern int lookupWord(char *s, stringHashtable *h);
+extern void pllLockMPI (pllInstance * tr);
+extern void pllInitMPI(int * argc, char **argv[]);
 
 extern void getDataTypeString(pllInstance *tr, pInfo *partitionInfo, char typeOfData[1024]);
 
-extern unsigned int genericBitCount(unsigned int* bitVector, unsigned int bitVectorLength);
 extern int countTips(nodeptr p, int numsp);
 extern entry *initEntry(void);
 extern void computeRogueTaxa(pllInstance *tr, char* treeSetFileName, analdef *adef);
@@ -1416,9 +1350,7 @@ extern void hookup ( nodeptr p, nodeptr q, double *z, int numBranches);
 extern void hookupFull ( nodeptr p, nodeptr q, double *z);
 extern void hookupDefault ( nodeptr p, nodeptr q);
 extern boolean whitechar ( int ch );
-extern void printResult ( pllInstance *tr, partitionList *pr, analdef *adef, boolean finalPrint );
-extern void printBootstrapResult ( pllInstance *tr, analdef *adef, boolean finalPrint );
-extern void printBipartitionResult ( pllInstance *tr, analdef *adef, boolean finalPrint );
+//extern void printResult ( pllInstance *tr, partitionList *pr, analdef *adef, boolean finalPrint );
 extern void printLog ( pllInstance *tr);
 extern void printStartingTree ( pllInstance *tr, analdef *adef, boolean finalPrint );
 extern void writeInfoFile ( analdef *adef, pllInstance *tr, double t );
@@ -1431,22 +1363,17 @@ extern double PointNormal ( double prob );
 extern double PointChi2 ( double prob, double v );
 extern void makeGammaCats (double alpha, double *gammaRates, int K, boolean useMedian);
 extern void initModel ( pllInstance *tr, double **empiricalFrequencies, partitionList * partitions);
-extern void doAllInOne ( pllInstance *tr, analdef *adef );
 
 extern void classifyML(pllInstance *tr, analdef *adef);
 
 extern void resetBranches ( pllInstance *tr );
 extern void modOpt ( pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
 
+extern void initializePartitionData(pllInstance *localTree, partitionList * localPartitions);
+extern void initMemorySavingAndRecom(pllInstance *tr, partitionList *pr);
 
 
-extern void computeBOOTRAPID (pllInstance *tr, analdef *adef, long *radiusSeed);
-extern void optimizeRAPID ( pllInstance *tr, analdef *adef );
-extern void thoroughOptimization ( pllInstance *tr, analdef *adef, topolRELL_LIST *rl, int index );
-extern int treeOptimizeThorough ( pllInstance *tr, int mintrav, int maxtrav);
 
-extern int checker ( pllInstance *tr, nodeptr p );
-extern boolean tipHomogeneityChecker ( pllInstance *tr, nodeptr p, int grouping );
 extern void makeRandomTree ( pllInstance *tr);
 extern void nodeRectifier ( pllInstance *tr );
 extern void makeParsimonyTreeFast(pllInstance *tr, partitionList *pr);
@@ -1465,7 +1392,7 @@ extern void smoothTree ( pllInstance *tr, partitionList *pr, int maxtimes );
 extern void localSmooth ( pllInstance *tr, partitionList *pr, nodeptr p, int maxtimes );
 extern boolean localSmoothMulti(pllInstance *tr, nodeptr p, int maxtimes, int model);
 extern int pllNniSearch(pllInstance * tr, partitionList *pr, int estimateModel);
-extern void NNI(pllInstance * tr, nodeptr p, int swap);
+extern int NNI(pllInstance * tr, nodeptr p, int swap);
 
 extern void smoothRegion ( pllInstance *tr, partitionList *pr, nodeptr p, int region );
 extern void regionalSmooth ( pllInstance *tr, partitionList *pr, nodeptr p, int maxtimes, int region );
@@ -1479,13 +1406,8 @@ extern int rearrangeBIG ( pllInstance *tr, partitionList *pr, nodeptr p, int min
 extern void traversalOrder ( nodeptr p, int *count, nodeptr *nodeArray );
 extern boolean testInsertRestoreBIG ( pllInstance *tr, partitionList *pr, nodeptr p, nodeptr q );
 extern void restoreTreeFast ( pllInstance *tr, partitionList *pr );
-extern int determineRearrangementSetting ( pllInstance *tr, partitionList *pr, analdef *adef, bestlist *bestT, bestlist *bt );
-extern void computeBIGRAPID ( pllInstance *tr, partitionList *pr, analdef *adef, boolean estimateModel);
 
-extern boolean treeEvaluate ( pllInstance *tr, partitionList *pr, int maxSmoothIterations );
-extern boolean treeEvaluatePartition ( pllInstance *tr, double smoothFactor, int model );
-extern void computeBIGRAPID_Test (pllInstance *tr, partitionList *pr, boolean estimateModel);
-extern void meshTreeSearch(pllInstance *tr, analdef *adef, int thorough);
+extern void pllTreeEvaluate ( pllInstance *tr, partitionList *pr, int maxSmoothIterations );
 
 extern void initTL ( topolRELL_LIST *rl, pllInstance *tr, int n );
 extern void freeTL ( topolRELL_LIST *rl);
@@ -1502,21 +1424,16 @@ extern boolean freeBestTree ( bestlist *bt );
 
 extern char *Tree2String ( char *treestr, pllInstance *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames, boolean printLikelihood,
 			   boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport);
-extern void printTreePerGene(pllInstance *tr, partitionList *pr, analdef *adef, char *fileName, char *permission);
 void printTopology(pllInstance *tr, partitionList *pr, boolean printInner);
 
 
 
 extern int treeReadLen (FILE *fp, pllInstance *tr, boolean readBranches, boolean readNodeLabels, boolean topologyOnly);
 extern void treeReadTopologyString(char *treeString, pllInstance *tr);
-extern boolean treeReadLenMULT ( FILE *fp, pllInstance *tr, analdef *adef );
 
 extern void getStartingTree (pllInstance *tr);
 extern double treeLength (pllInstance *tr, int model);
 
-extern void computeBootStopOnly(pllInstance *tr, char *bootStrapFileName, analdef *adef);
-extern boolean bootStop(pllInstance *tr, hashtable *h, int numberOfTrees, double *pearsonAverage, unsigned int **bitVectors, int treeVectorLength, unsigned int vectorLength);
-extern void computeConsensusOnly(pllInstance *tr, char* treeSetFileName, analdef *adef);
 extern double evaluatePartialGeneric (pllInstance *, partitionList *pr, int i, double ki, int _model);
 extern void evaluateGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean fullTraversal, boolean getPerSiteLikelihoods);
 extern void newviewGeneric (pllInstance *tr, partitionList *pr, nodeptr p, boolean masked);
@@ -1553,55 +1470,19 @@ extern void countTraversal(pllInstance *tr);
 extern void makeP(double z1, double z2, double *rptr, double *EI,  double *EIGN, int numberOfCategories, double *left, double *right, boolean saveMem, int maxCat, const int states);
 
 extern void newviewIterative(pllInstance *tr, partitionList *pr, int startIndex);
-
 extern void evaluateIterative(pllInstance *tr, partitionList *pr, boolean getPerSiteLikelihoods);
-
-//extern void *malloc_aligned( size_t size);
-
 extern void storeExecuteMaskInTraversalDescriptor(pllInstance *tr, partitionList *pr);
 extern void storeValuesInTraversalDescriptor(pllInstance *tr, partitionList *pr, double *value);
-
-
 extern void makenewzIterative(pllInstance *, partitionList *pr);
 extern void execCore(pllInstance *, partitionList *pr, volatile double *dlnLdlz, volatile double *d2lnLdlz2);
 
-extern void determineFullTraversal(nodeptr p, pllInstance *tr);
-/*extern void optRateCat(pllInstance *, int i, double lower_spacing, double upper_spacing, double *lhs);*/
 
 
-
-
-
-extern double evaluateGenericInitravPartition(pllInstance *tr, nodeptr p, int model);
-extern void evaluateGenericVectorIterative(pllInstance *, int startIndex, int endIndex);
-extern void categorizeIterative(pllInstance *, int startIndex, int endIndex);
-
-extern void fixModelIndices(pllInstance *tr, int endsite, boolean fixRates);
-extern void calculateModelOffsets(pllInstance *tr);
-extern void gammaToCat(pllInstance *tr);
-extern void catToGamma(pllInstance *tr, analdef *adef);
 
 
 extern nodeptr findAnyTip(nodeptr p, int numsp);
-
-extern void parseProteinModel(analdef *adef);
-
-
-
-extern void computeNextReplicate(pllInstance *tr, long *seed, int *originalRateCategories, int *originalInvariant, boolean isRapid, boolean fixRates);
-/*extern void computeNextReplicate(pllInstance *tr, analdef *adef, int *originalRateCategories, int *originalInvariant);*/
-
 extern void putWAG(double *ext_initialRates);
-
-extern void reductionCleanup(pllInstance *tr, int *originalRateCategories, int *originalInvariant);
-extern void parseSecondaryStructure(pllInstance *tr, analdef *adef, int sites);
-extern void printPartitions(pllInstance *tr);
-extern void compareBips(pllInstance *tr, char *bootStrapFileName, analdef *adef);
-extern void computeRF(pllInstance *tr, char *bootStrapFileName, analdef *adef);
-
-
 extern  unsigned int **initBitVector(int mxtips, unsigned int *vectorLength);
-extern hashtable *copyHashTable(hashtable *src, unsigned int vectorLength);
 extern hashtable *initHashTable(unsigned int n);
 extern void cleanupHashTable(hashtable *h, int state);
 extern double convergenceCriterion(hashtable *h, int mxtips);
@@ -1609,7 +1490,6 @@ extern void freeBitVectors(unsigned int **v, int n);
 extern void freeHashTable(hashtable *h);
 extern stringHashtable *initStringHashTable(hashNumberType n);
 extern void addword(char *s, stringHashtable *h, int nodeNumber);
-
 
 extern void printBothOpen(const char* format, ... );
 extern void initRateMatrix(pllInstance *tr, partitionList *pr);
@@ -1621,22 +1501,9 @@ extern void bitVectorInitravSpecial(unsigned int **bitVectors, nodeptr p, int nu
 extern  unsigned int bitcount_32_bit(unsigned int i); 
 extern inline unsigned int bitcount_64_bit(unsigned long i);
 
-extern FILE *getNumberOfTrees(pllInstance *tr, char *fileName, analdef *adef);
-
-extern void writeBinaryModel(pllInstance *tr);
-extern void readBinaryModel(pllInstance *tr);
-extern void treeEvaluateRandom (pllInstance *tr, double smoothFactor);
-extern void treeEvaluateProgressive(pllInstance *tr);
-
-extern void testGapped(pllInstance *tr);
-
-extern boolean issubset(unsigned int* bipA, unsigned int* bipB, unsigned int vectorLen);
-extern boolean compatible(entry* e1, entry* e2, unsigned int bvlen);
 
 extern void perSiteLogLikelihoods(pllInstance *tr, partitionList *pr, double *logLikelihoods);
 
-extern int *permutationSH(pllInstance *tr, int nBootstrap, long _randomSeed);
-extern void perSiteLogLikelihoodsPthreads(pllInstance *tr, partitionList *pr, double *lhs, int n, int tid);
 extern void updatePerSiteRates(pllInstance *tr, partitionList *pr, boolean scaleRates);
 
 extern void restart(pllInstance *tr, partitionList *pr);
@@ -1646,13 +1513,65 @@ extern double getBranchLength(pllInstance *tr, partitionList *pr, int perGene, n
 inline boolean isGap(unsigned int *x, int pos);
 inline boolean noGap(unsigned int *x, int pos);
 
+/* newick parser declarations */
+extern pllNewickTree * pllNewickParseString (char * newick);
+extern pllNewickTree * pllNewickParseFile (const char * filename);
+extern int pllValidateNewick (pllNewickTree *);
+extern void pllNewickParseDestroy (pllNewickTree **);
 
+/* partition parser declarations */
+extern void  pllQueuePartitionsDestroy (struct pllQueue ** partitions);
+extern struct pllQueue * pllPartitionParse (const char * filename);
+extern void pllPartitionDump (struct pllQueue * partitions);
 
+/* alignment data declarations */
+extern void pllAlignmentDataDestroy (pllAlignmentData *);
+extern void pllAlignmentDataDump (pllAlignmentData *);
+extern pllAlignmentData * pllInitAlignmentData (int, int);
+
+extern pllAlignmentData * pllParsePHYLIP (const char *);
+extern pllAlignmentData * pllParseFASTA (const char *);
+
+/* from utils.h */
+linkageList* initLinkageList(int *linkList, partitionList *pr);
+
+int pllLinkAlphaParameters(char *string, partitionList *pr);
+int pllLinkFrequencies(char *string, partitionList *pr);
+int pllLinkRates(char *string, partitionList *pr);
+int pllSetSubstitutionRateMatrixSymmetries(char *string, partitionList * pr, int model);
+
+void pllSetFixedAlpha(double alpha, int model, partitionList * pr, pllInstance *tr);
+void pllSetFixedBaseFrequencies(double *f, int length, int model, partitionList * pr, pllInstance *tr);
+int  pllSetOptimizeBaseFrequencies(int model, partitionList * pr, pllInstance *tr);
+void pllSetFixedSubstitutionMatrix(double *q, int length, int model, partitionList * pr,  pllInstance *tr);
+
+nodeptr pllGetRandomSubtree(pllInstance *);
+void makeParsimonyTree(pllInstance *tr);
+void pllPartitionsDestroy (pllInstance *, partitionList **);
+int pllPartitionsValidate (struct pllQueue * parts, pllAlignmentData * alignmentData);
+partitionList * pllPartitionsCommit (struct pllQueue * parts, pllAlignmentData * alignmentData);
+void pllPhylipRemoveDuplicate (pllAlignmentData * alignmentData, partitionList * pl);
+double ** pllBaseFrequenciesGTR (partitionList * pl, pllAlignmentData * alignmentData);
+void pllTreeInitTopologyNewick (pllInstance *, pllNewickTree *, int);
+int pllLoadAlignment (pllInstance * tr, pllAlignmentData * alignmentData, partitionList *, int);
+void pllEmpiricalFrequenciesDestroy (double *** empiricalFrequencies, int models);
+void pllTreeInitTopologyRandom (pllInstance * tr, int tips, char ** nameList);
+void pllTreeInitTopologyForAlignment (pllInstance * tr, pllAlignmentData * alignmentData);
+void pllBaseSubstitute (pllAlignmentData * alignmentData, partitionList * partitions);
+void  pllDestroyInstance (pllInstance *);
+pllInstance * pllCreateInstance (pllInstanceAttr *);
+int pllInitModel (pllInstance *, partitionList *, pllAlignmentData *);
+void pllComputeRandomizedStepwiseAdditionParsimonyTree(pllInstance * tr, partitionList * partitions);
+int pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
+
+void pllInitListSPR (pllListSPR ** bestListSPR, int max);
+void pllDestroyListSPR (pllListSPR ** bestListSPR);
+pllListSPR * pllComputeSPR (pllInstance * tr, partitionList * pr, nodeptr p, int mintrav, int maxtrav, int max);
+void pllCommitSPR (pllInstance * tr, partitionList * pr, pllInfoSPR * sprInfo, int saveRollbackInfo);
+int pllRollbackSPR (pllInstance * tr, partitionList * pr);
+void pllClearSprHistory (pllInstance * tr);
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS) )
-
-
-
 /* work tags for parallel regions */
 
 #define THREAD_NEWVIEW                  0        
@@ -1673,52 +1592,37 @@ inline boolean noGap(unsigned int *x, int pos);
 #define THREAD_EXIT_GRACEFULLY          15
 #define THREAD_EVALUATE_PER_SITE_LIKES  16
 
-void threadMakeVector(pllInstance *tr, int tid);
-void threadComputeAverage(pllInstance *tr, int tid);
-void threadComputePearson(pllInstance *tr, int tid);
 
-extern void masterBarrier(int jobType, pllInstance *tr, partitionList *pr);
 
-#endif
-
-#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-
-boolean workerTrap(pllInstance *tr, partitionList *pr);
-void initMPI(int argc, char *argv[]); 
-void initializePartitions(pllInstance *tr, pllInstance *localTree, partitionList *pr, partitionList *localPr, int tid, int n);
-void multiprocessorScheduling(pllInstance *tr, partitionList *pr, int tid);
-void computeFraction(partitionList *localPr, int tid, int n);
-void computeFractionMany(partitionList *localPr, int tid);
-void initializePartitionsMaster(pllInstance *tr, pllInstance *localTree, partitionList *pr, partitionList *localPr, int tid, int n);
-void startPthreads(pllInstance *tr, partitionList *pr);
 typedef struct
 {
   pllInstance *tr;
+
   partitionList *pr;
   int threadNumber;
 }
   threadData;
 extern void optRateCatPthreads(pllInstance *tr, partitionList *pr, double lower_spacing, double upper_spacing, double *lhs, int n, int tid);
-void allocNodex(pllInstance *tr, int tid, int n);
+extern void pllMasterBarrier(pllInstance *, partitionList *, int);
 #endif
 
 
 #ifdef __AVX
 
-void newviewGTRGAMMAPROT_AVX_LG4(int tipCase,
+extern void newviewGTRGAMMAPROT_AVX_LG4(int tipCase,
 					double *x1, double *x2, double *x3, double *extEV[4], double *tipVector[4],
 					int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
 					double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 
-void newviewGTRCAT_AVX_GAPPED_SAVE(int tipCase,  double *EV,  int *cptr,
+extern void newviewGTRCAT_AVX_GAPPED_SAVE(int tipCase,  double *EV,  int *cptr,
 				   double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
 				   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 				   int n,  double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
 				   unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
 				   double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
 
-void newviewGTRCATPROT_AVX_GAPPED_SAVE(int tipCase, double *extEV,
+extern void newviewGTRCATPROT_AVX_GAPPED_SAVE(int tipCase, double *extEV,
 				       int *cptr,
 				       double *x1, double *x2, double *x3, double *tipVector,
 				       int *ex3, unsigned char *tipX1, unsigned char *tipX2,
@@ -1726,7 +1630,7 @@ void newviewGTRCATPROT_AVX_GAPPED_SAVE(int tipCase, double *extEV,
 				       unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
 				       double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
 
-void  newviewGTRGAMMA_AVX_GAPPED_SAVE(int tipCase,
+extern void  newviewGTRGAMMA_AVX_GAPPED_SAVE(int tipCase,
 				      double *x1_start, double *x2_start, double *x3_start,
 				      double *extEV, double *tipVector,
 				      int *ex3, unsigned char *tipX1, unsigned char *tipX2,
@@ -1735,38 +1639,38 @@ void  newviewGTRGAMMA_AVX_GAPPED_SAVE(int tipCase,
 				      double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn
 				      );
 
-void newviewGTRGAMMAPROT_AVX_GAPPED_SAVE(int tipCase,
+extern void newviewGTRGAMMAPROT_AVX_GAPPED_SAVE(int tipCase,
 					 double *x1_start, double *x2_start, double *x3_start, double *extEV, double *tipVector,
 					 int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
 					 double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
 					 unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
 					 double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn); 
 
-void newviewGTRCAT_AVX(int tipCase,  double *EV,  int *cptr,
+extern void newviewGTRCAT_AVX(int tipCase,  double *EV,  int *cptr,
     double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
     int *ex3, unsigned char *tipX1, unsigned char *tipX2,
     int n,  double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 
-void newviewGenericCATPROT_AVX(int tipCase, double *extEV,
+extern void newviewGenericCATPROT_AVX(int tipCase, double *extEV,
     int *cptr,
     double *x1, double *x2, double *x3, double *tipVector,
     int *ex3, unsigned char *tipX1, unsigned char *tipX2,
     int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 
-void newviewGTRGAMMA_AVX(int tipCase,
+extern void newviewGTRGAMMA_AVX(int tipCase,
     double *x1_start, double *x2_start, double *x3_start,
     double *EV, double *tipVector,
     int *ex3, unsigned char *tipX1, unsigned char *tipX2,
     const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
-void newviewGTRGAMMAPROT_AVX(int tipCase,
+extern void newviewGTRGAMMAPROT_AVX(int tipCase,
 			     double *x1, double *x2, double *x3, double *extEV, double *tipVector,
 			     int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
 			     double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
-void newviewGTRCATPROT_AVX(int tipCase, double *extEV,
+extern void newviewGTRCATPROT_AVX(int tipCase, double *extEV,
 			   int *cptr,
 			   double *x1, double *x2, double *x3, double *tipVector,
 			   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
@@ -1774,28 +1678,11 @@ void newviewGTRCATPROT_AVX(int tipCase, double *extEV,
 
 #endif
 
-void reorder( double *x, int n, int span );
-void reorder_back( double *x, int n, int span );
-
-void initializePartitionsSequential(pllInstance *tr, partitionList *pr);
-
-int virtual_width( int n );
-
-boolean modelExists(char *model, pllInstance *tr);
-
-/* declarations from utils.c */
-void myBinFread(void *ptr, size_t size, size_t nmemb, FILE *byteFile);
-boolean setupTree (pllInstance *tr, boolean doInit, partitionList *partitions);
-void initMemorySavingAndRecom(pllInstance *tr, partitionList *pr);
-void initializePartitionData(pllInstance *localTree, partitionList * localPartitions);
-void computeAllAncestralVectors(nodeptr p, pllInstance *tr, partitionList *pr);
-nodeptr pickRandomSubtree (pllInstance *tr);
-void init_default(pllInstance *tr);
+extern int virtual_width( int n );
+extern void computeAllAncestralVectors(nodeptr p, pllInstance *tr, partitionList *pr);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#include "mem_alloc.h" /* sneak in mem_alloc.h to increase the chance that the XXX_BIG_FAT_MALLOC_ERRORS_XXX work */
 
 #endif

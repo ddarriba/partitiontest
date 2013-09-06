@@ -31,12 +31,8 @@
 /* external C */
 #ifndef AXML_H
 #define AXML_H
-#include "axml.h"
+#include "pll.h"
 #endif
-//#include "parser/phylip.h"
-//extern "C" {
-//void read_phylip_msa (tree * tr, const char * filename, int format, int type);
-//}
 
 namespace partest {
 
@@ -47,8 +43,8 @@ class PLLModelOptimize: public ModelOptimize {
 public:
 	PLLModelOptimize(ParTestOptions * options);
 	static void initializeStructs(pllInstance * tree, partitionList * partitions,
-			pllPhylip * phylip);
-	double evaluateSPR(pllInstance * tr, partitionList *pr, analdef * adef,
+			pllAlignmentData * phylip);
+	double evaluateSPR(pllInstance * tr, partitionList *pr,
 			bool estimateModel = true);
 	double evaluateNNI(pllInstance * tr, partitionList *pr,
 			bool estimateModel = true);
