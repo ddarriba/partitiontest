@@ -68,9 +68,7 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 
 	/* TODO: evaluate likelihood, create interface calls */
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	printf("Likelihood: %f\n\n", tr->likelihood);
-	//Tree2String (tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-	//printf ("Tree: %s\n", tr->tree_string);
+	//printf("Likelihood: %f\n\n", tr->likelihood);
 
 	/* another eval*/
 	double computed_lh = tr->likelihood;
@@ -81,56 +79,55 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 					partitions->numberOfPartitions : 1;
 
 	tr->thoroughInsertion = 1;
-	printf(
-			"Computing the best 20 SPRs in a radius (1,20)     [thoroughInsertion = enabled]\n");
+	//printf(	"Computing the best 20 SPRs in a radius (1,20)     [thoroughInsertion = enabled]\n");
 	bestList = pllComputeSPR(tr, partitions, tr->nodep[tr->mxtips + 1], 1, 20,
 			20);
 
-	printf("Number of SPRs computed : %d\n", bestList->entries);
+	//printf("Number of SPRs computed : %d\n", bestList->entries);
 
-	for (i = 0; i < bestList->entries; ++i) {
-		printf("\t bestList->sprInfo[%2d].likelihood     = %f\n", i,
-				bestList->sprInfo[i].likelihood);
-	}
+//	for (i = 0; i < bestList->entries; ++i) {
+//		printf("\t bestList->sprInfo[%2d].likelihood     = %f\n", i,
+//				bestList->sprInfo[i].likelihood);
+//	}
 
-	printf(
-			"Committing bestList->sprInfo[0]                   [thoroughInsertion = disabled]\n");
+//	printf(
+//			"Committing bestList->sprInfo[0]                   [thoroughInsertion = disabled]\n");
 	tr->thoroughInsertion = 0;
 	pllCommitSPR(tr, partitions, &(bestList->sprInfo[0]), PLL_TRUE);
 
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	printf("New likelihood: %f\n\n", tr->likelihood);
+//	printf("New likelihood: %f\n\n", tr->likelihood);
 
 	tr->thoroughInsertion = PLL_FALSE;
 	pllDestroyListSPR(&bestList);
-	printf(
-			"Computing the best 20 SPRs in a radius (1,30)     [thoroughInsertion = enabled]\n");
+//	printf(
+//			"Computing the best 20 SPRs in a radius (1,30)     [thoroughInsertion = enabled]\n");
 	bestList = pllComputeSPR(tr, partitions, tr->nodep[tr->mxtips + 1], 1, 30,
 			20);
 
-	printf("Number of SPRs computed : %d\n", bestList->entries);
-	for (i = 0; i < bestList->entries; ++i) {
-		printf("\t bestList->sprInfo[2%d].likelihood     = %f\n", i,
-				bestList->sprInfo[i].likelihood);
-	}
+//	printf("Number of SPRs computed : %d\n", bestList->entries);
+//	for (i = 0; i < bestList->entries; ++i) {
+//		printf("\t bestList->sprInfo[2%d].likelihood     = %f\n", i,
+//				bestList->sprInfo[i].likelihood);
+//	}
 
-	printf(
-			"Committing bestList->sprInfo[0]                   [thoroughInsertion = false]\n");
+//	printf(
+//			"Committing bestList->sprInfo[0]                   [thoroughInsertion = false]\n");
 	tr->thoroughInsertion = 0;
 	pllCommitSPR(tr, partitions, &(bestList->sprInfo[0]), PLL_TRUE);
 
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	printf("New likelihood: %f\n\n", tr->likelihood);
-
-	printf("Rolling back...\n");
+//	printf("New likelihood: %f\n\n", tr->likelihood);
+//
+//	printf("Rolling back...\n");
 	pllRollbackSPR(tr, partitions);
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	printf("New likelihood: %f\n\n", tr->likelihood);
-
-	printf("Rolling back...\n");
+//	printf("New likelihood: %f\n\n", tr->likelihood);
+//
+//	printf("Rolling back...\n");
 	pllRollbackSPR(tr, partitions);
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	printf("New likelihood: %f\n\n", tr->likelihood);
+//	printf("New likelihood: %f\n\n", tr->likelihood);
 
 	pllDestroyListSPR(&bestList);
 

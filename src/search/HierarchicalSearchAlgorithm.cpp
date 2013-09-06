@@ -72,16 +72,20 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
 
-						cout << alignment->getPartitions() << endl;
-				cout << " " << alignment->getPhylip() << endl;
+		cout << "START --> " << alignment->getTree()->start << endl;
 
 		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
 				alignment->getPhylip());
+
 		cout << "[TRACE] Hcluster - A " << alignment->getTree() << endl;
+		cout << "START --> " << alignment->getTree()->start << endl;
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 				alignment->getPartitions());
-		cout << "[TRACE] Hcluster - C" << endl;
+//		makeParsimonyTreeFast(alignment->getTree(),
+//				alignment->getPartitions());
+		cout << "TREE --> " << alignment->getTree() << " START --> " << &(alignment->getTree()->start) << endl;
+
 		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
