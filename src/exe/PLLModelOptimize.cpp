@@ -13,9 +13,7 @@
 
 extern "C" {
 #include "globalVariables.h"
-#include "parser/phylip/phylip.h"
 #include "parser/newick/newick.h"
-#include "utils.h"
 #include "parser/partition/part.h"
 
 extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
@@ -25,7 +23,7 @@ extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 namespace partest {
 
 void PLLModelOptimize::initializeStructs(pllInstance * tree,
-		partitionList * partitions, pllPhylip * phylip) {
+		partitionList * partitions, pllAlignmentData * phylip) {
 
 	pllTreeInitTopologyForAlignment(tree, phylip);
 
@@ -36,7 +34,7 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 	}
 
 	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	pllInitModel(tree, PLL_TRUE, phylip, partitions);
+	pllInitModel(tree, partitions, phylip);
 
 }
 
@@ -48,289 +46,93 @@ double PLLModelOptimize::evaluateNNI(pllInstance * tr, partitionList *pr,
 #endif
 	if (pllNniSearch(tr, pr, estimateModel)) {
 #ifdef DEBUG
-	cout << "[TRACE] DONE EVALUATING NNI WITH PLL " << endl;
-	cout << "[TRACE] LIKELIHOOD IS " << tr->likelihood << endl;
+		cout << "[TRACE] DONE EVALUATING NNI WITH PLL " << endl;
+		cout << "[TRACE] LIKELIHOOD IS " << tr->likelihood << endl;
 #endif
 		return tr->likelihood;
 	} else {
 #ifdef DEBUG
-	cout << "[TRACE] ERROR EVALUATING NNI WITH PLL" << endl;
-	exit(-1);
+		cout << "[TRACE] ERROR EVALUATING NNI WITH PLL" << endl;
+		exit(-1);
 #endif
 		return 0;
 	}
 
 }
 
-double PLLModelOptimize::evaluateSPR(pllInstance * tr, partitionList *pr,
-		analdef * adef, bool estimateModel) {
+double PLLModelOptimize::evaluateSPR(pllInstance * tr,
+		partitionList *partitions, bool estimateModel) {
 
-	int i, impr, bestTrav = 0, rearrangementsMax = 0, rearrangementsMin = 0,
-			thoroughIterations = 0, fastIterations = 0;
-	time_t t0, t1;
-	t0 = time(NULL);
-	double lh = PLL_UNLIKELY, previousLh = PLL_UNLIKELY, difference, epsilon;
+	pllListSPR * bestList;
+	int i;
 
-	bestlist *bestT, *bt;
-	infoList *iList = (infoList*) rax_malloc(sizeof(infoList));
+	/* TODO: evaluate likelihood, create interface calls */
+	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	printf("Likelihood: %f\n\n", tr->likelihood);
+	//Tree2String (tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+	//printf ("Tree: %s\n", tr->tree_string);
 
-	/* initialize two lists of size 1 and size 20 that will keep track of the best
-	 and 20 best tree topologies respectively */
+	/* another eval*/
+	double computed_lh = tr->likelihood;
+	evaluateGeneric(tr, partitions, tr->start, PLL_FALSE, PLL_FALSE);
+	assert(computed_lh == tr->likelihood);
+	int numBranches =
+			partitions->perGeneBranchLengths ?
+					partitions->numberOfPartitions : 1;
 
-	bestT = (bestlist *) rax_malloc(sizeof(bestlist));
-	bestT->ninit = 0;
-	initBestTree(bestT, 1, tr->mxtips);
+	tr->thoroughInsertion = 1;
+	printf(
+			"Computing the best 20 SPRs in a radius (1,20)     [thoroughInsertion = enabled]\n");
+	bestList = pllComputeSPR(tr, partitions, tr->nodep[tr->mxtips + 1], 1, 20,
+			20);
 
-	bt = (bestlist *) rax_malloc(sizeof(bestlist));
-	bt->ninit = 0;
-	initBestTree(bt, 20, tr->mxtips);
+	printf("Number of SPRs computed : %d\n", bestList->entries);
 
-	/* initialize an additional data structure used by the search algo, all of this is pretty
-	 RAxML-specific and should probably not be in the library */
-
-	iList->n = 50;
-	iList->valid = 0;
-	iList->list = (bestInfo *) rax_malloc(sizeof(bestInfo) * (size_t) 50);
-
-	for (int i = 0; i < 50; i++) {
-		iList->list[i].node = (nodeptr) NULL;
-		iList->list[i].likelihood = PLL_UNLIKELY;
+	for (i = 0; i < bestList->entries; ++i) {
+		printf("\t bestList->sprInfo[%2d].likelihood     = %f\n", i,
+				bestList->sprInfo[i].likelihood);
 	}
 
-	/* some pretty atbitrary thresholds */
+	printf(
+			"Committing bestList->sprInfo[0]                   [thoroughInsertion = disabled]\n");
+	tr->thoroughInsertion = 0;
+	pllCommitSPR(tr, partitions, &(bestList->sprInfo[0]), PLL_TRUE);
 
-	difference = 10.0;
-	epsilon = 0.01;
+	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	printf("New likelihood: %f\n\n", tr->likelihood);
 
-	/* Thorough = 0 means that we will do fast SPR inbsertions without optimizing the
-	 three branches adjacent to the subtree insertion position via Newton-Raphson
-	 */
-
-	t1 = time(NULL);
 	tr->thoroughInsertion = PLL_FALSE;
-	if (estimateModel)
-		modOpt(tr, pr, 10.0);
-	else
-		treeEvaluate(tr, pr, 64);
+	pllDestroyListSPR(&bestList);
+	printf(
+			"Computing the best 20 SPRs in a radius (1,30)     [thoroughInsertion = enabled]\n");
+	bestList = pllComputeSPR(tr, partitions, tr->nodep[tr->mxtips + 1], 1, 30,
+			20);
 
-	/* save the current tree (which is the input tree parsed via -t in the bestT list */
-	saveBestTree(bestT, tr,
-			pr->perGeneBranchLengths ? pr->numberOfPartitions : 1);
-
-	bestTrav = adef->bestTrav = adef->initial;
-
-	/* optimize model params more thoroughly or just optimize branch lengths */
-
-	t1 = time(NULL);
-	if (estimateModel)
-		modOpt(tr, pr, 5.0);
-	else
-		treeEvaluate(tr, pr, 32);   // 32 * 1
-
-	if (tr->doCutoff)
-		tr->itCount = 0;
-	impr = 1;
-
-	int iters = 0;
-	int imprIter = 0;
-	t1 = time(NULL);
-
-	while (impr) {
-		iters++;
-		recallBestTree(bestT, 1, tr, pr);
-		if (tr->searchConvergenceCriterion) {
-			imprIter++;
-			int bCounter = 0;
-			cleanupHashTable(tr->h, (fastIterations % 2));
-			bitVectorInitravSpecial(tr->bitVectors, tr->nodep[1]->back,
-					tr->mxtips, tr->vLength, tr->h, fastIterations % 2,
-					BIPARTITIONS_RF, (branchInfo *) NULL, &bCounter, 1,
-					PLL_FALSE, PLL_FALSE, tr->threadID);
-			{
-				char *buffer = (char*) rax_calloc((size_t) tr->treeStringLength,
-						sizeof(char));
-				Tree2String(buffer, tr, pr, tr->start->back, PLL_FALSE,
-						PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-						PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-				if (fastIterations % 2 == 0)
-					memcpy(tr->tree0, buffer,
-							tr->treeStringLength * sizeof(char));
-				else
-					memcpy(tr->tree1, buffer,
-							tr->treeStringLength * sizeof(char));
-				rax_free(buffer);
-			}
-			assert(bCounter == tr->mxtips - 3);
-			if (fastIterations > 0) {
-				double rrf = convergenceCriterion(tr->h, tr->mxtips);
-				if (rrf <= 0.01) /* 1% cutoff */
-				{
-					cleanupHashTable(tr->h, 0);
-					cleanupHashTable(tr->h, 1);
-					goto cleanup_fast;
-				}
-			}
-		}
-
-		/* count how many fast iterations with so-called fast SPR moves we have executed */
-		fastIterations++;
-
-		/* optimize branch lengths */
-		treeEvaluate(tr, pr, 32);  // 32 * 1 = 32
-
-		/* save the tree with those branch lengths again */
-		saveBestTree(bestT, tr,
-				pr->perGeneBranchLengths ? pr->numberOfPartitions : 1);
-
-		/* update the current best likelihood */
-		lh = previousLh = tr->likelihood;
-
-		/* in here we actually do a cycle of SPR moves */
-		treeOptimizeRapid(tr, pr, 1, bestTrav, adef, bt, iList);
-
-		/* set impr to 0 since in the immediately following for loop we check if the SPR moves above have generated
-		 a better tree */
-
-		impr = 0;
-
-		/* loop over the 20 best trees generated by the fast SPR moves, and check if they improve the likelihood after all of their branch lengths
-		 have been optimized */
-
-		for (i = 1; i <= bt->nvalid; i++) {
-			recallBestTree(bt, i, tr, pr);
-			treeEvaluate(tr, pr, 8); // 0.25 * 32
-			difference = (
-					(tr->likelihood > previousLh) ?
-							tr->likelihood - previousLh :
-							previousLh - tr->likelihood);
-			if (tr->likelihood > lh && difference > epsilon) {
-				impr = 1;
-				lh = tr->likelihood;
-				saveBestTree(bestT, tr,
-						pr->perGeneBranchLengths ? pr->numberOfPartitions : 1);
-			}
-		}
+	printf("Number of SPRs computed : %d\n", bestList->entries);
+	for (i = 0; i < bestList->entries; ++i) {
+		printf("\t bestList->sprInfo[2%d].likelihood     = %f\n", i,
+				bestList->sprInfo[i].likelihood);
 	}
 
-	if (tr->searchConvergenceCriterion) {
-		cleanupHashTable(tr->h, 0);
-		cleanupHashTable(tr->h, 1);
-	}
+	printf(
+			"Committing bestList->sprInfo[0]                   [thoroughInsertion = false]\n");
+	tr->thoroughInsertion = 0;
+	pllCommitSPR(tr, partitions, &(bestList->sprInfo[0]), PLL_TRUE);
 
-	cleanup_fast: tr->thoroughInsertion = PLL_TRUE;
-	impr = 1;
-	recallBestTree(bestT, 1, tr, pr);
-	evaluateGeneric(tr, pr, tr->start, PLL_TRUE, PLL_FALSE);
+	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	printf("New likelihood: %f\n\n", tr->likelihood);
 
-	/* optimize model params (including branch lengths) or just
-	 optimize branch lengths and leave the other model parameters (GTR rates, alhpa)
-	 alone */
-//	if (estimateModel)
-//		modOpt(tr, pr, 1.0);
-//	else
-//		treeEvaluate(tr, pr, 32); //32 * 1
-	iters = 0;
-	imprIter = 0;
-	t1 = time(NULL);
-	while (1) {
-		iters++;
-		recallBestTree(bestT, 1, tr, pr);
+	printf("Rolling back...\n");
+	pllRollbackSPR(tr, partitions);
+	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	printf("New likelihood: %f\n\n", tr->likelihood);
 
-		if (impr) {
-			imprIter++;
-			rearrangementsMin = 1;
-			rearrangementsMax = adef->stepwidth;
-			if (tr->searchConvergenceCriterion) {
-				int bCounter = 0;
-				if (thoroughIterations > 1)
-					cleanupHashTable(tr->h, (thoroughIterations % 2));
-				bitVectorInitravSpecial(tr->bitVectors, tr->nodep[1]->back,
-						tr->mxtips, tr->vLength, tr->h, thoroughIterations % 2,
-						BIPARTITIONS_RF, (branchInfo *) NULL, &bCounter, 1,
-						PLL_FALSE, PLL_FALSE, tr->threadID);
-				char *buffer = (char*) rax_calloc((size_t) tr->treeStringLength,
-						sizeof(char));
+	printf("Rolling back...\n");
+	pllRollbackSPR(tr, partitions);
+	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	printf("New likelihood: %f\n\n", tr->likelihood);
 
-				Tree2String(buffer, tr, pr, tr->start->back, PLL_FALSE,
-						PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-						PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-
-				if (thoroughIterations % 2 == 0)
-					memcpy(tr->tree0, buffer,
-							tr->treeStringLength * sizeof(char));
-				else
-					memcpy(tr->tree1, buffer,
-							tr->treeStringLength * sizeof(char));
-				rax_free(buffer);
-				assert(bCounter == tr->mxtips - 3);
-				if (thoroughIterations > 0) {
-					double rrf = convergenceCriterion(tr->h, tr->mxtips);
-
-					if (rrf <= 0.01) {/* 1% cutoff */
-						goto cleanup;
-					}
-				}
-			}
-			thoroughIterations++;
-		} else {
-			rearrangementsMax += adef->stepwidth;
-			rearrangementsMin += adef->stepwidth;
-			if (rearrangementsMax > adef->max_rearrange) {
-				goto cleanup;
-			}
-		}
-
-		/* optimize branch lengths of best tree */
-		treeEvaluate(tr, pr, 32); // 32 * 1
-
-		/* do some bokkeeping and printouts again */
-		previousLh = lh = tr->likelihood;
-		saveBestTree(bestT, tr,
-				pr->perGeneBranchLengths ? pr->numberOfPartitions : 1);
-		/* do a cycle of thorough SPR moves with the minimum and maximum rearrangement radii */
-		treeOptimizeRapid(tr, pr, rearrangementsMin, rearrangementsMax, adef,
-				bt, iList);
-		impr = 0;
-		for (i = 1; i <= bt->nvalid; i++) {
-			recallBestTree(bt, i, tr, pr);
-
-			treeEvaluate(tr, pr, 8); // 0.25	* 32
-			difference = (
-					(tr->likelihood > previousLh) ?
-							tr->likelihood - previousLh :
-							previousLh - tr->likelihood);
-			if (tr->likelihood > lh && difference > 0.01) { // epsilon) {
-				cout << "EVALUATE: DIFF " << tr->likelihood - previousLh
-						<< endl;
-				impr = 1;
-				lh = tr->likelihood;
-				saveBestTree(bestT, tr,
-						pr->perGeneBranchLengths ? pr->numberOfPartitions : 1);
-			}
-		}
-	}
-
-	cleanup:
-
-	/* do a final full tree traversal, not sure if this is required here */
-	{
-		evaluateGeneric(tr, pr, tr->start, PLL_TRUE, PLL_FALSE);
-	}
-
-	/* free data structures */
-	if (tr->searchConvergenceCriterion) {
-		freeBitVectors(tr->bitVectors, 2 * tr->mxtips);
-		rax_free(tr->bitVectors);
-		freeHashTable(tr->h);
-		rax_free(tr->h);
-	}
-
-	freeBestTree(bestT);
-	rax_free(bestT);
-	freeBestTree(bt);
-	rax_free(bt);
-	rax_free(iList->list);
-	rax_free(iList);
+	pllDestroyListSPR(&bestList);
 
 	return tr->likelihood;
 }
@@ -386,10 +188,18 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Creating tree instance" << endl;
 #endif
-	pllInstance * tr = pllCreateInstance(GAMMA, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-			12345);
+	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
+			sizeof(pllInstanceAttr));
+	attr->rateHetModel = GAMMA;
+	attr->fastScaling = PLL_FALSE;
+	attr->saveMemory = PLL_FALSE;
+	attr->useRecom = PLL_FALSE;
+	attr->randomNumberSeed = 12345;
+	attr->numberOfThreads = 1;
+	pllInstance * tr = pllCreateInstance(attr);
+	rax_free(attr);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
 #endif
 	pllTreeInitTopologyForAlignment(tr, alignment->getPhylip());
@@ -407,7 +217,7 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	cout << "[TRACE] PLLModelOptimize - Initializing model" << endl;
 #endif
 	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	pllInitModel(tr, PLL_FALSE, alignment->getPhylip(), partitions);
+	pllInitModel(tr, partitions, alignment->getPhylip());
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
 #endif
@@ -450,27 +260,12 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		}
 		rax_free(tr->nameHash);
 		tr->nameHash = NULL;
-		struct pllNewickTree * nt = pllNewickParseString(
-				options->getTreeString());
+		pllNewickTree * nt = pllNewickParseString(options->getTreeString());
 		pllTreeInitTopologyNewick(tr, nt, PLL_TRUE);
 	}
 
-	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
-	adef->max_rearrange = 100;
-	adef->stepwidth = 5;
-	adef->initial = 10;
-	adef->bestTrav = 10;
-	adef->initialSet = PLL_FALSE;
-	adef->mode = BIG_RAPID_MODE;
-	adef->likelihoodEpsilon = 0.1;
-	adef->permuteTreeoptimize = PLL_FALSE;
-	adef->perGeneBranchLengths = PLL_FALSE;
-	adef->useCheckpoint = PLL_FALSE;
-
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 	evaluateNNI(tr, partitions, false);
-
-	rax_free(adef);
 
 	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
@@ -478,9 +273,7 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 
 	cout << "FINAL TREE: " << tr->tree_string << endl;
 
-	pllPartitionsDestroy(&partitions, partitions->numberOfPartitions,
-			tr->mxtips);
-	pllTreeDestroy(tr);
+	pllPartitionsDestroy(tr, &partitions);
 
 	return 0;
 }
@@ -496,7 +289,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 					static_cast<PLLAlignment *>(element->getAlignment());
 			pllInstance * tree = alignment->getTree();
 			partitionList * partitions = alignment->getPartitions();
-			pllPhylip * phylip = alignment->getPhylip();
+			pllAlignmentData * phylip = alignment->getPhylip();
 
 			initializeStructs(tree, partitions, phylip);
 
@@ -515,7 +308,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 				rax_free(tree->nameHash);
 				tree->nameHash = NULL;
 
-				struct pllNewickTree * nt = pllNewickParseString(
+				pllNewickTree * nt = pllNewickParseString(
 						options->getTreeString());
 				pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
 				pllNewickParseDestroy(&nt);
@@ -549,22 +342,18 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		free(freqs);
 	}
 #else
-	analdef *adef = (analdef*) rax_calloc(1, sizeof(analdef));
-	adef->max_rearrange = 100;
-	adef->stepwidth = 50;
-	adef->initial = 1;
-	adef->bestTrav = 1;
-	adef->initialSet = PLL_FALSE;
-	adef->mode = BIG_RAPID_MODE;
-	adef->likelihoodEpsilon = 0.1;
-	adef->permuteTreeoptimize = PLL_FALSE;
-	adef->perGeneBranchLengths = PLL_FALSE;
-	adef->useCheckpoint = PLL_FALSE;
 
 	PLLAlignment * alignment =
 			static_cast<PLLAlignment *>(partitionElement->getAlignment());
 	pllInstance * tree = alignment->getTree();
 	partitionList * partitions = alignment->getPartitions();
+
+	pllNewickTree * nt = pllNewickParseString(options->getTreeString());
+	pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
+	pllNewickParseDestroy(&nt);
+	Tree2String(tree->tree_string, tree, partitions, tree->start->back,
+			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 
 	const char * m = model->getMatrixName().c_str();
 	char * symmetryPar = (char *) malloc(12 * sizeof(char));
@@ -604,9 +393,7 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	initReversibleGTR(tree, partitions, 0);
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
-	evaluateNNI(tree, partitions);
-
-	rax_free(adef);
+	evaluateSPR(tree, partitions);
 
 	Tree2String(tree->tree_string, tree, partitions, tree->start->back,
 			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,

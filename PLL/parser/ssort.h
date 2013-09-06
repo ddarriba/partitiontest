@@ -1,6 +1,6 @@
 #ifndef SSORT_H
 #define SSORT_H
-#include "../../axml.h"
+#include "../pll.h"
 //#define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define SWAP(x,y) do{ __typeof__ (x) _t = x; x = y; y = _t; } while(0)
 

@@ -27,11 +27,7 @@
 #include "Alignment.h"
 
 extern "C" {
-#include "parser/phylip/phylip.h"
 #include "parser/partition/part.h"
-//#include "parser/phylip/phylip.h"
-//#include "utils.h"
-//struct pllPhylip * pllPhylipParse (const char *);
 }
 
 using namespace std;
@@ -60,7 +56,7 @@ public:
 	pllInstance * getTree() {
 		return tr;
 	}
-	pllPhylip * getPhylip() {
+	pllAlignmentData * getPhylip() {
 		return phylip;
 	}
 	partitionList * getPartitions() {
@@ -70,7 +66,7 @@ private:
 	struct pllQueue * parts; /** Single parsed partitions */
 	pllInstance * tr; /** Tree structure for working with PLL. */
 	partitionList * partitions; /** Partition definitions */
-	struct pllPhylip * phylip; /** Alignment */
+	pllAlignmentData * phylip; /** Alignment */
 };
 
 } /* namespace partest */
