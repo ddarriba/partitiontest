@@ -45,9 +45,11 @@ public:
 	static void initializeStructs(pllInstance * tree, partitionList * partitions,
 			pllAlignmentData * phylip);
 	double evaluateSPR(pllInstance * tr, partitionList *pr,
-			bool estimateModel = true);
+			bool estimateModel = true, bool estimateTopology = true);
 	double evaluateNNI(pllInstance * tr, partitionList *pr,
 			bool estimateModel = true);
+	double optimizeParameters(pllInstance * tr,
+			partitionList *partitions, bool estimateModel, bool estimateTopology);
 	int optimizePartitioningScheme(PartitioningScheme * scheme,
 			bool forceRecomputation = false, int current_index = 0,
 			int max_index = 0);

@@ -16,25 +16,28 @@ namespace partest {
 struct comparePartitionInfos {
 	inline bool operator()(partitionInfo p1, partitionInfo p2) {
 
-		if (p1.start != p2.start)
-			return p1.start < p2.start;
+		if (p1.numberOfSections < 1)
+			return true;
+		if (p2.numberOfSections < 1)
+			return false;
+		if (p1.start[0] != p2.start[0])
+			return p1.start[0] < p2.start[0];
 		else
-			return p1.stride < p2.stride;
+			return p1.stride[0] < p2.stride[0];
 	}
 };
 
-ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
+ConfigParser::ConfigParser(const char * configFile) :
 		configFile(configFile), partitions(0), numberOfPartitions(0), outputBasePath(
 				DEFAULT_OUTPUT_BASE_PATH), outputFileModels(
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG), pllPartitionsFile() {
+				DEFAULT_OUTPUT_RESULTS_TAG) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
 		const char * value;
-
 		CSimpleIniA ini;
 		ini.SetUnicode();
 		SI_Error rc = ini.LoadFile(configFile);
@@ -64,14 +67,11 @@ ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 		}
 
 		/** PARTITIONS **/
-
 		ini.GetAllKeys(PARTITIONS_TAG, keys);
 		numberOfPartitions = keys.size();
-
 //		assert( numberOfPartitions < sizeof(t_partitionElementId) * 8);
 		partitions = new vector<partitionInfo>(numberOfPartitions);
-
-		char * lineBuffer = (char *) malloc(30);
+		char * lineBuffer = (char *) malloc(150);
 		for (CSimpleIniA::TNamesDepend::iterator it = keys.begin();
 				it != keys.end(); it++) {
 			CSimpleIniA::Entry entry = *it;
@@ -86,35 +86,41 @@ ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 		std::sort(partitions->begin(), partitions->end(),
 				comparePartitionInfos());
 
-		char *tmpname = strdup("/tmp/tmpfileXXXXXX");
-		mkstemp(tmpname);
-
-		pllPartitionsFile.append(tmpname);
-
 #ifdef _PLL
-		ofstream * pllOutputStream;
-		if (buildTempFiles) {
-			/* create PLL partitions file */
-			pllOutputStream = new ofstream(pllPartitionsFile.c_str());
-		}
+		struct pllPartitionRegion * pregion;
+		struct pllPartitionInfo * pinfo;
+
+		pllQueueInit(&parts);
 #endif
 
 		for (int i = 0; i < numberOfPartitions; i++) {
 			partitions->at(i).partitionId.push_back(i);
 #ifdef _PLL
-			if (buildTempFiles) {
-				(*pllOutputStream) << "DNA, " << partitions->at(i).name << "=" << partitions->at(i).start << "-" << partitions->at(i).end << endl;
+			pinfo = (pllPartitionInfo *) malloc(
+					sizeof(struct pllPartitionInfo));
+			pllQueueInit(&(pinfo->regionList));
+			pllQueueAppend(parts, (void *) pinfo);
+
+			pinfo->partitionName= (char *) malloc ((partitions->at(i).name.size() + 1) * sizeof(char));
+			strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
+			pinfo->partitionModel = (char *) malloc (1);
+
+			pinfo->protModels = -1;
+			pinfo->protFreqs = -1;
+			pinfo->dataType = DNA_DATA;
+			pinfo->optimizeBaseFrequencies = PLL_TRUE;
+			for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
+				pregion = (struct pllPartitionRegion *) malloc(
+						sizeof(struct pllPartitionRegion));
+				pregion->start = partitions->at(i).start[j];
+				pregion->end = partitions->at(i).end[j];
+				pregion->stride = partitions->at(i).stride[j];
+				pllQueueAppend(pinfo->regionList, (void *) pregion);
 			}
 #endif
 		}
-#ifdef _PLL
-		if (buildTempFiles) {
-			pllOutputStream->close();
-			delete pllOutputStream;
-		}
-#endif
-		/** OUTPUT **/
 
+		/** OUTPUT **/
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
 		if (value) {
 			outputBasePath = string(value);
@@ -140,37 +146,53 @@ ConfigParser::ConfigParser(const char * configFile, bool buildTempFiles) :
 
 int ConfigParser::parsePartitionDetails(char * line,
 		struct partitionInfo * pInfo) {
-	int start = atoi(strtok(line, "-"));
-	int end = atoi(strtok(NULL, "\\"));
-	char * strideStr = strtok(NULL, "\\");
-	int stride = strideStr ? atoi(strideStr) : 0;
-	pInfo->start = start;
-	pInfo->end = end;
-	pInfo->stride = stride;
+	int numberOfSections = 0;
+	char * parsed = strtok(line, "-");
+
+	while (parsed != NULL) {
+		int start = atoi(parsed);
+		parsed = strtok(NULL, ",");
+		int end = atoi(parsed);
+//	char * strideStr = strtok(NULL, "\\");
+//	int stride = strideStr ? atoi(strideStr) : 0;
+		pInfo->start[numberOfSections] = start;
+		pInfo->end[numberOfSections] = end;
+		pInfo->stride[numberOfSections] = 1;
+
+		numberOfSections++;
+		parsed = strtok(NULL, "-");
+	}
+	pInfo->numberOfSections = numberOfSections;
+
 	return 0;
 }
 
 int ConfigParser::parsePartitionLine(char * line,
 		struct partitionInfo * pInfo) {
-	char * name = strtok(line, "=");
-	string nameStr(name);
-	int start = atoi(strtok(NULL, "-"));
-	int end = atoi(strtok(NULL, "\\"));
-	char * strideStr = strtok(NULL, "\\");
-	int stride = strideStr ? atoi(strideStr) : 0;
-	pInfo->start = start;
-	pInfo->end = end;
-	pInfo->stride = stride;
-	pInfo->name = nameStr;
-//	if (line)
-//		free (line);
-//	line = (char *) NULL;
+	int numberOfSections = 0;
+	char * parsed = strtok(line, "-");
+
+	while (parsed != NULL) {
+		int start = atoi(parsed);
+		parsed = strtok(NULL, ",");
+		int end = atoi(parsed);
+//	char * strideStr = strtok(NULL, "\\");
+//	int stride = strideStr ? atoi(strideStr) : 0;
+		pInfo->start[numberOfSections] = start;
+		pInfo->end[numberOfSections] = end;
+		pInfo->stride[numberOfSections] = 1;
+
+		numberOfSections++;
+		parsed = strtok(NULL, ",");
+	}
+	pInfo->numberOfSections = numberOfSections;
+
 	return 0;
 }
 
 ConfigParser::~ConfigParser() {
 #ifdef _PLL
-	remove( pllPartitionsFile.c_str() );
+	pllQueuePartitionsDestroy(&parts);
 #endif
 	if (partitions)
 		delete partitions;

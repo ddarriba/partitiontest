@@ -179,10 +179,12 @@ public:
 	 */
 	string getOutputFileSchemes(void) const;
 
+#ifdef _PLL
 	/**
 	 * @brief Gets the partition definitions for PLL.
 	 */
-	string getPllPartitionsFile(void) const;
+	struct pllQueue * getPllPartitions(void) const;
+#endif
 
 	/**
 	 * @brief Gets the output stream for results.
@@ -314,7 +316,9 @@ private:
 	string outputFileModels; /** Output models file */
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
-	string pllPartitionsFile; /** Partitions definition for PLL */
+#ifdef _PLL
+	struct pllQueue * pllPartitions; /** Partitions definition for PLL */
+#endif
 	ofstream * resultsOutputStream; /** Output results stream */
 	ofstream * modelsOutputStream; /** Output models stream */
 	ofstream * partitionsOutputStream; /** Output partitions stream */

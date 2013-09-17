@@ -38,16 +38,23 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		id(id), name(name), numberOfSections(numberOfSections) {
 
 #ifdef DEBUG
-	cout << "[TRACE] PartitionElement: Creating " << name << endl;
+	cout << "[TRACE] PartitionElement: Creating " << name <<  "  Sections: " << numberOfSections << endl;
 #endif
+	this->start = (int *) malloc(numberOfSections * sizeof(int));
+	this->end = (int *) malloc(numberOfSections * sizeof(int));
+	this->stride = (int *) malloc(numberOfSections * sizeof(int));
+
+	for (int i=0; i< numberOfSections; i++) {
+		this->start[i] = start[i];
+		this->end[i] = end[i];
+		this->stride[i] = stride[i];
+	}
 
 	this->bestModel = 0;
-	this->start = start;
-	this->end = end;
-	this->stride = stride;
 
 	this->alignment = alignment->splitAlignment(start, end, numberOfSections);
 	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+
 #ifdef _PLL
 	partitionInfo = 0;
 #endif

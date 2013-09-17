@@ -24,6 +24,7 @@
 #ifndef CONFIGPARSER_H_
 #define CONFIGPARSER_H_
 
+#define MAX_SECTIONS 10
 #include "util/GlobalDefs.h"
 #include "indata/PartitionElement.h"
 #include "SimpleIni.h"
@@ -57,9 +58,10 @@ namespace partest {
  */
 struct partitionInfo {
 	t_partitionElementId partitionId; /** Partition id */
-	int start; /** Starting position */
-	int end; /** Ending position */
-	int stride; /** Stride for codon position (0 means no codon division) */
+	int start[MAX_SECTIONS]; /** Starting position */
+	int end[MAX_SECTIONS]; /** Ending position */
+	int stride[MAX_SECTIONS]; /** Stride for codon position (0 means no codon division) */
+	int numberOfSections;
 	string name; /** Name of the gene/partition */
 	~partitionInfo(void) {
 	}
@@ -75,7 +77,7 @@ public:
 	 *
 	 * @param configFile Configuration file name.
 	 */
-	ConfigParser(const char * configFile, bool buildTempFiles = true);
+	ConfigParser(const char * configFile);
 
 	virtual ~ConfigParser();
 
@@ -142,12 +144,14 @@ public:
 		return outputFileSchemes;
 	}
 
+#ifdef _PLL
 	/**
 	 * @brief Gets the partition definitions for PLL.
 	 */
-	const string& getPllPartitionsFile() const {
-		return pllPartitionsFile;
+	struct pllQueue * getPllPartitions() const {
+		return parts;
 	}
+#endif
 
 private:
 
@@ -182,7 +186,10 @@ private:
 	string outputFilePartitions; /** File name for partition selections output */
 	string outputFileSchemes; /** File name for scheme selections output */
 	string outputBasePath; /** Base path for output files */
-	string pllPartitionsFile; /** Partitions definition for PLL */
+
+#ifdef _PLL
+	struct pllQueue * parts; /** Partitions definition for PLL */
+#endif
 };
 
 } /* namespace partest */
