@@ -158,7 +158,6 @@ void ModelSet::buildCompleteModelSet(bool clearAll) {
 	free(models);
 	models = newModels;
 	numberOfModels = newNumberOfModels;
-
 }
 
 Model * ModelSet::getModel(unsigned int index) {
@@ -179,7 +178,11 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 #ifdef FAST_DNA
 		if (!forceCompleteSet) {
 			nm = NUC_MATRIX_GTR;
+#ifdef _PLL
+			models[currentIndex++] = new NucleicModel(nm, RateVarG | RateVarF, numberOfTaxa);
+#else
 			models[currentIndex++] = new NucleicModel(nm, RateVarG | RateVarF | RateVarI, numberOfTaxa);
+#endif
 		} else {
 #endif
 		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=

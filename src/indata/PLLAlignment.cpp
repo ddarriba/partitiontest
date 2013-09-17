@@ -22,6 +22,7 @@ using namespace std;
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
+
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
 	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
 			sizeof(pllInstanceAttr));
@@ -31,14 +32,15 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	attr->useRecom = PLL_FALSE;
 	attr->randomNumberSeed = rand();
 	attr->numberOfThreads = 1;
+
 	tr = pllCreateInstance(attr);
 	rax_free(attr);
-
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
 	for (int cur_part = 0; cur_part < numberOfSections; cur_part++) {
 		numSites += lastPosition[cur_part] - firstPosition[cur_part] + 1;
 	}
+
 	phylip = (pllAlignmentData *) malloc(sizeof(pllAlignmentData));
 	phylip->sequenceCount = numSeqs;
 	phylip->sequenceLabels = (char **) calloc((numSeqs + 1), sizeof(char *));
@@ -80,11 +82,10 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	struct pllPartitionRegion * region;
 	pi = (struct pllPartitionInfo *) rax_calloc(1,
 			sizeof(struct pllPartitionInfo));
-	pllQueueInit(&parts);
+	pllQueueInit(&pllPartitions);
 	pllQueueInit(&(pi->regionList));
-	pllQueueAppend(parts, (void *) pi);
-	pi->partitionModel = (char *) malloc(5 * sizeof(char));
-	strcpy(pi->partitionModel, "DNA");
+	pllQueueAppend(pllPartitions, (void *) pi);
+	pi->partitionModel = (char *) malloc(1);
 
 	for (int i = 0; i < alignment->partitions->numberOfPartitions; i++) {
 		if (alignment->partitions->partitionData[i]->lower
@@ -95,6 +96,8 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		}
 	}
 
+	pi->protFreqs = -1;
+	pi->protModels = -1;
 	pi->optimizeBaseFrequencies = PLL_TRUE;
 	pi->dataType = DNA_DATA;
 	pi->protFreqs = PLL_FALSE;
@@ -104,16 +107,12 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	region->stride = 1;
 	region->end = numSites;
 	pllQueueAppend(pi->regionList, (void *) region);
-
 	/* commit the partitions and build a partitions structure */
-	partitions = pllPartitionsCommit(parts, phylip);
-
-	pllPartitionsValidate(parts, phylip);
-
+	partitions = pllPartitionsCommit(pllPartitions, phylip);
+	pllPartitionsValidate(pllPartitions, phylip);
 	pllPhylipRemoveDuplicate(phylip, partitions);
 	/* destroy the  intermedia partition queue structure */
-	pllQueuePartitionsDestroy(&parts);
-
+	pllQueuePartitionsDestroy(&pllPartitions);
 	numPatterns = phylip->sequenceLength;
 
 }
@@ -122,13 +121,13 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
 		int lastPosition) {
 	phylip = 0;
 	tr = 0;
-	parts = 0;
+	pllPartitions = 0;
 	partitions = 0;
 	Utilities::exit_partest(EX_SOFTWARE);
 }
 
 PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
-		string partitionsFile) :
+		struct pllQueue * pllPartitions) :
 		Alignment(alignmentFile, dataType) {
 
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
@@ -142,21 +141,13 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	attr->numberOfThreads = 1;
 	tr = pllCreateInstance(attr);
 	rax_free(attr);
+
 	phylip = pllParsePHYLIP(alignmentFile.c_str());
 
 	/* commit the partitions and build a partitions structure */
-	parts = pllPartitionParse(partitionsFile.c_str());
+	this->pllPartitions = pllPartitions;
 
-	if (!pllPartitionsValidate(parts, phylip)) {
-		cerr << "Error: Partitions do not cover all sites" << endl;
-		Utilities::exit_partest(EXIT_FAILURE);
-	}
-
-	partitions = pllPartitionsCommit(parts, phylip);
-	pllQueuePartitionsDestroy(&parts);
-
-	cout << "NTAXA = " << phylip->sequenceCount << endl;
-	cout << "SEQLEN = " << phylip->sequenceLength << endl;
+	partitions = pllPartitionsCommit(pllPartitions, phylip);
 
 	pllTreeInitTopologyForAlignment(tr, phylip);
 
@@ -171,11 +162,7 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 
 	numSeqs = phylip->sequenceCount;
 	numSites = phylip->sequenceLength;
-
-//pllPhylipRemoveDuplicate(phylip, partitions);
-
 	numPatterns = phylip->sequenceLength;
-
 }
 
 PLLAlignment::~PLLAlignment() {

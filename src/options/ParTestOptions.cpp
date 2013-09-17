@@ -101,23 +101,23 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 		strcpy(this->treeFile, userTree);
 	}
 
-	ConfigParser parser(configFile, true);
+	ConfigParser parser(configFile);
 	this->outputFileModels = parser.getOutputFileResults();
 	this->outputFileModels = parser.getOutputFileModels();
 	this->outputFilePartitions = parser.getOutputFilePartitions();
 	this->outputFileSchemes = parser.getOutputFileSchemes();
-	this->pllPartitionsFile = parser.getPllPartitionsFile();
+#ifdef _PLL
+	this->pllPartitions = parser.getPllPartitions();
+#endif
 	resultsOutputStream = new ofstream(outputFileResults.c_str());
 	modelsOutputStream = new ofstream(outputFileModels.c_str());
 	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
 	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
-
-#ifdef _PHYML
-	alignment = new PhymlAlignment(inputFile, dataType);
+#ifdef _PLL
+	alignment = new PLLAlignment(inputFile, dataType, pllPartitions);
 #else
-	alignment = new PLLAlignment(inputFile, dataType, pllPartitionsFile);
+	alignment = new PhymlAlignment(inputFile, dataType);
 #endif
-
 	PrintMeta::print_header(*resultsOutputStream);
 	PrintMeta::print_header(*modelsOutputStream);
 	PrintMeta::print_header(*partitionsOutputStream);
@@ -180,9 +180,11 @@ string ParTestOptions::getOutputFileSchemes(void) const {
 	return outputFileSchemes;
 }
 
-string ParTestOptions::getPllPartitionsFile() const {
-	return pllPartitionsFile;
+#ifdef _PLL
+struct pllQueue *  ParTestOptions::getPllPartitions() const {
+	return pllPartitions;
 }
+#endif
 
 ofstream * ParTestOptions::getResultsOutputStream(void) const {
 	return resultsOutputStream;

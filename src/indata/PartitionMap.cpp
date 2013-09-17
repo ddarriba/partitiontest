@@ -22,7 +22,7 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 
 	if (strcmp(configFile, "")) {
 
-		ConfigParser parser(configFile, false);
+		ConfigParser parser(configFile);
 
 		partitions = new vector<partitionMappingInfo>(
 				parser.getNumberOfPartitions());
@@ -34,7 +34,7 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 			partitions->at(i).partitionElement = new PartitionElement(
 					nextPartition.partitionId, nextPartition.name, alignment,
 					nextPartition.start, nextPartition.end,
-					nextPartition.stride, rateVariation, dataType);
+					nextPartition.stride, nextPartition.numberOfSections, rateVariation, dataType);
 		}
 
 	} else {
@@ -131,6 +131,9 @@ PartitionElement * PartitionMap::getPartitionElement(
 		curIndex++;
 	}
 	name << ")";
+
+	//	for (int j=0; j<numberOfSections; j++)
+//		cout << "SITTING " << (getPartitionElement(partitionId.at(i))->getStart())[j] << " to " << (getPartitionElement(partitionId.at(i))->getEnd())[j] << endl;
 
 	partitionMappingInfo pInfo;
 	pInfo.partitionId = partitionId;

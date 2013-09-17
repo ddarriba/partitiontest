@@ -42,7 +42,7 @@ public:
 	PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 			int * lastPosition, int numberOfSections);
 	PLLAlignment(string alignmentFile, DataType dataType,
-			string partitionsFile);
+			struct pllQueue * pllPartitions);
 	virtual ~PLLAlignment();
 	Alignment * splitAlignment(int firstPosition, int lastPosition);
 	Alignment * splitAlignment(int * firstPosition, int * lastPosition,
@@ -63,7 +63,7 @@ public:
 		return partitions;
 	}
 private:
-	struct pllQueue * parts; /** Single parsed partitions */
+	struct pllQueue * pllPartitions; /** Single parsed partitions */
 	pllInstance * tr; /** Tree structure for working with PLL. */
 	partitionList * partitions; /** Partition definitions */
 	pllAlignmentData * phylip; /** Alignment */
