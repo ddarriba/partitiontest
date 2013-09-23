@@ -196,14 +196,18 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 
 	int i;
 
-	PLLModelOptimize * mo = static_cast<PLLModelOptimize *>(ParTestFactory::createModelOptimize(options));
+	PLLModelOptimize * mo =
+			static_cast<PLLModelOptimize *>(ParTestFactory::createModelOptimize(
+					options));
 	ConsoleObserver * observer = new ConsoleObserver();
 	mo->attach(observer);
 	mo->attach(this);
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
 		/* Starting topology */
-
+#ifdef DEBUG
+		cout << "[TRACE] Greedy - Getting starting topology" << endl;
+#endif
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
 
@@ -219,7 +223,8 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
-		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true);
+		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true,
+				true);
 
 		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
@@ -235,8 +240,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	PartitioningScheme * firstScheme = new PartitioningScheme(
 			partitionMap->getNumberOfPartitions());
 	for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		firstScheme->addElement(
-				partitionMap->getPartitionElement(i));
+		firstScheme->addElement(partitionMap->getPartitionElement(i));
 	}
 
 #ifdef DEBUG
@@ -259,13 +263,13 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		/* 2. evaluate next-step partitions */
 
 #ifdef DEBUG
-	cout << "[TRACE] Greedy - Next iteration" << endl;
+		cout << "[TRACE] Greedy - Next iteration" << endl;
 #endif
 
 		nextSchemeFunctor nextScheme(bestScheme, partitionMap, extended);
 
 #ifdef DEBUG
-	cout << "[TRACE] Greedy - Created functor" << endl;
+		cout << "[TRACE] Greedy - Created functor" << endl;
 #endif
 
 		int numberOfSchemes = nextScheme.size();
@@ -276,13 +280,18 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		while (PartitioningScheme * currentScheme = nextScheme()) {
 			partitioningSchemesVector[i++] = currentScheme;
 #ifdef DEBUG
-	cout << "[TRACE] Greedy - Optimizing next scheme: " << currentScheme->getName() << endl;
+			cout << "[TRACE] Greedy - Optimizing next scheme: " << currentScheme->getName() << endl;
 #endif
-			mo->optimizePartitioningScheme(currentScheme, false, i, nextScheme.size());
+			mo->optimizePartitioningScheme(currentScheme, false, i,
+					nextScheme.size());
 		}
 
 		PartitionSelector partSelector(partitioningSchemesVector,
 				numberOfSchemes, options);
+#ifdef DEBUG
+		cout << "[TRACE] Greedy - Best scheme: " << partSelector.getBestScheme()->getName() << endl;
+#endif
+
 		reachedMaximum = (bestCriterionValue
 				<= partSelector.getBestSelectionScheme()->value);
 		if (!reachedMaximum) {
@@ -290,12 +299,23 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 			bestScheme = partSelector.getBestScheme();
 			reachedMaximum |= bestScheme->getNumberOfElements() == 1;
 		}
-
-		for (i = 0; i < numberOfSchemes; i++) {
-			if (partitioningSchemesVector[i] != bestScheme)
-				delete partitioningSchemesVector[i];
+#ifdef DEBUG
+		cout << "[TRACE] Greedy - Purging schemes" << endl;
+#endif
+		for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+			partitionMap->purgePartitionMap(bestScheme->getElement(i)->getId());
+//			for (int j=0; j<bestScheme->getNumberOfElements(); j++) {
+//				if (bestScheme->getElement(j)->getNumberOfSections() > 0) {
+//					for (int k=0; k<bestScheme->getElement(j)->getNumberOfSections()) {
+//						bestScheme->getElement(j)->getId().at(k)
+//						t_partitionElementId k;
+//					}
+//				}
+//			}
 		}
-
+#ifdef DEBUG
+		cout << "[TRACE] Greedy - Free schemes vector" << endl;
+#endif
 		free(partitioningSchemesVector);
 	}
 

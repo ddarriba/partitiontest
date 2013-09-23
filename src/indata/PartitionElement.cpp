@@ -45,6 +45,9 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 	this->stride = (int *) malloc(numberOfSections * sizeof(int));
 
 	for (int i=0; i< numberOfSections; i++) {
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Section " << i+1 << "/" << numberOfSections << ":    (" << start[i] << "-" << end[i] << "\\" << stride[i] << ")" << endl;
+#endif
 		this->start[i] = start[i];
 		this->end[i] = end[i];
 		this->stride[i] = stride[i];
@@ -52,8 +55,18 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 
 	this->bestModel = 0;
 
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Creating alignment" << endl;
+#endif
 	this->alignment = alignment->splitAlignment(start, end, numberOfSections);
+
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Creating modelset" << endl;
+#endif
 	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Done" << endl;
+#endif
 
 #ifdef _PLL
 	partitionInfo = 0;

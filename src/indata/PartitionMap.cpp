@@ -34,7 +34,8 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 			partitions->at(i).partitionElement = new PartitionElement(
 					nextPartition.partitionId, nextPartition.name, alignment,
 					nextPartition.start, nextPartition.end,
-					nextPartition.stride, nextPartition.numberOfSections, rateVariation, dataType);
+					nextPartition.stride, nextPartition.numberOfSections,
+					rateVariation, dataType);
 		}
 
 	} else {
@@ -161,6 +162,20 @@ void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 		cerr << "[ERROR] Attempting to delete an inexistent partition element"
 				<< endl;
 		Utilities::exit_partest(EX_SOFTWARE);
+	}
+}
+
+void PartitionMap::purgePartitionMap(t_partitionElementId id) {
+
+	if (id.size() <= 1)
+		return;
+
+	/* Loop backwards over complex elements */
+	for (int i = numberOfElements - 1; i >= numberOfPartitions; i--) {
+		t_partitionElementId mId = partitions->at(i).partitionId;
+		if (mId != id && Utilities::intersec(mId, id)) {
+			deletePartitionElement(mId);
+		}
 	}
 }
 

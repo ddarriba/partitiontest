@@ -34,9 +34,11 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	attr->numberOfThreads = 1;
 
 	tr = pllCreateInstance(attr);
+
 	rax_free(attr);
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
+
 	for (int cur_part = 0; cur_part < numberOfSections; cur_part++) {
 		numSites += lastPosition[cur_part] - firstPosition[cur_part] + 1;
 	}
@@ -78,6 +80,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	for (int site = 0; site < numSites; site++) {
 		phylip->siteWeights[site] = 1;
 	}
+
 	struct pllPartitionInfo * pi;
 	struct pllPartitionRegion * region;
 	pi = (struct pllPartitionInfo *) rax_calloc(1,
@@ -108,6 +111,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	region->end = numSites;
 	pllQueueAppend(pi->regionList, (void *) region);
 	/* commit the partitions and build a partitions structure */
+
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
 	pllPartitionsValidate(pllPartitions, phylip);
 	pllPhylipRemoveDuplicate(phylip, partitions);

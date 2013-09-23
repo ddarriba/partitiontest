@@ -249,6 +249,16 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--selection-criterion dt" << "Decision Theory" << endl;
 	out << endl;
+	out << setw(MAX_OPT_LENGTH) << left
+			<< "  -O, --optimize OPTIMIZE_MODE"
+			<< "Sets the model optimization for the best-fit partition" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--optimize findModel"
+			<< "Find the best-fit model for each partition" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--optimize gtr"
+				<< "Use GTR model for each partition" << endl;
+	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
 			<< "Sets the input configuration file for gene partition" << endl;
 	out << setw(MAX_OPT_LENGTH) << " "

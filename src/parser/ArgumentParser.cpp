@@ -58,6 +58,7 @@ ArgumentParser::ArgumentParser() {
 			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
 			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
+			ARG_OPTIMIZE, 'O', "optimize", true }, {
 			ARG_NUM_PROCS, 'p', "num-procs", true }, {
 			ARG_IC_TYPE, 's', "selection-criterion", true }, {
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
@@ -173,6 +174,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	InformationCriterion ic_type = DEFAULT_IC_TYPE;
 	SampleSize sampleSize = DEFAULT_SAMPLE_SIZE;
 	SearchAlgo searchAlgo = DEFAULT_SEARCH_ALGO;
+	OptimizeMode optimize = DEFAULT_OPTIMIZE;
 //  AlignFormat input_format = AF_PHYLIP_SEQ;
 
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
@@ -348,6 +350,22 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 		case ARG_GAMMA:
 			do_g = true;
 			break;
+		case ARG_OPTIMIZE:
+			if (!strcmp(value, ARG_OPTIMIZE_BESTMODEL)) {
+				optimize = OPT_SEARCH;
+			} else if (!strcmp(value, ARG_OPTIMIZE_GTR)) {
+				optimize = OPT_GTR;
+			} else {
+				cerr << "[ERROR] \"-n " << value
+						<< "\" is not a valid optimize mode. Use one of the following:"
+						<< endl;
+				cerr << "  -O " << setw(16) << left
+						<< ARG_OPTIMIZE_BESTMODEL << "\t Perform a model selection on the best partition" << endl;
+				cerr << "  -O " << setw(16) << left
+						<< ARG_OPTIMIZE_GTR << "\t Optimize only GTR models on the best partition" << endl;
+				Utilities::exit_partest(EX_USAGE);
+			}
+			break;
 		case ARG_CONFIG_FILE:
 			strcpy(config_file, value);
 			break;
@@ -401,7 +419,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 #endif
 
 	options->set(input_file, data_type, do_rate, config_file, startingTopology,
-			searchAlgo, ic_type, sampleSize, sampleSizeValue, user_tree);
+			searchAlgo, optimize, ic_type, sampleSize, sampleSizeValue, user_tree);
 
 #ifdef DEBUG
 	cout << "[TRACE] ParTest options set" << endl;

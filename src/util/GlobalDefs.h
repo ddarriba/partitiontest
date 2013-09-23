@@ -145,6 +145,7 @@ enum NucMatrix {
 #define DEFAULT_SEARCH_ALGO SearchGreedy
 #define DEFAULT_IC_TYPE BIC
 #define DEFAULT_SAMPLE_SIZE SS_ALIGNMENT
+#define DEFAULT_OPTIMIZE OPT_SEARCH
 #define DEFAULT_DO_F false
 #define DEFAULT_DO_I false
 #define DEFAULT_DO_G false
@@ -179,6 +180,10 @@ enum InformationCriterion {
 
 enum SampleSize {
 	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM
+};
+
+enum OptimizeMode {
+	OPT_SEARCH, OPT_GTR
 };
 
 } /* namespace partest */

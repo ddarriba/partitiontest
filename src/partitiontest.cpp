@@ -30,10 +30,8 @@
 #include "selection/PartitionSelector.h"
 #include "observer/ConsoleObserver.h"
 
-
 using namespace std;
 using namespace partest;
-
 
 int main(int argc, char *argv[]) {
 
@@ -67,7 +65,6 @@ int main(int argc, char *argv[]) {
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm(
 			options, partitionMap);
 
-
 #ifdef DEBUG
 	cout << "[TRACE] Starting search of the best partitioning scheme" << endl;
 #endif
@@ -78,9 +75,10 @@ int main(int argc, char *argv[]) {
 	cout << "[TRACE] End of search of the best partitioning scheme" << endl;
 #endif
 
-	cout << "Search done... it took " << time(NULL) - iniTime << " seconds." << endl;
-	cout << "Best Scheme:" << endl << partitioningScheme->getCode()
-			<< endl << partitioningScheme->getName() << endl;
+	cout << "Search done... it took " << time(NULL) - iniTime << " seconds."
+			<< endl;
+	cout << "Best Scheme:" << endl << partitioningScheme->getCode() << endl
+			<< partitioningScheme->getName() << endl;
 
 #ifdef FAST_DNA
 
@@ -88,13 +86,18 @@ int main(int argc, char *argv[]) {
 	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
 #endif
 
-	partitioningScheme->buildCompleteModelSet();
-	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
-	ConsoleObserver * observer = new ConsoleObserver();
-	mo->attach(observer);
-	mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
-	PartitionSelector partSelector(&partitioningScheme, 1, options);
-
+	switch(options->getOptimizeMode()) {
+		case OPT_SEARCH:
+		partitioningScheme->buildCompleteModelSet(false, iotui);
+		ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
+		ConsoleObserver * observer = new ConsoleObserver();
+		mo->attach(observer);
+		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
+		PartitionSelector partSelector(&partitioningScheme, 1, options);
+		break;
+		case OPT_GTR:
+		break;
+	}
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme at once" << endl;
 #endif
@@ -109,7 +112,8 @@ int main(int argc, char *argv[]) {
 	cout << "[TRACE] Done: " << partitioningScheme->getCode() << endl;
 #endif
 
-	cout << "Optimization done... it took " << time(NULL) - iniTime << " seconds." << endl;
+	cout << "Optimization done... it took " << time(NULL) - iniTime
+			<< " seconds." << endl;
 
 	if (!partitioningScheme->isOptimized()) {
 		cerr << endl
@@ -135,8 +139,8 @@ int main(int argc, char *argv[]) {
 
 	ofstream * rout = options->getResultsOutputStream();
 	PrintMeta::print_options(*rout, *options);
-	*rout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
-			<< endl;
+	*rout << "Number of elements:  "
+			<< partitioningScheme->getNumberOfElements() << endl;
 	*rout << "Partitioning scheme: " << endl << partitioningScheme->getCode()
 			<< endl;
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
@@ -157,7 +161,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (partitioningScheme->getNumberOfElements() == 1) {
-		cout << "BEST TREE: " << partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree() << endl;
+		cout << "BEST TREE: "
+				<< partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree()
+				<< endl;
 	}
 
 	delete searchAlgo;
@@ -165,5 +171,4 @@ int main(int argc, char *argv[]) {
 	delete options;
 
 	return EX_OK;
-
 }

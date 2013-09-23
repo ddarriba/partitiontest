@@ -99,28 +99,11 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 	for (int part_id = 0; part_id < limit; part_id++) {
 		schemesVector->at(part_id)->print(
 				*options->getPartitionsOutputStream());
-//		(*options->getPartitionsOutputStream()) << endl;
-//		for (int i = 0;
-//				i < (schemesVector->at(part_id))->scheme->getNumberOfElements();
-//				i++) {
-//			(*options->getPartitionsOutputStream())
-//					<< (schemesVector->at(part_id))->scheme->getElement(i)->getName()
-//					<< endl;
-//			(schemesVector->at(part_id))->scheme->getElement(i)->getBestModel()->getModel()->print(
-//					*options->getPartitionsOutputStream());
-//			(*options->getPartitionsOutputStream()) << endl;
-//		}
 	}
-
-	for (int part_id = 1; part_id < numberOfSchemes; part_id++) {
-		delete schemesVector->at(part_id)->scheme;
-		delete schemesVector->at(part_id);
-	}
-
 }
 
 PartitionSelector::~PartitionSelector() {
-	for (int i=0; i<schemesVector->size(); i++) {
+	for (int i = 0; i < schemesVector->size(); i++) {
 		delete schemesVector->at(i);
 	}
 	delete schemesVector;
@@ -133,16 +116,17 @@ void PartitionSelector::print(ostream& out, int limit) {
 	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(5)
 			<< "K" << setw(15) << "lnL" << setw(15) << "Value" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	int maxSchemes = (limit==-1?schemesVector->size():limit);
+	int maxSchemes = (limit == -1 ? schemesVector->size() : limit);
 	for (int id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
-		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode()
-				<< setw(5) << sp->scheme->getNumberOfElements() << setw(5)
+		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode() << setw(5)
+				<< sp->scheme->getNumberOfElements() << setw(5)
 				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
 				<< sp->value << endl;
 	}
-	if (limit > 0 && schemesVector->size()>limit) {
-		out << "Not showing " << schemesVector->size()-limit << " schemes more..." << endl;
+	if (limit > 0 && schemesVector->size() > limit) {
+		out << "Not showing " << schemesVector->size() - limit
+				<< " schemes more..." << endl;
 	}
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
 

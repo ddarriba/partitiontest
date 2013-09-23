@@ -140,6 +140,9 @@ public:
 	unsigned int getNumberOfPartitions() {
 		return numberOfPartitions;
 	}
+
+	void purgePartitionMap(t_partitionElementId id);
+
 private:
 	Alignment * alignment; /** MSA with the information of all the genes. */
 	unsigned int numberOfElements; /** Number of partitions already created in the map. */

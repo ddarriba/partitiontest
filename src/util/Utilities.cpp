@@ -10,19 +10,18 @@ namespace partest {
 CfgMap Utilities::config;
 
 bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
-	for (int i=0;i<e1.size();i++) {
-		for (int j=0;j<e2.size();j++) {
-			if (e1.at(i) == e2.at(j)) {
+	for (int i = 0; i < e1.size(); i++) {
+		for (int j = 0; j < e2.size(); j++) {
+			if (e1.at(i) == e2.at(j))
 				return true;
-			}
 		}
 	}
 	return false;
 }
 
-void Utilities::vprint(ostream& out, t_partitionElementId & v)  {
+void Utilities::vprint(ostream& out, t_partitionElementId & v) {
 	out << "( ";
-	for (int i=0; i<v.size(); i++) {
+	for (int i = 0; i < v.size(); i++) {
 		out << v[i] << " ";
 	}
 	out << ")" << endl;
@@ -103,7 +102,7 @@ double Utilities::normalizedEuclideanDistance(double XSeries[],
 	double sum = 0.0;
 	for (int i = 0; i < numberOfElements; i++) {
 		//sum += pow((XSeries[i] - meanX)/sdX - (YSeries[i] - meanY)/sdY, 2);
-		sum += pow(XSeries[i]/meanX - YSeries[i]/meanY, 2);
+		sum += pow(XSeries[i] / meanX - YSeries[i] / meanY, 2);
 	}
 	return sqrt(sum);
 }
@@ -345,13 +344,15 @@ int Utilities::copyFile(string initialFilePath, string outputFilePath) {
 	return 0;
 }
 
-void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1) {
+void Utilities::mergeIds(t_partitionElementId & dest,
+		t_partitionElementId id1) {
 	dest.reserve(dest.size() + id1.size());
 	dest.insert(dest.end(), id1.begin(), id1.end());
 	sort(dest.begin(), dest.end());
 }
 
-void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1, t_partitionElementId id2) {
+void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
+		t_partitionElementId id2) {
 	dest.reserve(id1.size() + id2.size());
 	dest.insert(dest.end(), id1.begin(), id1.end());
 	dest.insert(dest.end(), id2.begin(), id2.end());

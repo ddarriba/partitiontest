@@ -56,6 +56,7 @@ public:
 	 * @param configFile The configuration file name.
 	 * @param startingTopology The starting topology for each model.
 	 * @param searchAlgo The search algorithm.
+	 * @param optimize The mode for optimizing the best-fit partition.
 	 * @param informationCriterion The IC to be used during the search process.
 	 * @param sampleSize The sample size to be used during the model selection process.
 	 * @param sampleSizeValue Custom sample size value if applicable (optional).
@@ -63,9 +64,9 @@ public:
 	 */
 	void set(const char *inputFile, DataType dataType, bitMask rateVariation,
 			const char *configFile, StartTopo startingTopology,
-			SearchAlgo searchAlgo, InformationCriterion informationCriterion,
-			SampleSize sampleSize, double sampleSizeValue = 0.0,
-			const char *userTree = "");
+			SearchAlgo searchAlgo, OptimizeMode optimize,
+			InformationCriterion informationCriterion, SampleSize sampleSize,
+			double sampleSizeValue = 0.0, const char *userTree = "");
 
 	/**
 	 * @brief Gets the alignment.
@@ -129,6 +130,13 @@ public:
 	 * @return The search algorithm.
 	 */
 	SearchAlgo getSearchAlgorithm(void) const;
+
+	/**
+	 * @brief Gets the best-fit partition optimization mode.
+	 *
+	 * @return The best-fit partition optimization mode.
+	 */
+	OptimizeMode getOptimizeMode(void) const;
 
 	/**
 	 * @brief Gets the sample size type for model selection.
@@ -305,6 +313,7 @@ private:
 	DataType dataType; /** Whether input data is nucleic or proteic */
 	StartTopo startingTopology; /** Starting topology for optimization */
 	SearchAlgo searchAlgo; /** Search algorithm */
+	OptimizeMode optimize; /** The best-fit partition optimize mode */
 	SampleSize sampleSize; /** Sample size mode for model selection */
 	double sampleSizeValue; /** Sample size value for model selection */
 	InformationCriterion informationCriterion; /** Statistical criterion for model selection */
