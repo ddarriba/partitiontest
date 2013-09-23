@@ -96,6 +96,9 @@ extern "C" {
 #define PLL_FALSE                               0
 
 
+#define PLL_REARRANGE_SPR                       0
+#define PLL_REARRANGE_TBR                       1
+#define PLL_REARRANGE_NNI                       2
 
 #define LIKELIHOOD_EPSILON 0.0000001
 
@@ -215,8 +218,6 @@ extern double exp_approx (double x);
 #define BIPARTITIONS_RF  4
 
 
-
-
 #define TIP_TIP     0
 #define TIP_INNER   1
 #define INNER_INNER 2
@@ -260,10 +261,6 @@ extern double exp_approx (double x);
 #define MK_MULTI_STATE      1
 #define GTR_MULTI_STATE     2
 
-
-
-
-
 #define CAT         0
 #define GAMMA       1
 #define GAMMA_I     2
@@ -301,10 +298,6 @@ typedef struct
   int *unpinnable;     /**< size:numVectors , TRUE if we dont need the vector */
   int maxVectorsUsed;  
   boolean allSlotsBusy; /**< on if all slots contain an ancesctral node (the usual case after first full traversal) */ 
-#ifdef _DEBUG_RECOMPUTATION
-  double pinTime;
-  double recomStraTime;
-#endif
 } recompVectors;
 /* E recomp */
 
@@ -386,8 +379,8 @@ typedef struct
 {
   int tipCase;                  /**< Type of entry, must be TIP_TIP TIP_INNER or INNER_INNER */
   int pNumber;                  /**< should exist in some nodeptr p->number */
-  int qNumber;/**< should exist in some nodeptr q->number */
-  int rNumber;/**< should exist in some nodeptr r->number */
+  int qNumber;                  /**< should exist in some nodeptr q->number */
+  int rNumber;                  /**< should exist in some nodeptr r->number */
   double qz[NUM_BRANCHES];
   double rz[NUM_BRANCHES];
   /* recom */
@@ -714,12 +707,9 @@ typedef struct iL {
 } infoList;
 
 
-
-
-
 typedef unsigned int parsimonyNumber;
 
-/** @brief Alignment, transition model, model of rate heterogenety and likelihood vectors for one partition.
+/* @brief Alignment, transition model, model of rate heterogenety and likelihood vectors for one partition.
   * 
   * @todo De-couple into smaller data structures
   *
@@ -736,31 +726,182 @@ typedef unsigned int parsimonyNumber;
   * Pij(t) is the probability of going from state i to state j in a branch of length t 
   * Relative substitution rates (Entries in the Q matrix) 
   * In GTR we can write Q = S * D, where S is a symmetrical matrix and D a diagonal with the state frequencies 
+
+    @var protModels
+    @brief Protein models
+
+    @detail Detailed protein models descriptiopn
+
+    @var autoProtModels
+    @brief Auto prot models
+    @detail Detailed auto prot models
   */
+ 
+
+
+/** @struct pInfo
+    
+    @brief Partition information structure
+
+    This data structure encapsulates all properties and auxiliary variables that together
+    consist a partition.
+
+    @var pInfo::dataType
+    @brief Type of data this partition contains
+
+    Can be DNA (\b DNA_DATA) or AminoAcid (\b AA_DATA) data
+
+    @var pInfo::states
+    @brief Number of states
+
+    Number of states this type of data can consist of
+
+    @var pInfo::maxTipStates
+    @brief Number of undetermined states (possible states at the tips)
+
+    This is the total number of possible states that can appear in the alignment. This includes degenerate (undetermined) bases
+
+    @var pInfo::partitionName
+    @brief Name of partition
+
+    A null-terminated string describing the name of partition
+
+    @var pInfo::lower
+    @brief Position of the first site in the alignment that is part of this partition [1, tr->originalCrunchedLength]
+
+    @var pInfo::upper
+    @brief Position of the last site that is part of this partition plus one (i.e. position of the first site that is not part of this partition) 
+
+    @var pInfo::width
+    @brief Number of sites in the partition (i.e. \a upper - \a lower)
+
+    @var pInfo::wgt
+    @brief Weight of site
+
+    Number of times this particular site appeared in the partition before the duplicates were removed and replaced by this weight
+
+    @var pInfo::empiricalFrequencies
+    @brief Empirical frequency of each state in the current partition
+
+    @var pInfo::perSiteRates
+    @brief Per Site Categories (PSR) or aka CAT values for each rate
+
+    @var pInfo::rateCategory
+    @brief CAT category index for each site
+
+    @var pInfo::numberOfCategories
+    @brief CAT size of the set of possible categories
+
+    @var pInfo::alpha
+    @brief Gamma parameter to be optimized
+    
+    @var pInfo::gammaRates
+    @brief Values of the 4 gamma categories (rates) computed given an alpha
+
+    @var pInfo::substRates
+    @brief Entries of substitution matrix, e.g. 6 free parameters in DNA
+
+    In GTR we can write \f$ Q = S * D \f$, where \f$ S \f$ is a symmetrical matrix and \f$ D \f$ a diagonal with the state frequencies,
+    which is represented by the array \a frequencies. The symmetrical matrix is the array \a substRates
+
+    @var pInfo::frequencies
+    @brief State frequencies, entries in D are initialized as empiricalFrequencies
+    
+    In GTR we can write \f$ Q = S * D \f$, where \f$ S \f$ is a symmetrical matrix and \f$ D \f$ a diagonal with the state frequencies,
+    which is represented by the array \a frequencies. The symmetrical matrix is the array \a substRates
+
+    @var pInfo::freqExponents
+
+    @var pInfo::EIGN
+    @brief Eigenvalues of Q matrix
+
+    @var pInfo::EV
+    @brief Eigenvectors of Q matrix
+
+    @var pInfo::EI
+    @brief Inverse eigenvectors of Q matrix
+
+    @var pInfo::left
+    @brief P matrix for the left term of the conditional likelihood equation
+
+    @var pInfo::right
+    @brief P matrix for the right term of the conditional likelihood equation
+
+    @var pInfo::tipVector
+    @brief Precomputed (based on current P matrix) conditional likelihood vectors for every possible base 
+
+    @var pInfo::EIGN_LG4
+    @brief Eigenvalues of Q matrix for the LG4 model
+
+    @var pInfo::EV_LG4
+    @brief Eigenvectors of Q matrix for the LG4 model
+
+    @var pInfo::EI_LG4
+    @brief Inverse eigenvectors of Q matrix for the LG4 model
+    
+    @var pInfo::frequencies_LG4
+    @brief State frequencies for the LG4 model
+
+    @var pInfo::tipVector_LG4
+    @brief Precomputed (based on current P matrix) conditional likelihood vectors for every possible base for the LG4 model
+
+    @var pInfo::substRates_LG4
+    @brief Entries of substitution matrix for the LG4 model
+
+    @var pInfo::protModels
+    @brief Protein model for current partition
+
+    In case \a pInfo::dataType is set to \a AA_DATA then \a protModels indicates the index in the global array \a protModels
+    of the protein model that the current partition uses.
+
+    @var pInfo::autoProtModels
+    @brief Best fitted protein model for the \b AUTO partitions
+
+    If \a protModels is set to \b AUTO then \a autoProtModels holds the currently detected best fitting protein model for the partition
+
+    @var pInfo::protFreqs
+
+    @var pInfo::nonGTR
+
+    @var pInfo::optimizeBaseFrequencies
+
+    @var pInfo::optimizeAlphaParameter
+
+    @var pInfo::optimizeSubstitutionRates
+
+    @var pInfo::symmetryVector
+
+    @var pInfo::frequencyGrouping
+
+
+    @todo
+      Document freqExponents
+
+*/
+
+
+
 typedef struct {
-  /* ALIGNMENT DATA */
-  /* This depends only on the type of data in this partition of the alignment */
-  int     dataType;         /**< ALIGNMNENT  e.g. DNA_DATA, AA_DATA, etc  within range (MIN_MODEL, MAX_MODEL)  */
-  int     states;           /**< ALIGNMNENT Number of states in inner vectors */
-  int     maxTipStates;     /**< ALIGNMNENT Number of undetermined states (Possible states at the tips) */
-  /* These are the boundaries of the partition itself, sites within these boudaries must share the type of data */
+  int     dataType;
+  int     states;
+  int     maxTipStates;
   char   *partitionName;
-  int     lower;            /**< ALIGNMNENT starting position of the partition within [1, tr->originalCrunchedLength] */
-  int     upper;            /**< ALIGNMNENT ending position  */
-  int     width;            /**< ALIGNMNENT upper - lower, possibly we dont need this, number of site patterns*/
-  int    *wgt;              /**< ALIGNMNENT Number of occurencies of each site pattern */
-  double *empiricalFrequencies;    /**< ALIGNMNENT empirical Frequency of each state according to this alignment partition */
+  int     lower;
+  int     upper;
+  int     width;
+  int    *wgt;
+  double *empiricalFrequencies; 
 
 
   /* MODEL OF RATE HETEROGENETY, We use either GAMMA or PSR */
   /* Rate heterogenety: Per Site Categories (PSR) model aka CAT, see updatePerSiteRates() */
   /* Rate of site i is given by perSiteRates[rateCategory[i]] */
-  double *perSiteRates;     /**<RATE HETEROGENETY  CAT Values of rates*/
-  int    *rateCategory;     /**<RATE HETEROGENETY  CAT Category index for each site */
-  int     numberOfCategories;/**<RATE HETEROGENETY  CAT size of the set of possible categories */
+  double *perSiteRates;
+  int    *rateCategory;
+  int     numberOfCategories;
   /* Rate heterogenety: GAMMA model of rate heterogenety */
-  double alpha;             /**<RATE HETEROGENETY GAMMA parameter to be optimized */
-  double *gammaRates;       /**<RATE HETEROGENETY GAMMA 4 gamma categories (rates), computed given an alpha*/
+  double alpha;
+  double *gammaRates;
 
 
   /* TRANSITION MODEL: We always assume General Time Reversibility */
@@ -773,18 +914,18 @@ typedef struct {
   double *frequencies;      /**< State frequencies, entries in D, are initialized as empiricalFrequencies */
   double *freqExponents;
   /* Matrix decomposition: @todo map this syntax to Explanation of the mathematical background */
-  double *EIGN;             /**< eigenvalues */
-  double *EV;               /**< eigenvectors */
+  double *EIGN;
+  double *EV;
   double *EI;
-  double *left;  
+  double *left;
   double *right;
-  double *tipVector; 
+  double *tipVector;
   
      /* LG4 */
 
   double *EIGN_LG4[4];
   double *EV_LG4[4];
-  double *EI_LG4[4];   
+  double *EI_LG4[4];
 
   double *frequencies_LG4[4];
   double *tipVector_LG4[4];
@@ -808,21 +949,21 @@ typedef struct {
   /* LIKELIHOOD VECTORS */
 
   /* partial LH Inner vectors  ancestral vectors, we have 2*tips - 3 inner nodes */
-  double          **xVector;          /* Probability entries for inner nodes */
-  unsigned char   **yVector;          /* Tip entries (sequence) for tip nodes */
-  unsigned int     *globalScaler;     /* Counters for scaling operations done at node i */
+  double          **xVector;          /**< Conditional likelihood vectors for inner nodes */
+  unsigned char   **yVector;          /**< Tip entries (sequence) for tip nodes */
+  unsigned int     *globalScaler;     /**< Counters for scaling operations done at node i */
 
   /* data structures for conducting per-site likelihood scaling.
      this allows to compute the per-site log likelihood scores 
      needed for RELL-based bootstrapping and all sorts of statistical 
      tests for comparing trees ! */
-  int              **expVector;
-  size_t           *expSpaceVector;
+  int              **expVector;     /**< @brief An entry per inner node. Each element is an array of size the number of sites in the current partition and represents how many times the respective site has been scaled in the subtree rooted at the current node */
+  size_t           *expSpaceVector; /**< @brief Each entry represents an inner node and states the size of the corresponding element in \a expVector, which is the number of sites for the current partition */
 
   /* These are for the saveMemory option (tracking gaps to skip computations and memory) */
-  size_t           *xSpaceVector;     
-  int               gapVectorLength;
-  unsigned int     *gapVector;
+  size_t           *xSpaceVector;       /* Size of conditional likelihood vectors per inner node */
+  int               gapVectorLength;    /** Length of \a gapVector bitvector in unsigned integers assuming that \a unsigned \a int is 32bits. It is set to partition size / 32 */
+  unsigned int     *gapVector;          /** A bit vector of size \a gapVectorLength * 32 bits. A bit is set to 1 if the corresponding */
   double           *gapColumn; 
 
   /* Parsimony vectors at each node */
@@ -846,9 +987,9 @@ typedef struct {
   double partitionContribution;
   double partitionLH;
 
-#if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
+// #if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
   int partitionAssignment;
-#endif
+// #endif
 
 } pInfo;
 
@@ -974,7 +1115,7 @@ typedef  struct  {
   int threadID;
   volatile int numberOfThreads;
 
-#if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
+//#if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
  
   unsigned char *y_ptr; 
   
@@ -982,7 +1123,7 @@ typedef  struct  {
   double upper_spacing; 
 
   double *ancestralVector;
-#endif
+//#endif
   
 
 
@@ -1002,7 +1143,7 @@ typedef  struct  {
   double           coreLZ[NUM_BRANCHES];
   
  
-  branchInfo	   *bInf;
+  branchInfo       *bInf;
 
   int              multiStateModel;
 
@@ -1019,7 +1160,7 @@ typedef  struct  {
   unsigned char    **yVector;        /**< list of raw sequences (parsed from the alignment)*/
 
   int              secondaryStructureModel;
-  int              originalCrunchedLength;
+  int              originalCrunchedLength; /**< Length of alignment after removing duplicate sites in each partition */
  
  
   int              *secondaryStructurePairs;
@@ -1096,7 +1237,7 @@ typedef  struct  {
   boolean thoroughInsertion; /**< true if the neighbor branches should be optimized when a subtree is inserted (slower)*/
   boolean useMedian;
 
-  pllStack * sprHistory;
+  pllStack * rearrangeHistory;
 
 
   /* analdef defines */
@@ -1117,13 +1258,13 @@ typedef  struct  {
 
 /** @brief Stores data related to a NNI move  */
 typedef struct {
-	pllInstance * tr;
-	nodeptr p;
-	int nniType;
-	double z[NUM_BRANCHES]; // optimize branch lengths
-	double z0[NUM_BRANCHES]; // unoptimized branch lengths
-	double likelihood;
-	double deltaLH;
+        pllInstance * tr;
+        nodeptr p;
+        int nniType;
+        double z[NUM_BRANCHES]; // optimize branch lengths
+        double z0[NUM_BRANCHES]; // unoptimized branch lengths
+        double likelihood;
+        double deltaLH;
 } nniMove;
 
 /***************************************************************/
@@ -1267,37 +1408,105 @@ typedef struct
 
 } partitionLengths;
 
+typedef struct
+{
+  int rearrangeType;
+  double  likelihood;
 
-typedef struct {
-  double * zp;
-  double * zpn;
-  double * zpnn;
-  double * zqr;
-  nodeptr pn;
-  nodeptr pnn;
-  nodeptr r;
-  nodeptr p;
-  nodeptr q;
-} sprInfoRollback;
+  union {
+    struct {
+      double * zp;
+      double * zpn;
+      double * zpnn;
+      double * zqr;
+      nodeptr pn;
+      nodeptr pnn;
+      nodeptr r;
+      nodeptr p;
+      nodeptr q;
+    } SPR;
+    struct {
+      nodeptr origin;
+      int swapType;
+      double z[NUM_BRANCHES];
+    } NNI;
+  };
+} pllRollbackInfo;
 
+
+/** @struct pllRearrangeAttr
+ 
+    @brief Structure holding attributes for searching possible tree rearrangements
+    
+    Holds the attributes for performing tree rearrangements.
+
+    @var pllRearrangeAttr
+      The origin node where the search should start
+
+    @var pllRearrangeAttr:mintrav
+      The minimum radius around the origin node \a p for which nodes should be tested
+
+    @var pllRearrangeAttr:maxtrav
+      The maximum radius around the origin node \a p for which nodes should be tested
+
+    @var pllRearrangeAttr:max
+      Maximum number of results to be returned
+*/
 typedef struct
  {
-   nodeptr removeNode;
-   nodeptr insertNode;
-   double likelihood;
-   double zqr[NUM_BRANCHES];
- } pllInfoSPR;
+   nodeptr p;
+   int mintrav;
+   int maxtrav;
+ } pllRearrangeAttr;
+
+/** @struct pllRearrangeInfo
+    
+    @brief Tree rearrangement information structure
+
+    Holds information for conducting tree arrangements. This structure
+    is the result of a tree arrangement search under given search
+    attributes.
+
+    @var pllRearrangeInfo::rearrangeType
+      Type of rearrangement. Can be \b PLL_REARRANGE_SPR, \b PLL_REARRANGE_NNI or
+      \b PLL_REARRANGE_TBR
+    
+    @var pllRearrangeInfo::likelihood
+      Holds the computed likelihood for the addressed rearrangement
+
+    @var pllRearrangeInfo::SPR::removeNode
+      Node where to perform subtree pruning
+
+    @var pllRearrangeInfo::SPR::insertNode
+      Node where to place the pruned subtree
+
+    @var pllRearrangeInfo::zqr
+      Holds the computed branch lengths after the SPR
+*/
+typedef struct
+ {
+   int rearrangeType;
+   double  likelihood;
+   union {
+     struct {
+       nodeptr removeNode;
+       nodeptr insertNode;
+       double  zqr[NUM_BRANCHES];
+     } SPR;
+     struct {
+       nodeptr originNode;
+       int     swapType;
+     } NNI;
+   };
+ } pllRearrangeInfo;
+
 
 typedef struct
  {
    int max_entries;
    int entries;
-   pllInfoSPR * sprInfo;
- } pllListSPR;
-
-
-
-
+   pllRearrangeInfo * rearr;
+ } pllRearrangeList;
 
 
 
@@ -1423,7 +1632,7 @@ extern boolean freeBestTree ( bestlist *bt );
 
 
 extern char *Tree2String ( char *treestr, pllInstance *tr, partitionList *pr, nodeptr p, boolean printBranchLengths, boolean printNames, boolean printLikelihood,
-			   boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport);
+                           boolean rellTree, boolean finalPrint, int perGene, boolean branchLabelSupport, boolean printSHSupport);
 void printTopology(pllInstance *tr, partitionList *pr, boolean printInner);
 
 
@@ -1454,7 +1663,6 @@ extern boolean isTip(int number, int maxTips);
 
 /* recom functions */
 extern void computeTraversal(pllInstance *tr, nodeptr p, boolean partialTraversal, int numBranches);
-extern void computeTraversalInfo(nodeptr p, traversalInfo *ti, int *counter, int maxTips, int numBranches, boolean partialTraversal, recompVectors *rvec, boolean useRecom);
 extern void allocRecompVectorsInfo(pllInstance *tr);
 extern void allocTraversalCounter(pllInstance *tr);
 extern boolean getxVector(recompVectors *rvec, int nodenum, int *slot, int mxtips);
@@ -1495,7 +1703,7 @@ extern void printBothOpen(const char* format, ... );
 extern void initRateMatrix(pllInstance *tr, partitionList *pr);
 
 extern void bitVectorInitravSpecial(unsigned int **bitVectors, nodeptr p, int numsp, unsigned int vectorLength, hashtable *h, int treeNumber, int function, branchInfo *bInf,
-				    int *countBranches, int treeVectorLength, boolean traverseOnly, boolean computeWRF, int processID);
+                                    int *countBranches, int treeVectorLength, boolean traverseOnly, boolean computeWRF, int processID);
 
 
 extern  unsigned int bitcount_32_bit(unsigned int i); 
@@ -1564,12 +1772,12 @@ int pllInitModel (pllInstance *, partitionList *, pllAlignmentData *);
 void pllComputeRandomizedStepwiseAdditionParsimonyTree(pllInstance * tr, partitionList * partitions);
 int pllOptimizeModelParameters(pllInstance *tr, partitionList *pr, double likelihoodEpsilon);
 
-void pllInitListSPR (pllListSPR ** bestListSPR, int max);
-void pllDestroyListSPR (pllListSPR ** bestListSPR);
-pllListSPR * pllComputeSPR (pllInstance * tr, partitionList * pr, nodeptr p, int mintrav, int maxtrav, int max);
-void pllCommitSPR (pllInstance * tr, partitionList * pr, pllInfoSPR * sprInfo, int saveRollbackInfo);
-int pllRollbackSPR (pllInstance * tr, partitionList * pr);
-void pllClearSprHistory (pllInstance * tr);
+pllRearrangeList * pllCreateRearrangeList (int max);
+void pllDestroyRearrangeList (pllRearrangeList ** bestList);
+void pllRearrangeSearch (pllInstance * tr, partitionList * pr, int rearrangeType, nodeptr p, int mintrav, int maxtrav, pllRearrangeList * bestList);
+void pllRearrangeCommit (pllInstance * tr, partitionList * pr, pllRearrangeInfo * rearr, int saveRollbackInfo);
+int pllRearrangeRollback (pllInstance * tr, partitionList * pr);
+void pllClearRearrangeHistory (pllInstance * tr);
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS) )
 /* work tags for parallel regions */
@@ -1610,41 +1818,41 @@ extern void pllMasterBarrier(pllInstance *, partitionList *, int);
 #ifdef __AVX
 
 extern void newviewGTRGAMMAPROT_AVX_LG4(int tipCase,
-					double *x1, double *x2, double *x3, double *extEV[4], double *tipVector[4],
-					int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
-					double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+                                        double *x1, double *x2, double *x3, double *extEV[4], double *tipVector[4],
+                                        int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
+                                        double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 
 extern void newviewGTRCAT_AVX_GAPPED_SAVE(int tipCase,  double *EV,  int *cptr,
-				   double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
-				   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
-				   int n,  double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
-				   unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
-				   double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
+                                   double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
+                                   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+                                   int n,  double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
+                                   unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+                                   double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
 
 extern void newviewGTRCATPROT_AVX_GAPPED_SAVE(int tipCase, double *extEV,
-				       int *cptr,
-				       double *x1, double *x2, double *x3, double *tipVector,
-				       int *ex3, unsigned char *tipX1, unsigned char *tipX2,
-				       int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
-				       unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
-				       double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
+                                       int *cptr,
+                                       double *x1, double *x2, double *x3, double *tipVector,
+                                       int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+                                       int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
+                                       unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap,
+                                       double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn, const int maxCats);
 
 extern void  newviewGTRGAMMA_AVX_GAPPED_SAVE(int tipCase,
-				      double *x1_start, double *x2_start, double *x3_start,
-				      double *extEV, double *tipVector,
-				      int *ex3, unsigned char *tipX1, unsigned char *tipX2,
-				      const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
-				      unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
-				      double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn
-				      );
+                                      double *x1_start, double *x2_start, double *x3_start,
+                                      double *extEV, double *tipVector,
+                                      int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+                                      const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
+                                      unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
+                                      double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn
+                                      );
 
 extern void newviewGTRGAMMAPROT_AVX_GAPPED_SAVE(int tipCase,
-					 double *x1_start, double *x2_start, double *x3_start, double *extEV, double *tipVector,
-					 int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
-					 double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
-					 unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
-					 double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn); 
+                                         double *x1_start, double *x2_start, double *x3_start, double *extEV, double *tipVector,
+                                         int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
+                                         double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling,
+                                         unsigned int *x1_gap, unsigned int *x2_gap, unsigned int *x3_gap, 
+                                         double *x1_gapColumn, double *x2_gapColumn, double *x3_gapColumn); 
 
 extern void newviewGTRCAT_AVX(int tipCase,  double *EV,  int *cptr,
     double *x1_start, double *x2_start,  double *x3_start, double *tipVector,
@@ -1666,15 +1874,15 @@ extern void newviewGTRGAMMA_AVX(int tipCase,
     const int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 extern void newviewGTRGAMMAPROT_AVX(int tipCase,
-			     double *x1, double *x2, double *x3, double *extEV, double *tipVector,
-			     int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
-			     double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+                             double *x1, double *x2, double *x3, double *extEV, double *tipVector,
+                             int *ex3, unsigned char *tipX1, unsigned char *tipX2, int n, 
+                             double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 extern void newviewGTRCATPROT_AVX(int tipCase, double *extEV,
-			   int *cptr,
-			   double *x1, double *x2, double *x3, double *tipVector,
-			   int *ex3, unsigned char *tipX1, unsigned char *tipX2,
-			   int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+                           int *cptr,
+                           double *x1, double *x2, double *x3, double *tipVector,
+                           int *ex3, unsigned char *tipX1, unsigned char *tipX2,
+                           int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
 
 #endif
 

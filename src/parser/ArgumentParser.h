@@ -56,6 +56,8 @@
 #define ARG_SEARCH_GREEDY "greedy"			/** Argument for greedy search */
 #define ARG_SEARCH_GREEDY_EXT "greedyext"	/** Argument for extended greedy search */
 #define ARG_SEARCH_HIERARCHICAL "hcluster"	/** Argument for hierarchical clustering search */
+#define ARG_OPTIMIZE_BESTMODEL "findmodel"	/** Argument for finding the best model for each partition */
+#define ARG_OPTIMIZE_GTR       "gtr"       /** Argument for optimizing GTR among partitions */
 
 enum ArgIndex {
 	ARG_NULL, ARG_INPUT_FILE, /** Argument for input data file */
@@ -71,6 +73,7 @@ enum ArgIndex {
 	ARG_NUM_PROCS, /** Argument for number of processors */
 	ARG_SAMPLE_SIZE, /** Argument for sample size type */
 	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
+	ARG_OPTIMIZE, /** Argument for search algorithm */
 	ARG_HELP, /** Argument for show help */
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */

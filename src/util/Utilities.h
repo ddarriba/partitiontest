@@ -27,6 +27,7 @@ public:
 	static void vprint(ostream & out, t_partitionElementId & v);
 
 	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
+
 	/**
 	 * Common function for exiting genomictest.
 	 */

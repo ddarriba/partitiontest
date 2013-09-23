@@ -36,6 +36,7 @@ ParTestOptions::ParTestOptions() {
 	alignment = 0;
 	informationCriterion = DEFAULT_IC_TYPE;
 	startingTopology = DEFAULT_STARTING_TOPOLOGY;
+	optimize = DEFAULT_OPTIMIZE;
 	rateVariation = 0;
 	searchAlgo = DEFAULT_SEARCH_ALGO;
 	sampleSize = DEFAULT_SAMPLE_SIZE;
@@ -69,12 +70,11 @@ ParTestOptions::~ParTestOptions() {
 			schemesOutputStream->close();
 		delete schemesOutputStream;
 	}
-	delete alignment;
 }
 
 void ParTestOptions::set(const char *inputFile, DataType dataType,
 		bitMask doRateVariation, const char *configFile,
-		StartTopo startingTopology, SearchAlgo searchAlgo,
+		StartTopo startingTopology, SearchAlgo searchAlgo, OptimizeMode optimize,
 		InformationCriterion informationCriterion, SampleSize sampleSize,
 		double sampleSizeValue, const char *userTree) {
 
@@ -85,6 +85,7 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	this->informationCriterion = informationCriterion;
 	this->sampleSize = sampleSize;
 	this->searchAlgo = searchAlgo;
+	this->optimize = optimize;
 
 	if (sampleSize == SS_CUSTOM) {
 		this->sampleSizeValue = sampleSizeValue;
@@ -128,35 +129,39 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	PrintMeta::print_options(*schemesOutputStream, *this);
 }
 
-Alignment * ParTestOptions::getAlignment() {
+Alignment * ParTestOptions::getAlignment(void) {
 	return alignment;
 }
 
-char* ParTestOptions::getConfigFile() {
+char* ParTestOptions::getConfigFile(void) {
 	return configFile;
 }
 
-string ParTestOptions::getInputFile() const {
+string ParTestOptions::getInputFile(void) const {
 	return alignment->getAlignmentFile();
 }
 
-SearchAlgo ParTestOptions::getSearchAlgorithm() const {
+SearchAlgo ParTestOptions::getSearchAlgorithm(void) const {
 	return searchAlgo;
 }
 
-bitMask ParTestOptions::getRateVariation() const {
+OptimizeMode ParTestOptions::getOptimizeMode(void) const {
+	return optimize;
+}
+
+bitMask ParTestOptions::getRateVariation(void) const {
 	return rateVariation;
 }
 
-StartTopo ParTestOptions::getStartingTopology() const {
+StartTopo ParTestOptions::getStartingTopology(void) const {
 	return startingTopology;
 }
 
-char* ParTestOptions::getTreeFile() {
+char* ParTestOptions::getTreeFile(void) {
 	return treeFile;
 }
 
-char* ParTestOptions::getTreeString() {
+char* ParTestOptions::getTreeString(void) {
 	return treeString;
 }
 
@@ -181,7 +186,7 @@ string ParTestOptions::getOutputFileSchemes(void) const {
 }
 
 #ifdef _PLL
-struct pllQueue *  ParTestOptions::getPllPartitions() const {
+struct pllQueue *  ParTestOptions::getPllPartitions(void) const {
 	return pllPartitions;
 }
 #endif
