@@ -86,17 +86,16 @@ int main(int argc, char *argv[]) {
 	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
 #endif
 
-	switch(options->getOptimizeMode()) {
-		case OPT_SEARCH:
-		partitioningScheme->buildCompleteModelSet(false, iotui);
-		ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
-		ConsoleObserver * observer = new ConsoleObserver();
-		mo->attach(observer);
+	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
+	ConsoleObserver * observer = new ConsoleObserver();
+	mo->attach(observer);
+
+	if (options->getOptimizeMode() == OPT_SEARCH) {
+		partitioningScheme->buildCompleteModelSet(false);
 		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
 		PartitionSelector partSelector(&partitioningScheme, 1, options);
-		break;
-		case OPT_GTR:
-		break;
+	} else {
+		partitioningScheme->resetModelSet();
 	}
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme at once" << endl;

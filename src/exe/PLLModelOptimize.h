@@ -60,6 +60,7 @@ public:
 private:
 	PLLAlignment * alignment;
 	pllInstance * tr; /** Tree structure from PLL */
+	void setModelParameters(Model * model, pllInstance * tr, partitionList * partitions, int index, bool setAlphaFreqs = true);
 };
 
 } /* namespace partest */
