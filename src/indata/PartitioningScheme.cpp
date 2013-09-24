@@ -128,6 +128,16 @@ bool PartitioningScheme::isOptimized(void) {
 	return optimized;
 }
 
+void PartitioningScheme::resetModelSet() {
+	for (int i = 0; i < numberOfElements; i++) {
+		for (int j = 0;
+				j < partitions->at(i)->getModelset()->getNumberOfModels();
+				j++) {
+			partitions->at(i)->getModelset()->getModel(j)->setLnL(0.0);
+		}
+	}
+}
+
 void PartitioningScheme::buildCompleteModelSet(bool clearAll) {
 	for (int i = 0; i < numberOfElements; i++) {
 		partitions->at(i)->buildCompleteModelSet(clearAll);
@@ -179,7 +189,7 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 
 string PartitioningScheme::getName() {
 	stringstream ss;
-	for (int i=0;i<numberOfElements;i++) {
+	for (int i = 0; i < numberOfElements; i++) {
 		ss << partitions->at(i)->getName() << " ";
 	}
 	return ss.str();
@@ -227,9 +237,10 @@ string PartitioningScheme::getCode() {
 }
 
 double PartitioningScheme::getLnL() {
-	if (!isOptimized()) return 0.0;
+	if (!isOptimized())
+		return 0.0;
 	double lk = 0.0;
-	for (int i=0;i<numberOfElements;i++) {
+	for (int i = 0; i < numberOfElements; i++) {
 		lk += partitions->at(i)->getBestModel()->getModel()->getLnL();
 	}
 	return lk;

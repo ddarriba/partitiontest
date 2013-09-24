@@ -102,6 +102,14 @@ public:
 	bool isOptimized(void);
 
 	void buildCompleteModelSet(bool clearAll = false);
+
+	void resetModelSet();
+
+	/**
+	 * @brief Gets the closest pair of partitions.
+	 *
+	 * @param[out] el1, el2 the two closest partitions
+	 */
 	void getClosestPartitions(t_partitionElementId & el1,
 			t_partitionElementId & el2);
 

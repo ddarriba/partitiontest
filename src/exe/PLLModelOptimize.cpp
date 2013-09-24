@@ -146,7 +146,7 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 		if (estimateModel) {
 			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 					<< " Optimizing model parameters..." << endl;
-			pllOptimizeModelParameters(tr, partitions, 0.1);
+			pllOptimizeModelParameters(tr, partitions, 10);
 			evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 					<< " New Likelihood (MODEL): " << tr->likelihood << endl;
@@ -283,37 +283,7 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	/* set best-fit models */
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		Model * model = scheme->getElement(i)->getBestModel()->getModel();
-
-		cout << "PART" << i << ": " << model->getName() << " ";
-
-		for (int f = 0; f < 4; f++) {
-			cout << model->getFrequencies()[f] << " ";
-		}
-		for (int r = 0; r < 6; r++) {
-			cout << model->getRates()[r] << " ";
-		}
-		cout << model->getAlpha() << endl;
-
-		pInfo * current_part = partitions->partitionData[i];
-		current_part->optimizeBaseFrequencies = model->isPF();
-		current_part->alpha = model->getAlpha();
-		memcpy(current_part->frequencies, model->getFrequencies(),
-				4 * sizeof(double));
-		const char * m =
-				scheme->getElement(i)->getBestModel()->getModel()->getMatrixName().c_str();
-		char * symmetryPar = (char *) malloc(12 * sizeof(char));
-		symmetryPar[0] = m[0];
-		symmetryPar[11] = '\0';
-		for (int j = 1; j < 6; j++) {
-			symmetryPar[(j - 1) * 2 + 1] = ',';
-			symmetryPar[j * 2] = m[j];
-		}
-		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, i);
-		memcpy(current_part->substRates, model->getRates(), 6 * sizeof(double));
-
-		initReversibleGTR(tr, partitions, i);
-		makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-				tr->useMedian);
+		setModelParameters(model, tr, partitions, i);
 	}
 
 	if (options->getTreeString() == 0) {
@@ -439,41 +409,8 @@ int PLLModelOptimize::optimizeModel(Model * model,
 			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 
-	const char * m = model->getMatrixName().c_str();
-	char * symmetryPar = (char *) malloc(12 * sizeof(char));
-	symmetryPar[0] = m[0];
-	symmetryPar[11] = '\0';
-	for (int i = 1; i < 6; i++) {
-		symmetryPar[(i - 1) * 2 + 1] = ',';
-		symmetryPar[i * 2] = m[i];
-	}
-	pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, 0);
-	partitions->partitionData[0]->optimizeBaseFrequencies = model->isPF();
-	if (!model->isPF()) {
-		partitions->partitionData[0]->optimizeBaseFrequencies = PLL_FALSE;
-		for (int i = 0; i < 4; i++) {
-			partitions->partitionData[0]->frequencies[i] = 0.25;
-		}
-		for (int i = 0; i < 6; i++) {
-			partitions->partitionData[0]->substRates[i] = 1;
-		}
-	}
+	setModelParameters(model, tree, partitions, 0, false);
 
-	// TODO: I think this means CAT categories, and not GAMMA
-	partitions->partitionData[0]->alpha = 100;
-	if (model->isGamma()) {
-		partitions->partitionData[0]->numberOfCategories = 4;
-		tree->categories = 4;
-		tree->maxCategories = 4;
-	} else {
-		partitions->partitionData[0]->numberOfCategories = 1;
-		tree->categories = 1;
-		tree->maxCategories = 1;
-	}
-
-	free(symmetryPar);
-
-	initReversibleGTR(tree, partitions, 0);
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
 
 	optimizeParameters(tree, partitions, true, false);
@@ -491,6 +428,52 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	return 0;
 #endif
+}
+
+void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
+		partitionList * partitions, int index, bool setAlphaFreqs) {
+
+	const char * m = model->getMatrixName().c_str();
+	char * symmetryPar = (char *) malloc(12 * sizeof(char));
+	symmetryPar[0] = m[0];
+	symmetryPar[11] = '\0';
+	for (int j = 1; j < 6; j++) {
+		symmetryPar[(j - 1) * 2 + 1] = ',';
+		symmetryPar[j * 2] = m[j];
+	}
+
+	pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, index);
+
+	pInfo * current_part = partitions->partitionData[index];
+	current_part->optimizeBaseFrequencies = model->isPF();
+	current_part->alpha = model->getAlpha();
+
+	if (setAlphaFreqs) {
+		memcpy(current_part->frequencies, model->getFrequencies(),
+				4 * sizeof(double));
+		memcpy(current_part->substRates, model->getRates(), 6 * sizeof(double));
+	} else {
+		if (!model->isPF()) {
+			partitions->partitionData[index]->optimizeBaseFrequencies =
+					PLL_FALSE;
+			for (int i = 0; i < 4; i++) {
+				partitions->partitionData[index]->frequencies[i] = 0.25;
+			}
+		}
+		for (int i = 0; i < 6; i++) {
+			partitions->partitionData[index]->substRates[i] = 1;
+		}
+
+		partitions->partitionData[index]->alpha = 100;
+	}
+
+	free(symmetryPar);
+	initReversibleGTR(tr, partitions, index);
+	if (setAlphaFreqs) {
+		makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+				tr->useMedian);
+	}
+
 }
 
 } /* namespace partest */
