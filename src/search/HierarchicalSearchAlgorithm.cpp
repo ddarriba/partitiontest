@@ -31,6 +31,21 @@
 
 namespace partest {
 
+char convert2(unsigned char c) {
+	switch (c) {
+	case 1:
+		return 'A';
+	case 2:
+		return 'C';
+	case 4:
+		return 'G';
+	case 8:
+		return 'T';
+	default:
+		return 'X';
+	}
+}
+
 HierarchicalSearchAlgorithm::HierarchicalSearchAlgorithm(
 		ParTestOptions * options, PartitionMap * partitionMap) :
 		SearchAlgorithm(options, partitionMap) {
@@ -85,15 +100,13 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
 		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true);
-
 		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-
 		options->setTreeString(alignment->getTree()->tree_string);
-
 		cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
+
 	}
 
 	/* 1. start with k=n groups */
