@@ -89,7 +89,6 @@ int main(int argc, char *argv[]) {
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
 	mo->attach(observer);
-
 	if (options->getOptimizeMode() == OPT_SEARCH) {
 		partitioningScheme->buildCompleteModelSet(false);
 		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
@@ -149,7 +148,6 @@ int main(int argc, char *argv[]) {
 		*rout << setw(10) << " " << "Best model: "
 				<< element->getBestModel()->getModel()->getName() << endl;
 	}
-
 	*rout << endl;
 
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
@@ -164,7 +162,6 @@ int main(int argc, char *argv[]) {
 				<< partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree()
 				<< endl;
 	}
-
 	delete searchAlgo;
 	delete partitionMap;
 	delete options;

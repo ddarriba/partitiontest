@@ -54,8 +54,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 				double pSampleSize = 0.0;
 				switch (sampleSize) {
 				case SS_ALIGNMENT:
-					pSampleSize = pe->getAlignment()->getNumSites()
-							* pe->getAlignment()->getNumSeqs();
+					pSampleSize = pe->getAlignment()->getNumSites();
 					break;
 				case SS_SHANNON:
 					pSampleSize = pe->getAlignment()->getShannonEntropy();

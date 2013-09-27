@@ -22,12 +22,28 @@ extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 
 namespace partest {
 
+char convert3(unsigned char c) {
+	switch (c) {
+	case 1:
+		return 'A';
+	case 2:
+		return 'C';
+	case 4:
+		return 'G';
+	case 8:
+		return 'T';
+	default:
+		return 'X';
+	}
+}
+
 void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		partitionList * partitions, pllAlignmentData * phylip) {
 
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
 #endif
+
 	pllTreeInitTopologyForAlignment(tree, phylip);
 
 #ifdef DEBUG
@@ -46,6 +62,7 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
 #endif
+
 }
 
 double PLLModelOptimize::evaluateNNI(pllInstance * tr, partitionList *pr,
@@ -71,14 +88,27 @@ double PLLModelOptimize::evaluateNNI(pllInstance * tr, partitionList *pr,
 }
 
 double PLLModelOptimize::optimizeParameters(pllInstance * tr,
-		partitionList *partitions, bool estimateModel, bool estimateTopology) {
+		partitionList *partitions, bool estimateModel,
+		bool estimateBranchLengths, bool estimateTopology) {
 
-	if (estimateTopology)
-		pllTreeEvaluate(tr, partitions, 20);
-	if (estimateModel)
-		pllOptimizeModelParameters(tr, partitions, 0.1);
+	double lk;
+	double epsilon = 0.1;
 
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+
+	do {
+		lk = tr->likelihood;
+
+		// TODO: Optimize topology?
+
+		if (estimateModel)
+			pllOptimizeModelParameters(tr, partitions, 0.1);
+
+		if (estimateBranchLengths)
+			pllTreeEvaluate(tr, partitions, 200);
+
+		evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+	} while (fabs(lk - tr->likelihood) > epsilon);
 
 	return tr->likelihood;
 }
@@ -106,18 +136,25 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 	cout << "[SPR] FIRST TREE -> " << tr->tree_string;
 
 	tr->thoroughInsertion = PLL_TRUE;
-	double modelLkThreshold = 1000;
-	int SPRdistance = 40;
+	double modelLkThreshold = 0.1;
+	int SPRdistance = 2 * tr->mxtips - 2;
+	int startNode = 1;
+
 	do {
 		lk = tr->likelihood;
 
 		cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 				<< " Computing SPR best moves..." << endl;
 
-		pllRearrangeSearch(tr, partitions, PLL_REARRANGE_SPR,
-				tr->nodep[tr->mxtips + 1], 1, SPRdistance, bestList);
+		if (estimateTopology) {
+			pllRearrangeSearch(tr, partitions, PLL_REARRANGE_SPR,
+					tr->nodep[tr->mxtips + 1], 1, SPRdistance, bestList);
+//
+			pllRearrangeCommit(tr, partitions, bestList->rearr, PLL_TRUE);
+		}
 
-		pllRearrangeCommit(tr, partitions, bestList->rearr, PLL_TRUE);
+		pllTreeEvaluate(tr, partitions, 200);
+
 		//pllCommitSPR(tr, partitions, &(bestList->sprInfo[0]), PLL_TRUE);
 
 		tr->thoroughInsertion = PLL_FALSE;
@@ -129,13 +166,12 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 				<< " New Likelihood (TOPO): " << tr->likelihood << endl;
 
 		if (lk > tr->likelihood) {
-			pllRearrangeRollback(tr, partitions);
+			if (estimateTopology)
+				pllRearrangeRollback(tr, partitions);
 			//pllRollbackSPR(tr, partitions);
 			evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 					<< " Rollback (TOPO): " << tr->likelihood << endl;
-			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
-					<< " Next Threshold (TOPO): " << SPRdistance << endl;
 			break;
 		} else {
 			Tree2String(tr->tree_string, tr, partitions, tr->start->back,
@@ -146,13 +182,10 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 		if (estimateModel) {
 			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 					<< " Optimizing model parameters..." << endl;
-			pllOptimizeModelParameters(tr, partitions, 10);
+			pllOptimizeModelParameters(tr, partitions, modelLkThreshold);
 			evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 					<< " New Likelihood (MODEL): " << tr->likelihood << endl;
-			modelLkThreshold /= 10;
-			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
-					<< " Next Threshold (MODEL): " << modelLkThreshold << endl;
 		}
 
 		cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
@@ -197,8 +230,20 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 	struct pllPartitionInfo * pinfo;
 
 	pllQueueInit(&parts);
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 
+	int numSeqs = alignment->getNumSeqs();
+	int numSites = alignment->getNumSites();
+	pllAlignmentData * phylip = pllInitAlignmentData(numSeqs, numSites);
+	phylip->sequenceCount = numSeqs;
+	phylip->sequenceLength = numSites;
+	for (int i = 0; i < numSeqs; i++) {
+		phylip->sequenceLabels[i + 1] = strdup(
+				alignment->getPhylip()->sequenceLabels[i + 1]);
+	}
+	phylip->siteWeights = (int *) malloc(numSites * sizeof(int));
+	int firstSite = 1;
+	int nextSite = 0;
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 
 		pinfo = (pllPartitionInfo *) malloc(sizeof(struct pllPartitionInfo));
@@ -219,21 +264,33 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		pinfo->protModels = -1;
 		pinfo->protFreqs = -1;
 		pinfo->dataType = DNA_DATA;
+
 		for (int j = 0; j < element->getNumberOfSections(); j++) {
-			pregion = (struct pllPartitionRegion *) malloc(
-					sizeof(struct pllPartitionRegion));
-			pregion->start = element->getStart(j);
-			pregion->end = element->getEnd(j);
-			pregion->stride = element->getStride(j);
-			pllQueueAppend(pinfo->regionList, (void *) pregion);
+			for (int site = element->getStart(j) - 1; site < element->getEnd(j);
+					site++) {
+				phylip->siteWeights[nextSite] = 1;
+				for (int nk = 0; nk < numSeqs; nk++) {
+					phylip->sequenceData[nk + 1][nextSite] =
+							alignment->getPhylip()->sequenceData[nk + 1][site];
+				}
+				nextSite++;
+			}
 		}
+
+		pregion = (struct pllPartitionRegion *) malloc(
+				sizeof(struct pllPartitionRegion));
+		pregion->start = firstSite;
+		pregion->end = nextSite;
+		pregion->stride = 1;
+		pllQueueAppend(pinfo->regionList, (void *) pregion);
+
+		firstSite = nextSite + 1;
 	}
 
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Committing partitions" << endl;
 #endif
-	partitionList * partitions = pllPartitionsCommit(parts,
-			alignment->getPhylip());
+	partitionList * partitions = pllPartitionsCommit(parts, phylip);
 
 	pllQueuePartitionsDestroy(&parts);
 
@@ -243,6 +300,8 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 			exit(-1);
 		}
 	}
+
+	pllPhylipRemoveDuplicate(phylip, partitions);
 
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Creating tree instance" << endl;
@@ -261,12 +320,13 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
 #endif
-	pllTreeInitTopologyForAlignment(tr, alignment->getPhylip());
+	pllTreeInitTopologyForAlignment(tr, phylip);
 	/* Connect the alignment with the tree structure */
+
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Connecting tree with alignment" << endl;
 #endif
-	if (!pllLoadAlignment(tr, alignment->getPhylip(), partitions,
+	if (!pllLoadAlignment(tr, phylip, partitions,
 	PLL_SHALLOW_COPY)) {
 		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
 		Utilities::exit_partest(EX_SOFTWARE);
@@ -275,7 +335,7 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model" << endl;
 #endif
-	pllInitModel(tr, partitions, alignment->getPhylip());
+	pllInitModel(tr, partitions, phylip);
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
 #endif
@@ -301,29 +361,20 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		rax_free(tr->nameHash);
 		tr->nameHash = NULL;
 		pllNewickTree * nt = pllNewickParseString(options->getTreeString());
-		pllTreeInitTopologyNewick(tr, nt, PLL_TRUE);
+		pllTreeInitTopologyNewick(tr, nt, PLL_FALSE);
+		Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
+				PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+				PLL_FALSE, PLL_FALSE);
 	}
 
 	evaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	evaluateSPR(tr, partitions, false);
+	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, false);
 
 	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
 			PLL_FALSE, PLL_FALSE);
-
 	cout << "FINAL TREE: " << tr->tree_string << endl;
 
-	for (int i = 0; i < partitions->numberOfPartitions; i++) {
-		cout << "FREQS: ";
-		for (int j = 0; j < 4; j++) {
-			cout << " " << partitions->partitionData[i]->frequencies[j];
-		}
-		cout << endl << "RATES: ";
-		for (int j = 0; j < 6; j++) {
-			cout << " " << partitions->partitionData[i]->substRates[j];
-		}
-		cout << endl << endl;
-	}
 	pllPartitionsDestroy(tr, &partitions);
 
 	return 0;
@@ -344,26 +395,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 			initializeStructs(tree, partitions, phylip);
 
-			if (options->getTreeString() == 0) {
-				pllComputeRandomizedStepwiseAdditionParsimonyTree(tree,
-						partitions);
-			} else {
-				rax_free(tree->nodep);
-				rax_free(tree->td[0].ti);
-				rax_free(tree->td[0].parameterValues);
-				rax_free(tree->td[0].executeModel);
-				rax_free(tree->nodeBaseAddress);
-				for (int j = 0; j < tree->nameHash->tableSize; ++j) {
-					rax_free(tree->nameHash->table[j]);
-				}
-				rax_free(tree->nameHash);
-				tree->nameHash = NULL;
-
-				pllNewickTree * nt = pllNewickParseString(
-						options->getTreeString());
-				pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
-				pllNewickParseDestroy(&nt);
-			}
+			cout << "** ELEMENT " << element->getName() << endl;
 
 			optimizePartitionElement(element, i + 1,
 					scheme->getNumberOfElements());
@@ -403,6 +435,8 @@ int PLLModelOptimize::optimizeModel(Model * model,
 		pllNewickTree * nt = pllNewickParseString(options->getTreeString());
 		pllTreeInitTopologyNewick(tree, nt, PLL_FALSE);
 		pllNewickParseDestroy(&nt);
+	} else if (options->getStartingTopology() == StartTopoMP) {
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
 	}
 
 	Tree2String(tree->tree_string, tree, partitions, tree->start->back,
@@ -413,11 +447,11 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	evaluateGeneric(tree, partitions, tree->start, PLL_TRUE, PLL_FALSE);
 
-	optimizeParameters(tree, partitions, true, false);
+	optimizeParameters(tree, partitions, true, true, false);
 
-	Tree2String(tree->tree_string, tree, partitions, tree->start->back,
-			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
+			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+			PLL_FALSE, PLL_FALSE);
 
 	model->setLnL(tree->likelihood);
 	model->setTree(tree->tree_string);
@@ -473,7 +507,6 @@ void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 		makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
 				tr->useMedian);
 	}
-
 }
 
 } /* namespace partest */
