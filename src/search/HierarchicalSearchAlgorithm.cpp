@@ -84,6 +84,12 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	if (options->getStartingTopology() == StartTopoFIXED) {
 		/* Starting topology */
 
+		cout << "Computing fixed topology ...";
+		cout.flush();
+#ifdef DEBUG
+		cout << endl;
+#endif
+
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
 
@@ -99,12 +105,16 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
+
 		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true);
+
+
 		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 		options->setTreeString(alignment->getTree()->tree_string);
+
 		cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
 
 	}
