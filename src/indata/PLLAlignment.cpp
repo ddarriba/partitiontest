@@ -63,16 +63,6 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		}
 	}
 
-//	for (int i = 0; i < numberOfSections; i++) {
-//		cout << "[PD*] " << i + 1 << " " << firstPosition[i] << " "
-//				<< lastPosition[i] << endl;
-//		cout << "[PD*] ";
-//	}
-//	for (int k = 0; k < numSites; k++) {
-//		cout << convert(phylip->sequenceData[1][k]);
-//	}
-//	cout << endl;
-
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
 	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
 			sizeof(pllInstanceAttr));
@@ -85,7 +75,6 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	attr->numberOfThreads = 1;
 
 	tr = pllCreateInstance(attr);
-
 	rax_free(attr);
 
 	struct pllPartitionRegion * pregion;
@@ -114,17 +103,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pllQueueAppend(pinfo->regionList, (void *) pregion);
 
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
-
 	pllTreeInitTopologyForAlignment(tr, phylip);
-
-	/* Connect the alignment with the tree structure */
-	if (!pllLoadAlignment(tr, phylip, partitions, PLL_SHALLOW_COPY)) {
-		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
-	}
-
-	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	//pllInitModel(tr, PLL_TRUE, phylip, partitions);
 	pllPhylipRemoveDuplicate (phylip, partitions);
 	numPatterns = phylip->sequenceLength;
 
@@ -161,17 +140,8 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	this->pllPartitions = pllPartitions;
 
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
-
 	pllTreeInitTopologyForAlignment(tr, phylip);
 
-	/* Connect the alignment with the tree structure */
-	if (!pllLoadAlignment(tr, phylip, partitions, PLL_SHALLOW_COPY)) {
-		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
-	}
-
-	/* Initialize the model TODO: Put the parameters in a logical order and change the TRUE to flags */
-	//pllInitModel(tr, PLL_TRUE, phylip, partitions);
 	numSeqs = phylip->sequenceCount;
 	numSites = phylip->sequenceLength;
 	numPatterns = phylip->sequenceLength;

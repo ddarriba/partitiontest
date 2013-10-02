@@ -162,6 +162,7 @@ int main(int argc, char *argv[]) {
 				<< partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree()
 				<< endl;
 	}
+
 	delete searchAlgo;
 	delete partitionMap;
 	delete options;

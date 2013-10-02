@@ -29,9 +29,10 @@ public:
 	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
 
 	/**
-	 * Common function for exiting genomictest.
+	 * Common function for exiting partitiontest.
 	 */
 	static void exit_partest(int exit_value);
+
 	/**
 	 * Computes the factorial of a number
 	 *

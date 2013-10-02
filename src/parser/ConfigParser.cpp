@@ -153,8 +153,6 @@ int ConfigParser::parsePartitionDetails(char * line,
 		int start = atoi(parsed);
 		parsed = strtok(NULL, ",");
 		int end = atoi(parsed);
-//	char * strideStr = strtok(NULL, "\\");
-//	int stride = strideStr ? atoi(strideStr) : 0;
 		pInfo->start[numberOfSections] = start;
 		pInfo->end[numberOfSections] = end;
 		pInfo->stride[numberOfSections] = 1;
@@ -176,8 +174,6 @@ int ConfigParser::parsePartitionLine(char * line,
 		int start = atoi(parsed);
 		parsed = strtok(NULL, ",");
 		int end = atoi(parsed);
-//	char * strideStr = strtok(NULL, "\\");
-//	int stride = strideStr ? atoi(strideStr) : 0;
 		pInfo->start[numberOfSections] = start;
 		pInfo->end[numberOfSections] = end;
 		pInfo->stride[numberOfSections] = 1;
@@ -194,8 +190,9 @@ ConfigParser::~ConfigParser() {
 #ifdef _PLL
 	pllQueuePartitionsDestroy(&parts);
 #endif
-	if (partitions)
+	if (partitions) {
 		delete partitions;
+	}
 }
 
 struct partitionInfo ConfigParser::getPartition(int index) {

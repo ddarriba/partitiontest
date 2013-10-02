@@ -70,6 +70,9 @@ ParTestOptions::~ParTestOptions() {
 			schemesOutputStream->close();
 		delete schemesOutputStream;
 	}
+	if (startingTopology == StartTopoFIXED) {
+		delete alignment;
+	}
 }
 
 void ParTestOptions::set(const char *inputFile, DataType dataType,
