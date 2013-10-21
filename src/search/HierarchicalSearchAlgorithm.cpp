@@ -102,7 +102,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 //		makeParsimonyTreeFast(alignment->getTree(),
 //				alignment->getPartitions());
 
-		evaluateGeneric(alignment->getTree(), alignment->getPartitions(),
+		pllEvaluateGeneric(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
 

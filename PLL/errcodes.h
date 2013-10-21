@@ -1,6 +1,9 @@
 #ifndef ERRCODES_H
 #define ERRCODES_H
 
+#define PLL_ERROR_FILE_OPEN             1               /**< Error while opening file */
+#define PLL_ERROR_INVALID_FILETYPE      2               /**< Invalid fileType given at pllParseAlignmeFile */
+
 #define  PLL_NNI_P_TIP                  1 << 0          /**< Node p is a tip */
 #define  PLL_NNI_Q_TIP                  1 << 1          /**< Node p->back is a tip */
 
@@ -22,5 +25,17 @@
 #define PLL_INCONSISTENT_ALPHA_VALUES_ACROSS_LINKED_PARTITIONS 1 << 4 /**<alpha values are not identical across linked partitions */
 #define PLL_INCONSISTENT_FREQUENCY_STATES_ACROSS_LINKED_PARTITIONS 1 << 5 /**<frequency states are not identical across linked partitions */
 #define PLL_INCONSISTENT_FREQUENCY_VALUES_ACROSS_LINKED_PARTITIONS 1 << 6 /**<frequency values are not identical across linked partitions */
+
+#define PLL_NEWICK_ROOTED_TREE          1 << 0          /**< @brief Binary root detected */
+#define PLL_NEWICK_BAD_STRUCTURE        1 << 1          /**< @brief Errornous tree detected */
+
+
+
+#define PLL_ERROR_PHYLIP_HEADER_SYNTAX         5
+#define PLL_ERROR_PHYLIP_BODY_SYNTAX           6
+#define PLL_ERROR_FASTA_SYNTAX                 7
+
+
+
 
 #endif

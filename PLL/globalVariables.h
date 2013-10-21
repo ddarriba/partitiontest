@@ -47,7 +47,7 @@ char run_id[128] = "",
   binaryCheckpointInputName[1024] = "",
   byteFileName[1024] = "";
 
-const char *protModels[NUM_PROT_MODELS] = {"DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM", "LG", "MTART", "MTZOA", "PMB", 
+const char *protModels[PLL_NUM_PROT_MODELS] = {"DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM", "LG", "MTART", "MTZOA", "PMB", 
 					   "HIVB", "HIVW", "JTTDCMUT", "FLU", "AUTO", "LG4", "GTR"};
 
 const char dnaStateNames[4]      = {'A', 'C', 'G', 'T'};
@@ -116,7 +116,7 @@ const unsigned int bitVector32[33] = {1,     2,    4,    8,   16,   32,    64,  
 				      4294967295u};
 
 /*const unsigned int bitVector64[65] = {};*/
-
+/** @brief Array for setting bits 0 .. 31 in a bit vector, used in saveMemory technique for the gapVector */
 const unsigned int mask32[32] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 
 					262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 
 					268435456, 536870912, 1073741824, 2147483648U};
@@ -124,7 +124,7 @@ const unsigned int mask32[32] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 20
 const char *secondaryModelList[21] = { "S6A (GTR)", "S6B", "S6C", "S6D", "S6E", "S7A (GTR)", "S7B", "S7C", "S7D", "S7E", "S7F", "S16 (GTR)", "S16A", "S16B", "S16C", 
 				       "S16D", "S16E", "S16F", "S16I", "S16J", "S16K"};
 
-const partitionLengths pLengths[MAX_MODEL] = {
+const partitionLengths pLengths[PLL_MAX_MODEL] = {
   
   /* BINARY */
   {4,   4,   2,  4,  2, 1, 2,  8, 2, 2, PLL_FALSE, PLL_FALSE, 3, inverseMeaningBINARY, 2, PLL_FALSE, bitVectorIdentity},
@@ -178,8 +178,8 @@ MPI_Datatype TRAVERSAL_MPI;
 #else
 extern char infoFileName[1024];
 extern char resultFileName[1024];
-extern const partitionLengths pLengths[MAX_MODEL];
-extern const char * protModels[NUM_PROT_MODELS];
+extern const partitionLengths pLengths[PLL_MAX_MODEL];
+extern const char * protModels[PLL_NUM_PROT_MODELS];
 extern char * secondaryModelList[21];
 extern double masterTime;
 extern char logFileName[1024];

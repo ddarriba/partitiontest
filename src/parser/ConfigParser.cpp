@@ -87,8 +87,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				comparePartitionInfos());
 
 #ifdef _PLL
-		struct pllPartitionRegion * pregion;
-		struct pllPartitionInfo * pinfo;
+		pllPartitionRegion * pregion;
+		pllPartitionInfo * pinfo;
 
 		pllQueueInit(&parts);
 #endif
@@ -97,7 +97,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 			partitions->at(i).partitionId.push_back(i);
 #ifdef _PLL
 			pinfo = (pllPartitionInfo *) malloc(
-					sizeof(struct pllPartitionInfo));
+					sizeof(pllPartitionInfo));
 			pllQueueInit(&(pinfo->regionList));
 			pllQueueAppend(parts, (void *) pinfo);
 
@@ -107,11 +107,11 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 			pinfo->protModels = -1;
 			pinfo->protFreqs = -1;
-			pinfo->dataType = DNA_DATA;
+			pinfo->dataType = PLL_DNA_DATA;
 			pinfo->optimizeBaseFrequencies = PLL_TRUE;
 			for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
-				pregion = (struct pllPartitionRegion *) malloc(
-						sizeof(struct pllPartitionRegion));
+				pregion = (pllPartitionRegion *) malloc(
+						sizeof(pllPartitionRegion));
 				pregion->start = partitions->at(i).start[j];
 				pregion->end = partitions->at(i).end[j];
 				pregion->stride = partitions->at(i).stride[j];

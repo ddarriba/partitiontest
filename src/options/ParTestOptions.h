@@ -191,7 +191,7 @@ public:
 	/**
 	 * @brief Gets the partition definitions for PLL.
 	 */
-	struct pllQueue * getPllPartitions(void) const;
+	pllQueue * getPllPartitions(void) const;
 #endif
 
 	/**
@@ -326,7 +326,7 @@ private:
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
 #ifdef _PLL
-	struct pllQueue * pllPartitions; /** Partitions definition for PLL */
+	pllQueue * pllPartitions; /** Partitions definition for PLL */
 #endif
 	ofstream * resultsOutputStream; /** Output results stream */
 	ofstream * modelsOutputStream; /** Output models stream */

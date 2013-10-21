@@ -148,7 +148,7 @@ public:
 	/**
 	 * @brief Gets the partition definitions for PLL.
 	 */
-	struct pllQueue * getPllPartitions() const {
+	pllQueue * getPllPartitions() const {
 		return parts;
 	}
 #endif
@@ -188,7 +188,7 @@ private:
 	string outputBasePath; /** Base path for output files */
 
 #ifdef _PLL
-	struct pllQueue * parts; /** Partitions definition for PLL */
+	pllQueue * parts; /** Partitions definition for PLL */
 #endif
 };
 
