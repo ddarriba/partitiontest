@@ -42,14 +42,17 @@ namespace partest {
 class PLLModelOptimize: public ModelOptimize {
 public:
 	PLLModelOptimize(ParTestOptions * options);
-	static void initializeStructs(pllInstance * tree, partitionList * partitions,
-			pllAlignmentData * phylip);
-	double evaluateSPR(pllInstance * tr, partitionList *pr,
-			bool estimateModel = true, bool estimateTopology = true);
-	double evaluateNNI(pllInstance * tr, partitionList *pr,
-			bool estimateModel = true);
-	double optimizeParameters(pllInstance * tr,
-			partitionList *partitions, bool estimateModel,  bool estimateBranchLengths, bool estimateTopology);
+	static void initializeStructs(pllInstance * tree,
+			partitionList * partitions, pllAlignmentData * phylip);
+	double evaluateSPR(pllInstance * tr, partitionList *pr, bool estimateModel =
+			true, bool estimateTopology = true);
+	char * getMlTree(PartitioningScheme * scheme,
+			string inputFile);
+	double evaluateNNI(pllInstance * tr, partitionList *pr, bool estimateModel =
+			true);
+	double optimizeParameters(pllInstance * tr, partitionList *partitions,
+			bool estimateModel, bool estimateBranchLengths,
+			bool estimateTopology);
 	int optimizePartitioningScheme(PartitioningScheme * scheme,
 			bool forceRecomputation = false, int current_index = 0,
 			int max_index = 0);
@@ -60,7 +63,8 @@ public:
 private:
 	PLLAlignment * alignment;
 	pllInstance * tr; /** Tree structure from PLL */
-	void setModelParameters(Model * model, pllInstance * tr, partitionList * partitions, int index, bool setAlphaFreqs = true);
+	void setModelParameters(Model * model, pllInstance * tr,
+			partitionList * partitions, int index, bool setAlphaFreqs = true);
 };
 
 } /* namespace partest */

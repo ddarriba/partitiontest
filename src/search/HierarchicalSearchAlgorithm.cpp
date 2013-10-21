@@ -81,6 +81,21 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	mo->attach(observer);
 	mo->attach(this);
 
+	/* 1. start with k=n groups */
+		vector<PartitioningScheme *> nextSchemes;
+		nextSchemes.push_back(
+				new PartitioningScheme(partitionMap->getNumberOfPartitions()));
+	#ifdef DEBUG
+		cout << "[TRACE]            Creating first scheme" << endl;
+	#endif
+		for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
+			PartitionElement * nextElement = partitionMap->getPartitionElement(i);
+			nextSchemes.at(0)->addElement(nextElement);
+		}
+	#ifdef DEBUG
+		cout << "[TRACE]            Created first scheme" << endl;
+	#endif
+
 	if (options->getStartingTopology() == StartTopoFIXED) {
 		/* Starting topology */
 
@@ -96,43 +111,24 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
 				alignment->getPhylip());
 
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
-				alignment->getPartitions());
-
-//		makeParsimonyTreeFast(alignment->getTree(),
+//		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 //				alignment->getPartitions());
+//		pllEvaluateGeneric(alignment->getTree(), alignment->getPartitions(),
+//				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 
-		pllEvaluateGeneric(alignment->getTree(), alignment->getPartitions(),
-				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
-		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
+		char * startingTree = mo->getMlTree(nextSchemes.at(0), options->getInputFile());
 
-		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true);
+//		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
+//				alignment->getPartitions(), alignment->getTree()->start->back,
+//				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+//				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 
+		options->setTreeString(startingTree);
 
-		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
-				alignment->getPartitions(), alignment->getTree()->start->back,
-				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-		options->setTreeString(alignment->getTree()->tree_string);
-
-		cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
+		cout << "STARTING TREE = " << startingTree << endl;
 
 	}
 
-	/* 1. start with k=n groups */
-	vector<PartitioningScheme *> nextSchemes;
-	nextSchemes.push_back(
-			new PartitioningScheme(partitionMap->getNumberOfPartitions()));
-#ifdef DEBUG
-	cout << "[TRACE]            Creating first scheme" << endl;
-#endif
-	for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		PartitionElement * nextElement = partitionMap->getPartitionElement(i);
-		nextSchemes.at(0)->addElement(nextElement);
-	}
-#ifdef DEBUG
-	cout << "[TRACE]            Created first scheme" << endl;
-#endif
 
 	PartitioningScheme * bestScheme = nextSchemes.at(0);
 	bool reachedMaximum = false;
