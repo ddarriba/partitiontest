@@ -67,7 +67,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
 			sizeof(pllInstanceAttr));
 
-	attr->rateHetModel = GAMMA;
+	attr->rateHetModel = PLL_GAMMA;
 	attr->fastScaling = PLL_FALSE;
 	attr->saveMemory = PLL_FALSE;
 	attr->useRecom = PLL_FALSE;
@@ -77,12 +77,12 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	tr = pllCreateInstance(attr);
 	rax_free(attr);
 
-	struct pllPartitionRegion * pregion;
-	struct pllPartitionInfo * pinfo;
+	pllPartitionRegion * pregion;
+	pllPartitionInfo * pinfo;
 
 	pllQueueInit(&pllPartitions);
 
-	pinfo = (pllPartitionInfo *) malloc(sizeof(struct pllPartitionInfo));
+	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 	pllQueueInit(&(pinfo->regionList));
 	pllQueueAppend(pllPartitions, (void *) pinfo);
 
@@ -92,11 +92,11 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 	pinfo->protModels = -1;
 	pinfo->protFreqs = -1;
-	pinfo->dataType = DNA_DATA;
+	pinfo->dataType = PLL_DNA_DATA;
 	pinfo->optimizeBaseFrequencies = PLL_TRUE;
 
-	pregion = (struct pllPartitionRegion *) malloc(
-			sizeof(struct pllPartitionRegion));
+	pregion = (pllPartitionRegion *) malloc(
+			sizeof(pllPartitionRegion));
 	pregion->start = 1;
 	pregion->end = numSites;
 	pregion->stride = 1;
@@ -104,7 +104,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
 	pllTreeInitTopologyForAlignment(tr, phylip);
-	pllPhylipRemoveDuplicate (phylip, partitions);
+	//pllPhylipRemoveDuplicate (phylip, partitions);
 	numPatterns = phylip->sequenceLength;
 
 }
@@ -119,13 +119,13 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
 }
 
 PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
-		struct pllQueue * pllPartitions) :
+		pllQueue * pllPartitions) :
 		Alignment(alignmentFile, dataType) {
 
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
 	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
 			sizeof(pllInstanceAttr));
-	attr->rateHetModel = GAMMA;
+	attr->rateHetModel = PLL_GAMMA;
 	attr->fastScaling = PLL_FALSE;
 	attr->saveMemory = PLL_FALSE;
 	attr->useRecom = PLL_FALSE;
@@ -134,7 +134,7 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	tr = pllCreateInstance(attr);
 	rax_free(attr);
 
-	phylip = pllParsePHYLIP(alignmentFile.c_str());
+	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, alignmentFile.c_str());
 
 	/* commit the partitions and build a partitions structure */
 	this->pllPartitions = pllPartitions;

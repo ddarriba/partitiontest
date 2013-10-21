@@ -189,7 +189,7 @@ string ParTestOptions::getOutputFileSchemes(void) const {
 }
 
 #ifdef _PLL
-struct pllQueue *  ParTestOptions::getPllPartitions(void) const {
+pllQueue *  ParTestOptions::getPllPartitions(void) const {
 	return pllPartitions;
 }
 #endif
