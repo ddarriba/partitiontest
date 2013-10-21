@@ -7,14 +7,14 @@
 
 #include "PLLModelOptimize.h"
 #include <iostream>
+#include <sstream>
 #if ! (defined(__ppc) || defined(__powerpc__) || defined(PPC))
 #include <xmmintrin.h>
 #endif
 
 extern "C" {
 #include "globalVariables.h"
-#include "parser/newick/newick.h"
-#include "parser/partition/part.h"
+#include "newick.h"
 
 extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 		int maxtrav, analdef *adef, bestlist *bt, infoList *iList);
@@ -43,7 +43,6 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
 #endif
-
 	//pllTreeInitTopologyForAlignment(tree, phylip);
 
 #ifdef DEBUG
@@ -56,8 +55,14 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
+	cout << "NODEP IS " << tree->nodep << " " << tree->nodep[1] << " "
+			<< tree->nodep[2] << endl;
+	cout << tree->nodep[1]->back << " " << tree->nodep[2]->back << endl;
+
+	tree->start = tree->nodep[1];
+
 #ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initializing model" << endl;
+	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
 	pllInitModel(tree, partitions, phylip);
 #ifdef DEBUG
@@ -115,6 +120,107 @@ double PLLModelOptimize::optimizeParameters(pllInstance * tr,
 
 	return tr->likelihood;
 }
+
+char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
+		string inputFile) {
+
+	ofstream controlFile;
+
+	controlFile.open("tmpfiles/raxcontrol.conf");
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		PartitionElement * element = scheme->getElement(i);
+		const char * name = element->getName().c_str();
+		controlFile << "DNA," << name << "=";
+		for (int j = 0; j < element->getNumberOfSections(); j++) {
+			int start = element->getStart(j);
+			int end = element->getEnd(j);
+			controlFile << start << "-" << end;
+			if (j < element->getNumberOfSections()-1) {
+				controlFile << ",";
+			}
+		}
+		controlFile << endl;
+	}
+	controlFile.close();
+
+	stringstream command;
+	command << "bin/raxmlHPC -s " << options->getInputFile()
+			<< " -q tmpfiles/raxcontrol.conf -n start -m GTRGAMMA -p 1";
+
+	if (strlen(options->getTreeFile())) {
+		command << " -t " << options->getTreeFile();
+	} else if (options->getTreeString()) {
+		ofstream stTreeFile;
+		stTreeFile.open("tmpfiles/raxtree.conf");
+		stTreeFile << options->getTreeString() << endl;
+		stTreeFile.close();
+		command << " -t tmpfiles/raxtree.conf";
+	}
+	system(command.str().c_str());
+
+	ifstream treeFile("RAxML_bestTree.start");
+	string line;
+	if (treeFile.is_open()) {
+		getline(treeFile, line);
+		treeFile.close();
+	}
+
+	char * treeString = (char *) malloc(line.size() + 1);
+	strcpy(treeString, line.c_str());
+
+	int currentPartition = 0;
+	ifstream resultsFile("RAxML_info.start");
+	if (resultsFile.is_open()) {
+		while (getline(resultsFile, line)) {
+			if (!line.compare(0, 17, "Base frequencies:")) {
+				double frequencies[4];
+				frequencies[0] = atof(line.substr(18, 5).c_str());
+				frequencies[1] = atof(line.substr(24, 5).c_str());
+				frequencies[2] = atof(line.substr(30, 5).c_str());
+				frequencies[3] = atof(line.substr(36, 5).c_str());
+				scheme->getElement(currentPartition)->getModelset()->getModel(0)->setFrequencies(
+						frequencies);
+				currentPartition++;
+			}
+			if (!line.compare(0, 8, "alpha[0]")) {
+				currentPartition = 0;
+				istringstream iss(line);
+				do {
+					string token;
+					iss >> token;
+					if (token.compare(0, 5, "alpha")) {
+						iss >> token;
+						scheme->getElement(currentPartition)->getModelset()->getModel(
+								0)->setAlpha(atof(token.c_str()));
+					}
+					double rates[6];
+					if (token.compare(0, 5, "rates")) {
+						for (int i = 0; i < 6; i++) {
+							iss >> token;
+						}
+						for (int i = 0; i < 6; i++) {
+							iss >> token;
+							rates[i] = atof(token.c_str());
+						}
+					}
+					scheme->getElement(currentPartition)->getModelset()->getModel(
+							0)->setRates(rates);
+					currentPartition++;
+				} while (currentPartition < scheme->getNumberOfElements());
+			}
+		}
+		resultsFile.close();
+	}
+
+	remove("RAxML_bestTree.start");
+	remove("RAxML_log.start");
+	remove("RAxML_info.start");
+	remove("RAxML_parsimonyTree.start");
+
+	return treeString;
+
+}
+
 double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 		partitionList *partitions, bool estimateModel, bool estimateTopology) {
 
@@ -152,7 +258,8 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 			pllOptimizeModelParameters(tr, partitions, 10);
 			pllEvaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 
-			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0) << "LK " << tr->likelihood << endl;
+			cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
+					<< "LK " << tr->likelihood << endl;
 
 			if (tr->likelihood > lk) {
 
@@ -160,7 +267,7 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 						PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 						PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 				cout << "[SPR] treeSPR" << i << "<- read.tree(text=\""
-									<< tr->tree_string << "\")" << endl;
+						<< tr->tree_string << "\")" << endl;
 
 				difference = tr->likelihood - lk;
 				bestMove = i;
@@ -170,18 +277,19 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 			pllRearrangeRollback(tr, partitions);
 			pllEvaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
 		}
-		cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0) << " DIFF " << difference << endl;
+		cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0) << " DIFF "
+				<< difference << endl;
 		sprDistance *= 2;
 
-		if (difference > epsilon && sprDistance < (2*tr->mxtips - 1)) {
+		if (difference > epsilon && sprDistance < (2 * tr->mxtips - 1)) {
 			/* We don't need the rearrange list anymore */
-			  pllDestroyRearrangeList (&bestList);
+			pllDestroyRearrangeList(&bestList);
 
-			  /* Now let's create another list and compute 30 rearrangement moves */
-			  bestList = pllCreateRearrangeList (5);
+			/* Now let's create another list and compute 30 rearrangement moves */
+			bestList = pllCreateRearrangeList(5);
 		}
 
-	} while (difference > epsilon && sprDistance < (2*tr->mxtips - 1));
+	} while (difference > epsilon && sprDistance < (2 * tr->mxtips - 1));
 
 	pllRearrangeCommit(tr, partitions, &(bestList->rearr[bestMove]), PLL_FALSE);
 	pllTreeEvaluate(tr, partitions, 64);
@@ -191,10 +299,10 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 	tr->thoroughInsertion = PLL_TRUE;
 
 	/* We don't need the rearrange list anymore */
-	pllDestroyRearrangeList (&bestList);
+	pllDestroyRearrangeList(&bestList);
 
 	/* Now let's create another list and compute 30 rearrangement moves */
-	bestList = pllCreateRearrangeList (1);
+	bestList = pllCreateRearrangeList(1);
 
 	pllRearrangeSearch(tr, partitions, PLL_REARRANGE_SPR,
 			tr->nodep[tr->mxtips + 1], 1, 30, bestList);
@@ -208,12 +316,12 @@ double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
 			PLL_FALSE, PLL_FALSE);
 
-	cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0) << "LK " << tr->likelihood << endl;
+	cout << "[SPR] " << Utilities::timeToString(time(NULL) - t0) << "LK "
+			<< tr->likelihood << endl;
 	cout << "[SPR] treeLAST <- read.tree(text=\"" << tr->tree_string << "\")"
 			<< endl;
 
-	exit(0);
-	return 0.0;
+	return tr->likelihood;
 }
 
 double prevSPR(pllInstance * tr, partitionList *partitions, bool estimateModel,
@@ -345,155 +453,162 @@ PLLModelOptimize::~PLLModelOptimize() {
 
 int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		PartitioningScheme * scheme) {
+	partitionList *partitions = (partitionList *) malloc(sizeof(partitionList));
+	char * tree = getMlTree(scheme, options->getInputFile());
 
+	cout << "FINAL TREE: " << tree << endl << endl;
+
+	return 0;
+}
+
+int oldPartitioningSchemeAtOnce(PartitioningScheme * scheme) {
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Constructing partitions structure" << endl;
 #endif
 
-	pllQueue * parts;
-	pllPartitionRegion * pregion;
-	pllPartitionInfo * pinfo;
-
-	pllQueueInit(&parts);
-
-	int numSeqs = alignment->getNumSeqs();
-	int numSites = alignment->getNumSites();
-	pllAlignmentData * phylip = pllInitAlignmentData(numSeqs, numSites);
-	phylip->sequenceCount = numSeqs;
-	phylip->sequenceLength = numSites;
-	for (int i = 0; i < numSeqs; i++) {
-		phylip->sequenceLabels[i + 1] = strdup(
-				alignment->getPhylip()->sequenceLabels[i + 1]);
-	}
-	phylip->siteWeights = (int *) malloc(numSites * sizeof(int));
-	int firstSite = 1;
-	int nextSite = 0;
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
-		PartitionElement * element = scheme->getElement(i);
-
-		pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
-		pllQueueInit(&(pinfo->regionList));
-		pllQueueAppend(parts, (void *) pinfo);
-
-		pinfo->partitionName = (char *) malloc(
-				(element->getName().size() + 1) * sizeof(char));
-		strcpy(pinfo->partitionName, element->getName().c_str());
-		pinfo->partitionModel = (char *) malloc(5 * sizeof(char));
-		if (element->getBestModel()->getModel()->isPF()) {
-			strcpy(pinfo->partitionModel, "DNAX");
-			pinfo->optimizeBaseFrequencies = PLL_TRUE;
-		} else {
-			strcpy(pinfo->partitionModel, "DNA");
-			pinfo->optimizeBaseFrequencies = PLL_FALSE;
-		}
-		pinfo->protModels = -1;
-		pinfo->protFreqs = -1;
-		pinfo->dataType = PLL_DNA_DATA;
-
-		for (int j = 0; j < element->getNumberOfSections(); j++) {
-			for (int site = element->getStart(j) - 1; site < element->getEnd(j);
-					site++) {
-				phylip->siteWeights[nextSite] = 1;
-				for (int nk = 0; nk < numSeqs; nk++) {
-					phylip->sequenceData[nk + 1][nextSite] =
-							alignment->getPhylip()->sequenceData[nk + 1][site];
-				}
-				nextSite++;
-			}
-		}
-
-		pregion = (pllPartitionRegion *) malloc(
-				sizeof(pllPartitionRegion));
-		pregion->start = firstSite;
-		pregion->end = nextSite;
-		pregion->stride = 1;
-		pllQueueAppend(pinfo->regionList, (void *) pregion);
-
-		firstSite = nextSite + 1;
-	}
-
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Committing partitions" << endl;
-#endif
-	partitionList * partitions = pllPartitionsCommit(parts, phylip);
-
-	pllQueuePartitionsDestroy(&parts);
-
-	for (int i = 0; i < partitions->numberOfPartitions; i++) {
-		if (partitions->partitionData[i]->lower
-				== partitions->partitionData[i]->upper) {
-			exit(-1);
-		}
-	}
-
-	//pllPhylipRemoveDuplicate(phylip, partitions);
-
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Creating tree instance" << endl;
-#endif
-	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
-			sizeof(pllInstanceAttr));
-	attr->rateHetModel = PLL_GAMMA;
-	attr->fastScaling = PLL_FALSE;
-	attr->saveMemory = PLL_FALSE;
-	attr->useRecom = PLL_FALSE;
-	attr->randomNumberSeed = 12345;
-	attr->numberOfThreads = 1;
-	pllInstance * tr = pllCreateInstance(attr);
-	rax_free(attr);
-
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
-#endif
-	pllTreeInitTopologyForAlignment(tr, phylip);
-	/* Connect the alignment with the tree structure */
-
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Connecting tree with alignment" << endl;
-#endif
-	if (!pllLoadAlignment(tr, phylip, partitions,
-	PLL_SHALLOW_COPY)) {
-		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
-	}
-
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initializing model" << endl;
-#endif
-	pllInitModel(tr, partitions, phylip);
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
-#endif
-
-	/* set best-fit models */
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
-		Model * model = scheme->getElement(i)->getBestModel()->getModel();
-		setModelParameters(model, tr, partitions, i);
-	}
-
-	if (options->getTreeString() == 0) {
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
-	} else {
-		pllNewickTree * nt = pllNewickParseString(options->getTreeString());
-		pllTreeInitTopologyNewick(tr, nt, PLL_FALSE);
-		Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
-				PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
-				PLL_FALSE, PLL_FALSE);
-	}
-
-	pllEvaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, false);
-
-	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
-			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
-			PLL_FALSE, PLL_FALSE);
-	cout << "FINAL TREE: " << tr->tree_string << endl;
-
-	pllPartitionsDestroy(tr, &partitions);
-	partitions = 0;
-
-	pllDestroyInstance(tr);
-	tr = 0;
+//	pllQueue * parts;
+//	pllPartitionRegion * pregion;
+//	pllPartitionInfo * pinfo;
+//
+//	pllQueueInit(&parts);
+//
+//	int numSeqs = alignment->getNumSeqs();
+//	int numSites = alignment->getNumSites();
+//	pllAlignmentData * phylip = pllInitAlignmentData(numSeqs, numSites);
+//	phylip->sequenceCount = numSeqs;
+//	phylip->sequenceLength = numSites;
+//	for (int i = 0; i < numSeqs; i++) {
+//		phylip->sequenceLabels[i + 1] = strdup(
+//				alignment->getPhylip()->sequenceLabels[i + 1]);
+//	}
+//	phylip->siteWeights = (int *) malloc(numSites * sizeof(int));
+//	int firstSite = 1;
+//	int nextSite = 0;
+//	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+//		PartitionElement * element = scheme->getElement(i);
+//
+//		pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+//		pllQueueInit(&(pinfo->regionList));
+//		pllQueueAppend(parts, (void *) pinfo);
+//
+//		pinfo->partitionName = (char *) malloc(
+//				(element->getName().size() + 1) * sizeof(char));
+//		strcpy(pinfo->partitionName, element->getName().c_str());
+//		pinfo->partitionModel = (char *) malloc(5 * sizeof(char));
+//		if (element->getBestModel()->getModel()->isPF()) {
+//			strcpy(pinfo->partitionModel, "DNAX");
+//			pinfo->optimizeBaseFrequencies = PLL_TRUE;
+//		} else {
+//			strcpy(pinfo->partitionModel, "DNA");
+//			pinfo->optimizeBaseFrequencies = PLL_FALSE;
+//		}
+//		pinfo->protModels = -1;
+//		pinfo->protFreqs = -1;
+//		pinfo->dataType = PLL_DNA_DATA;
+//
+//		for (int j = 0; j < element->getNumberOfSections(); j++) {
+//			for (int site = element->getStart(j) - 1; site < element->getEnd(j);
+//					site++) {
+//				phylip->siteWeights[nextSite] = 1;
+//				for (int nk = 0; nk < numSeqs; nk++) {
+//					phylip->sequenceData[nk + 1][nextSite] =
+//							alignment->getPhylip()->sequenceData[nk + 1][site];
+//				}
+//				nextSite++;
+//			}
+//		}
+//
+//		pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
+//		pregion->start = firstSite;
+//		pregion->end = nextSite;
+//		pregion->stride = 1;
+//		pllQueueAppend(pinfo->regionList, (void *) pregion);
+//
+//		firstSite = nextSite + 1;
+//	}
+//
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Committing partitions" << endl;
+//#endif
+//	partitionList * partitions = pllPartitionsCommit(parts, phylip);
+//
+//	pllQueuePartitionsDestroy(&parts);
+//
+//	for (int i = 0; i < partitions->numberOfPartitions; i++) {
+//		if (partitions->partitionData[i]->lower
+//				== partitions->partitionData[i]->upper) {
+//			exit(-1);
+//		}
+//	}
+//
+//	//pllPhylipRemoveDuplicate(phylip, partitions);
+//
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Creating tree instance" << endl;
+//#endif
+//	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
+//			sizeof(pllInstanceAttr));
+//	attr->rateHetModel = PLL_GAMMA;
+//	attr->fastScaling = PLL_FALSE;
+//	attr->saveMemory = PLL_FALSE;
+//	attr->useRecom = PLL_FALSE;
+//	attr->randomNumberSeed = 12345;
+//	attr->numberOfThreads = 1;
+//	pllInstance * tr = pllCreateInstance(attr);
+//	rax_free(attr);
+//
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Initializing topology" << endl;
+//#endif
+//	pllTreeInitTopologyForAlignment(tr, phylip);
+//	/* Connect the alignment with the tree structure */
+//
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Connecting tree with alignment" << endl;
+//#endif
+//	if (!pllLoadAlignment(tr, phylip, partitions,
+//	PLL_SHALLOW_COPY)) {
+//		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
+//		Utilities::exit_partest(EX_SOFTWARE);
+//	}
+//
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Initializing model (sch)" << endl;
+//#endif
+//	pllInitModel(tr, partitions, phylip);
+//#ifdef DEBUG
+//	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
+//#endif
+//
+//	/* set best-fit models */
+//	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+//		Model * model = scheme->getElement(i)->getBestModel()->getModel();
+//		setModelParameters(model, tr, partitions, i);
+//	}
+//
+//	if (options->getTreeString() == 0) {
+//		pllComputeRandomizedStepwiseAdditionParsimonyTree(tr, partitions);
+//	} else {
+//		pllNewickTree * nt = pllNewickParseString(options->getTreeString());
+//		pllTreeInitTopologyNewick(tr, nt, PLL_FALSE);
+//		Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
+//				PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+//				PLL_FALSE, PLL_FALSE);
+//	}
+//
+//	pllEvaluateGeneric(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
+//	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, false);
+//
+//	Tree2String(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
+//			PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
+//			PLL_FALSE, PLL_FALSE);
+//	cout << "FINAL TREE: " << tr->tree_string << endl;
+//
+//	pllPartitionsDestroy(tr, &partitions);
+//	partitions = 0;
+//
+//	pllDestroyInstance(tr);
+//	tr = 0;
 
 	return 0;
 }

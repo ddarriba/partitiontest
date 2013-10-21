@@ -26,10 +26,6 @@
 
 #include "Alignment.h"
 
-extern "C" {
-#include "parser/partition/part.h"
-}
-
 using namespace std;
 namespace partest {
 

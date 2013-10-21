@@ -89,13 +89,13 @@ int main(int argc, char *argv[]) {
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
 	mo->attach(observer);
-	if (options->getOptimizeMode() == OPT_SEARCH) {
-		partitioningScheme->buildCompleteModelSet(false);
-		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
-		PartitionSelector partSelector(&partitioningScheme, 1, options);
-	} else {
-		partitioningScheme->resetModelSet();
-	}
+//	if (options->getOptimizeMode() == OPT_SEARCH) {
+//		partitioningScheme->buildCompleteModelSet(false);
+//		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
+//		PartitionSelector partSelector(&partitioningScheme, 1, options);
+//	} else {
+//		partitioningScheme->resetModelSet();
+//	}
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme at once" << endl;
 #endif
@@ -162,6 +162,8 @@ int main(int argc, char *argv[]) {
 				<< partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree()
 				<< endl;
 	}
+
+	cout << "Execution done... it took " << time(NULL) - iniTime << " seconds." << endl;
 
 	delete searchAlgo;
 	delete partitionMap;
