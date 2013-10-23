@@ -66,7 +66,7 @@ public:
 			const char *configFile, StartTopo startingTopology,
 			SearchAlgo searchAlgo, OptimizeMode optimize,
 			InformationCriterion informationCriterion, SampleSize sampleSize,
-			double sampleSizeValue = 0.0, const char *userTree = "");
+			double sampleSizeValue, const char *userTree, const char *outputDir);
 
 	/**
 	 * @brief Gets the alignment.
@@ -216,11 +216,18 @@ public:
 	ofstream * getPartitionsOutputStream(void) const;
 
 	/**
-	 * @brief Gets the output file for scheme selections
+	 * @brief Gets the output file for scheme selections.
 	 *
 	 * @return The output file for partition selections.
 	 */
 	ofstream * getSchemesOutputStream(void) const;
+
+	/**
+		 * @brief Gets the path for temporary files.
+		 *
+		 * @return The path for temporary files.
+		 */
+	string getOutputTmpPath(void) const;
 
 	/**
 	 * @brief Sets the input alignment.
@@ -321,10 +328,12 @@ private:
 	char configFile[256]; /** Input configuration file */
 	char treeFile[256]; /** Input tree file */
 	char * treeString; /** Input tree in Newick format */
+	char outputDir[256]; /** Directory for output files */
 	string outputFileResults; /** Output results file */
 	string outputFileModels; /** Output models file */
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
+	string outputTmpPath; /** Output temporary files path */
 #ifdef _PLL
 	pllQueue * pllPartitions; /** Partitions definition for PLL */
 #endif

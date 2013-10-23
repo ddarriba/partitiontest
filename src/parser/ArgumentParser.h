@@ -74,6 +74,7 @@ enum ArgIndex {
 	ARG_SAMPLE_SIZE, /** Argument for sample size type */
 	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
 	ARG_OPTIMIZE, /** Argument for search algorithm */
+	ARG_OUTPUT, /** Argument for setting the output directory */
 	ARG_HELP, /** Argument for show help */
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */

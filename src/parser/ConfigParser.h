@@ -39,11 +39,17 @@
 #define INPUT_MSA_TAG 		"msa"
 #define INPUT_TREE_TAG		"tree"
 #define OUTPUT_TAG 			"output"
+#define OUTPUT_TMP_PATH 	"tmp"
 #define OUTPUT_BASE_PATH 	"path"
 #define OUTPUT_RESULTS_TAG 	"results"
 #define OUTPUT_MODELS_TAG 	"models"
 #define OUTPUT_PARTS_TAG 	"partitions"
 #define OUTPUT_SCHEMES_TAG 	"schemes"
+#ifdef _WIN32
+#define DEFAULT_OUTPUT_TMP_PATH 	""
+#else
+#define DEFAULT_OUTPUT_TMP_PATH 	"/tmp"
+#endif
 #define DEFAULT_OUTPUT_BASE_PATH 	""
 #define DEFAULT_OUTPUT_RESULTS_TAG 	"results.out"
 #define DEFAULT_OUTPUT_MODELS_TAG 	"models.out"
@@ -144,6 +150,13 @@ public:
 		return outputFileSchemes;
 	}
 
+	/**
+	 * @brief Gets the path for temporary files.
+	 */
+	const string& getOutputTmpPath() const {
+		return outputTmpPath;
+	}
+
 #ifdef _PLL
 	/**
 	 * @brief Gets the partition definitions for PLL.
@@ -186,6 +199,7 @@ private:
 	string outputFilePartitions; /** File name for partition selections output */
 	string outputFileSchemes; /** File name for scheme selections output */
 	string outputBasePath; /** Base path for output files */
+	string outputTmpPath; /** Base path for output files */
 
 #ifdef _PLL
 	pllQueue * parts; /** Partitions definition for PLL */

@@ -8,13 +8,20 @@
 #include "PLLModelOptimize.h"
 #include <iostream>
 #include <sstream>
-#if ! (defined(__ppc) || defined(__powerpc__) || defined(PPC))
-#include <xmmintrin.h>
+//#if ! (defined(__ppc) || defined(__powerpc__) || defined(PPC))
+//#include <xmmintrin.h>
+//#endif
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 extern "C" {
 #include "globalVariables.h"
 #include "newick.h"
+
+#define MAX_FILE_LEN 255
 
 extern double treeOptimizeRapid(pllInstance *tr, partitionList *pr, int mintrav,
 		int maxtrav, analdef *adef, bestlist *bt, infoList *iList);
@@ -121,12 +128,78 @@ double PLLModelOptimize::optimizeParameters(pllInstance * tr,
 	return tr->likelihood;
 }
 
+#ifdef _WIN32
+string ExePath() {
+	char buffer[255];
+	GetModuleFileName( NULL, buffer, 255 );
+	string::size_type pos = string( buffer ).find_last_of( "\\/" );
+	return string( buffer ).substr( 0, pos);
+}
+#endif
+
 char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 		string inputFile) {
 
+	char controlFilename[MAX_FILE_LEN];
+	strcpy(controlFilename, tmpnam(NULL));
+	char treeFilename[MAX_FILE_LEN];
+	strcpy(treeFilename, tmpnam(NULL));
+
+	string suffix(controlFilename);
+	string::size_type pos = string( suffix ).find_last_of( "\\/" );
+	suffix = suffix.substr( pos+1 );
+	const char *cSuffix = suffix.c_str();
+
+#ifdef _WIN32
+	/* NOT SURE IF THIS WORKS */
+	char currentDir[255];
+	GetModuleFileName( NULL, currentDir, 255 );
+	string::size_type pos = string( currentDir ).find_last_of( "\\/" );
+#else
+	char * currentDir = NULL;
+	size_t tmpS;
+	currentDir = getcwd(currentDir, tmpS);
+#endif
+
+	char outputTreeFilename[MAX_FILE_LEN];
+	outputTreeFilename[0] = '\0';
+	strcat(outputTreeFilename, options->getOutputTmpPath().c_str());
+	strcat(outputTreeFilename, "RAxML_bestTree.");
+	strcat(outputTreeFilename, cSuffix);
+
+	char outputInfoFilename[MAX_FILE_LEN];
+	outputInfoFilename[0] = '\0';
+	strcat(outputInfoFilename, options->getOutputTmpPath().c_str());
+	strcat(outputInfoFilename, "RAxML_info.");
+	strcat(outputInfoFilename, cSuffix);
+
+	char outputLogFilename[MAX_FILE_LEN];
+	outputLogFilename[0] = '\0';
+	strcat(outputLogFilename, options->getOutputTmpPath().c_str());
+	strcat(outputLogFilename, "RAxML_log.");
+	strcat(outputLogFilename, cSuffix);
+
+	char outputResultsFilename[MAX_FILE_LEN];
+	outputResultsFilename[0] = '\0';
+	strcat(outputResultsFilename, options->getOutputTmpPath().c_str());
+	strcat(outputResultsFilename, "RAxML_result.");
+	strcat(outputResultsFilename, cSuffix);
+
+	char outputParsimonyFilename[MAX_FILE_LEN];
+	outputParsimonyFilename[0] = '\0';
+	strcat(outputParsimonyFilename, options->getOutputTmpPath().c_str());
+	strcat(outputParsimonyFilename, "RAxML_parsimonyTree.");
+	strcat(outputParsimonyFilename, cSuffix);
+
+	remove(outputTreeFilename);
+	remove(outputInfoFilename);
+	remove(outputLogFilename);
+	remove(outputResultsFilename);
+	remove(outputParsimonyFilename);
+
 	ofstream controlFile;
 
-	controlFile.open("tmpfiles/raxcontrol.conf");
+	controlFile.open(controlFilename);
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 		const char * name = element->getName().c_str();
@@ -135,7 +208,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 			int start = element->getStart(j);
 			int end = element->getEnd(j);
 			controlFile << start << "-" << end;
-			if (j < element->getNumberOfSections()-1) {
+			if (j < element->getNumberOfSections() - 1) {
 				controlFile << ",";
 			}
 		}
@@ -144,21 +217,45 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	controlFile.close();
 
 	stringstream command;
-	command << "bin/raxmlHPC -s " << options->getInputFile()
-			<< " -q tmpfiles/raxcontrol.conf -n start -m GTRGAMMA -p 1";
+	command << "bin/raxmlHPC -s " << options->getInputFile() << " -q "
+			<< controlFilename << " -n " << cSuffix << " -m GTRGAMMA -p 1";
+
+	if (options->getOutputTmpPath().length()) {
+		if (options->getOutputTmpPath().c_str()[0] == char_separator) {
+			command << " -w " << options->getOutputTmpPath();
+		} else {
+			char outputTmpFilename[MAX_FILE_LEN];
+			outputTmpFilename[0] = '\0';
+			strcat(outputTmpFilename, currentDir);
+			strcat(outputTmpFilename, os_separator.c_str());
+			strcat(outputTmpFilename, options->getOutputTmpPath().c_str());
+			command << " -w " << outputTmpFilename;
+		}
+	}
 
 	if (strlen(options->getTreeFile())) {
 		command << " -t " << options->getTreeFile();
 	} else if (options->getTreeString()) {
 		ofstream stTreeFile;
-		stTreeFile.open("tmpfiles/raxtree.conf");
+		stTreeFile.open(treeFilename);
 		stTreeFile << options->getTreeString() << endl;
 		stTreeFile.close();
-		command << " -t tmpfiles/raxtree.conf";
+		command << " -t " << treeFilename;
 	}
-	system(command.str().c_str());
+	cout << "COMMAND = " << command.str() << endl;
 
-	ifstream treeFile("RAxML_bestTree.start");
+	if (system(command.str().c_str()) != 0) {
+		cerr << "There was an error finding the ML topology. Check the logfiles ";
+		if (options->getOutputTmpPath().length() > 0) {
+			cerr << "(" << options->getOutputTmpPath() << ")" << endl;
+		}
+		cerr << endl;
+		exit(0);
+	}
+
+	cout << "OUTPUT FILE = " << outputTreeFilename << endl;
+
+	ifstream treeFile(outputTreeFilename);
 	string line;
 	if (treeFile.is_open()) {
 		getline(treeFile, line);
@@ -169,7 +266,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	strcpy(treeString, line.c_str());
 
 	int currentPartition = 0;
-	ifstream resultsFile("RAxML_info.start");
+	ifstream resultsFile(outputInfoFilename);
 	if (resultsFile.is_open()) {
 		while (getline(resultsFile, line)) {
 			if (!line.compare(0, 17, "Base frequencies:")) {
@@ -212,10 +309,13 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 		resultsFile.close();
 	}
 
-	remove("RAxML_bestTree.start");
-	remove("RAxML_log.start");
-	remove("RAxML_info.start");
-	remove("RAxML_parsimonyTree.start");
+	remove(controlFilename);
+	remove(treeFilename);
+	remove(outputTreeFilename);
+	remove(outputInfoFilename);
+	remove(outputLogFilename);
+	remove(outputResultsFilename);
+	remove(outputParsimonyFilename);
 
 	return treeString;
 

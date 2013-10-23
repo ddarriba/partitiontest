@@ -59,6 +59,7 @@ ArgumentParser::ArgumentParser() {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
 			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
 			ARG_OPTIMIZE, 'O', "optimize", true }, {
+			ARG_OUTPUT, 'o', "output", true }, {
 			ARG_NUM_PROCS, 'p', "num-procs", true }, {
 			ARG_IC_TYPE, 's', "selection-criterion", true }, {
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
@@ -164,10 +165,11 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	char input_file[256] = "";
 	char user_tree[256] = "";
 	char config_file[256] = "";
+	char output_dir[256] = "";
 	bool do_f = DEFAULT_DO_F;
 	bool do_i = DEFAULT_DO_I;
 	bool do_g = DEFAULT_DO_G;
-	double sampleSizeValue;
+	double sampleSizeValue = 0.0;
 
 	DataType data_type = DEFAULT_DATA_TYPE;
 	StartTopo startingTopology = DEFAULT_STARTING_TOPOLOGY;
@@ -208,7 +210,6 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 //        }
 			break;
 		case ARG_USER_TREE:
-			cout << "User Tree " << value << endl;
 			strcpy(user_tree, value);
 			break;
 		case ARG_DATA_TYPE:
@@ -359,12 +360,17 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				cerr << "[ERROR] \"-n " << value
 						<< "\" is not a valid optimize mode. Use one of the following:"
 						<< endl;
-				cerr << "  -O " << setw(16) << left
-						<< ARG_OPTIMIZE_BESTMODEL << "\t Perform a model selection on the best partition" << endl;
-				cerr << "  -O " << setw(16) << left
-						<< ARG_OPTIMIZE_GTR << "\t Optimize only GTR models on the best partition" << endl;
+				cerr << "  -O " << setw(16) << left << ARG_OPTIMIZE_BESTMODEL
+						<< "\t Perform a model selection on the best partition"
+						<< endl;
+				cerr << "  -O " << setw(16) << left << ARG_OPTIMIZE_GTR
+						<< "\t Optimize only GTR models on the best partition"
+						<< endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
+			break;
+		case ARG_OUTPUT:
+			strcpy(output_dir, value);
 			break;
 		case ARG_CONFIG_FILE:
 			strcpy(config_file, value);
@@ -419,7 +425,8 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 #endif
 
 	options->set(input_file, data_type, do_rate, config_file, startingTopology,
-			searchAlgo, optimize, ic_type, sampleSize, sampleSizeValue, user_tree);
+			searchAlgo, optimize, ic_type, sampleSize, sampleSizeValue,
+			user_tree, output_dir);
 
 #ifdef DEBUG
 	cout << "[TRACE] ParTest options set" << endl;

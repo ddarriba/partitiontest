@@ -33,7 +33,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG) {
+				DEFAULT_OUTPUT_RESULTS_TAG), outputTmpPath(
+				DEFAULT_OUTPUT_BASE_PATH) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 		int partitionId = 0;
@@ -69,7 +70,6 @@ ConfigParser::ConfigParser(const char * configFile) :
 		/** PARTITIONS **/
 		ini.GetAllKeys(PARTITIONS_TAG, keys);
 		numberOfPartitions = keys.size();
-//		assert( numberOfPartitions < sizeof(t_partitionElementId) * 8);
 		partitions = new vector<partitionInfo>(numberOfPartitions);
 		char * lineBuffer = (char *) malloc(150);
 		for (CSimpleIniA::TNamesDepend::iterator it = keys.begin();
@@ -123,7 +123,19 @@ ConfigParser::ConfigParser(const char * configFile) :
 		/** OUTPUT **/
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
 		if (value) {
-			outputBasePath = string(value);
+			if (value[strlen(value) - 1] != char_separator)
+				outputBasePath = string(value) + os_separator;
+			else
+				outputBasePath = string(value);
+		}
+		value = ini.GetValue(OUTPUT_TAG, OUTPUT_TMP_PATH, 0);
+		if (value) {
+			if (value[strlen(value) - 1] != char_separator)
+				outputTmpPath = string(value) + os_separator;
+			else
+				outputTmpPath = string(value);
+		} else {
+			outputTmpPath = outputBasePath;
 		}
 		value = ini.GetValue(OUTPUT_TAG, OUTPUT_RESULTS_TAG, 0);
 		if (value) {
