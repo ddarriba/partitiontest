@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <climits>
+#include <string>
 #ifdef _PLL
 extern "C" {
 #include "pll.h"
@@ -21,6 +22,14 @@ extern "C" {
 typedef std::vector<unsigned int> t_partitionElementId;
 
 #define DOUBLE_INF 1e140
+
+#ifdef _WIN32
+#define char_separator '\\'
+const std::string os_separator("\\");
+#else
+const std::string os_separator("/");
+#define char_separator '/'
+#endif
 
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;

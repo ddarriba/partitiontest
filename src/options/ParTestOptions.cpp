@@ -77,9 +77,10 @@ ParTestOptions::~ParTestOptions() {
 
 void ParTestOptions::set(const char *inputFile, DataType dataType,
 		bitMask doRateVariation, const char *configFile,
-		StartTopo startingTopology, SearchAlgo searchAlgo, OptimizeMode optimize,
-		InformationCriterion informationCriterion, SampleSize sampleSize,
-		double sampleSizeValue, const char *userTree) {
+		StartTopo startingTopology, SearchAlgo searchAlgo,
+		OptimizeMode optimize, InformationCriterion informationCriterion,
+		SampleSize sampleSize, double sampleSizeValue, const char *userTree,
+		const char *outputDir) {
 
 	this->rateVariation = doRateVariation;
 
@@ -110,6 +111,10 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	this->outputFileModels = parser.getOutputFileModels();
 	this->outputFilePartitions = parser.getOutputFilePartitions();
 	this->outputFileSchemes = parser.getOutputFileSchemes();
+	this->outputTmpPath = parser.getOutputTmpPath();
+	if (strcmp(outputDir, "")) {
+		this->outputTmpPath = outputDir;
+	}
 #ifdef _PLL
 	this->pllPartitions = parser.getPllPartitions();
 #endif
@@ -188,8 +193,12 @@ string ParTestOptions::getOutputFileSchemes(void) const {
 	return outputFileSchemes;
 }
 
+string ParTestOptions::getOutputTmpPath(void) const {
+	return outputTmpPath;
+}
+
 #ifdef _PLL
-pllQueue *  ParTestOptions::getPllPartitions(void) const {
+pllQueue * ParTestOptions::getPllPartitions(void) const {
 	return pllPartitions;
 }
 #endif
