@@ -36,6 +36,7 @@ void PrintMeta::print_header(ostream& output) {
 	output << "| PhyML version (Guindon and Gascuel 2011) |" << endl;
 #endif
 	output << "--------------------------------------------" << endl << endl;
+	cout << "Done" << endl;
 }
 
 void PrintMeta::print_options(ostream& output, ParTestOptions & options) {

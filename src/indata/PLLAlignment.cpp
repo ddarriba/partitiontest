@@ -131,20 +131,33 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	attr->useRecom = PLL_FALSE;
 	attr->randomNumberSeed = rand();
 	attr->numberOfThreads = 1;
+#ifdef DEBUG
+	cout << "[TRACE] Creating PLL tree instance" << endl;
+#endif
 	tr = pllCreateInstance(attr);
 	rax_free(attr);
-
+#ifdef DEBUG
+	cout << "[TRACE] Creating phylip structure" << endl;
+#endif
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, alignmentFile.c_str());
 
 	/* commit the partitions and build a partitions structure */
 	this->pllPartitions = pllPartitions;
-
+#ifdef DEBUG
+	cout << "[TRACE] Committing partitions" << endl;
+#endif
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
+#ifdef DEBUG
+	cout << "[TRACE] Init tree" << endl;
+#endif
 	pllTreeInitTopologyForAlignment(tr, phylip);
 
 	numSeqs = phylip->sequenceCount;
 	numSites = phylip->sequenceLength;
 	numPatterns = phylip->sequenceLength;
+#ifdef DEBUG
+	cout << "[TRACE] Done " << numSeqs << " x " << numSites << endl;
+#endif
 }
 
 PLLAlignment::~PLLAlignment() {
