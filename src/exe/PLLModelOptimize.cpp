@@ -62,10 +62,6 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
 
-	cout << "NODEP IS " << tree->nodep << " " << tree->nodep[1] << " "
-			<< tree->nodep[2] << endl;
-	cout << tree->nodep[1]->back << " " << tree->nodep[2]->back << endl;
-
 	tree->start = tree->nodep[1];
 
 #ifdef DEBUG

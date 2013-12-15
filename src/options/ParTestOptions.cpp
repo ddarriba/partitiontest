@@ -122,19 +122,25 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	modelsOutputStream = new ofstream(outputFileModels.c_str());
 	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
 	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
+#ifdef DEBUG
+	cout << "[TRACE] Creating alignment"<< endl;
+#endif
 #ifdef _PLL
 	alignment = new PLLAlignment(inputFile, dataType, pllPartitions);
 #else
 	alignment = new PhymlAlignment(inputFile, dataType);
 #endif
-	PrintMeta::print_header(*resultsOutputStream);
-	PrintMeta::print_header(*modelsOutputStream);
-	PrintMeta::print_header(*partitionsOutputStream);
-	PrintMeta::print_header(*schemesOutputStream);
-	PrintMeta::print_options(*resultsOutputStream, *this);
-	PrintMeta::print_options(*modelsOutputStream, *this);
-	PrintMeta::print_options(*partitionsOutputStream, *this);
-	PrintMeta::print_options(*schemesOutputStream, *this);
+//	PrintMeta::print_header(*resultsOutputStream);
+//	PrintMeta::print_header(*modelsOutputStream);
+//	PrintMeta::print_header(*partitionsOutputStream);
+//	PrintMeta::print_header(*schemesOutputStream);
+//	PrintMeta::print_options(*resultsOutputStream, *this);
+//	PrintMeta::print_options(*modelsOutputStream, *this);
+//	PrintMeta::print_options(*partitionsOutputStream, *this);
+//	PrintMeta::print_options(*schemesOutputStream, *this);
+#ifdef DEBUG
+	cout << "[TRACE] Done Config" << endl;
+#endif
 }
 
 Alignment * ParTestOptions::getAlignment(void) {

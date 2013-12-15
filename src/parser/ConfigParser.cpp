@@ -37,6 +37,11 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_BASE_PATH) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
+
+#ifdef DEBUG
+	cout << "[TRACE] Parsing config file" << endl;
+#endif
+
 		int partitionId = 0;
 		const char * value;
 		CSimpleIniA ini;
@@ -70,6 +75,9 @@ ConfigParser::ConfigParser(const char * configFile) :
 		/** PARTITIONS **/
 		ini.GetAllKeys(PARTITIONS_TAG, keys);
 		numberOfPartitions = keys.size();
+#ifdef DEBUG
+	cout << "[TRACE] Got "<< numberOfPartitions << " partitions" << endl;
+#endif
 		partitions = new vector<partitionInfo>(numberOfPartitions);
 		char * lineBuffer = (char *) malloc(150);
 		for (CSimpleIniA::TNamesDepend::iterator it = keys.begin();
@@ -93,6 +101,9 @@ ConfigParser::ConfigParser(const char * configFile) :
 		pllQueueInit(&parts);
 #endif
 
+#ifdef DEBUG
+	cout << "[TRACE] Creating partitions" << endl;
+#endif
 		for (int i = 0; i < numberOfPartitions; i++) {
 			partitions->at(i).partitionId.push_back(i);
 #ifdef _PLL
@@ -154,6 +165,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 			outputFileSchemes = outputBasePath + string(value);
 		}
 	}
+
 }
 
 int ConfigParser::parsePartitionDetails(char * line,
