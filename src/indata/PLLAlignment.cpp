@@ -37,7 +37,7 @@ char convert(unsigned char c) {
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
-
+	dataType = alignment->dataType;
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
 	for (int i = 0; i < numberOfSections; i++) {
@@ -83,6 +83,14 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pllQueueInit(&pllPartitions);
 
 	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+	switch(dataType) {
+		case DT_NUCLEIC:
+			pinfo->dataType = PLL_DNA_DATA;
+			break;
+		case DT_PROTEIC:
+			pinfo->dataType = PLL_AA_DATA;
+			break;
+		}
 	pllQueueInit(&(pinfo->regionList));
 	pllQueueAppend(pllPartitions, (void *) pinfo);
 
@@ -92,7 +100,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 	pinfo->protModels = -1;
 	pinfo->protFreqs = -1;
-	pinfo->dataType = PLL_DNA_DATA;
+
 	pinfo->optimizeBaseFrequencies = PLL_TRUE;
 
 	pregion = (pllPartitionRegion *) malloc(
@@ -111,7 +119,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
 		int lastPosition) {
-	phylip = 0;
+	dataType = alignment->dataType;	phylip = 0;
 	tr = 0;
 	pllPartitions = 0;
 	partitions = 0;

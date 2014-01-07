@@ -67,6 +67,9 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
+	if (partitions->partitionData[0]->dataType == PLL_AA_DATA)
+		for (int i=0; i<partitions->numberOfPartitions; i++)
+			partitions->partitionData[i]->protModels = PLL_DAYHOFF;
 	pllInitModel(tree, partitions, phylip);
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
@@ -724,8 +727,6 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 			initializeStructs(tree, partitions, phylip);
 
-			cout << "** ELEMENT " << element->getName() << endl;
-
 			optimizePartitionElement(element, i + 1,
 					scheme->getNumberOfElements());
 		}
@@ -795,45 +796,58 @@ int PLLModelOptimize::optimizeModel(Model * model,
 void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 		partitionList * partitions, int index, bool setAlphaFreqs) {
 
-	const char * m = model->getMatrixName().c_str();
-	char * symmetryPar = (char *) malloc(12 * sizeof(char));
-	symmetryPar[0] = m[0];
-	symmetryPar[11] = '\0';
-	for (int j = 1; j < 6; j++) {
-		symmetryPar[(j - 1) * 2 + 1] = ',';
-		symmetryPar[j * 2] = m[j];
-	}
-
-	pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, index);
-
+	DataType dataType = options->getDataType();
 	pInfo * current_part = partitions->partitionData[index];
-	current_part->optimizeBaseFrequencies = model->isPF();
-	current_part->alpha = model->getAlpha();
 
-	if (setAlphaFreqs) {
-		memcpy(current_part->frequencies, model->getFrequencies(),
-				4 * sizeof(double));
-		memcpy(current_part->substRates, model->getRates(), 6 * sizeof(double));
-	} else {
-		if (!model->isPF()) {
-			partitions->partitionData[index]->optimizeBaseFrequencies =
-					PLL_FALSE;
-			for (int i = 0; i < 4; i++) {
-				partitions->partitionData[index]->frequencies[i] = 0.25;
+	if (dataType == DT_NUCLEIC) {
+		const char * m = model->getMatrixName().c_str();
+		char * symmetryPar = (char *) malloc(2 * NUM_DNA_RATES * sizeof(char));
+		symmetryPar[0] = m[0];
+		symmetryPar[11] = '\0';
+		for (int j = 1; j < NUM_DNA_RATES; j++) {
+			symmetryPar[(j - 1) * 2 + 1] = ',';
+			symmetryPar[j * 2] = m[j];
+		}
+
+		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, index);
+		free(symmetryPar);
+
+		current_part->optimizeBaseFrequencies = model->isPF();
+		current_part->alpha = model->getAlpha();
+
+		if (setAlphaFreqs) {
+			memcpy(current_part->frequencies, model->getFrequencies(),
+					NUM_DNA_STATES * sizeof(double));
+			memcpy(current_part->substRates, model->getRates(), NUM_DNA_RATES * sizeof(double));
+		} else {
+			if (!model->isPF()) {
+				partitions->partitionData[index]->optimizeBaseFrequencies =
+						PLL_FALSE;
+				for (int i = 0; i < NUM_DNA_STATES; i++) {
+					partitions->partitionData[index]->frequencies[i] = (1/NUM_DNA_STATES);
+				}
 			}
-		}
-		for (int i = 0; i < 6; i++) {
-			partitions->partitionData[index]->substRates[i] = 1;
-		}
+			for (int i = 0; i < NUM_DNA_RATES; i++) {
+				partitions->partitionData[index]->substRates[i] = 1;
+			}
 
-		partitions->partitionData[index]->alpha = 100;
-	}
-
-	free(symmetryPar);
-	initReversibleGTR(tr, partitions, index);
-	if (setAlphaFreqs) {
-		makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-				tr->useMedian);
+			partitions->partitionData[index]->alpha = 100;
+		}
+		initReversibleGTR(tr, partitions, index);
+		if (setAlphaFreqs) {
+			makeGammaCats(current_part->alpha, current_part->gammaRates, NUM_RATE_CATEGORIES,
+					tr->useMedian);
+		}
+	} else {
+		ProteicModel * pModel = static_cast<ProteicModel *>(model);
+		current_part->dataType = PLL_AA_DATA;
+		current_part->protFreqs = PLL_FALSE;
+		current_part->optimizeBaseFrequencies = PLL_FALSE;
+		current_part->protModels = pModel->getMatrix();
+		initReversibleGTR(tr, partitions, index);
+		if (pModel->isPF()) {
+			memcpy(current_part->frequencies, current_part->empiricalFrequencies, NUM_AA_STATES*sizeof(double));
+		}
 	}
 }
 

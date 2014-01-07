@@ -170,6 +170,8 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 				maxAlpha = alphaValues.at(index);
 			}
 			distances.at(index) = mi->distanceTo(mj);
+ cout << "Distance from " << mi->getName() << " to " << mj->getName() << " = " << distances.at(index) << endl;
+
 		}
 	}
 	double minDistance = DOUBLE_INF;

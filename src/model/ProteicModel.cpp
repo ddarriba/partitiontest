@@ -92,7 +92,7 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 		case PROT_MATRIX_GTR:
 		matrixName = "GTR";
 		/* 189 substitution rates have to be optimized! (190-1) */
-		modelFreeParameters += 189;
+		modelFreeParameters += (NUM_AA_RATES - 1);
 		break;
 #endif
 	}
@@ -111,13 +111,17 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 	if (rateVariation & RateVarF) {
 		name += "+F";
 		/* 19 frequencies free parameters (20-1) */
-		modelFreeParameters += 19;
+//		modelFreeParameters += 19;
 	}
 
 }
 
 ProteicModel::~ProteicModel() {
 	// NOTHING
+}
+
+ProtMatrix ProteicModel::getMatrix(void) {
+	return matrix;
 }
 
 void ProteicModel::setFrequencies(const double * frequencies) {
@@ -132,7 +136,8 @@ void ProteicModel::setRates(const double * rates) {
 
 double ProteicModel::distanceTo(Model * otherModel) {
 	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
-	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
+	//double matrixDistance = matrix!=other->matrix?getEuclideanDistance(matrix, other->matrix): 0;
+	double matrixDistance = matrix!=other->matrix?100: 0;
 	double invDistance = pInv - other->pInv;
 	double shapeDistance = alpha - other->alpha;
 	double freqsDistance = 0.0;
