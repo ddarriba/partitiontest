@@ -31,6 +31,12 @@ const std::string os_separator("/");
 #define char_separator '/'
 #endif
 
+#define NUM_DNA_STATES  4
+#define NUM_DNA_RATES   6
+#define NUM_AA_STATES  20
+#define NUM_AA_RATES  190
+#define NUM_RATE_CATEGORIES 4
+
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;
 
