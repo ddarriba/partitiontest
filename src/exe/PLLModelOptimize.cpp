@@ -67,9 +67,11 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
+
 	if (partitions->partitionData[0]->dataType == PLL_AA_DATA)
 		for (int i=0; i<partitions->numberOfPartitions; i++)
 			partitions->partitionData[i]->protModels = PLL_DAYHOFF;
+
 	pllInitModel(tree, partitions, phylip);
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
@@ -800,42 +802,42 @@ void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 	pInfo * current_part = partitions->partitionData[index];
 
 	if (dataType == DT_NUCLEIC) {
+		current_part->optimizeBaseFrequencies = model->isPF();
+		current_part->alpha = model->getAlpha();
 		const char * m = model->getMatrixName().c_str();
-		char * symmetryPar = (char *) malloc(2 * NUM_DNA_RATES * sizeof(char));
+		char * symmetryPar = (char *) malloc(12 * sizeof(char));
 		symmetryPar[0] = m[0];
 		symmetryPar[11] = '\0';
-		for (int j = 1; j < NUM_DNA_RATES; j++) {
+		for (int j = 1; j < 6; j++) {
 			symmetryPar[(j - 1) * 2 + 1] = ',';
 			symmetryPar[j * 2] = m[j];
 		}
 
 		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, partitions, index);
-		free(symmetryPar);
-
-		current_part->optimizeBaseFrequencies = model->isPF();
-		current_part->alpha = model->getAlpha();
 
 		if (setAlphaFreqs) {
 			memcpy(current_part->frequencies, model->getFrequencies(),
-					NUM_DNA_STATES * sizeof(double));
-			memcpy(current_part->substRates, model->getRates(), NUM_DNA_RATES * sizeof(double));
+					4 * sizeof(double));
+			memcpy(current_part->substRates, model->getRates(), 6 * sizeof(double));
 		} else {
 			if (!model->isPF()) {
 				partitions->partitionData[index]->optimizeBaseFrequencies =
 						PLL_FALSE;
-				for (int i = 0; i < NUM_DNA_STATES; i++) {
-					partitions->partitionData[index]->frequencies[i] = (1/NUM_DNA_STATES);
+				for (int i = 0; i < 4; i++) {
+					partitions->partitionData[index]->frequencies[i] = 0.25;
 				}
 			}
-			for (int i = 0; i < NUM_DNA_RATES; i++) {
+			for (int i = 0; i < 6; i++) {
 				partitions->partitionData[index]->substRates[i] = 1;
 			}
 
 			partitions->partitionData[index]->alpha = 100;
 		}
+
+		free(symmetryPar);
 		initReversibleGTR(tr, partitions, index);
 		if (setAlphaFreqs) {
-			makeGammaCats(current_part->alpha, current_part->gammaRates, NUM_RATE_CATEGORIES,
+			makeGammaCats(current_part->alpha, current_part->gammaRates, 4,
 					tr->useMedian);
 		}
 	} else {
