@@ -141,6 +141,7 @@ string ExePath() {
 char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 		string inputFile) {
 
+	DataType dataType = options->getDataType();
 	char controlFilename[MAX_FILE_LEN];
 	strcpy(controlFilename, tmpnam(NULL));
 	char treeFilename[MAX_FILE_LEN];
@@ -204,7 +205,10 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 		const char * name = element->getName().c_str();
-		controlFile << "DNA," << name << "=";
+		if (dataType == DT_NUCLEIC)
+			controlFile << "DNA," << name << "=";
+		else
+			controlFile << "JTT," << name << "=";
 		for (int j = 0; j < element->getNumberOfSections(); j++) {
 			int start = element->getStart(j);
 			int end = element->getEnd(j);
@@ -218,8 +222,12 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	controlFile.close();
 
 	stringstream command;
-	command << "bin/raxmlHPC -s " << options->getInputFile() << " -q "
+	if (dataType == DT_NUCLEIC)
+		command << "bin/raxmlHPC -s " << options->getInputFile() << " -q "
 			<< controlFilename << " -n " << cSuffix << " -m GTRGAMMA -p 1";
+	else
+		command << "bin/raxmlHPC -s " << options->getInputFile() << " -q "
+					<< controlFilename << " -n " << cSuffix << " -m PROTGAMMAJTT -p 1";
 
 	if (options->getOutputTmpPath().length()) {
 		if (options->getOutputTmpPath().c_str()[0] == char_separator) {
