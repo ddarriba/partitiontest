@@ -44,6 +44,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		numSites += lastPosition[i] - firstPosition[i] + 1;
 	}
 	phylip = pllInitAlignmentData(numSeqs, numSites);
+
 	phylip->sequenceCount = numSeqs;
 	phylip->sequenceLength = numSites;
 	for (int i = 0; i < numSeqs; i++) {
@@ -85,9 +86,11 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 	switch(dataType) {
 		case DT_NUCLEIC:
+			pinfo->protModels = -1;
 			pinfo->dataType = PLL_DNA_DATA;
 			break;
 		case DT_PROTEIC:
+			pinfo->protModels = PLL_JTT;
 			pinfo->dataType = PLL_AA_DATA;
 			break;
 		}
@@ -98,10 +101,9 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	strcpy(pinfo->partitionName, "SPLITTED");
 	pinfo->partitionModel = (char *) malloc(1);
 
-	pinfo->protModels = -1;
 	pinfo->protFreqs = -1;
 
-	pinfo->optimizeBaseFrequencies = PLL_TRUE;
+	pinfo->optimizeBaseFrequencies = PLL_FALSE;
 
 	pregion = (pllPartitionRegion *) malloc(
 			sizeof(pllPartitionRegion));
@@ -148,13 +150,14 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	cout << "[TRACE] Creating phylip structure" << endl;
 #endif
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, alignmentFile.c_str());
-
 	/* commit the partitions and build a partitions structure */
 	this->pllPartitions = pllPartitions;
 #ifdef DEBUG
 	cout << "[TRACE] Committing partitions" << endl;
 #endif
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
+	for (int i=0; i<partitions->numberOfPartitions;i++)
+		partitions->partitionData[i]->dataType = dataType;
 #ifdef DEBUG
 	cout << "[TRACE] Init tree" << endl;
 #endif
