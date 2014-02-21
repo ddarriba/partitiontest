@@ -35,12 +35,6 @@ ModelOptimize::ModelOptimize(ParTestOptions * options) :
 ModelOptimize::~ModelOptimize() {
 }
 
-//int ModelOptimize::optimizeModel(Model * model,
-//		PartitionElement * partitionElement, int index, int groupCount) {
-//  // MOCK!
-//  return 0;
-//}
-
 int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 		int current_index, int max_index) {
 	ModelSet * modelset = partitionElement->getModelset();

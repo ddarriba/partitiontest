@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 	cout << "Best Scheme:" << endl << partitioningScheme->getCode() << endl
 			<< partitioningScheme->getName() << endl;
 
-#ifdef FAST_DNA
+//#ifdef FAST_DNA
 
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
 	delete mo;
 	delete observer;
-#endif
+//#endif
 
 #ifdef DEBUG
 	cout << "[TRACE] Done: " << partitioningScheme->getCode() << endl;
@@ -157,11 +157,11 @@ int main(int argc, char *argv[]) {
 		element->getBestModel()->getModel()->print(*rout);
 	}
 
-	if (partitioningScheme->getNumberOfElements() == 1) {
+	/*if (partitioningScheme->getNumberOfElements() == 1) {
 		cout << "BEST TREE: "
 				<< partitioningScheme->getElement(0)->getBestModel()->getModel()->getTree()
 				<< endl;
-	}
+	}*/
 
 	cout << "Execution done... it took " << time(NULL) - iniTime << " seconds." << endl;
 

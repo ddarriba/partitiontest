@@ -29,10 +29,8 @@
 #include "model/ModelSet.h"
 
 /* external C */
-#ifndef AXML_H
-#define AXML_H
-#include "pll.h"
-#endif
+#include <pll.h>
+#include <parsePartition.h>
 
 namespace partest {
 

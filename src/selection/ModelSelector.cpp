@@ -219,6 +219,10 @@ void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
 		Model * model = modelset->getModel(i);
 		double value = computeIc(ic, model->getLnL(),
 				model->getNumberOfFreeParameters(), sampleSize);
+#ifdef DEBUG
+		cout << "[DEBUG_SEL] " << model->getName() << " " << model->getLnL() << " " << model->getNumberOfFreeParameters() << " "
+				<< sampleSize << " " << value << endl;
+#endif
 
 		selectionModels->at(i) = new SelectionModel(model, value);
 	}

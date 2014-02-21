@@ -11,10 +11,8 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
-#ifndef AXML_H
-#define AXML_H
-#include "pll.h"
-#endif
+#include <pll.h>
+#include <parsePartition.h>
 
 namespace partest {
 
@@ -65,7 +63,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	}
 
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
-	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
+	pllInstanceAttr * attr = (pllInstanceAttr *) malloc(
 			sizeof(pllInstanceAttr));
 
 	attr->rateHetModel = PLL_GAMMA;
@@ -76,7 +74,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	attr->numberOfThreads = 1;
 
 	tr = pllCreateInstance(attr);
-	rax_free(attr);
+	free(attr);
 
 	pllPartitionRegion * pregion;
 	pllPartitionInfo * pinfo;
@@ -133,7 +131,7 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 		Alignment(alignmentFile, dataType) {
 
 	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
-	pllInstanceAttr * attr = (pllInstanceAttr *) rax_malloc(
+	pllInstanceAttr * attr = (pllInstanceAttr *) malloc(
 			sizeof(pllInstanceAttr));
 	attr->rateHetModel = PLL_GAMMA;
 	attr->fastScaling = PLL_FALSE;
@@ -145,7 +143,7 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	cout << "[TRACE] Creating PLL tree instance" << endl;
 #endif
 	tr = pllCreateInstance(attr);
-	rax_free(attr);
+	free(attr);
 #ifdef DEBUG
 	cout << "[TRACE] Creating phylip structure" << endl;
 #endif
