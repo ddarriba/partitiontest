@@ -23,6 +23,25 @@
 
 namespace partest {
 
+double distances[153] = {
+				0.055819, 6.28983, 6.28287, 8.3492, 8.34977, 6.24178, 5.55446, 5.54012, 5.00539, 7.05072,
+				8.62161, 8.60373, 7.95537, 9.10421, 6.24999, 8.03345, 8.0335, 6.95272, 8.01101, 6.10837,
+				9.04789, 6.57179, 6.55386, 4.20234, 6.7556, 2.81282, 5.6121, 6.42513, 8.95954, 8.94053,
+				8.25574, 9.17895, 5.08662, 5.82568, 8.33647, 4.86069, 10.7929, 10.7903, 7.84703, 5.74534,
+				9.63371, 10.3161, 10.5329, 8.80411, 10.4791, 7.45006, 7.43539, 5.71096, 7.2435, 3.84227,
+				4.45806, 7.35689, 2.74763, 4.5702, 8.85182, 9.40526, 9.39966, 8.95556, 7.78357, 8.5285,
+				7.47896, 9.37941, 7.94739, 8.64823, 8.97761, 7.13019, 8.25429, 8.25228, 7.50827, 6.61555,
+				7.54048, 7.29122, 8.08111, 6.8184, 8.26604, 8.16448, 6.35032, 2.62676, 8.30528, 8.28623,
+				8.06045, 8.98873, 4.89016, 5.80825, 7.80521, 4.76463, 3.43454, 10.8316, 4.64089, 7.97547,
+				7.67082, 9.86055, 9.85601, 6.00977, 8.49291, 8.37583, 10.4753, 8.44097, 7.76224, 10.7074,
+				9.2562, 8.6585, 11.6827, 10.6534, 10.5191, 12.6687, 12.6677, 8.81821, 10.8266, 10.9484,
+				13.2696, 10.4887, 10.4906, 12.6583, 10.6809, 11.5374, 14.3116, 13.2764, 12.9748, 7.50057,
+				6.15949, 6.15329, 0.500757, 6.26143, 4.83252, 7.87112, 6.78713, 4.13408, 8.13932, 7.89322,
+				5.6065, 8.95895, 7.51905, 7.94798, 5.9798, 8.83705, 9.90469, 9.89408, 6.59561, 9.28638,
+				7.85689, 9.44792, 8.44811, 7.32588, 9.22372, 9.81774, 8.08318, 10.56, 9.76868, 8.86959,
+				7.10936, 7.86896, 6.60864
+		};
+
 ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 		int numberOfTaxa) :
 		Model(rateVariation, numberOfTaxa), matrix(matrix) {
@@ -111,7 +130,7 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 	if (rateVariation & RateVarF) {
 		name += "+F";
 		/* 19 frequencies free parameters (20-1) */
-//		modelFreeParameters += 19;
+		modelFreeParameters += 19;
 	}
 
 }
@@ -137,9 +156,9 @@ void ProteicModel::setRates(const double * rates) {
 double ProteicModel::distanceTo(Model * otherModel) {
 	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
 	//double matrixDistance = matrix!=other->matrix?getEuclideanDistance(matrix, other->matrix): 0;
-	double matrixDistance = matrix!=other->matrix?100: 0;
-	double invDistance = pInv - other->pInv;
-	double shapeDistance = alpha - other->alpha;
+	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
+	double invDistance = abs(pInv - other->pInv);
+	double shapeDistance = abs(alpha - other->alpha);
 	double freqsDistance = 0.0;
 	// TODO: Store frequencies and compute euclidean distance.
 //	for (int i = 0; i < numberOfFrequencies; i++) {
@@ -151,6 +170,8 @@ double ProteicModel::distanceTo(Model * otherModel) {
 	double distance = matrixDistance + invDistance + shapeDistance
 			+ freqsDistance;
 
+	// cout << " DIST " << matrix << " to " << other->matrix << " = " << matrixDistance << " + " << invDistance << " + " << shapeDistance << " + " << freqsDistance << " = " << distance << endl;
+
 	return distance;
 }
 
@@ -161,19 +182,7 @@ double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) {
 		ProtMatrix lowMatrix = min(m1, m2);
 		ProtMatrix highMatrix = max(m1, m2);
 		int index = (highMatrix * (highMatrix - 1) / 2) + lowMatrix;
-		double distances[91] = {
-				554.40, 745.31, 308.82, 681.72, 369.32, 253.26, 738.50, 263.33,
-				207.04, 362.29, 732.96, 259.32, 207.44, 360.79, 5.99, 775.30,
-				415.07, 515.03, 478.51, 525.15, 523.88, 3209.58, 2690.17,
-				2541.35, 2614.11, 2548.45, 2553.82, 2553.20, 5.51, 549.44,
-				740.21, 677.20, 733.42, 727.89, 771.69, 3205.23, 1.80, 554.76,
-				745.81, 682.29, 738.85, 733.31, 776.16, 3210.21, 5.76, 867.34,
-				579.11, 336.95, 307.70, 523.09, 523.51, 690.97, 2571.97, 862.86,
-				867.91, 859.28, 474.02, 486.63, 458.27, 520.60, 521.06, 372.84,
-				2406.16, 855.75, 860.15, 623.86, 32.24, 535.48, 720.23, 658.53,
-				718.21, 712.70, 761.99, 3190.63, 28.48, 32.78, 838.70, 842.68,
-				15.20, 549.32, 735.75, 672.36, 731.36, 725.83, 772.55, 3204.47,
-				12.71, 15.65, 855.21, 856.09, 20.71 };
+
 		return distances[index];
 	}
 }

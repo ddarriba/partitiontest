@@ -111,17 +111,20 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
 				alignment->getPhylip());
 
-//		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
-//				alignment->getPartitions());
-//		pllEvaluateGeneric(alignment->getTree(), alignment->getPartitions(),
-//				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
-
-		char * startingTree = mo->getMlTree(nextSchemes.at(0), options->getInputFile());
-
-//		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
-//				alignment->getPartitions(), alignment->getTree()->start->back,
-//				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-//				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+		//char * startingTree = mo->getMlTree(nextSchemes.at(0), options->getInputFile());
+		//-OTHEROPTION! -//
+		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
+				alignment->getPartitions());
+		pllEvaluateLikelihood(alignment->getTree(), alignment->getPartitions(),
+				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
+		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true, true);
+//		mo->computeBIGRAPID(alignment->getTree(), alignment->getPartitions(),
+//				true);
+		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
+				alignment->getPartitions(), alignment->getTree()->start->back,
+				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+		char * startingTree = alignment->getTree()->tree_string;
 
 		options->setTreeString(startingTree);
 

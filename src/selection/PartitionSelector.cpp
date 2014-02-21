@@ -71,6 +71,9 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 			} else {
 				bestModel = pe->getBestModel();
 			}
+#ifdef DEBUG
+			cout << "[DEBUG_SEL]    " << pe->getName() << " : " << bestModel->getModel()->getLnL() << " -> " << bestModel->getValue() << endl;
+#endif
 			value += bestModel->getValue();
 			lk += bestModel->getModel()->getLnL();
 
@@ -85,6 +88,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		(schemesVector->at(part_id))->scheme = scheme;
 		(schemesVector->at(part_id))->value = value;
 
+		cout << "[DEBUG_SEL] BIC of " << scheme->getName() << " : " << value << endl;
 	}
 
 	std::sort(schemesVector->begin(), schemesVector->end(),

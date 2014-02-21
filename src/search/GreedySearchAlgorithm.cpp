@@ -220,13 +220,13 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 //		makeParsimonyTreeFast(alignment->getTree(),
 //				alignment->getPartitions());
 
-		pllEvaluateGeneric(alignment->getTree(), alignment->getPartitions(),
+		pllEvaluateLikelihood(alignment->getTree(), alignment->getPartitions(),
 				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
 		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
 		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true,
 				true);
 
-		Tree2String(alignment->getTree()->tree_string, alignment->getTree(),
+		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
