@@ -17,6 +17,8 @@
 #include <unistd.h>
 #endif
 
+#include <pllInternal.h>
+
 extern "C" {
 #include "globalVariables.h"
 #include "newick.h"
@@ -62,10 +64,22 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
-
-	if (partitions->partitionData[0]->dataType == PLL_AA_DATA)
-		for (int i = 0; i < partitions->numberOfPartitions; i++)
+	if (partitions->partitionData[0]->dataType == PLL_AA_DATA) {
+		for (int i = 0; i < partitions->numberOfPartitions; i++) {
+			partitions->partitionData[i]->dataType = PLL_AA_DATA;
+			partitions->partitionData[i]->states = 20;
+//			partitions->partitionData[i]->protFreqs = pModel->isPF();
+//			current_part->optimizeBaseFrequencies = PLL_FALSE;
+//			current_part->protModels = pModel->getMatrix();
+//	//		initReversibleGTR(tr, partitions, index);
+//			if (pModel->isPF()) {
+//				memcpy(current_part->frequencies,
+//						current_part->empiricalFrequencies,
+//						NUM_AA_STATES * sizeof(double));
+//			}
 			partitions->partitionData[i]->protModels = PLL_DAYHOFF;
+		}
+	}
 	pllInitModel(tree, partitions, phylip);
 
 #ifdef DEBUG
@@ -105,11 +119,9 @@ double PLLModelOptimize::optimizeParameters(pllInstance * tr,
 	tr->thoroughInsertion = PLL_FALSE;
 
 	pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-
-//	pllRaxmlSearchAlgorithm(tr, partitions, true);
+// initModel(tr, &partitions->partitionData[0]->empiricalFrequencies, partitions);
 	do {
 		lk = tr->likelihood;
-		// TODO: Optimize topology?
 		if (estimateModel)
 			pllOptimizeModelParameters(tr, partitions, 1);
 		if (estimateBranchLengths)
@@ -323,9 +335,15 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 			strcpy(pinfo->partitionModel, "DNA");
 			pinfo->optimizeBaseFrequencies = PLL_FALSE;
 		}
-		pinfo->protModels = -1;
-		pinfo->protFreqs = -1;
-		pinfo->dataType = PLL_DNA_DATA;
+		if (options->getDataType()==DT_NUCLEIC) {
+			pinfo->protModels = -1;
+			pinfo->protFreqs = -1;
+		} else {
+			ProteicModel * pModel = ((ProteicModel *) dynamic_cast<ProteicModel *>(element->getBestModel()->getModel()));
+			pinfo->protModels = pModel->getMatrix();
+			pinfo->protFreqs = pModel->isPF();
+		}
+		pinfo->dataType = options->getDataType()==DT_NUCLEIC?PLL_DNA_DATA:PLL_AA_DATA;
 
 #ifdef DEBUG
 		cout << "[TRACE] PLLModelOptimize - Loop in sections! "
@@ -343,9 +361,6 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 				nextSite++;
 			}
 		}
-#ifdef DEBUG
-		cout << "[TRACE] PLLModelOptimize - XT" << endl;
-#endif
 		pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
 		pregion->start = firstSite;
 		pregion->end = nextSite;
@@ -502,6 +517,7 @@ int PLLModelOptimize::optimizeModel(Model * model,
 	PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 	PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 
+	//evaluateSPR(tree, partitions, PLL_TRUE, PLL_TRUE);
 	setModelParameters(model, tree, partitions, 0, false);
 	optimizeParameters(tree, partitions, true, true, false);
 
