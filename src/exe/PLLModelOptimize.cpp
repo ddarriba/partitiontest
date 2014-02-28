@@ -8,40 +8,13 @@
 #include "PLLModelOptimize.h"
 #include <iostream>
 #include <sstream>
-//#if ! (defined(__ppc) || defined(__powerpc__) || defined(PPC))
-//#include <xmmintrin.h>
-//#endif
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <unistd.h>
 #endif
 
-#include <pllInternal.h>
-
-extern "C" {
-#include "globalVariables.h"
-#include "newick.h"
-
-#define MAX_FILE_LEN 255
-}
-
 namespace partest {
-
-char convert3(unsigned char c) {
-	switch (c) {
-	case 1:
-		return 'A';
-	case 2:
-		return 'C';
-	case 4:
-		return 'G';
-	case 8:
-		return 'T';
-	default:
-		return 'X';
-	}
-}
 
 void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		partitionList * partitions, pllAlignmentData * phylip) {
@@ -68,15 +41,6 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		for (int i = 0; i < partitions->numberOfPartitions; i++) {
 			partitions->partitionData[i]->dataType = PLL_AA_DATA;
 			partitions->partitionData[i]->states = 20;
-//			partitions->partitionData[i]->protFreqs = pModel->isPF();
-//			current_part->optimizeBaseFrequencies = PLL_FALSE;
-//			current_part->protModels = pModel->getMatrix();
-//	//		initReversibleGTR(tr, partitions, index);
-//			if (pModel->isPF()) {
-//				memcpy(current_part->frequencies,
-//						current_part->empiricalFrequencies,
-//						NUM_AA_STATES * sizeof(double));
-//			}
 			partitions->partitionData[i]->protModels = PLL_DAYHOFF;
 		}
 	}
@@ -119,7 +83,7 @@ double PLLModelOptimize::optimizeParameters(pllInstance * tr,
 	tr->thoroughInsertion = PLL_FALSE;
 
 	pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-// initModel(tr, &partitions->partitionData[0]->empiricalFrequencies, partitions);
+
 	do {
 		lk = tr->likelihood;
 		if (estimateModel)
@@ -426,27 +390,32 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 				PLL_FALSE, PLL_FALSE);
 	}
 
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initializing model (sch)" << endl;
-#endif
+
 	pllInitModel(tr, partitions, phylip);
-#ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
-#endif
 
 	/* set best-fit models */
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		Model * model = scheme->getElement(i)->getBestModel()->getModel();
 		setModelParameters(model, tr, partitions, i);
+		pllInitReversibleGTR(tr, partitions, i);
+		pllMakeGammaCats(partitions->partitionData[i]->alpha, partitions->partitionData[i]->gammaRates, 4, tr->useMedian);
 	}
 
 	pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, false);
+	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, true);
 
 	pllTreeToNewick(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 	PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
 	PLL_FALSE, PLL_FALSE);
+
+	cout << "final likelihood = " << tr->likelihood << endl;
+	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+		cout << scheme->getElement(i)->getBestModel()->getModel()->getName() << "  " << scheme->getElement(i)->getBestModel()->getModel()->getLnL()
+				<< " BIC: " << scheme->getElement(i)->getBestModel()->getValue() << endl;
+	}
 	cout << "FINAL TREE: " << tr->tree_string << endl;
+
+	pllAlignmentDataDestroy(phylip);
 
 	pllPartitionsDestroy(tr, &partitions);
 	partitions = 0;
@@ -474,6 +443,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 			optimizePartitionElement(element, i + 1,
 					scheme->getNumberOfElements());
+
 		}
 	}
 	return 0;
@@ -519,6 +489,9 @@ int PLLModelOptimize::optimizeModel(Model * model,
 
 	//evaluateSPR(tree, partitions, PLL_TRUE, PLL_TRUE);
 	setModelParameters(model, tree, partitions, 0, false);
+
+	pllInitReversibleGTR(tr, partitions, 0);
+
 	optimizeParameters(tree, partitions, true, true, false);
 
 	pllTreeToNewick(tree->tree_string, tree, partitions, tree->start->back,
@@ -545,6 +518,8 @@ void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 	if (dataType == DT_NUCLEIC) {
 		current_part->optimizeBaseFrequencies = model->isPF();
 		current_part->alpha = model->getAlpha();
+		current_part->nonGTR = PLL_FALSE;
+		current_part->dataType = PLL_DNA_DATA;
 		const char * m = model->getMatrixName().c_str();
 		char * symmetryPar = (char *) malloc(12 * sizeof(char));
 		symmetryPar[0] = m[0];
@@ -561,19 +536,20 @@ void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 					4 * sizeof(double));
 			memcpy(current_part->substRates, model->getRates(),
 					6 * sizeof(double));
+			current_part->alpha = model->getAlpha();
 		} else {
-			partitions->partitionData[index]->optimizeBaseFrequencies =
+			current_part->optimizeBaseFrequencies =
 					model->isPF();
 			if (!model->isPF()) {
 				for (int i = 0; i < 4; i++) {
-					partitions->partitionData[index]->frequencies[i] = 0.25;
+					current_part->frequencies[i] = 0.25;
 				}
 			}
 			for (int i = 0; i < 6; i++) {
-				partitions->partitionData[index]->substRates[i] = 1;
+				current_part->substRates[i] = 1;
 			}
 
-			partitions->partitionData[index]->alpha = 100;
+			current_part->alpha = 100;
 		}
 
 		free(symmetryPar);
@@ -588,13 +564,15 @@ void PLLModelOptimize::setModelParameters(Model * model, pllInstance * tr,
 		current_part->protFreqs = pModel->isPF();
 		current_part->optimizeBaseFrequencies = PLL_FALSE;
 		current_part->protModels = pModel->getMatrix();
-//		initReversibleGTR(tr, partitions, index);
+		//initReversibleGTR(tr, partitions, index);
 		if (pModel->isPF()) {
 			memcpy(current_part->frequencies,
 					current_part->empiricalFrequencies,
 					NUM_AA_STATES * sizeof(double));
 		}
+		current_part->alpha = model->getAlpha();
 	}
+	//pllInitModel(tree, partitions, alignment->getPhylip());
 }
 
 } /* namespace partest */
