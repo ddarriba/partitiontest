@@ -151,7 +151,7 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	/* commit the partitions and build a partitions structure */
 	this->pllPartitions = pllPartitions;
 #ifdef DEBUG
-	cout << "[TRACE] Committing partitions" << endl;
+	cout << "[TRACE] Committing partitions " << phylip->sequenceLength << endl;
 #endif
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
 	for (int i=0; i<partitions->numberOfPartitions;i++)
