@@ -23,8 +23,8 @@ Alignment::Alignment() {
 	dataType = DT_NUCLEIC;
 }
 Alignment::Alignment(string alignmentFile, DataType dataType) :
-		alignmentFile(alignmentFile), dataType(dataType), shannonEntropy(0), numPatterns(
-				0), numSeqs(0), numSites(0), empiricalFrequencies(0) {
+		alignmentFile(alignmentFile), dataType(dataType), numPatterns(0),
+		shannonEntropy(0), numSites(0), numSeqs(0), empiricalFrequencies(0) {
 
 	ifstream inputFile(alignmentFile.c_str());
 	if (!inputFile.good()) {

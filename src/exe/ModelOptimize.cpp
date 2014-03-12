@@ -46,7 +46,7 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 				partitionElement->getName());
 	}
 #pragma omp for schedule(dynamic)
-	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
 		//for (int i = modelset->getNumberOfModels() - 1; i >= 0; i--) {
 		notify_observers(MT_SINGLE_INIT, partitionElement->getId(),
 				modelset->getModel(i), time(NULL), i + 1,
@@ -78,10 +78,13 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 		}
 		ModelSelector selector = ModelSelector(partitionElement,
 				options->getInformationCriterion(), pSampleSize);
+		selector.print(cout);
 
 		notify_observers(MT_MODELSET_END, partitionElement->getId(),
 				partitionElement->getBestModel()->getModel(), time(NULL),
 				current_index, max_index, partitionElement->getName());
+		notify_observers(new ObservableInfo(MT_MODELSET_SELECTION, partitionElement->getId(),
+						partitionElement, time(NULL), 0, 0, ""));
 	}
 
 	return 0;

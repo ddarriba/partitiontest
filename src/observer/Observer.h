@@ -25,6 +25,8 @@
 
 #include "model/Model.h"
 #include "model/ModelSet.h"
+#include "indata/PartitionElement.h"
+#include "indata/PartitioningScheme.h"
 #include "options/ParTestOptions.h"
 #include <time.h>
 #include <assert.h>
@@ -39,11 +41,12 @@ enum MessageType {
   MT_GROUP_INIT, /** Start of a group of schemes computation */
   MT_SCHEME_INIT, /** Start of a partitioning scheme computation */
   MT_MODELSET_INIT, /** Start of a model set computation */
-  MT_FTREE_INIT,
-  MT_FTREE_END,
+  MT_FTREE_INIT, /** Start computing the fixed input tree */
+  MT_FTREE_END, /** End computing the fixed input tree */
   MT_SINGLE_INIT,
   MT_SINGLE_END,
   MT_MODELSET_END, /** End of a model set computation */
+  MT_MODELSET_SELECTION,
   MT_SCHEME_END, /** End of a partitioning scheme computation */
   MT_GROUP_END /** End of a group of schemes computation */
 };
@@ -57,7 +60,7 @@ struct ObservableInfo {
 	 *
 	 * @param[in] type Message type.
 	 * @param[in] p_index Index with some meaning for the observers.
-	 * @param[in] model Reference to a model (if appropriate).
+	 * @param[in] model Reference to a model.
 	 * @param[in] time Timestamp with some meaning for the observers.
 	 * @param[in] current_index Current index within the group.
 	 * @param[in] max_index Maximum index within the group.
@@ -65,17 +68,16 @@ struct ObservableInfo {
 	 */
     ObservableInfo(MessageType type, t_partitionElementId p_index, Model * model, time_t time = 0,
     		unsigned int current_index = 0, unsigned int max_index = 0, string message = 0) :
-        type(type), model(model), time(time), current_index(current_index), max_index(
+        type(type), model(model), modelset(0), partitionElement(0), partitioningScheme(0), time(time), current_index(current_index), max_index(
             max_index), p_index(p_index), message(message) {
     	assert(type != MT_MODELSET_INIT);
-    	modelset = 0;
     }
     /**
     	 * @brief Instantiates a new partest::ObservableInfo.
     	 *
     	 * @param[in] type Message type.
     	 * @param[in] p_index Index with some meaning for the observers.
-    	 * @param[in] modelset Reference to a model set (if appropriate).
+    	 * @param[in] modelset Reference to a model set.
     	 * @param[in] time Timestamp with some meaning for the observers.
     	 * @param[in] current_index Current index within the group.
     	 * @param[in] max_index Maximum index within the group.
@@ -83,14 +85,50 @@ struct ObservableInfo {
     	 */
     ObservableInfo(MessageType type, t_partitionElementId p_index, ModelSet * modelset, time_t time = 0,
     		unsigned int current_index = 0, unsigned int max_index = 0, string message = 0) :
-        type(type), modelset(modelset), time(time), current_index(current_index), max_index(
+        type(type), model(0), modelset(modelset), partitionElement(0), partitioningScheme(0), time(time), current_index(current_index), max_index(
             max_index), p_index(p_index), message(message) {
     	assert(type == MT_MODELSET_INIT || type == MT_MODELSET_END);
-    	model = 0;
     }
+
+    /**
+    	 * @brief Instantiates a new partest::ObservableInfo.
+    	 *
+    	 * @param[in] type Message type.
+    	 * @param[in] p_index Index with some meaning for the observers.
+    	 * @param[in] partitionElement Reference to a partitionElement.
+    	 * @param[in] time Timestamp with some meaning for the observers.
+    	 * @param[in] current_index Current index within the group.
+    	 * @param[in] max_index Maximum index within the group.
+    	 * @param[in] message Human readable message.
+    	 */
+    ObservableInfo(MessageType type, t_partitionElementId p_index, PartitionElement * partitionElement, time_t time = 0,
+    		unsigned int current_index = 0, unsigned int max_index = 0, string message = 0) :
+        type(type), model(0), modelset(0), partitionElement(partitionElement), partitioningScheme(0), time(time), current_index(current_index), max_index(
+            max_index), p_index(p_index), message(message) {
+    }
+
+    /**
+    	 * @brief Instantiates a new partest::ObservableInfo.
+    	 *
+    	 * @param[in] type Message type.
+    	 * @param[in] p_index Index with some meaning for the observers.
+    	 * @param[in] partitioningScheme Reference to a partitioningScheme.
+    	 * @param[in] time Timestamp with some meaning for the observers.
+    	 * @param[in] current_index Current index within the group.
+    	 * @param[in] max_index Maximum index within the group.
+    	 * @param[in] message Human readable message.
+    	 */
+    ObservableInfo(MessageType type, t_partitionElementId p_index, PartitioningScheme * partitioningScheme, time_t time = 0,
+    		unsigned int current_index = 0, unsigned int max_index = 0, string message = 0) :
+        type(type), model(0), modelset(0), partitionElement(0), partitioningScheme(partitioningScheme), time(time), current_index(current_index), max_index(
+            max_index), p_index(p_index), message(message) {
+    }
+
     const MessageType type; /** Type of the message sent by the observable instances. */
     Model * model; /** Reference to a model (if appropriate). */
     ModelSet * modelset; /** Reference to a model set (if appropriate). */
+    PartitionElement * partitionElement; /** Reference to a partition element (if appropriate). */
+    PartitioningScheme * partitioningScheme; /** Reference to a partitioning scheme (if appropriate). */
     const time_t time; /** Timestamp with some meaning for the observers. */
     const unsigned int current_index; /** Current index within the group. */
     const unsigned int max_index; /** Maximum index within the group. */

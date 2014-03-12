@@ -88,7 +88,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	#ifdef DEBUG
 		cout << "[TRACE]            Creating first scheme" << endl;
 	#endif
-		for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
+		for (unsigned int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
 			PartitionElement * nextElement = partitionMap->getPartitionElement(i);
 			nextSchemes.at(0)->addElement(nextElement);
 		}
@@ -97,13 +97,9 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	#endif
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
-		/* Starting topology */
 
-		cout << "Computing fixed topology ...";
-		cout.flush();
-#ifdef DEBUG
-		cout << endl;
-#endif
+		/* Starting topology */
+		notify_observers(MT_FTREE_INIT, time(NULL));
 
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
@@ -111,31 +107,26 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
 				alignment->getPhylip());
 
-		//char * startingTree = mo->getMlTree(nextSchemes.at(0), options->getInputFile());
-		//-OTHEROPTION! -//
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 				alignment->getPartitions());
-		pllEvaluateLikelihood(alignment->getTree(), alignment->getPartitions(),
-				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
+
 		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true, true);
-//		mo->computeBIGRAPID(alignment->getTree(), alignment->getPartitions(),
-//				true);
+
 		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
 		char * startingTree = alignment->getTree()->tree_string;
-
+		startingTree[strlen(startingTree)-1] = '\0';
 		options->setTreeString(startingTree);
 
-		cout << "STARTING TREE = " << startingTree << endl;
+		notify_observers(MT_FTREE_END, time(NULL), startingTree);
 
 	}
 
 
 	PartitioningScheme * bestScheme = nextSchemes.at(0);
 	bool reachedMaximum = false;
-	double distance;
 	double bestCriterionValue = DOUBLE_INF;
 	vector<t_partitionElementId> bestMatch0, bestMatch1;
 	t_partitionElementId nullId;
@@ -144,7 +135,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		reachedMaximum = true;
 		notify_observers(MT_NEXT_STEP, nullId, time(NULL), currentStep++,
 				numberOfBits);
-		for (int i = 0; i < nextSchemes.size(); i++) {
+		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
 #ifdef DEBUG
 			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->getName() << endl;
 #endif
@@ -159,7 +150,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 				bestCriterionValue = criterionValue;
 				bestScheme = partSelector.getBestScheme();
 				reachedMaximum = false;
-				for (int j = 0; j < bestMatch0.size(); j++) {
+				for (unsigned int j = 0; j < bestMatch0.size(); j++) {
 					partitionMap->deletePartitionElement(bestMatch0.at(j));
 					partitionMap->deletePartitionElement(bestMatch1.at(j));
 				}
@@ -190,7 +181,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 			}
 
 			int numPartitions = prevScheme->getNumberOfElements() - 1;
-			for (int i = 0; i < bestMatch0.size(); i++) {
+			for (unsigned int i = 0; i < bestMatch0.size(); i++) {
 				nextSchemes.push_back(new PartitioningScheme(numPartitions));
 				t_partitionElementId nextId;
 				Utilities::mergeIds(nextId, bestMatch0.at(i), bestMatch1.at(i));

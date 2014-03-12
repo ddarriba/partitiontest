@@ -47,7 +47,7 @@ public:
 	 * @param[in] dataType Whether the data is nucleotide or amino-acids.
 	 * @param[in] numberOfTaxa The number of taxa in the alignment.
 	 */
-  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, bool forceCompleteSet = false);
+  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int optimizeMode = OPT_SEARCH, bool forceCompleteSet = false);
 
   /**
    * @brief Gets the total number of models.

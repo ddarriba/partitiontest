@@ -106,7 +106,7 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 }
 
 PartitionSelector::~PartitionSelector() {
-	for (int i = 0; i < schemesVector->size(); i++) {
+	for (unsigned int i = 0; i < schemesVector->size(); i++) {
 		delete schemesVector->at(i);
 	}
 	delete schemesVector;
@@ -127,7 +127,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
 				<< sp->value << endl;
 	}
-	if (limit > 0 && schemesVector->size() > limit) {
+	if (limit > 0 && ((int) schemesVector->size()) > limit) {
 		out << "Not showing " << schemesVector->size() - limit
 				<< " schemes more..." << endl;
 	}

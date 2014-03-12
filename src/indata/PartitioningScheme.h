@@ -92,7 +92,7 @@ public:
 	 * @param[in] id The local id of the partition (i.e., in range [0,numberOfElements-1]
 	 * @return The partition.
 	 */
-	PartitionElement * getElement(int id);
+	PartitionElement * getElement(unsigned int id);
 
 	/**
 	 * @brief Gets whether all the PartitionElement instances were optimized or not.
@@ -132,9 +132,9 @@ public:
 	double getLnL();
 private:
 	vector<PartitionElement*> * partitions; /** Array of reference to the partitions of this scheme */
-	int currentElement; /** Current element index for the step-by-step construction of the scheme */
-	int numberOfElements; /** The number of partitions */
-	int numberOfBits; /** The number of single genes in the scheme. */
+	unsigned int currentElement; /** Current element index for the step-by-step construction of the scheme */
+	unsigned int numberOfElements; /** The number of partitions */
+	unsigned int numberOfBits; /** The number of single genes in the scheme. */
 	/**
 	 * @brief String identifier of this scheme.
 	 *

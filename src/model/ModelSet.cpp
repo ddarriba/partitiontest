@@ -21,12 +21,13 @@
 
 namespace partest {
 
-ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
+ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int optimizeMode,
 		bool forceCompleteSet) :
 		rateVar(rateVar), dataType(dataType), numberOfTaxa(numberOfTaxa) {
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
 	int numberOfMatrices;
 	numberOfModels = Utilities::binaryPow(numberOfParameters);
+	numberOfMatrices = 1;
 
 #ifdef FAST_DNA
 	if (forceCompleteSet) {
@@ -45,23 +46,29 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 		numberOfMatrices = 1;
 	}
 #else
-	switch (dataType) {
-	case DT_NUCLEIC:
-		numberOfMatrices = NUC_MATRIX_SIZE / 2;
-		break;
-	case DT_PROTEIC:
-		numberOfMatrices = PROT_MATRIX_SIZE;
-		break;
-	default:
-		Utilities::exit_partest(EX_OSERR);
-		break;
+	if (optimizeMode == OPT_SEARCH) {
+		switch (dataType) {
+		case DT_NUCLEIC:
+			numberOfMatrices = NUC_MATRIX_SIZE / 2;
+			break;
+		case DT_PROTEIC:
+			numberOfMatrices = PROT_MATRIX_SIZE;
+			break;
+		default:
+			Utilities::exit_partest(EX_OSERR);
+			break;
+		}
 	}
 #endif
 
 #ifdef FAST_DNA
 	numberOfModels = forceCompleteSet?(numberOfModels*numberOfMatrices):1;
 #else
-	numberOfModels *= numberOfMatrices;
+	if (optimizeMode == OPT_SEARCH) {
+		numberOfModels *= numberOfMatrices;
+	} else {
+		numberOfModels = 1;
+	}
 #endif
 
 	models = (Model **) malloc(numberOfModels * sizeof(Model *));
@@ -98,7 +105,7 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 
 ModelSet::~ModelSet() {
 	if (models) {
-		for (int i = 0; i < numberOfModels; i++) {
+		for (unsigned int i = 0; i < numberOfModels; i++) {
 			delete models[i];
 		}
 		free(models);
@@ -107,7 +114,7 @@ ModelSet::~ModelSet() {
 
 void ModelSet::buildCompleteModelSet(bool clearAll) {
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
-	int numberOfMatrices;
+	int numberOfMatrices = 0;
 	int newNumberOfModels = Utilities::binaryPow(numberOfParameters);
 
 	switch (dataType) {
@@ -140,11 +147,11 @@ void ModelSet::buildCompleteModelSet(bool clearAll) {
 	}
 
 	if (clearAll) {
-		for (int i = 0; i < numberOfModels; i++) {
+		for (unsigned int i = 0; i < numberOfModels; i++) {
 			delete models[i];
 		}
 	} else {
-		for (int i = 0; i < numberOfModels; i++) {
+		for (unsigned int i = 0; i < numberOfModels; i++) {
 			for (int j = 0; j < newNumberOfModels; j++) {
 				if (!strcmp(newModels[j]->getName().c_str(),
 						models[i]->getName().c_str())) {
@@ -192,7 +199,7 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 					numberOfTaxa);
 		}
 #ifdef FAST_DNA
-		}
+	}
 #endif
 		break;
 	case DT_PROTEIC:

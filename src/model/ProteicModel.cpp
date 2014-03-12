@@ -187,23 +187,20 @@ double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) {
 	}
 }
 
-void ProteicModel::print(ostream& cout) {
-	cout << "--------" << endl;
-	cout << name << endl;
+void ProteicModel::print(ostream& cout, const char * prefix) {
+	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
-		cout << "lnL = " << lnL << endl;
+		cout << prefix << "lnL:   " << lnL << endl;
 		if (isPInv()) {
-			cout << "pInv = " << pInv << endl;
+			cout << prefix << "pInv:  " << pInv << endl;
 		}
 		if (isGamma()) {
-			cout << "alpha = " << alpha << endl;
+			cout << prefix << "alpha: " << alpha << endl;
 		}
-		cout << "MOST LIKELY TREE:" << endl;
-		cout << tree << endl;
+		cout << prefix << "Most Likely Tree: " << tree;
 	} else {
-		cout << "Unoptimized" << endl;
+		cout << prefix << "State: Unoptimized" << endl;
 	}
-	cout << "--------" << endl;
 }
 
 } /* namespace partest */
