@@ -49,7 +49,7 @@ public:
 	void setFrequencies(const double * frequencies);
 	void setRates(const double * rates);
 	double distanceTo(Model * other);
-	virtual void print(ostream& out);
+	virtual void print(ostream& out, const char * prefix = "");
 	virtual ~NucleicModel();
 private:
 	NucMatrix matrix; /** Nucleotide substitution scheme */

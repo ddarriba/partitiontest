@@ -64,13 +64,11 @@ PartitionMap::PartitionMap(Alignment * alignment,
 	cout << "[TRACE] Instantiated partition map from void" << endl;
 #endif
 
-	partitions = partitions = new vector<partitionMappingInfo>(
-			numberOfElements);
+	partitions = new vector<partitionMappingInfo>(numberOfElements);
 }
 
 PartitionMap::~PartitionMap() {
-	int i;
-	for (i = 0; i < numberOfElements; i++) {
+	for (unsigned int i = 0; i < numberOfElements; i++) {
 		delete partitions->at(i).partitionElement;
 	}
 	delete partitions;
@@ -109,7 +107,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 	std::sort(partitionId.begin(), partitionId.end());
 
 	/* search for element */
-	for (int i = 0; i < partitions->size(); i++) {
+	for (unsigned int i = 0; i < partitions->size(); i++) {
 		partitionMappingInfo pInfo = partitions->at(i);
 		if (pInfo.partitionId == partitionId) {
 			return pInfo.partitionElement;
@@ -151,7 +149,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 
 	if (id.size() > 1) {
-		for (int i = numberOfPartitions; i < numberOfElements; i++) {
+		for (unsigned int i = numberOfPartitions; i < numberOfElements; i++) {
 			if (partitions->at(i).partitionId == id) {
 				delete partitions->at(i).partitionElement;
 				partitions->erase(partitions->begin() + i);
@@ -171,7 +169,7 @@ void PartitionMap::purgePartitionMap(t_partitionElementId id) {
 		return;
 
 	/* Loop backwards over complex elements */
-	for (int i = numberOfElements - 1; i >= numberOfPartitions; i--) {
+	for (unsigned int i = numberOfElements - 1; i >= numberOfPartitions; i--) {
 		t_partitionElementId mId = partitions->at(i).partitionId;
 		if (mId != id && Utilities::intersec(mId, id)) {
 			deletePartitionElement(mId);

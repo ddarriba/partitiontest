@@ -57,6 +57,12 @@ void ConsoleObserver::update(const ObservableInfo & info,
 	//boost::mutex::scoped_lock lock(m_io_monitor);
 #pragma omp critical
 	switch (info.type) {
+	case MT_FTREE_INIT:
+		cout << Utilities::timeToString(info.time - initTime) << " [FIXED_TREE] Building fixed topology... " << info.message << endl;
+		break;
+	case MT_FTREE_END:
+		cout << Utilities::timeToString(info.time - initTime) << " [FIXED_TREE] Done: Starting Tree. " << info.message << endl;
+		break;
 	case MT_NEXT_STEP:
 		cout << Utilities::timeToString(info.time - initTime) << " [STEP] "
 				<< info.current_index << "/" << info.max_index << " "
@@ -103,6 +109,16 @@ void ConsoleObserver::update(const ObservableInfo & info,
 		cout << Utilities::timeToString(info.time - initTime)
 				<< " -- [/SCHEME] " << info.current_index << "/"
 				<< info.max_index << endl;
+		break;
+	case MT_MODELSET_SELECTION:
+//		cout << Utilities::timeToString(info.time - initTime)
+//				<< " -- -- [SELECTION] Best Model: " << info.partitionElement->getBestModel()->getModel()->getName()
+//				<< " BIC: " << info.partitionElement->getBestModel()->getValue() << endl;
+//		info.partitionElement->getBestModel()->getModel()->print(cout, "\t");
+		break;
+	case MT_GROUP_INIT:
+		break;
+	case MT_GROUP_END:
 		break;
 	}
 }

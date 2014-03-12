@@ -222,35 +222,32 @@ double NucleicModel::distanceTo(Model * otherModel) {
 	return distance;
 }
 
-void NucleicModel::print(ostream& cout) {
-	cout << "--------" << endl;
-	cout << name << endl;
+void NucleicModel::print(ostream& cout, const char * prefix) {
+	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
-		cout << "lnL = " << lnL << endl;
+		cout << prefix << "lnL:   " << lnL << endl;
 		if (isPInv()) {
-			cout << "pInv = " << pInv << endl;
+			cout << prefix << "pInv:  " << pInv << endl;
 		}
 		if (isGamma()) {
-			cout << "alpha = " << alpha << endl;
+			cout << prefix << "alpha: " << alpha << endl;
 		}
-		cout << "Frequencies:" << endl;
-		cout << "  f(A) : " << frequencies[0] << endl;
-		cout << "  f(C) : " << frequencies[1] << endl;
-		cout << "  f(G) : " << frequencies[2] << endl;
-		cout << "  f(T) : " << frequencies[3] << endl;
-		cout << "Rates:" << endl;
-		cout << "  R(a) : " << rates[0] << endl;
-		cout << "  R(b) : " << rates[1] << endl;
-		cout << "  R(c) : " << rates[2] << endl;
-		cout << "  R(d) : " << rates[3] << endl;
-		cout << "  R(e) : " << rates[4] << endl;
-		cout << "  R(f) : " << rates[5] << endl;
-		cout << "MOST LIKELY TREE:" << endl;
-		cout << tree << endl;
+		cout << prefix << "Frequencies:" << endl;
+		cout << prefix << "  f(A) : " << frequencies[0] << endl;
+		cout << prefix << "  f(C) : " << frequencies[1] << endl;
+		cout << prefix << "  f(G) : " << frequencies[2] << endl;
+		cout << prefix << "  f(T) : " << frequencies[3] << endl;
+		cout << prefix << "Rates:" << endl;
+		cout << prefix << "  R(a) : " << rates[0] << endl;
+		cout << prefix << "  R(b) : " << rates[1] << endl;
+		cout << prefix << "  R(c) : " << rates[2] << endl;
+		cout << prefix << "  R(d) : " << rates[3] << endl;
+		cout << prefix << "  R(e) : " << rates[4] << endl;
+		cout << prefix << "  R(f) : " << rates[5] << endl;
+		cout << prefix << "Most Likely Tree: " << tree;
 	} else {
-		cout << "Unoptimized" << endl;
+		cout << prefix << "State: Unoptimized" << endl;
 	}
-	cout << "--------" << endl;
 }
 
 } /* namespace partest */

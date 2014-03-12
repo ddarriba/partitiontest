@@ -49,7 +49,7 @@ public:
   void setRates(const double * rates);
   ProtMatrix getMatrix(void);
   double distanceTo(Model * other);
-  virtual void print(ostream& out);
+  virtual void print(ostream& out, const char * prefix = "");
   virtual ~ProteicModel();
 private:
   /**

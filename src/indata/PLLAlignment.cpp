@@ -45,7 +45,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 
 	phylip->sequenceCount = numSeqs;
 	phylip->sequenceLength = numSites;
-	for (int i = 0; i < numSeqs; i++) {
+	for (unsigned int i = 0; i < numSeqs; i++) {
 		phylip->sequenceLabels[i + 1] = strdup(
 				alignment->getPhylip()->sequenceLabels[i + 1]);
 	}
@@ -54,7 +54,7 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	for (int i = 0; i < numberOfSections; i++) {
 		for (int j = firstPosition[i] - 1; j < lastPosition[i]; j++) {
 			phylip->siteWeights[nextSite] = 1;
-			for (int k = 0; k < numSeqs; k++) {
+			for (unsigned int k = 0; k < numSeqs; k++) {
 				phylip->sequenceData[k + 1][nextSite] =
 						alignment->getPhylip()->sequenceData[k + 1][j];
 			}

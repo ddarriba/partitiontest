@@ -47,6 +47,13 @@ void Observable::notify_observers(ObservableInfo * info, string message) {
 }
 
 void Observable::notify_observers(MessageType type,
+		time_t time, string message) {
+	t_partitionElementId nullId;
+	notify_observers(
+			new ObservableInfo(type, nullId, (Model *) NULL, time, 0, 0, message));
+}
+
+void Observable::notify_observers(MessageType type,
 		t_partitionElementId p_index, Model * model, time_t time,
 		unsigned int current_index, unsigned int max_index, string message) {
 	notify_observers(

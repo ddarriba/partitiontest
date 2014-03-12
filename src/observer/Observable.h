@@ -60,6 +60,8 @@ public:
 	 */
 	void notify_observers(ObservableInfo * info, string message = "");
 
+	void notify_observers(MessageType type,	time_t time, string message = "");
+
 	/**
 	 * @brief Notifies something to all the Observers
 	 *

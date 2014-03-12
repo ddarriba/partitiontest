@@ -38,6 +38,11 @@ double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 		cerr << "ERROR: Decision Theory is not implemented yet" << endl;
 		Utilities::exit_partest(EX_UNAVAILABLE);
 		break;
+	default:
+		value = 0.0;
+		cerr << "ERROR: Undefined Criterion" << endl;
+		Utilities::exit_partest(EX_UNAVAILABLE);
+		break;
 	}
 	return value;
 }
@@ -80,7 +85,7 @@ ModelSelector::ModelSelector(ModelSet * modelset, InformationCriterion ic,
 
 ModelSelector::~ModelSelector() {
 	if (selectionModels) {
-		for (int i = 0; i < selectionModels->size(); i++) {
+		for (unsigned int i = 0; i < selectionModels->size(); i++) {
 			delete selectionModels->at(i);
 		}
 		delete selectionModels;
@@ -147,7 +152,7 @@ void ModelSelector::print(ostream& out) {
 			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
 	out << setw(95) << setfill('-') << "" << setfill(' ') << endl;
-	for (int i = 0; i < selectionModels->size(); i++) {
+	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
 		out << setw(5) << i + 1 << setw(15)
@@ -187,7 +192,7 @@ void ModelSelector::print(ostream& out) {
 	}
 	out << setw(10) << "alpha" << setw(10) << "pInv" << endl;
 	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
-	for (int i = 0; i < selectionModels->size(); i++) {
+	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		Model * model = selectionModels->at(i)->getModel();
 
 		out << setw(5) << i + 1;
@@ -214,8 +219,7 @@ void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
 	selectionModels = new vector<SelectionModel *>(
 			modelset->getNumberOfModels());
 
-	int i;
-	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
 		Model * model = modelset->getModel(i);
 		double value = computeIc(ic, model->getLnL(),
 				model->getNumberOfFreeParameters(), sampleSize);
@@ -234,7 +238,7 @@ void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
 	minValue = selectionModels->at(0)->getValue();
 	double cumW = 0.0;
 	double sumExp = 0.0;
-	for (int i = 0; i < selectionModels->size(); i++) {
+	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 		selectionModel->setIndex(i);
 		selectionModel->setDelta(selectionModel->getValue() - minValue);
@@ -250,7 +254,7 @@ void ModelSelector::doSelection(ModelSet * modelset, InformationCriterion ic,
 	overallAlphaInv = 0.0;
 	overallInvAlpha = 0.0;
 
-	for (int i = 0; i < selectionModels->size(); i++) {
+	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 		Model * model = selectionModel->getModel();
 

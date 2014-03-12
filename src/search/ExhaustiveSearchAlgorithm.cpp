@@ -43,18 +43,19 @@ ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {
 	// TODO Auto-generated destructor stub
 }
 
-PartitioningScheme * ExhaustiveSearchAlgorithm::start(PartitioningScheme * startingPoint) {
+PartitioningScheme * ExhaustiveSearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
 	Utilities::exit_partest(EX_UNAVAILABLE);
 	return 0;
 }
 
 PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
-	int i, j;
-	int n = getNumberOfElements();
-	int numberOfPartitions;
+//	int i, j;
+//	int n = getNumberOfElements();
+//	int numberOfPartitions;
 
-	//TODO: UNINPLEMENTED
+//TODO: UNINPLEMENTED
 	cerr << "TO BE IMPLEMENTED" << endl;
 	Utilities::exit_partest(EX_UNAVAILABLE);
 //#ifdef DEBUG
@@ -148,15 +149,17 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 //	cout << "[TRACE] Returning " << (partSelector.getBestScheme())->toString() << endl;
 //#endif
 //	return partSelector.getBestScheme();
+	return 0;
 }
 
 void ExhaustiveSearchAlgorithm::update(const ObservableInfo & info,
 		ParTestOptions * run_instance) {
-	switch (info.type) {
-	case MT_MODELSET_INIT:
-		break;
-	case MT_MODELSET_END:
-		break;
-	}
+//	switch (info.type) {
+//	case MT_MODELSET_INIT:
+//		break;
+//	case MT_MODELSET_END:
+//		break;
+//	}
 }
+
 } /* namespace partest */

@@ -99,7 +99,7 @@ void PartitionElement::setBestModel(SelectionModel * bestModel) {
 bool PartitionElement::isOptimized() {
 	if (bestModel) return true;
 	bool optimized = true;
-	for (int i = 0; i < modelset->getNumberOfModels(); i++) {
+	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
 		optimized &= modelset->getModel(i)->isOptimized();
 	}
 	return optimized;

@@ -117,10 +117,7 @@ double prevSPR(pllInstance * tr, partitionList *partitions, bool estimateModel,
 		bool estimateTopology) {
 
 	pllRearrangeList * bestList = pllCreateRearrangeList(1);
-	int i;
 	double lk = PLL_UNLIKELY, epsilon = 0.01;
-
-	time_t t0 = time(NULL);
 
 #ifdef DEBUG
 	cout << endl << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
@@ -143,7 +140,6 @@ double prevSPR(pllInstance * tr, partitionList *partitions, bool estimateModel,
 	tr->thoroughInsertion = PLL_TRUE;
 	double modelLkThreshold = 0.1;
 	int SPRdistance = 2 * tr->mxtips - 2;
-	int startNode = 1;
 
 	do {
 #ifndef DEBUG

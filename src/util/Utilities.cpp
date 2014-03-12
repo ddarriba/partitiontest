@@ -10,8 +10,8 @@ namespace partest {
 CfgMap Utilities::config;
 
 bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
-	for (int i = 0; i < e1.size(); i++) {
-		for (int j = 0; j < e2.size(); j++) {
+	for (unsigned int i = 0; i < e1.size(); i++) {
+		for (unsigned int j = 0; j < e2.size(); j++) {
 			if (e1.at(i) == e2.at(j))
 				return true;
 		}
@@ -21,7 +21,7 @@ bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
 
 void Utilities::vprint(ostream& out, t_partitionElementId & v) {
 	out << "( ";
-	for (int i = 0; i < v.size(); i++) {
+	for (unsigned int i = 0; i < v.size(); i++) {
 		out << v[i] << " ";
 	}
 	out << ")" << endl;

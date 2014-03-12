@@ -221,7 +221,7 @@ public:
 	/**
 	 * @brief Prints the model details and parameters.
 	 */
-	virtual void print(ostream& out);
+	virtual void print(ostream& out, const char * prefix = "");
 
 	virtual ~Model();
 protected:

@@ -47,14 +47,13 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 	code = 0;
 	numberOfElements = schemeVector->size();
 	partitions = new vector<PartitionElement *>(numberOfElements);
-	int i;
+	unsigned int i;
 #ifdef DEBUG
 	cout << "[TRACE] PARTITION (" << numberOfElements << " elements):";
 #endif
 	numberOfBits = 1;
 
 	for (i = 0; i < numberOfElements; i++) {
-		int j;
 #ifdef DEBUG
 		cout << "[TRACE] ADDING ELEMENT "
 		<< i+1 << "/" << numberOfElements << endl; //" (" << schemeVector->at(i) << ")" << endl;
@@ -80,7 +79,7 @@ int PartitioningScheme::addElement(PartitionElement * element) {
 
 		t_partitionElementId id(element->getId());
 		// Security checks
-		for (int i = 0; i < currentElement; i++) {
+		for (unsigned int i = 0; i < currentElement; i++) {
 			t_partitionElementId id_c(partitions->at(i)->getId());
 			if (id_c == id) {
 				cerr << "[Error] Duplicated element" << endl;
@@ -112,8 +111,8 @@ int PartitioningScheme::addElement(PartitionElement * element) {
 	}
 }
 
-PartitionElement * PartitioningScheme::getElement(int id) {
-	if (id >= 0 & id < numberOfElements) {
+PartitionElement * PartitioningScheme::getElement(unsigned int id) {
+	if ((id >= 0) & (id < numberOfElements)) {
 		return partitions->at(id);
 	} else {
 		return 0;
@@ -122,15 +121,15 @@ PartitionElement * PartitioningScheme::getElement(int id) {
 
 bool PartitioningScheme::isOptimized(void) {
 	bool optimized = true;
-	for (int i = 0; i < numberOfElements; i++) {
+	for (unsigned int i = 0; i < numberOfElements; i++) {
 		optimized &= partitions->at(i)->isOptimized();
 	}
 	return optimized;
 }
 
 void PartitioningScheme::resetModelSet() {
-	for (int i = 0; i < numberOfElements; i++) {
-		for (int j = 0;
+	for (unsigned int i = 0; i < numberOfElements; i++) {
+		for (unsigned int j = 0;
 				j < partitions->at(i)->getModelset()->getNumberOfModels();
 				j++) {
 			partitions->at(i)->getModelset()->getModel(j)->setLnL(0.0);
@@ -139,7 +138,7 @@ void PartitioningScheme::resetModelSet() {
 }
 
 void PartitioningScheme::buildCompleteModelSet(bool clearAll) {
-	for (int i = 0; i < numberOfElements; i++) {
+	for (unsigned int i = 0; i < numberOfElements; i++) {
 		partitions->at(i)->buildCompleteModelSet(clearAll);
 	}
 }
@@ -158,8 +157,8 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 	vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
 	double sumAlpha = 0.0;
 	double maxAlpha = 0.0;
-	for (int i = 1; i < numberOfElements; i++) {
-		for (int j = 0; j < i; j++) {
+	for (unsigned int i = 1; i < numberOfElements; i++) {
+		for (unsigned int j = 0; j < i; j++) {
 			Model * mi = getElement(i)->getBestModel()->getModel();
 			Model * mj = getElement(j)->getBestModel()->getModel();
 			int index = (i * (i - 1) / 2) + j;
@@ -173,8 +172,8 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 		}
 	}
 	double minDistance = DOUBLE_INF;
-	for (int i = 1; i < numberOfElements; i++) {
-		for (int j = 0; j < i; j++) {
+	for (unsigned int i = 1; i < numberOfElements; i++) {
+		for (unsigned int j = 0; j < i; j++) {
 			int index = (i * (i - 1) / 2) + j;
 			//alphaValues.at(index) /= maxAlpha;
 			distances.at(index) += alphaValues[index] + pinvValues[index];
@@ -189,7 +188,7 @@ void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
 
 string PartitioningScheme::getName() {
 	stringstream ss;
-	for (int i = 0; i < numberOfElements; i++) {
+	for (unsigned int i = 0; i < numberOfElements; i++) {
 		ss << partitions->at(i)->getName() << " ";
 	}
 	return ss.str();
@@ -204,10 +203,10 @@ string PartitioningScheme::getCode() {
 		int hashmap[numberOfElements];
 		int intcode[numberOfBits];
 		char charcode[numDigits * numberOfBits + 1];
-		for (int i = 0; i < numberOfElements; i++) {
+		for (unsigned int i = 0; i < numberOfElements; i++) {
 			t_partitionElementId id = getElement(i)->getId();
 			hashmap[i] = UNDEFINED;
-			for (int j = 0; j < id.size(); j++) {
+			for (unsigned int j = 0; j < id.size(); j++) {
 				intcode[id.at(j)] = i;
 			}
 		}
@@ -216,7 +215,7 @@ string PartitioningScheme::getCode() {
 		for (int i = 0; i < numDigits; i++) {
 			charcode[i * numberOfBits + 0] = '0';
 		}
-		for (int i = 1; i < numberOfBits; i++) {
+		for (unsigned int i = 1; i < numberOfBits; i++) {
 			if (hashmap[intcode[i]] == UNDEFINED) {
 				hashmap[intcode[i]] = ++nextCode;
 			}
@@ -240,7 +239,7 @@ double PartitioningScheme::getLnL() {
 	if (!isOptimized())
 		return 0.0;
 	double lk = 0.0;
-	for (int i = 0; i < numberOfElements; i++) {
+	for (unsigned int i = 0; i < numberOfElements; i++) {
 		lk += partitions->at(i)->getBestModel()->getModel()->getLnL();
 	}
 	return lk;

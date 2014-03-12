@@ -119,9 +119,8 @@ struct nextSchemeFunctor {
 
 			PartitioningScheme * nextScheme = new PartitioningScheme(
 					numberOfElements - 1);
-			int k;
 
-			for (k = 0; k < numberOfElements; k++) {
+			for (unsigned int k = 0; k < numberOfElements; k++) {
 				if (k != i && k != j) {
 					nextScheme->addElement(currentScheme->getElement(k));
 				}
@@ -162,8 +161,8 @@ private:
 	t_schemesVector * schemeVector;
 	t_partitionElementId * mask;
 	int maskIndex;
-	int i, j;
-	int numberOfElements;
+	unsigned int i, j;
+	unsigned int numberOfElements;
 	PartitioningScheme * currentScheme;
 	PartitionMap * partitionMap;
 	bool extended;
@@ -200,14 +199,14 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 			static_cast<PLLModelOptimize *>(ParTestFactory::createModelOptimize(
 					options));
 	ConsoleObserver * observer = new ConsoleObserver();
+	this->attach(observer);
 	mo->attach(observer);
 	mo->attach(this);
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
 		/* Starting topology */
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Getting starting topology" << endl;
-#endif
+		notify_observers(MT_FTREE_INIT, time(NULL));
+
 		PLLAlignment * alignment =
 				static_cast<PLLAlignment *>(options->getAlignment());
 
@@ -217,29 +216,23 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
 				alignment->getPartitions());
 
-//		makeParsimonyTreeFast(alignment->getTree(),
-//				alignment->getPartitions());
-
-		pllEvaluateLikelihood(alignment->getTree(), alignment->getPartitions(),
-				alignment->getTree()->start, PLL_TRUE, PLL_FALSE);
-		//mo->evaluateNNI(alignment->getTree(), alignment->getPartitions(), true);
-		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true,
-				true);
+		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true, true);
 
 		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
 				alignment->getPartitions(), alignment->getTree()->start->back,
 				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
 				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+		char * startingTree = alignment->getTree()->tree_string;
+		startingTree[strlen(startingTree)-1] = '\0';
+		options->setTreeString(startingTree);
 
-		options->setTreeString(alignment->getTree()->tree_string);
-
-		cout << "STARTING TREE = " << alignment->getTree()->tree_string << endl;
+		notify_observers(MT_FTREE_END, time(NULL), startingTree);
 	}
 
 	/* 1. start with k=n groups */
 	PartitioningScheme * firstScheme = new PartitioningScheme(
 			partitionMap->getNumberOfPartitions());
-	for (int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
+	for (unsigned int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
 		firstScheme->addElement(partitionMap->getPartitionElement(i));
 	}
 
@@ -335,8 +328,9 @@ void GreedySearchAlgorithm::update(const ObservableInfo& info,
 
 int GreedySearchAlgorithm::getNextPartitioningSchemes(
 		PartitioningScheme *currentScheme, PartitioningScheme **nextSchemes) {
-	int numberOfPartitions = currentScheme->getNumberOfElements()
-			* (currentScheme->getNumberOfElements() - 1);
+
+//	int numberOfPartitions = currentScheme->getNumberOfElements()
+//			* (currentScheme->getNumberOfElements() - 1);
 
 	return 0;
 }
