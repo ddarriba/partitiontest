@@ -63,7 +63,7 @@ public:
 	 * @param[in] dataType Whether the data is nucleic or proteic.
 	 */
 	PartitionMap(Alignment * alignment, unsigned int numberOfPartitions,
-			bitMask rateVariation, DataType dataType);
+			bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
 
 	/**
 	 * @brief Constructs a new partition map.
@@ -74,7 +74,7 @@ public:
 	 * @param[in] dataType Whether the data is nucleic or proteic.
 	 */
 	PartitionMap(const char * configFile, Alignment * alignment,
-			bitMask rateVariation, DataType dataType);
+			bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
 
 	virtual ~PartitionMap();
 
@@ -150,6 +150,7 @@ private:
 	vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
 	bitMask rateVariation; /** The rate variations mask to be evaluated. */
 	DataType dataType; /** Whether the data is nucleic or proteic. */
+	OptimizeMode optimizeMode;
 };
 
 } /* namespace partest */

@@ -11,8 +11,8 @@ namespace partest {
 
 PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		Alignment * alignment, int start, int end, int stride,
-		bitMask rateVariation, DataType dataType) :
-		id(id), name(name) {
+		bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
+		id(id), name(name), optimizeMode(optimizeMode) {
 
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Creating " << name << endl;
@@ -26,7 +26,7 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 	this->end[0] = end;
 	this->stride[0] = stride;
 	this->alignment = alignment->splitAlignment(start, end);
-	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs(), optimizeMode);
 #ifdef _PLL
 	partitionInfo = 0;
 #endif
@@ -34,8 +34,8 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 
 PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		Alignment * alignment, int * start, int * end, int * stride,
-		int numberOfSections, bitMask rateVariation, DataType dataType) :
-		id(id), name(name), numberOfSections(numberOfSections) {
+		int numberOfSections, bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
+		id(id), name(name), numberOfSections(numberOfSections), optimizeMode(optimizeMode) {
 
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Creating " << name <<  "  Sections: " << numberOfSections << endl;
@@ -63,7 +63,7 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Creating modelset" << endl;
 #endif
-	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs());
+	modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs(), optimizeMode);
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Done" << endl;
 #endif

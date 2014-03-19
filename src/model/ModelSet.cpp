@@ -21,31 +21,17 @@
 
 namespace partest {
 
-ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int optimizeMode,
-		bool forceCompleteSet) :
-		rateVar(rateVar), dataType(dataType), numberOfTaxa(numberOfTaxa) {
+ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
+		OptimizeMode optimizeMode, bool forceCompleteSet) :
+		rateVar(rateVar), dataType(dataType), numberOfTaxa(numberOfTaxa), optimizeMode(
+				optimizeMode) {
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
 	int numberOfMatrices;
 	numberOfModels = Utilities::binaryPow(numberOfParameters);
-	numberOfMatrices = 1;
 
-#ifdef FAST_DNA
-	if (forceCompleteSet) {
-		switch (dataType) {
-			case DT_NUCLEIC:
-			numberOfMatrices = NUC_MATRIX_SIZE / 2;
-			break;
-			case DT_PROTEIC:
-			numberOfMatrices = PROT_MATRIX_SIZE;
-			break;
-			default:
-			Utilities::exit_partest(EX_OSERR);
-			break;
-		}
-	} else {
-		numberOfMatrices = 1;
-	}
-#else
+	if (forceCompleteSet)
+		optimizeMode = OPT_SEARCH;
+
 	if (optimizeMode == OPT_SEARCH) {
 		switch (dataType) {
 		case DT_NUCLEIC:
@@ -58,18 +44,15 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int opt
 			Utilities::exit_partest(EX_OSERR);
 			break;
 		}
+	} else {
+		numberOfMatrices = 1;
 	}
-#endif
 
-#ifdef FAST_DNA
-	numberOfModels = forceCompleteSet?(numberOfModels*numberOfMatrices):1;
-#else
 	if (optimizeMode == OPT_SEARCH) {
 		numberOfModels *= numberOfMatrices;
 	} else {
 		numberOfModels = 1;
 	}
-#endif
 
 	models = (Model **) malloc(numberOfModels * sizeof(Model *));
 
@@ -80,27 +63,24 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int opt
 
 	unsigned int current = 0;
 
-#ifdef FAST_DNA
-	if (!forceCompleteSet) {
+	if (optimizeMode == OPT_GTR) {
 		buildModelSet(&(models[0]), 0, false);
 	} else {
-#endif
-	// Loop over the parameters
-	for (bitMask rateVarLoop = 0; rateVarLoop <= rateVar >> 1; rateVarLoop++) {
-		// check this for avoiding duplicates
-		if (!(rateVarLoop & ~(rateVar >> 1))) {
+		// Loop over the parameters
+		for (bitMask rateVarLoop = 0; rateVarLoop <= rateVar >> 1;
+				rateVarLoop++) {
+			// check this for avoiding duplicates
+			if (!(rateVarLoop & ~(rateVar >> 1))) {
 #ifdef DEBUG
-			cout << "[TRACE] Creating models for ratevar " << (rateVarLoop<<1)
-			<< " (" << current << "/" << numberOfModels << ")" << endl;
+				cout << "[TRACE] Creating models for ratevar " << (rateVarLoop<<1)
+				<< " (" << current << "/" << numberOfModels << ")" << endl;
 #endif
-			buildModelSet(&(models[current]), rateVarLoop << 1,
-					forceCompleteSet);
-			current += numberOfMatrices;
+				buildModelSet(&(models[current]), rateVarLoop << 1,
+						forceCompleteSet);
+				current += numberOfMatrices;
+			}
 		}
 	}
-#ifdef FAST_DNA
-}
-#endif
 }
 
 ModelSet::~ModelSet() {
@@ -182,25 +162,22 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 	NucMatrix nm;
 	switch (dataType) {
 	case DT_NUCLEIC:
-#ifdef FAST_DNA
-		if (!forceCompleteSet) {
+		if (optimizeMode == OPT_GTR) {
 			nm = NUC_MATRIX_GTR;
 #ifdef _PLL
 			models[currentIndex++] = new NucleicModel(nm, RateVarG | RateVarF, numberOfTaxa);
 #else
-			models[currentIndex++] = new NucleicModel(nm, RateVarG | RateVarF | RateVarI, numberOfTaxa);
+			models[currentIndex++] = new NucleicModel(nm,
+					RateVarG | RateVarF | RateVarI, numberOfTaxa);
 #endif
 		} else {
-#endif
-		for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
-				2) {
-			nm = static_cast<NucMatrix>(i);
-			models[currentIndex++] = new NucleicModel(nm, rateVar,
-					numberOfTaxa);
+			for (int i = (rateVar & RateVarF) ? 1 : 0; i < NUC_MATRIX_SIZE; i +=
+					2) {
+				nm = static_cast<NucMatrix>(i);
+				models[currentIndex++] = new NucleicModel(nm, rateVar,
+						numberOfTaxa);
+			}
 		}
-#ifdef FAST_DNA
-	}
-#endif
 		break;
 	case DT_PROTEIC:
 		for (int i = 0; i < PROT_MATRIX_SIZE; i++) {
