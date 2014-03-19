@@ -14,8 +14,8 @@
 namespace partest {
 
 PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
-		bitMask rateVariation, DataType dataType) :
-		alignment(alignment), rateVariation(rateVariation), dataType(dataType) {
+		bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
+		alignment(alignment), rateVariation(rateVariation), dataType(dataType), optimizeMode(optimizeMode) {
 #ifdef DEBUG
 	cout << "[TRACE] Instantiated partition map from config file" << endl;
 #endif
@@ -35,7 +35,7 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 					nextPartition.partitionId, nextPartition.name, alignment,
 					nextPartition.start, nextPartition.end,
 					nextPartition.stride, nextPartition.numberOfSections,
-					rateVariation, dataType);
+					rateVariation, dataType, optimizeMode);
 		}
 
 	} else {
@@ -48,17 +48,17 @@ PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
 		partitions->at(0).partitionId.push_back(1);
 		partitions->at(0).partitionElement = new PartitionElement(
 				partitions->at(0).partitionId, nameStr, alignment, start, end,
-				stride, rateVariation, dataType);
+				stride, rateVariation, dataType, optimizeMode);
 		numberOfElements = numberOfPartitions = 1;
 	}
 }
 
 PartitionMap::PartitionMap(Alignment * alignment,
 		unsigned int numberOfPartitions, bitMask rateVariation,
-		DataType dataType) :
+		DataType dataType, OptimizeMode optimizeMode) :
 		alignment(alignment), numberOfElements(numberOfPartitions), numberOfPartitions(
 				numberOfPartitions), rateVariation(rateVariation), dataType(
-				dataType) {
+				dataType), optimizeMode(optimizeMode) {
 
 #ifdef DEBUG
 	cout << "[TRACE] Instantiated partition map from void" << endl;
@@ -85,7 +85,7 @@ bool PartitionMap::addPartitionElement(unsigned int partitionId, string name,
 	partitions->at(partitionId).partitionId.push_back(partitionId);
 	partitions->at(partitionId).partitionElement = new PartitionElement(
 			partitions->at(partitionId).partitionId, name, alignment,
-			startPosition, endPosition, stride, rateVariation, dataType);
+			startPosition, endPosition, stride, rateVariation, dataType, optimizeMode);
 
 	return true;
 }
@@ -139,7 +139,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 	pInfo.partitionElement = new PartitionElement(partitionId, name.str(),
 			alignment, start, end, stride, numberOfSections, rateVariation,
-			dataType);
+			dataType, optimizeMode);
 
 	partitions->push_back(pInfo);
 	numberOfElements++;

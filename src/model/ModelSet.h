@@ -25,6 +25,7 @@
 #include "ProteicModel.h"
 #include "NucleicModel.h"
 #include "util/Utilities.h"
+#include "util/GlobalDefs.h"
 
 namespace partest {
 
@@ -47,7 +48,7 @@ public:
 	 * @param[in] dataType Whether the data is nucleotide or amino-acids.
 	 * @param[in] numberOfTaxa The number of taxa in the alignment.
 	 */
-  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, int optimizeMode = OPT_SEARCH, bool forceCompleteSet = false);
+  ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa, OptimizeMode optimizeMode = OPT_SEARCH, bool forceCompleteSet = false);
 
   /**
    * @brief Gets the total number of models.
@@ -87,6 +88,7 @@ private:
   bitMask rateVar; /** Set of rate variation and frequencies parameters. */
   DataType dataType; /** Whether the data is nucleotide or amino-acids. */
   int numberOfTaxa; /** Number of taxa in the input data. */
+  OptimizeMode optimizeMode;
 };
 
 } /* namespace partest */

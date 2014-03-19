@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
 	PartitionMap * partitionMap = new PartitionMap(options->getConfigFile(),
 			options->getAlignment(), options->getRateVariation(),
-			options->getDataType());
+			options->getDataType(), options->getOptimizeMode());
 
 	SearchAlgorithm * searchAlgo = ParTestFactory::createSearchAlgorithm(
 			options, partitionMap);
@@ -80,8 +80,6 @@ int main(int argc, char *argv[]) {
 	cout << "Best Scheme:" << endl << partitioningScheme->getCode() << endl
 			<< partitioningScheme->getName() << endl;
 
-//#ifdef FAST_DNA
-
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
 #endif
@@ -89,6 +87,7 @@ int main(int argc, char *argv[]) {
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
 	ConsoleObserver * observer = new ConsoleObserver();
 	mo->attach(observer);
+
 //	if (options->getOptimizeMode() == OPT_SEARCH) {
 //		partitioningScheme->buildCompleteModelSet(false);
 //		mo->optimizePartitioningScheme(partitioningScheme, false, 1, 1);
@@ -96,17 +95,16 @@ int main(int argc, char *argv[]) {
 //	} else {
 //		partitioningScheme->resetModelSet();
 //	}
+
 #ifdef DEBUG
 	cout << "[TRACE] Optimizing best scheme at once" << endl;
 #endif
 
 	static_cast<PLLModelOptimize* >(mo)->optimizePartitioningSchemeAtOnce(partitioningScheme);
-
 	delete mo;
 	delete observer;
-//#endif
 
-#ifdef DEBUG
+	#ifdef DEBUG
 	cout << "[TRACE] Done: " << partitioningScheme->getCode() << endl;
 #endif
 
@@ -134,6 +132,23 @@ int main(int argc, char *argv[]) {
 				<< element->getBestModel()->getModel()->getName() << endl;
 	}
 	cout << "************************************" << endl;
+
+	cout << setw(10) << "#";
+	cout << setw(16) << "Model";
+	cout << setw(16) << "lnL";
+	cout << setw(16) << "BIC";
+	cout << setw(16) << "Weight";
+	cout << endl;
+	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = partitioningScheme->getElement(i);
+		cout << setw(10) << right << i;
+		cout << setw(16) << element->getBestModel()->getModel()->getName();
+		cout << setw(16) << element->getBestModel()->getModel()->getLnL();
+		cout << setw(16) << element->getBestModel()->getValue();
+		cout << setw(16) << element->getBestModel()->getWeight();
+		cout << endl;
+	}
+	cout << setw(122) << setfill('-') << "" << setfill(' ') << endl;
 
 	ofstream * rout = options->getResultsOutputStream();
 	PrintMeta::print_options(*rout, *options);

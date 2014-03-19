@@ -59,7 +59,7 @@ public:
 	 */
 	PartitionElement(t_partitionElementId id, string name,
 			Alignment * alignment, int start, int end, int stride,
-			bitMask rateVariation, DataType dataType);
+			bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
 
 	/**
 	 * @brief Constructs a new partition for a subset of genes.
@@ -78,7 +78,7 @@ public:
 	 */
 	PartitionElement(t_partitionElementId id, string name,
 			Alignment * alignment, int * start, int * end, int * stride,
-			int numberOfSections, bitMask rateVariation, DataType dataType);
+			int numberOfSections, bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
 
 	/**
 	 * @brief Gets the set of candidate models.
@@ -241,6 +241,7 @@ private:
 	string name; /** The name of the partition. */
 	SelectionModel * bestModel; /** The best-fit model for this partition. */
 	ModelSet * modelset; /** The set of candidate models. */
+	OptimizeMode optimizeMode;
 #ifdef _PLL
 	pInfo * partitionInfo; /** Partition info for PLL */
 #endif

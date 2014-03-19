@@ -243,6 +243,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	mo->optimizePartitioningScheme(firstScheme, false, 1, 1);
 	PartitionSelector partSelector(&firstScheme, 1, options);
 	double bestCriterionValue = partSelector.getBestSelectionScheme()->value;
+	partSelector.print(cout);
 
 	PartitioningScheme * bestScheme = firstScheme;
 

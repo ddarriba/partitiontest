@@ -243,8 +243,6 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 
 	char * tree = getMlTree(scheme, options->getInputFile());
 
-	cout << "FINAL TREE: " << tree << endl << endl;
-
 	return 0;
 }
 
@@ -418,7 +416,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 
 	pllDestroyInstance(tr);
 	tr = 0;
-	exit(0);
+
 	return 0;
 }
 
