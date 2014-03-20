@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
 	}
 	cout << "************************************" << endl;
 
+	double totalBIC = 0.0, totalLnL = 0.0;
 	cout << setw(10) << "#";
 	cout << setw(16) << "Model";
 	cout << setw(16) << "lnL";
@@ -143,11 +144,16 @@ int main(int argc, char *argv[]) {
 		PartitionElement * element = partitioningScheme->getElement(i);
 		cout << setw(10) << right << i;
 		cout << setw(16) << element->getBestModel()->getModel()->getName();
-		cout << setw(16) << element->getBestModel()->getModel()->getLnL();
-		cout << setw(16) << element->getBestModel()->getValue();
-		cout << setw(16) << element->getBestModel()->getWeight();
+		cout << fixed << setw(16) << setprecision(6) << element->getBestModel()->getModel()->getLnL();
+		cout << fixed << setw(16) << setprecision(6) << element->getBestModel()->getValue();
+		cout << fixed << setw(16) << setprecision(2) << element->getBestModel()->getWeight();
 		cout << endl;
+		totalLnL += element->getBestModel()->getModel()->getLnL();
+		totalBIC += element->getBestModel()->getValue();
 	}
+		cout << setw(26) << right << "Global values";
+		cout << fixed << setw(16) << setprecision(6) << totalLnL;
+		cout << fixed << setw(16) << setprecision(6) << totalBIC << endl;
 	cout << setw(122) << setfill('-') << "" << setfill(' ') << endl;
 
 	ofstream * rout = options->getResultsOutputStream();
