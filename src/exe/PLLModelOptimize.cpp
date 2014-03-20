@@ -120,6 +120,7 @@ double prevSPR(pllInstance * tr, partitionList *partitions, bool estimateModel,
 	double lk = PLL_UNLIKELY, epsilon = 0.01;
 
 #ifdef DEBUG
+	time_t t0 = time(NULL);
 	cout << endl << "[SPR] " << Utilities::timeToString(time(NULL) - t0)
 			<< " START" << endl;
 #endif
@@ -242,6 +243,7 @@ int PLLModelOptimize::optimizePartitioningSchemeAtOnce(
 		PartitioningScheme * scheme) {
 
 	char * tree = getMlTree(scheme, options->getInputFile());
+	scheme->setTree(tree);
 
 	return 0;
 }
@@ -396,18 +398,18 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	}
 
 	pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, true);
+	//evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, true);
+	evaluateSPR(tr, partitions, true, true);
 
 	pllTreeToNewick(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,
 	PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH,
 	PLL_FALSE, PLL_FALSE);
 
 	cout << "final likelihood = " << tr->likelihood << endl;
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
-		cout << scheme->getElement(i)->getBestModel()->getModel()->getName() << "  " << scheme->getElement(i)->getBestModel()->getModel()->getLnL()
-				<< " BIC: " << scheme->getElement(i)->getBestModel()->getValue() << endl;
-	}
-	cout << "FINAL TREE: " << tr->tree_string << endl;
+
+	char * newick = (char *)malloc(strlen(tr->tree_string));
+	strcpy(newick, tr->tree_string);
+	newick[strlen(newick)-1] = '\0';
 
 	pllAlignmentDataDestroy(phylip);
 
@@ -417,7 +419,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	pllDestroyInstance(tr);
 	tr = 0;
 
-	return 0;
+	return newick;
 }
 
 int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,

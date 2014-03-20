@@ -73,6 +73,7 @@ enum ArgIndex {
 	ARG_NUM_PROCS, /** Argument for number of processors */
 	ARG_SAMPLE_SIZE, /** Argument for sample size type */
 	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
+	ARG_HCLUSTER_REPS, /** Number of hcluster replicates */
 	ARG_OPTIMIZE, /** Argument for search algorithm */
 	ARG_OUTPUT, /** Argument for setting the output directory */
 	ARG_HELP, /** Argument for show help */

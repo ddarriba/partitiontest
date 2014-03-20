@@ -115,23 +115,23 @@ PartitionSelector::~PartitionSelector() {
 void PartitionSelector::print(ostream& out, int limit) {
 
 	out << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(5)
-			<< "K" << setw(15) << "lnL" << setw(15) << "Value" << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(10)
+			<< "K" << setw(20) << "lnL" << setw(20) << "Value" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	int maxSchemes = (limit == -1 ? schemesVector->size() : limit);
 	for (int id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
 		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode() << setw(5)
-				<< sp->scheme->getNumberOfElements() << setw(5)
-				<< sp->numParameters << setw(15) << sp->lnL << setw(15)
+				<< sp->scheme->getNumberOfElements() << setw(10)
+				<< sp->numParameters << setw(20) << setprecision(4) << sp->lnL << setw(20)
 				<< sp->value << endl;
 	}
 	if (limit > 0 && ((int) schemesVector->size()) > limit) {
 		out << "Not showing " << schemesVector->size() - limit
 				<< " schemes more..." << endl;
 	}
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 }
 

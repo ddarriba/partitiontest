@@ -58,6 +58,7 @@ ArgumentParser::ArgumentParser() {
 			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
 			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
+			ARG_HCLUSTER_REPS, 'r', "replicates", true }, {
 			ARG_OPTIMIZE, 'O', "optimize", true }, {
 			ARG_OUTPUT, 'o', "output", true }, {
 			ARG_NUM_PROCS, 'p', "num-procs", true }, {
@@ -176,6 +177,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	InformationCriterion ic_type = DEFAULT_IC_TYPE;
 	SampleSize sampleSize = DEFAULT_SAMPLE_SIZE;
 	SearchAlgo searchAlgo = DEFAULT_SEARCH_ALGO;
+	int maxSamples = 1;
 	OptimizeMode optimize = DEFAULT_OPTIMIZE;
 //  AlignFormat input_format = AF_PHYLIP_SEQ;
 
@@ -294,6 +296,14 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< "Hierarchical clustering algorithm" << endl;
 				Utilities::exit_partest(EX_USAGE);
 			}
+			break;
+		case ARG_HCLUSTER_REPS:
+			if(isdigit(atoi(value)))
+				maxSamples = atoi(value);
+			else
+				cerr << "[ERROR] \"-r " << value
+					<< "\" must be an integer:"
+					<< endl;
 			break;
 		case ARG_IC_TYPE:
 			if (!strcmp(value, ARG_IC_AIC)) {
@@ -425,7 +435,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 #endif
 
 	options->set(input_file, data_type, do_rate, config_file, startingTopology,
-			searchAlgo, optimize, ic_type, sampleSize, sampleSizeValue,
+			searchAlgo, maxSamples, optimize, ic_type, sampleSize, sampleSizeValue,
 			user_tree, output_dir);
 
 #ifdef DEBUG

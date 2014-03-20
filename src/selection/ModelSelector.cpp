@@ -147,25 +147,25 @@ void ModelSelector::print(ostream& out) {
 		break;
 	}
 	out << "Sample size: " << sampleSize << endl << endl;
-	out << setw(95) << setfill('-') << "" << setfill(' ') << endl;
-	out << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15)
-			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
+	out << setw(110) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(5) << "###" << setw(15) << "Model" << setw(10) << "K" << setw(20)
+			<< "lnL" << setw(20) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
-	out << setw(95) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(110) << setfill('-') << "" << setfill(' ') << endl;
 	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
 		out << setw(5) << i + 1 << setw(15)
-				<< selectionModel->getModel()->getName() << setw(5)
+				<< selectionModel->getModel()->getName() << setw(10)
 				<< selectionModel->getModel()->getNumberOfFreeParameters()
-				<< setw(15) << setprecision(10)
-				<< selectionModel->getModel()->getLnL() << setw(15)
+				<< setw(20) << setprecision(4)
+				<< selectionModel->getModel()->getLnL() << setw(20)
 				<< selectionModel->getValue() << setw(15)
 				<< selectionModel->getDelta() << setw(15) << setprecision(4)
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	out << setw(95) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(110) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 	if (selectionModels->size() > 1) {
 		out << "PARAMETER IMPORTANCE" << endl;

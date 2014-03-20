@@ -133,27 +133,33 @@ int main(int argc, char *argv[]) {
 	}
 	cout << "************************************" << endl;
 
-	double totalBIC = 0.0, totalLnL = 0.0;
-	cout << setw(10) << "#";
+	double totalBIC = 0.0, totalLnL = 0.0, numParameters = 0;
+	cout << setw(5) << "#";
 	cout << setw(16) << "Model";
+	cout << setw(10) << "K";
 	cout << setw(16) << "lnL";
 	cout << setw(16) << "BIC";
 	cout << setw(16) << "Weight";
 	cout << endl;
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);
-		cout << setw(10) << right << i;
+		cout << setw(5) << right << i;
 		cout << setw(16) << element->getBestModel()->getModel()->getName();
-		cout << fixed << setw(16) << setprecision(6) << element->getBestModel()->getModel()->getLnL();
-		cout << fixed << setw(16) << setprecision(6) << element->getBestModel()->getValue();
+		cout << setw(10) << element->getBestModel()->getModel()->getNumberOfFreeParameters();
+		cout << fixed << setw(16) << setprecision(4) << element->getBestModel()->getModel()->getLnL();
+		cout << fixed << setw(16) << setprecision(4) << element->getBestModel()->getValue();
 		cout << fixed << setw(16) << setprecision(2) << element->getBestModel()->getWeight();
 		cout << endl;
 		totalLnL += element->getBestModel()->getModel()->getLnL();
 		totalBIC += element->getBestModel()->getValue();
+		numParameters += element->getBestModel()->getModel()->getNumberOfFreeParameters();
 	}
-		cout << setw(26) << right << "Global values";
-		cout << fixed << setw(16) << setprecision(6) << totalLnL;
-		cout << fixed << setw(16) << setprecision(6) << totalBIC << endl;
+		cout << setw(21) << right << "Global values";
+		cout << fixed << setw(10) << setprecision(0) << numParameters;
+		cout << fixed << setw(16) << setprecision(4) << totalLnL;
+		cout << fixed << setw(16) << setprecision(4) << totalBIC << endl;
+		cout << setw(122) << setfill('-') << "" << setfill(' ') << endl;
+	cout << "BestTree: " << partitioningScheme->getTree() << endl;
 	cout << setw(122) << setfill('-') << "" << setfill(' ') << endl;
 
 	ofstream * rout = options->getResultsOutputStream();
@@ -186,6 +192,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "Execution done... it took " << time(NULL) - iniTime << " seconds." << endl;
 
+	delete partitioningScheme;
 	delete searchAlgo;
 	delete partitionMap;
 	delete options;
