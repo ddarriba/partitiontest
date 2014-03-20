@@ -83,7 +83,7 @@ void ConsoleObserver::update(const ObservableInfo & info,
 		cout << Utilities::timeToString(info.time - initTime)
 				<< " -- -- -- [/MODEL] " << info.current_index << "/"
 				<< info.max_index << " " << info.model->getName() << " ("
-				<< info.model->getLnL() << ")";
+				<< fixed << setprecision(6) << info.model->getLnL() << ")";
 		cout << endl;
 #endif
 		break;
@@ -97,7 +97,7 @@ void ConsoleObserver::update(const ObservableInfo & info,
 		cout << Utilities::timeToString(info.time - initTime)
 				<< " -- -- [/MODELSET] " << info.current_index << "/"
 				<< info.max_index << " " << info.model->getName() << " ("
-				<< info.model->getLnL() << ")";
+				<< fixed << setprecision(6) << info.model->getLnL() << ")";
 		cout << endl;
 		break;
 	case MT_SCHEME_INIT:
