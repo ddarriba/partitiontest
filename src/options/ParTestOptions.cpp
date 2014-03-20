@@ -77,7 +77,7 @@ ParTestOptions::~ParTestOptions() {
 
 void ParTestOptions::set(const char *inputFile, DataType dataType,
 		bitMask doRateVariation, const char *configFile,
-		StartTopo startingTopology, SearchAlgo searchAlgo,
+		StartTopo startingTopology, SearchAlgo searchAlgo, int maxSamples,
 		OptimizeMode optimize, InformationCriterion informationCriterion,
 		SampleSize sampleSize, double sampleSizeValue, const char *userTree,
 		const char *outputDir) {
@@ -89,6 +89,7 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	this->informationCriterion = informationCriterion;
 	this->sampleSize = sampleSize;
 	this->searchAlgo = searchAlgo;
+	this->maxSamples = maxSamples;
 	this->optimize = optimize;
 
 	if (sampleSize == SS_CUSTOM) {
@@ -157,6 +158,10 @@ string ParTestOptions::getInputFile(void) const {
 
 SearchAlgo ParTestOptions::getSearchAlgorithm(void) const {
 	return searchAlgo;
+}
+
+int ParTestOptions::getMaxSamples(void) const {
+	return maxSamples;
 }
 
 OptimizeMode ParTestOptions::getOptimizeMode(void) const {

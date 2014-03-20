@@ -35,6 +35,7 @@ struct comparePartitionElements {
 
 PartitioningScheme::PartitioningScheme(int numberOfElements) :
 		numberOfElements(numberOfElements) {
+	tree = 0;
 	currentElement = 0;
 	partitions = new vector<PartitionElement *>(numberOfElements);
 	numberOfBits = 1;
@@ -43,6 +44,7 @@ PartitioningScheme::PartitioningScheme(int numberOfElements) :
 
 PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 		PartitionMap * partitionMap) {
+	tree = 0;
 	currentElement = 0;
 	code = 0;
 	numberOfElements = schemeVector->size();
@@ -72,6 +74,8 @@ PartitioningScheme::~PartitioningScheme() {
 	delete partitions;
 	if (code)
 		delete code;
+	if (tree)
+		free(tree);
 }
 
 int PartitioningScheme::addElement(PartitionElement * element) {
@@ -233,6 +237,14 @@ string PartitioningScheme::getCode() {
 
 	}
 	return *code;
+}
+
+void PartitioningScheme::setTree(char * tree) {
+	this->tree = tree;
+}
+
+char * PartitioningScheme::getTree(void) const {
+	return tree;
 }
 
 double PartitioningScheme::getLnL() {

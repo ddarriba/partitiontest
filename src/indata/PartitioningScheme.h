@@ -105,6 +105,15 @@ public:
 
 	void resetModelSet();
 
+	void setTree(char * tree);
+
+	/**
+	 * @brief Gets the optimized tree.
+	 *
+	 * @return The optimized tree.
+	 */
+	char * getTree(void) const;
+
 	/**
 	 * @brief Gets the closest pair of partitions.
 	 *
@@ -135,6 +144,8 @@ private:
 	unsigned int currentElement; /** Current element index for the step-by-step construction of the scheme */
 	unsigned int numberOfElements; /** The number of partitions */
 	unsigned int numberOfBits; /** The number of single genes in the scheme. */
+	char * tree;
+
 	/**
 	 * @brief String identifier of this scheme.
 	 *
