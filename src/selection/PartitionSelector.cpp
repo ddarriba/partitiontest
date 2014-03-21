@@ -87,8 +87,9 @@ PartitionSelector::PartitionSelector(PartitioningScheme ** schemesArray,
 		(schemesVector->at(part_id))->lnL = lk;
 		(schemesVector->at(part_id))->scheme = scheme;
 		(schemesVector->at(part_id))->value = value;
-
+#ifdef DEBUG
 		cout << "[DEBUG_SEL] BIC of " << scheme->getName() << " : " << value << endl;
+#endif
 	}
 
 	std::sort(schemesVector->begin(), schemesVector->end(),
@@ -124,7 +125,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
 		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode() << setw(5)
 				<< sp->scheme->getNumberOfElements() << setw(10)
-				<< sp->numParameters << setw(20) << setprecision(4) << sp->lnL << setw(20)
+				<< sp->numParameters << setw(20) << fixed << setprecision(4) << sp->lnL << setw(20)
 				<< sp->value << endl;
 	}
 	if (limit > 0 && ((int) schemesVector->size()) > limit) {
@@ -144,7 +145,7 @@ void SelectionPartitioningScheme::print(ostream & out) {
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(5) << "###" << setw(15) << "Model" << setw(5) << "K" << setw(15)
 			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
-			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
+			<< "Weight" << setw(15) << "CumWeight" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * pe = scheme->getElement(i);
@@ -153,8 +154,8 @@ void SelectionPartitioningScheme::print(ostream & out) {
 		out << setw(5) << i + 1 << setw(15)
 				<< selectionModel->getModel()->getName() << setw(5)
 				<< selectionModel->getModel()->getNumberOfFreeParameters()
-				<< setw(15) << setprecision(10)
-				<< selectionModel->getModel()->getLnL() << setw(15)
+				<< setw(15) << setprecision(6)
+				<< selectionModel->getModel()->getLnL() << setw(15) << fixed
 				<< selectionModel->getValue() << setw(15)
 				<< selectionModel->getDelta() << setw(15) << setprecision(4)
 				<< selectionModel->getWeight() << setw(15)

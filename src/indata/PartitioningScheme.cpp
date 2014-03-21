@@ -35,6 +35,7 @@ struct comparePartitionElements {
 
 PartitioningScheme::PartitioningScheme(int numberOfElements) :
 		numberOfElements(numberOfElements) {
+	eps = 0;
 	tree = 0;
 	currentElement = 0;
 	partitions = new vector<PartitionElement *>(numberOfElements);
@@ -44,6 +45,7 @@ PartitioningScheme::PartitioningScheme(int numberOfElements) :
 
 PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
 		PartitionMap * partitionMap) {
+	eps = 0;
 	tree = 0;
 	currentElement = 0;
 	code = 0;
@@ -147,47 +149,72 @@ void PartitioningScheme::buildCompleteModelSet(bool clearAll) {
 	}
 }
 
-void PartitioningScheme::getClosestPartitions(t_partitionElementId & el1,
-		t_partitionElementId & el2) {
-	if (!isOptimized()) {
-		cerr
-				<< "[ERROR] Attempting to get differences of unoptimized partitions"
-				<< endl;
-		Utilities::exit_partest(EX_SOFTWARE);
+/** Functor for sorting the pairs */
+struct compareDistancesVector {
+	inline bool operator()(elementPair * struct1,
+			elementPair * struct2) {
+		return (struct1->distance < struct2->distance);
+	}
+};
+
+vector<elementPair *> * PartitioningScheme::getElementDistances() {
+
+	if (!eps) {
+
+		if (!isOptimized()) {
+			cerr
+					<< "[ERROR] Attempting to get differences of unoptimized partitions"
+					<< endl;
+			Utilities::exit_partest(EX_SOFTWARE);
+		}
+
+		eps = new vector<elementPair *>(
+				(numberOfElements * (numberOfElements - 1)) / 2);
+
+		vector<double> alphaValues(
+				numberOfElements * (numberOfElements + 1) / 2);
+		vector<double> pinvValues(
+				numberOfElements * (numberOfElements + 1) / 2);
+		vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
+		double sumAlpha = 0.0;
+		double maxAlpha = 0.0;
+		for (unsigned int i = 1; i < numberOfElements; i++) {
+			for (unsigned int j = 0; j < i; j++) {
+				Model * mi = getElement(i)->getBestModel()->getModel();
+				Model * mj = getElement(j)->getBestModel()->getModel();
+				int index = (i * (i - 1) / 2) + j;
+				pinvValues.at(index) = pow(mi->getpInv() - mj->getpInv(), 2);
+				alphaValues.at(index) = pow(mi->getAlpha() - mj->getAlpha(), 2);
+				sumAlpha += alphaValues.at(index);
+				if (alphaValues.at(index) > maxAlpha) {
+					maxAlpha = alphaValues.at(index);
+				}
+				distances.at(index) = mi->distanceTo(mj);
+			}
+		}
+		double minDistance = DOUBLE_INF;
+		for (unsigned int i = 1; i < numberOfElements; i++) {
+			for (unsigned int j = 0; j < i; j++) {
+				int index = (i * (i - 1) / 2) + j;
+				//alphaValues.at(index) /= maxAlpha;
+				distances.at(index) += alphaValues[index] + pinvValues[index];
+				elementPair * ep = (elementPair *) malloc(sizeof(elementPair));
+				ep->e1 = getElement(i);
+				ep->e2 = getElement(j);
+				ep->distance = distances.at(index);
+				eps->at(index) = ep;
+
+				if (distances.at(index) < minDistance) {
+					//el1 = getElement(i)->getId();
+					//el2 = getElement(j)->getId();
+					minDistance = distances.at(index);
+				}
+			}
+		}
+		sort(eps->begin(), eps->end(), compareDistancesVector());
 	}
 
-	vector<double> alphaValues(numberOfElements * (numberOfElements + 1) / 2);
-	vector<double> pinvValues(numberOfElements * (numberOfElements + 1) / 2);
-	vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
-	double sumAlpha = 0.0;
-	double maxAlpha = 0.0;
-	for (unsigned int i = 1; i < numberOfElements; i++) {
-		for (unsigned int j = 0; j < i; j++) {
-			Model * mi = getElement(i)->getBestModel()->getModel();
-			Model * mj = getElement(j)->getBestModel()->getModel();
-			int index = (i * (i - 1) / 2) + j;
-			pinvValues.at(index) = pow(mi->getpInv() - mj->getpInv(), 2);
-			alphaValues.at(index) = pow(mi->getAlpha() - mj->getAlpha(), 2);
-			sumAlpha += alphaValues.at(index);
-			if (alphaValues.at(index) > maxAlpha) {
-				maxAlpha = alphaValues.at(index);
-			}
-			distances.at(index) = mi->distanceTo(mj);
-		}
-	}
-	double minDistance = DOUBLE_INF;
-	for (unsigned int i = 1; i < numberOfElements; i++) {
-		for (unsigned int j = 0; j < i; j++) {
-			int index = (i * (i - 1) / 2) + j;
-			//alphaValues.at(index) /= maxAlpha;
-			distances.at(index) += alphaValues[index] + pinvValues[index];
-			if (distances.at(index) < minDistance) {
-				el1 = getElement(i)->getId();
-				el2 = getElement(j)->getId();
-				minDistance = distances.at(index);
-			}
-		}
-	}
+	return eps;
 }
 
 string PartitioningScheme::getName() {

@@ -298,12 +298,14 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			}
 			break;
 		case ARG_HCLUSTER_REPS:
-			if(isdigit(atoi(value)))
-				maxSamples = atoi(value);
-			else
+			for (int i=0; value[i]!=0; i++)
+				if(!isdigit(value[i])) {
 				cerr << "[ERROR] \"-r " << value
-					<< "\" must be an integer:"
+					<< "\" must be an integer."
 					<< endl;
+				Utilities::exit_partest(EX_USAGE);
+				}
+				maxSamples = atoi(value);
 			break;
 		case ARG_IC_TYPE:
 			if (!strcmp(value, ARG_IC_AIC)) {

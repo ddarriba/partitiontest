@@ -31,6 +31,12 @@
 
 namespace partest {
 
+typedef struct {
+	PartitionElement * e1;
+	PartitionElement * e2;
+	double distance;
+} elementPair;
+
 /**
  * @brief Definition of a Partitioning Scheme.
  * A partitioning scheme is a set of partitions that covers the
@@ -119,8 +125,7 @@ public:
 	 *
 	 * @param[out] el1, el2 the two closest partitions
 	 */
-	void getClosestPartitions(t_partitionElementId & el1,
-			t_partitionElementId & el2);
+	vector<elementPair *> * getElementDistances();
 
 	/**
 	 * @brief Gets a string identifier for the scheme.
@@ -144,6 +149,7 @@ private:
 	unsigned int currentElement; /** Current element index for the step-by-step construction of the scheme */
 	unsigned int numberOfElements; /** The number of partitions */
 	unsigned int numberOfBits; /** The number of single genes in the scheme. */
+	vector<elementPair *> * eps;
 	char * tree;
 
 	/**
