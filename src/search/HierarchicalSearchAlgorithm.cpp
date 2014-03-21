@@ -128,34 +128,40 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 	PartitioningScheme * bestScheme = nextSchemes.at(0);
 	bool reachedMaximum = false;
 	double bestCriterionValue = DOUBLE_INF;
-	vector<t_partitionElementId> bestMatch0, bestMatch1;
-	t_partitionElementId nullId;
+	t_partitionElementId nullId, toMerge1, toMerge2;
 	int currentStep = 1;
+
 	while (!reachedMaximum) {
 		reachedMaximum = true;
 		notify_observers(MT_NEXT_STEP, nullId, time(NULL), currentStep++,
 				numberOfBits);
 		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
-#ifdef DEBUG
-			cout << "[TRACE] Hcluster - Next scheme: " << nextSchemes.at(i)->getName() << endl;
-#endif
 			mo->optimizePartitioningScheme(nextSchemes.at(i), false,
 					++current_scheme, partitionMap->getNumberOfPartitions());
-#ifdef DEBUG
-			cout << "[TRACE] Hcluster - Done scheme: " << nextSchemes.at(i)->getName() << endl;
-#endif
-			PartitionSelector partSelector(&(nextSchemes.at(i)), 1, options);
-			double criterionValue = partSelector.getBestSelectionScheme()->value;
-			if (criterionValue < bestCriterionValue) {
-				bestCriterionValue = criterionValue;
-				bestScheme = partSelector.getBestScheme();
-				reachedMaximum = false;
-				for (unsigned int j = 0; j < bestMatch0.size(); j++) {
-					partitionMap->deletePartitionElement(bestMatch0.at(j));
-					partitionMap->deletePartitionElement(bestMatch1.at(j));
+		}
+
+		PartitionSelector partSelector(&(nextSchemes.at(0)), nextSchemes.size(), options);
+					double criterionValue = partSelector.getBestSelectionScheme()->value;
+
+					if (criterionValue < bestCriterionValue) {
+						bestCriterionValue = criterionValue;
+						bestScheme = partSelector.getBestScheme();
+						reachedMaximum = false;
+					}
+
+		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
+			for (unsigned int j = 0; j < nextSchemes.at(i)->getNumberOfElements(); j++) {
+				t_partitionElementId t1 = nextSchemes.at(i)->getElement(j)->getId();
+				if (t1.size() > 1) {
+					for (unsigned int k=0; k<bestScheme->getNumberOfElements(); k++) {
+						t_partitionElementId t2 = bestScheme->getElement(k)->getId();
+						if (t1 == t2) break;
+						if (Utilities::intersec(t1, t2)) {
+							partitionMap->deletePartitionElement(t1);
+							break;
+						}
+					}
 				}
-				bestMatch0.clear();
-				bestMatch1.clear();
 			}
 		}
 
@@ -163,12 +169,10 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		cout << "[TRACE] Hcluster - Computing distances" << endl;
 #endif
 
-		if (nextSchemes.at(0)->getNumberOfElements() > 1 && !reachedMaximum) {
+		if (bestScheme->getNumberOfElements() > 1 && !reachedMaximum) {
 
-			t_partitionElementId element1, element2;
-			bestScheme->getClosestPartitions(element1, element2);
-			bestMatch0.push_back(element1);
-			bestMatch1.push_back(element2);
+			//t_partitionElementId element1, element2;
+			vector<elementPair *> * eps = bestScheme->getElementDistances();
 
 #ifdef DEBUG
 			cout << "[TRACE] Hcluster - Building next scheme " << endl;
@@ -181,18 +185,18 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 			}
 
 			int numPartitions = prevScheme->getNumberOfElements() - 1;
-			for (unsigned int i = 0; i < bestMatch0.size(); i++) {
+			for (int i = 0; i < min(options->getMaxSamples(), (int)eps->size()); i++) {
 				nextSchemes.push_back(new PartitioningScheme(numPartitions));
 				t_partitionElementId nextId;
-				Utilities::mergeIds(nextId, bestMatch0.at(i), bestMatch1.at(i));
+				Utilities::mergeIds(nextId, eps->at(i)->e1->getId(), eps->at(i)->e2->getId());
 				PartitionElement * newElement =
 						partitionMap->getPartitionElement(nextId);
 				nextSchemes.at(nextSchemes.size() - 1)->addElement(newElement);
 				for (int j = 0; j < prevScheme->getNumberOfElements(); j++) {
 
 					PartitionElement * element = prevScheme->getElement(j);
-					if (element->getId() != bestMatch0.at(i)
-							&& element->getId() != bestMatch1.at(i)) {
+					if (element->getId() != eps->at(i)->e1->getId()
+							&& element->getId() != eps->at(i)->e2->getId()) {
 						nextSchemes.at(nextSchemes.size() - 1)->addElement(
 								element);
 					}
