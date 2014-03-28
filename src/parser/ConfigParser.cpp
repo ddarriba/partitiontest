@@ -35,7 +35,12 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
 				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
 				DEFAULT_OUTPUT_RESULTS_TAG), outputTmpPath(
-				DEFAULT_OUTPUT_BASE_PATH) {
+				DEFAULT_OUTPUT_TMP_PATH) {
+
+	maxSamples = 1;
+	protModels = 0;
+
+	dataType = DT_DEFAULT;
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 
@@ -53,8 +58,81 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 		CSimpleIniA::TNamesDepend keys;
 
-		/** SEARCH ALGORITHM **/
+		/** INPUT **/
+		ini.GetAllKeys(INPUT_TAG, keys);
+		if (keys.size() > 0) {
+			value = ini.GetValue(INPUT_TAG, INPUT_MSA_TAG, "");
+			if (strcmp(value, "")) {
+				strcpy(input_file, value);
+			}
+			value = ini.GetValue(INPUT_TAG, INPUT_TREE_TAG, "");
+			if (strcmp(value, "")) {
+				strcpy(user_tree, value);
+			}
+			value = ini.GetValue(INPUT_TAG, INPUT_DATATYPE_TAG, "nt");
+			if (!strcmp(value, "aa")) {
+				dataType = DT_PROTEIC;
+			} else if (!strcmp(value, "nt")){
+				dataType = DT_NUCLEIC;
+			}
+		}
 
+		/** CANDIDATE MODELS **/
+		ini.GetAllKeys(MODELS_TAG, keys);
+		if (keys.size() > 0) {
+			value = ini.GetValue(MODELS_TAG, MODELS_INCLUDE_TAG, "all");
+			if (!strcmp(value, "all")) {
+				optimizeMode = OPT_SEARCH;
+			} else if (!strcmp(value, "gtr")) {
+				optimizeMode = OPT_GTR;
+			} else {
+				// parse protein matrices
+				optimizeMode = OPT_CUSTOM;
+				istringstream iss(value);
+				string curMatrix;
+				while (iss) {
+					unsigned int curValue = 0;
+					iss >> curMatrix;
+					if (!strcmp(curMatrix.c_str(), "dayhoff")) {
+						curValue = PROT_MATRIX_DAYHOFF;
+					} else if (!strcmp(curMatrix.c_str(), "dcmut")) {
+						curValue = PROT_MATRIX_DCMUT;
+					} else if (!strcmp(curMatrix.c_str(), "jtt")) {
+						curValue = PROT_MATRIX_JTT;
+					} else if (!strcmp(curMatrix.c_str(), "mtrev")) {
+						curValue = PROT_MATRIX_MTREV;
+					} else if (!strcmp(curMatrix.c_str(), "wag")) {
+						curValue = PROT_MATRIX_WAG;
+					} else if (!strcmp(curMatrix.c_str(), "cprev")) {
+						curValue = PROT_MATRIX_CPREV;
+					} else if (!strcmp(curMatrix.c_str(), "rtrev")) {
+						curValue = PROT_MATRIX_RTREV;
+					} else if (!strcmp(curMatrix.c_str(), "vt")) {
+						curValue = PROT_MATRIX_VT;
+					} else if (!strcmp(curMatrix.c_str(), "blosum62")) {
+						curValue = PROT_MATRIX_BLOSUM62;
+					} else if (!strcmp(curMatrix.c_str(), "mtmam")) {
+						curValue = PROT_MATRIX_MTMAM;
+					} else if (!strcmp(curMatrix.c_str(), "mtart")) {
+						curValue = PROT_MATRIX_MTART;
+					} else if (!strcmp(curMatrix.c_str(), "hivb")) {
+						curValue = PROT_MATRIX_HIVB;
+					} else if (!strcmp(curMatrix.c_str(), "hivw")) {
+						curValue = PROT_MATRIX_HIVW;
+					} else if (!strcmp(curMatrix.c_str(), "mtzoa")) {
+						curValue = PROT_MATRIX_MTZOA;
+					} else if (!strcmp(curMatrix.c_str(), "pmb")) {
+						curValue = PROT_MATRIX_PMB;
+					} else if (!strcmp(curMatrix.c_str(), "flu")) {
+						curValue = PROT_MATRIX_FLU;
+					}
+					protModels |= Utilities::binaryPow(curValue);
+				}
+			}
+
+		}
+
+		/** SEARCH ALGORITHM **/
 		ini.GetAllKeys(SEARCH_TAG, keys);
 		searchData = keys.size() > 0;
 		if (searchData) {
@@ -71,6 +149,16 @@ ConfigParser::ConfigParser(const char * configFile) :
 				cerr << "Invalid search algorithm : " << value << endl;
 				Utilities::exit_partest(EX_SOFTWARE);
 			}
+
+			value = ini.GetValue(SEARCH_TAG, SEARCH_ALGORITHM_REPS, "1");\
+			for (int i=0; value[i]!=0; i++)
+				if(!isdigit(value[i])) {
+					cerr << "[ERROR] Number of replicates \"" << value
+					<< "\" must be an integer."
+					<< endl;
+					Utilities::exit_partest(EX_USAGE);
+			}
+			maxSamples = atoi(value);
 		}
 
 		/** PARTITIONS **/
@@ -165,6 +253,16 @@ ConfigParser::ConfigParser(const char * configFile) :
 		if (value) {
 			outputFileSchemes = outputBasePath + string(value);
 		}
+
+		if ((optimizeMode == OPT_CUSTOM) & (dataType == DT_NUCLEIC)) {
+			cerr << "[ERROR] Custom model set is not available for nucleic data." << endl;
+			cerr << "        Please use \"gtr\" or \"all\" option." << endl;
+			Utilities::exit_partest(EX_USAGE);
+		} else if ((optimizeMode == OPT_GTR) & (dataType == DT_PROTEIC)) {
+			cerr << "[ERROR] GTR option is not available for proteic data." << endl;
+			cerr << "        Please use \"all\" option or define the set of models." << endl;
+			Utilities::exit_partest(EX_USAGE);
+		}
 	}
 
 }
@@ -236,39 +334,74 @@ void ConfigParser::printFormat() {
 	cout << "   [" << INPUT_TAG << "]" << endl;
 	cout << "   " << INPUT_MSA_TAG << "=INPUT_ALIGNMENT_FILE" << endl;
 	cout << "   " << INPUT_TREE_TAG << "=INPUT_TREE_FILE" << endl;
+	cout << "   " << INPUT_DATATYPE_TAG << "={nt|aa} (default: nt)" << endl;
 	cout << endl << "   ; Start of searching options" << endl;
 	cout << "   [" << SEARCH_TAG << "]" << endl;
-	cout << "   " << SEARCH_ALGORITHM_TAG << "={greedy|random|exhaustive}"
+	cout << "   " << SEARCH_ALGORITHM_TAG << "={greedy|hcluster} (default: greedy)";
+	cout << "   " << SEARCH_ALGORITHM_REPS << "=# (default: 1)"
 			<< endl;
-	cout << endl << "   ; Start of partitions for file.phy" << endl;
+	cout << endl << "   ; Start of candidate models description" << endl;
+	cout << "   [" << MODELS_TAG << "]" << endl;
+	cout << "   " << MODELS_INCLUDE_TAG << "={all | gtr | [LIST]} (default:all)" << endl;
+	cout << endl << "   ; Start of partitions" << endl;
 	cout << "   [" << PARTITIONS_TAG << "]" << endl;
-	cout << "   PART1=INI1-END1[\\STRIDE1]" << endl;
-	cout << "   PART1=INI2-END2[\\STRIDE2]" << endl;
+	cout << "   PART1=INI1-END1" << endl;
+	cout << "   PART1=INI2-END2" << endl;
 	cout << "   ..." << endl;
-	cout << "   PART1=INI3-END3[\\STRIDE3]" << endl;
+	cout << "   PART1=INI3-END3" << endl;
+	cout << endl << "   ; Start of output section" << endl;
+	cout << "   [" << OUTPUT_TAG << "]" << endl;
+	cout << "   " << OUTPUT_BASE_PATH << "=OUTPUT_BASE_URL (default:current directory)" << endl;
+	cout << "   " << OUTPUT_MODELS_TAG<< "=OUTPUT_MODELS_FILE" << endl;
+	cout << "   " << OUTPUT_PARTS_TAG<< "=OUTPUT_PARTITIONS_FILE" << endl;
+	cout << "   " << OUTPUT_SCHEMES_TAG<< "=OUTPUT_SCHEMES_FILE" << endl;
+	cout << "   " << OUTPUT_RESULTS_TAG<< "=OUTPUT_RESULTS_FILE" << endl;
 	cout << endl << "Example:" << endl << endl;
 	cout << "   [" << PARTITIONS_TAG << "]" << endl;
 	cout << "   DNA1=1-976" << endl;
-	cout << "   DNA2COD1=976-1803\\1" << endl;
-	cout << "   DNA2COD2=976-1803\\2" << endl;
-	cout << "   DNA2COD3=976-1803\\3" << endl;
-	cout << "   ; End of partitions for file.phy" << endl;
+	cout << "   DNA2=976-1803" << endl;
+	cout << "   DNA3=1804-2700" << endl;
+	cout << "   DNA4=2701-3815" << endl;
+	cout << "   ; End of partitions for file.phy" << endl << endl;
+	cout <<  INPUT_TAG << "/" << INPUT_DATATYPE_TAG << endl;
+	cout << "      nt - Nucleic (DNA) data" << endl;
+	cout << "      aa - Amino Acid (protein) data" << endl;
+	cout <<  SEARCH_TAG << "/" << SEARCH_ALGORITHM_TAG << endl;
+	cout << "      greedy   - Greedy search" << endl;
+	cout << "      hcluster - Hierarchical Clustering search" << endl;
+	cout <<  SEARCH_TAG << "/" << SEARCH_ALGORITHM_REPS << endl;
+	cout << "      (int) # - Maximum number of replicates on each HCluster step" << endl;
+	cout <<  MODELS_TAG << "/" << MODELS_INCLUDE_TAG << endl;
+	cout << "      all    - Evaluate the whole set of models" << endl;
+	cout << "      gtr    - Evaluate only gtr models (Only for DNA data)" << endl;
+	cout << "      [LIST] - List of matrices to evaluate (Only for protein data)" << endl;
+	cout << "               { dayhoff, dcmut, jtt, mtrev, cprev, rtrev, wag, vt," << endl;
+	cout << "                 blossum62, mtmam, mtart, hivb, hivw, mtzoa, pmb, flu }" << endl;
+	cout << "               e.g.,  "<<MODELS_INCLUDE_TAG << "=dayhoff dcmut jtt" << endl;
+	cout <<  OUTPUT_TAG << endl;
+	cout << "      Define urls for the output files. set to N/A for avoid output" << endl;
+	cout << "               e.g., " << OUTPUT_MODELS_TAG << "=N/A" << endl;
 }
 
 void ConfigParser::createTemplate() {
 	cout << ";THIS IS A COMMENT" << endl;
 	cout << "; Start of input data" << endl;
 	cout << "[" << INPUT_TAG << "]" << endl;
-	cout << INPUT_MSA_TAG << "=INPUT_ALIGNMENT_FILE" << endl;
-	cout << INPUT_TREE_TAG << "=INPUT_TREE_FILE" << endl;
+	cout << INPUT_MSA_TAG << "=input.phy" << endl;
+	cout << INPUT_TREE_TAG << "=input.tree" << endl;
+	cout << INPUT_DATATYPE_TAG << "=nt" << endl;
+	cout << "; Start of candidate models description" << endl;
+	cout << "[" << MODELS_TAG << "]" << endl;
+	cout << MODELS_INCLUDE_TAG << "=all" << endl;
 	cout << "; Start of searching options" << endl;
 	cout << "[" << SEARCH_TAG << "]" << endl;
-	cout << SEARCH_ALGORITHM_TAG << "={greedy|random|exhaustive}" << endl;
+	cout << SEARCH_ALGORITHM_TAG << "=hcluster" << endl;
+	cout << SEARCH_ALGORITHM_REPS << "=1" << endl;
 	cout << "[" << PARTITIONS_TAG << "]" << endl;
-	cout << "PART1=INI1-END1[\\STRIDE1]" << endl;
-	cout << "PART1=INI2-END2[\\STRIDE2]" << endl;
+	cout << "PART1=INI1-END1" << endl;
+	cout << "PART2=INI2-END2" << endl;
 	cout << "..." << endl;
-	cout << "PART1=INI3-END3[\\STRIDE3]" << endl;
+	cout << "PARTn=INIn-ENDn" << endl;
 }
 
 vector<partitionInfo> * ConfigParser::getPartitions() {

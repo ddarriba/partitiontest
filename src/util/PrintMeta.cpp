@@ -59,13 +59,17 @@ void PrintMeta::print_options(ostream& output, ParTestOptions & options) {
 
 	if (options.getTreeFile()) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
-		if (strlen(options.getTreeFile())
-				> (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-			output << endl
-					<< setw(H_RULE_LENGTH - strlen(options.getTreeFile()))
-					<< " ";
+		if (strlen(options.getTreeFile()) > 0) {
+			if (strlen(options.getTreeFile())
+					> (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
+				output << endl
+						<< setw(H_RULE_LENGTH - strlen(options.getTreeFile()))
+						<< " ";
+			}
+			output << options.getTreeFile() << endl;
+		} else {
+			output << "N/A" << endl;
 		}
-		output << options.getTreeFile() << endl;
 	}
 
 	output << setw(OPT_DESCR_LENGTH) << left << "  Config file:";
@@ -74,17 +78,11 @@ void PrintMeta::print_options(ostream& output, ParTestOptions & options) {
 				<< " ";
 	}
 	output << options.getConfigFile() << endl;
-	output << setw(OPT_DESCR_LENGTH) << left << "  Output files:" << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Models:" << setw(10)
-			<< right << options.getOutputFileModels() << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Partitions:"
-			<< setw(10) << right << options.getOutputFilePartitions() << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Schemes:" << setw(10)
-			<< right << options.getOutputFileSchemes() << endl;
 
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (options.getDataType()) {
 	case DT_NUCLEIC:
+	case DT_DEFAULT:
 		output << "Nucleic" << endl;
 		output << setw(OPT_DESCR_LENGTH) << left
 				<< "  Include models with unequal frequencies:";
@@ -111,6 +109,34 @@ void PrintMeta::print_options(ostream& output, ParTestOptions & options) {
 		output << "True" << endl;
 	else
 		output << "False" << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
+	switch (options.getSearchAlgorithm()) {
+	case SearchGreedy:
+	case SearchDefault:
+		output << left << "Greedy" << endl;
+		break;
+	case SearchGreedyExtended:
+		output << left << "Greedy extended" << endl;
+		break;
+	case SearchHCluster:
+		output << left << "Hierarchical Cluster (" << options.getMaxSamples()
+				<< ")" << endl;
+		break;
+	case SearchRandom:
+		output << left << "Random" << endl;
+		break;
+	case SearchExhaustive:
+		output << left << "Exahustive" << endl;
+		break;
+	}
+
+	output << setw(OPT_DESCR_LENGTH) << left << "  Output files:" << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Models:" << setw(10)
+			<< right << options.getOutputFileModels() << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Partitions:"
+			<< setw(10) << right << options.getOutputFilePartitions() << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Schemes:" << setw(10)
+			<< right << options.getOutputFileSchemes() << endl;
 
 //  output << setw(OPT_DESCR_LENGTH) << left << "  Candidate models:"
 //      << Globals::get_number_of_models() << endl;

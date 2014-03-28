@@ -34,10 +34,16 @@
 
 #define SEARCH_TAG 				"search"
 #define SEARCH_ALGORITHM_TAG 	"algorithm"
+#define SEARCH_ALGORITHM_REPS 	"replicates"
+
+#define MODELS_TAG			"models"
+#define MODELS_INCLUDE_TAG	"include"
 
 #define INPUT_TAG 			"input"
 #define INPUT_MSA_TAG 		"msa"
 #define INPUT_TREE_TAG		"tree"
+#define INPUT_DATATYPE_TAG	"datatype"
+
 #define OUTPUT_TAG 			"output"
 #define OUTPUT_TMP_PATH 	"tmp"
 #define OUTPUT_BASE_PATH 	"path"
@@ -151,10 +157,24 @@ public:
 	}
 
 	/**
+	 * @brief Gets the base path for output files.
+	 */
+	const string& getOutputBasePath() const {
+		return outputBasePath;
+	}
+
+	/**
 	 * @brief Gets the path for temporary files.
 	 */
 	const string& getOutputTmpPath() const {
 		return outputTmpPath;
+	}
+
+	/**
+	 * @brief Gets the number of replicates for hcluster.
+	 */
+	const int getMaxSamples() const {
+		return maxSamples;
 	}
 
 #ifdef _PLL
@@ -165,6 +185,26 @@ public:
 		return parts;
 	}
 #endif
+
+	DataType getDataType(void) {
+			return dataType;
+		}
+
+	const char * getInputFile(void) {
+		return input_file;
+	}
+
+	const char * getUserTree(void) {
+		return user_tree;
+	}
+
+	OptimizeMode getOptimizeMode(void) {
+		return optimizeMode;
+	}
+
+	bitMask getProtModels(void) {
+		return protModels;
+	}
 
 private:
 
@@ -189,11 +229,17 @@ private:
 	int parsePartitionDetails(char * line, struct partitionInfo * pInfo);
 
 	const char * configFile; /** Configuration file name */
+	char input_file[256]; /** User input alignment */
+	char user_tree[256]; /** User input tree */
+	OptimizeMode optimizeMode; /** Mode of optimization */
+	bitMask protModels; /** Models to evaluate */
 	int numberOfPartitions; /** The numnber of partitions */
 	vector<partitionInfo> * partitions; /** Vector of partitions */
 	/** search algorithm **/
 	bool searchData; /** TODO: Not sure what is this doing here */
 	SearchAlgo searchAlgorithm; /** Search algorithm */
+	DataType dataType;
+	int maxSamples; /** Maximum number of samples in HCluster */
 	string outputFileResults; /** File name for results output */
 	string outputFileModels; /** File name for model selections output */
 	string outputFilePartitions; /** File name for partition selections output */

@@ -23,6 +23,8 @@ typedef std::vector<unsigned int> t_partitionElementId;
 
 #define DOUBLE_INF 1e140
 
+#define CKP_DIR "ckpfiles"
+
 #ifdef _WIN32
 #define char_separator '\\'
 const std::string os_separator("\\");
@@ -49,7 +51,7 @@ typedef std::vector<t_partitioningScheme> t_schemesVector;
 
 namespace partest {
 
-typedef unsigned int bitMask;
+typedef unsigned long int bitMask;
 
 enum RateVar {
   RateVarM = 1,
@@ -78,7 +80,8 @@ enum SearchAlgo {
 	SearchRandom,
 	SearchGreedy,
 	SearchGreedyExtended,
-	SearchHCluster
+	SearchHCluster,
+	SearchDefault
 };
 
 #ifdef _PLL
@@ -186,20 +189,25 @@ enum NucMatrix {
 #define EX__MAX 78      /* maximum listed value */
 
 enum DataType {
-  DT_NUCLEIC=1, DT_PROTEIC=2
+  DT_NUCLEIC=1, DT_PROTEIC=2, DT_DEFAULT=0
 };
 
 enum InformationCriterion {
-	AIC, AICC, BIC, DT
+	AIC, AICC, BIC, DT, IC_DEFAULT
 };
 
 enum SampleSize {
-	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM
+	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM, SS_DEFAULT
 };
 
 enum OptimizeMode {
-	OPT_SEARCH, OPT_GTR
+	OPT_SEARCH, OPT_GTR, OPT_CUSTOM, OPT_DEFAULT
 };
+
+extern bitMask protModelsMask;
+extern bool ckpAvailable;
+extern std::string ckpPath;
+
 
 } /* namespace partest */
 
