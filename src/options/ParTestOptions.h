@@ -195,6 +195,8 @@ public:
 	 */
 	string getOutputFileSchemes(void) const;
 
+	string getOutputBasePath(void) const;
+
 #ifdef _PLL
 	/**
 	 * @brief Gets the partition definitions for PLL.
@@ -343,6 +345,7 @@ private:
 	string outputFilePartitions; /** Output partitions file */
 	string outputFileSchemes; /** Output schemes file */
 	string outputTmpPath; /** Output temporary files path */
+	string outputBasePath; /** Output base directory */
 #ifdef _PLL
 	pllQueue * pllPartitions; /** Partitions definition for PLL */
 #endif

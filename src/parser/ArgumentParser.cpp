@@ -34,9 +34,9 @@ using namespace std;
 namespace partest {
 
 #ifndef _PLL
-#define NUM_ARGUMENTS 16
+#define NUM_ARGUMENTS 19
 #else
-#define NUM_ARGUMENTS 14
+#define NUM_ARGUMENTS 17
 #endif
 
 void ArgumentParser::init() {
@@ -172,13 +172,13 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	bool do_g = DEFAULT_DO_G;
 	double sampleSizeValue = 0.0;
 
-	DataType data_type = DEFAULT_DATA_TYPE;
+	DataType data_type = DT_DEFAULT;
 	StartTopo startingTopology = DEFAULT_STARTING_TOPOLOGY;
-	InformationCriterion ic_type = DEFAULT_IC_TYPE;
-	SampleSize sampleSize = DEFAULT_SAMPLE_SIZE;
-	SearchAlgo searchAlgo = DEFAULT_SEARCH_ALGO;
+	InformationCriterion ic_type = IC_DEFAULT;
+	SampleSize sampleSize = SS_DEFAULT;
+	SearchAlgo searchAlgo = SearchDefault;
 	int maxSamples = 1;
-	OptimizeMode optimize = DEFAULT_OPTIMIZE;
+	OptimizeMode optimize = OPT_DEFAULT;
 //  AlignFormat input_format = AF_PHYLIP_SEQ;
 
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
@@ -286,7 +286,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< "Exhaustive algorithm (horribly computationally expensive)"
 						<< endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_RANDOM
-						<< "Random walk algorithm (chinese restaurant process)"
+						<< "Random walk algorithm (Chinese restaurant process)"
 						<< endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_GREEDY
 						<< "Greedy hill climbing algorithm" << endl;
@@ -300,10 +300,10 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 		case ARG_HCLUSTER_REPS:
 			for (int i=0; value[i]!=0; i++)
 				if(!isdigit(value[i])) {
-				cerr << "[ERROR] \"-r " << value
+					cerr << "[ERROR] \"-r " << value
 					<< "\" must be an integer."
 					<< endl;
-				Utilities::exit_partest(EX_USAGE);
+					Utilities::exit_partest(EX_USAGE);
 				}
 				maxSamples = atoi(value);
 			break;
@@ -417,12 +417,6 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 #ifdef DEBUG
 	cout << "[TRACE] All arguments were parsed" << endl;
 #endif
-
-	// check required arguments
-	if (!requiredInputFile) {
-		cerr << "ERROR! Input File (-i) is required!" << endl;
-		Utilities::exit_partest(EX_USAGE);
-	}
 
 	bitMask do_rate = RateVarM;
 	if (do_f)

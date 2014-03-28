@@ -26,12 +26,19 @@
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
+#include <libgen.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace std;
 
 namespace partest {
 
 ParTestOptions::ParTestOptions() {
+#ifdef _PLL
+	pllPartitions = 0;
+#endif
+	maxSamples = 1;
 	dataType = DEFAULT_DATA_TYPE;
 	alignment = 0;
 	informationCriterion = DEFAULT_IC_TYPE;
@@ -81,16 +88,11 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 		OptimizeMode optimize, InformationCriterion informationCriterion,
 		SampleSize sampleSize, double sampleSizeValue, const char *userTree,
 		const char *outputDir) {
-
-	this->rateVariation = doRateVariation;
-
 	this->dataType = dataType;
+	this->rateVariation = doRateVariation;
 	this->startingTopology = startingTopology;
 	this->informationCriterion = informationCriterion;
-	this->sampleSize = sampleSize;
-	this->searchAlgo = searchAlgo;
 	this->maxSamples = maxSamples;
-	this->optimize = optimize;
 
 	if (sampleSize == SS_CUSTOM) {
 		this->sampleSizeValue = sampleSizeValue;
@@ -108,14 +110,69 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	}
 
 	ConfigParser parser(configFile);
-	this->outputFileModels = parser.getOutputFileResults();
-	this->outputFileModels = parser.getOutputFileModels();
-	this->outputFilePartitions = parser.getOutputFilePartitions();
-	this->outputFileSchemes = parser.getOutputFileSchemes();
+	if (optimize != OPT_DEFAULT) {
+		this->optimize = optimize;
+	} else {
+		this->optimize = parser.getOptimizeMode();
+		if (this->optimize == OPT_DEFAULT) {
+			this->optimize = DEFAULT_OPTIMIZE;
+		}
+	}
+	if (this->optimize == OPT_CUSTOM) {
+		protModelsMask = parser.getProtModels();
+	}
+
+	// check required arguments
+	if (!strlen(inputFile))
+		strcpy(this->inputFile, parser.getInputFile());
+	if (!strlen(this->inputFile)) {
+		cerr << "ERROR! Input File (-i) is required!" << endl;
+		Utilities::exit_partest(EX_USAGE);
+	}
+	if (parser.getOutputBasePath().length() > 0) {
+		this->outputBasePath = parser.getOutputBasePath();
+		this->outputFileResults = parser.getOutputFileResults();
+		this->outputFileModels = parser.getOutputFileModels();
+		this->outputFilePartitions = parser.getOutputFilePartitions();
+		this->outputFileSchemes = parser.getOutputFileSchemes();
+	} else {
+
+		char *baseName = basename(this->inputFile);
+		this->outputBasePath = "partest_";
+		this->outputBasePath.append(baseName);
+		outputBasePath += os_separator;
+		this->outputFileResults = outputBasePath
+				+ parser.getOutputFileResults();
+		this->outputFileModels = outputBasePath + parser.getOutputFileModels();
+		this->outputFilePartitions = outputBasePath
+				+ parser.getOutputFilePartitions();
+		this->outputFileSchemes = outputBasePath
+				+ parser.getOutputFileSchemes();
+	}
+	int resMkdir = mkdir(this->outputBasePath.c_str(), 0777);
+	ckpPath = this->outputBasePath + CKP_DIR;
+	if (resMkdir) {
+		if (errno == EEXIST) {
+			cerr << "[WARNING] Output directory " << this->outputBasePath
+								<< " already exists. Output files might be overwritten."
+								<< endl;
+		} else {
+			cerr << "[WARNING] ***** WARNING *****" << endl;
+			cerr << "[WARNING] Output directory " << this->outputBasePath
+					<< " cannot be created. No output files will be stored."
+					<< endl;
+			cerr << "[WARNING] ***** WARNING *****" << endl;
+		}
+	}
+	if (!resMkdir || errno == EEXIST) {
+		mkdir(ckpPath.c_str(), 0777);
+	}
+
 	this->outputTmpPath = parser.getOutputTmpPath();
 	if (strcmp(outputDir, "")) {
 		this->outputTmpPath = outputDir;
 	}
+
 #ifdef _PLL
 	this->pllPartitions = parser.getPllPartitions();
 #endif
@@ -123,13 +180,21 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	modelsOutputStream = new ofstream(outputFileModels.c_str());
 	partitionsOutputStream = new ofstream(outputFilePartitions.c_str());
 	schemesOutputStream = new ofstream(outputFileSchemes.c_str());
+
+	if (dataType == DT_DEFAULT) {
+		this->dataType = parser.getDataType();
+		if (this->dataType == DT_DEFAULT) {
+			this->dataType = DEFAULT_DATA_TYPE;
+		}
+	}
+
 #ifdef DEBUG
 	cout << "[TRACE] Creating alignment"<< endl;
 #endif
 #ifdef _PLL
-	alignment = new PLLAlignment(inputFile, dataType, pllPartitions);
+	alignment = new PLLAlignment(this->inputFile, this->dataType, this->pllPartitions);
 #else
-	alignment = new PhymlAlignment(inputFile, dataType);
+	alignment = new PhymlAlignment(this->inputFile, this->dataType);
 #endif
 //	PrintMeta::print_header(*resultsOutputStream);
 //	PrintMeta::print_header(*modelsOutputStream);
@@ -139,6 +204,21 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 //	PrintMeta::print_options(*modelsOutputStream, *this);
 //	PrintMeta::print_options(*partitionsOutputStream, *this);
 //	PrintMeta::print_options(*schemesOutputStream, *this);
+
+	if (sampleSize != SS_DEFAULT) {
+		this->sampleSize = sampleSize;
+	} else {
+		this->sampleSize = DEFAULT_SAMPLE_SIZE;
+	}
+	if (searchAlgo != SearchDefault) {
+		this->searchAlgo = searchAlgo;
+	}
+	if (informationCriterion != IC_DEFAULT) {
+		this->informationCriterion = informationCriterion;
+	} else {
+		this->informationCriterion = DEFAULT_IC_TYPE;
+	}
+
 #ifdef DEBUG
 	cout << "[TRACE] Done Config" << endl;
 #endif

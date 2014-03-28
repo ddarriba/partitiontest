@@ -17,6 +17,7 @@
  */
 
 #include "ModelSet.h"
+#include "util/GlobalDefs.h"
 #include <string.h>
 
 namespace partest {
@@ -44,14 +45,13 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 			Utilities::exit_partest(EX_OSERR);
 			break;
 		}
-	} else {
-		numberOfMatrices = 1;
-	}
-
-	if (optimizeMode == OPT_SEARCH) {
 		numberOfModels *= numberOfMatrices;
-	} else {
+	} else if (optimizeMode == OPT_GTR) {
+		numberOfMatrices = 1;
 		numberOfModels = 1;
+	} else if (optimizeMode == OPT_CUSTOM) {
+		numberOfMatrices = min(PROT_MATRIX_SIZE, Utilities::setbitsCount(protModelsMask));
+		numberOfModels *= numberOfMatrices;
 	}
 
 	models = (Model **) malloc(numberOfModels * sizeof(Model *));
@@ -160,6 +160,7 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 
 	int currentIndex = 0;
 	NucMatrix nm;
+	int nextIndex = 0;
 	switch (dataType) {
 	case DT_NUCLEIC:
 		if (optimizeMode == OPT_GTR) {
@@ -182,7 +183,9 @@ int ModelSet::buildModelSet(Model **models, bitMask rateVar,
 	case DT_PROTEIC:
 		for (int i = 0; i < PROT_MATRIX_SIZE; i++) {
 			ProtMatrix pm = static_cast<ProtMatrix>(i);
-			models[i] = new ProteicModel(pm, rateVar, numberOfTaxa);
+			if (protModelsMask & Utilities::binaryPow(pm)) {
+			  models[nextIndex++] = new ProteicModel(pm, rateVar, numberOfTaxa);
+			}
 		}
 		break;
 	default:
