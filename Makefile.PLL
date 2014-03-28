@@ -37,6 +37,7 @@ PARTEST_CXXFILES = \
 	util/ParTestFactory.cpp \
 	util/PrintMeta.cpp \
 	util/Utilities.cpp \
+	util/GlobalDefs.cpp \
 	partitiontest.cpp
 	
 GLOBAL_DEPS = pll.h globalVariables.h
