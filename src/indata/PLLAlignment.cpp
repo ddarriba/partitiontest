@@ -9,7 +9,9 @@
 #include "util/Utilities.h"
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <string.h>
+#include <sstream>
 #include <stdlib.h>
 #include <pll.h>
 #include <parsePartition.h>
@@ -33,13 +35,33 @@ char convert(unsigned char c) {
 	}
 }
 
+int storeTree(pllInstance * tree, partitionList * partitions, string name) {
+	if (!ckpAvailable) return -1;
+	ofstream ofs;
+	ofs.open((ckpPath + name).c_str());
+
+	//ofs << tree->
+	ofs.close();
+	return 0;
+}
+
+int loadTree(pllInstance * tree) {
+
+	return 0;
+}
+
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
 	dataType = alignment->dataType;
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
+	uniqueName += "_";
 	for (int i = 0; i < numberOfSections; i++) {
 		numSites += lastPosition[i] - firstPosition[i] + 1;
+		uniqueName += firstPosition[i];
+		uniqueName +=  "-";
+		uniqueName += lastPosition[i];
+		uniqueName += "_";
 	}
 	phylip = pllInitAlignmentData(numSeqs, numSites);
 
@@ -91,6 +113,9 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 			pinfo->protModels = PLL_JTT;
 			pinfo->dataType = PLL_AA_DATA;
 			break;
+		case DT_DEFAULT:
+			cerr << "ERRORS: Unknown data type";
+			exit(EXIT_FAILURE);
 		}
 	pllQueueInit(&(pinfo->regionList));
 	pllQueueAppend(pllPartitions, (void *) pinfo);
@@ -114,7 +139,6 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	pllTreeInitTopologyForAlignment(tr, phylip);
 	//pllPhylipRemoveDuplicate (phylip, partitions);
 	numPatterns = phylip->sequenceLength;
-
 }
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int firstPosition,
