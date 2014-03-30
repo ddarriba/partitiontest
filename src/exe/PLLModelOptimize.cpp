@@ -27,13 +27,13 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		cerr << "ERROR: Incompatible tree/alignment combination" << endl;
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
-	tree->start = tree->nodep[1];
+
 
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Building initial MP topology" << endl;
 #endif
 	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
-
+	tree->start = tree->nodep[1];
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
@@ -43,7 +43,13 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 			partitions->partitionData[i]->states = 20;
 			partitions->partitionData[i]->protModels = PLL_DAYHOFF;
 		}
+	} else {
+		for (int i = 0; i < partitions->numberOfPartitions; i++) {
+			partitions->partitionData[i]->dataType = PLL_DNA_DATA;
+			partitions->partitionData[i]->states = 4;
+		}
 	}
+
 	pllInitModel(tree, partitions, phylip);
 
 #ifdef DEBUG
@@ -407,7 +413,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 
 	cout << "final likelihood = " << tr->likelihood << endl;
 
-	char * newick = (char *)malloc(strlen(tr->tree_string));
+	char * newick = (char *)malloc(strlen(tr->tree_string)+1);
 	strcpy(newick, tr->tree_string);
 	newick[strlen(newick)-1] = '\0';
 
