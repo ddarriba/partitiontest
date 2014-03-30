@@ -68,7 +68,7 @@ public:
 	static inline bool isPowerOfTwo(unsigned int x) {
 		return ((x != 0) && !(x & (x - 1)));
 	}
-	static inline unsigned int binaryPow(unsigned int x) {
+	static inline unsigned long int binaryPow(unsigned long int x) {
 		unsigned int nextId = 1;
 		nextId <<= x;
 		return nextId;
