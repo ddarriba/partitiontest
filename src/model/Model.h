@@ -50,12 +50,15 @@ public:
 	 * @return The name of the model.
 	 */
 	string getName(void);
+	void setName(string name);
+
 	/**
 	 * @brief Gets the name of the substitution scheme.
 	 *
 	 * @return The name of the substitution scheme.
 	 */
 	string getMatrixName(void);
+	void setMatrixName(string matrixName);
 	/**
 	 * @brief Gets the rate variation and frequencies parameters as a bitmask.
 	 *
@@ -201,7 +204,7 @@ public:
 	 *
 	 * @param frequencies Array with the state frequencies: 4 for nucleotide and 20 for amino-acids.
 	 */
-	virtual void setFrequencies(const double * frequencies);
+	virtual void setFrequencies(const double * frequencies) = 0;
 
 	double * getRates(void) const;
 
@@ -222,6 +225,9 @@ public:
 	 * @brief Prints the model details and parameters.
 	 */
 	virtual void print(ostream& out, const char * prefix = "");
+
+	void allocateFrequencies(int numberOfFrequencies);
+	virtual void allocateRates(void) = 0;
 
 	virtual ~Model();
 protected:

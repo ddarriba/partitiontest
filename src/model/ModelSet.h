@@ -68,6 +68,15 @@ public:
    */
   Model * getModel(unsigned int index);
 
+  /**
+     * @brief Sets the model in the index.
+     *
+     * @param[in] model The model.
+     * @param[in] index Index of the model.
+     */
+    void setModel(Model * model, unsigned int index);
+
+    void allocateModels(int numberOfModels);
   DataType getDataType(void) { return dataType; }
   virtual ~ModelSet();
 private:

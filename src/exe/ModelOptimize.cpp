@@ -53,7 +53,8 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 				modelset->getNumberOfModels(),
 				modelset->getModel(i)->getName());
 
-		optimizeModel(modelset->getModel(i), partitionElement, i,
+		if (!modelset->getModel(i)->isOptimized())
+			optimizeModel(modelset->getModel(i), partitionElement, i,
 				modelset->getNumberOfModels());
 
 		notify_observers(MT_SINGLE_END, partitionElement->getId(),

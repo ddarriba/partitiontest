@@ -9,7 +9,6 @@
 #include "util/Utilities.h"
 #include <algorithm>
 #include <iostream>
-#include <fstream>
 #include <string.h>
 #include <sstream>
 #include <stdlib.h>
@@ -35,21 +34,6 @@ char convert(unsigned char c) {
 	}
 }
 
-int storeTree(pllInstance * tree, partitionList * partitions, string name) {
-	if (!ckpAvailable) return -1;
-	ofstream ofs;
-	ofs.open((ckpPath + name).c_str());
-
-	//ofs << tree->
-	ofs.close();
-	return 0;
-}
-
-int loadTree(pllInstance * tree) {
-
-	return 0;
-}
-
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
 	dataType = alignment->dataType;
@@ -58,9 +42,9 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	uniqueName += "_";
 	for (int i = 0; i < numberOfSections; i++) {
 		numSites += lastPosition[i] - firstPosition[i] + 1;
-		uniqueName += firstPosition[i];
+		uniqueName += to_string(firstPosition[i]);
 		uniqueName +=  "-";
-		uniqueName += lastPosition[i];
+		uniqueName += to_string(lastPosition[i]);
 		uniqueName += "_";
 	}
 	phylip = pllInitAlignmentData(numSeqs, numSites);
@@ -177,9 +161,17 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 #ifdef DEBUG
 	cout << "[TRACE] Committing partitions " << phylip->sequenceLength << endl;
 #endif
+	uniqueName += "_";
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
-	for (int i=0; i<partitions->numberOfPartitions;i++)
+
+	for (int i=0; i<partitions->numberOfPartitions;i++) {
 		partitions->partitionData[i]->dataType = dataType;
+		uniqueName += to_string(partitions->partitionData[i]->lower);
+		uniqueName +=  "-";
+		uniqueName += to_string(partitions->partitionData[i]->upper);
+		uniqueName += "_";
+	}
+
 #ifdef DEBUG
 	cout << "[TRACE] Init tree" << endl;
 #endif

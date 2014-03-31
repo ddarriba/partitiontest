@@ -42,9 +42,19 @@ Model::~Model() {
 string Model::getName() {
 	return name;
 }
+
+void Model::setName(string name) {
+	this->name = name;
+}
+
 string Model::getMatrixName() {
 	return matrixName;
 }
+
+void Model::setMatrixName(string matrixName) {
+	this->matrixName = matrixName;
+}
+
 bitMask Model::getRateVariation() {
 	return rateVariation;
 }
@@ -102,13 +112,17 @@ void Model::setTree(char * tree) {
 	this->tree = string(tree);
 }
 
+void Model::allocateFrequencies(int numberOfFrequencies) {
+	frequencies = (double *) malloc (numberOfFrequencies * sizeof(double));
+}
+
 double * Model::getFrequencies(void) const {
 	return frequencies;
 }
 
-void Model::setFrequencies(const double * frequencies) {
-// ignore
-}
+//void Model::setFrequencies(const double * frequencies) {
+//// ignore
+//}
 
 double * Model::getRates(void) const {
 	return rates;
