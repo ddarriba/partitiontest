@@ -220,6 +220,10 @@ public:
 #endif
 
 private:
+
+	int loadData();
+	int storeData();
+
 	/**
 	 * @brief Unique identifier of this partition.
 	 *
@@ -238,7 +242,7 @@ private:
 	int * end; /** The end positions of each subset. */
 	int * stride; /** The stride or codon position [1,3]. 0, if there is no subdivision. */
 	int numberOfSections; /** The number of subsets and also the length of the previous arrays. */
-	string name; /** The name of the partition. */
+	string name, ckpname; /** The name of the partition. */
 	SelectionModel * bestModel; /** The best-fit model for this partition. */
 	ModelSet * modelset; /** The set of candidate models. */
 	OptimizeMode optimizeMode;

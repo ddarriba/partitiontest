@@ -175,6 +175,14 @@ void NucleicModel::setFrequencies(const double * frequencies) {
 	}
 }
 
+NucMatrix NucleicModel::getMatrix(void) {
+	return matrix;
+}
+
+void NucleicModel::allocateRates(void) {
+	this->rates = (double *) malloc (NUM_RATES * sizeof(double));
+}
+
 void NucleicModel::setRates(const double * rates) {
 	for (int i = 0; i < NUM_RATES; i++)
 		this->rates[i] = rates[i];

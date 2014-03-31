@@ -157,8 +157,8 @@ double ProteicModel::distanceTo(Model * otherModel) {
 	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
 	//double matrixDistance = matrix!=other->matrix?getEuclideanDistance(matrix, other->matrix): 0;
 	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
-	double invDistance = abs(pInv - other->pInv);
-	double shapeDistance = abs(alpha - other->alpha);
+	double invDistance = fabs(pInv - other->pInv);
+	double shapeDistance = fabs(alpha - other->alpha);
 	double freqsDistance = 0.0;
 	// TODO: Store frequencies and compute euclidean distance.
 //	for (int i = 0; i < numberOfFrequencies; i++) {

@@ -166,6 +166,7 @@ void ParTestOptions::set(const char *inputFile, DataType dataType,
 	}
 	if (!resMkdir || errno == EEXIST) {
 		mkdir(ckpPath.c_str(), 0777);
+		ckpAvailable = true;
 	}
 
 	this->outputTmpPath = parser.getOutputTmpPath();

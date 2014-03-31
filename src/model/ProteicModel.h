@@ -45,7 +45,8 @@ public:
 	 * @param numberOfTaxa Number of taxa (required for computing the free parameters.
 	 */
   ProteicModel(ProtMatrix matrix, bitMask rateVariation, int numberOfTaxa);
-  void setFrequencies(const double * frequencies);
+  virtual void setFrequencies(const double * frequencies);
+  virtual void allocateRates(void) { /* do nothing */}
   void setRates(const double * rates);
   ProtMatrix getMatrix(void);
   double distanceTo(Model * other);

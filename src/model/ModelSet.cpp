@@ -92,6 +92,10 @@ ModelSet::~ModelSet() {
 	}
 }
 
+void ModelSet::allocateModels(int numberOfModels) {
+	models = (Model **) malloc (numberOfModels * sizeof(Model *));
+}
+
 void ModelSet::buildCompleteModelSet(bool clearAll) {
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
 	int numberOfMatrices = 0;
@@ -149,6 +153,10 @@ void ModelSet::buildCompleteModelSet(bool clearAll) {
 
 Model * ModelSet::getModel(unsigned int index) {
 	return models[index];
+}
+
+void ModelSet::setModel(Model * model, unsigned int index) {
+	models[index] = model;
 }
 
 int ModelSet::buildModelSet(Model **models, bitMask rateVar,
