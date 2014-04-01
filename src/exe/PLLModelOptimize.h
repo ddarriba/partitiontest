@@ -46,8 +46,6 @@ public:
 			true, bool estimateTopology = true);
 	char * getMlTree(PartitioningScheme * scheme,
 			string inputFile);
-	double evaluateNNI(pllInstance * tr, partitionList *pr, bool estimateModel =
-			true);
 	double optimizeParameters(pllInstance * tr, partitionList *partitions,
 			bool estimateModel, bool estimateBranchLengths,
 			bool estimateTopology);

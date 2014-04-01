@@ -44,6 +44,7 @@ public:
 	Alignment * splitAlignment(int * firstPosition, int * lastPosition,
 			int numberOfSections);
 	void destroyStructures(void);
+	void destroyTree(void);
 
 	/**
 	 * @brief Gets the tree data structure from PLL.
@@ -64,7 +65,6 @@ private:
 	pllInstance * tr; /** Tree structure for working with PLL. */
 	partitionList * partitions; /** Partition definitions */
 	pllAlignmentData * phylip; /** Alignment */
-	string uniqueName;
 };
 
 } /* namespace partest */

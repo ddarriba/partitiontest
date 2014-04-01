@@ -29,6 +29,8 @@
 #include "util/GlobalDefs.h"
 #include <string>
 
+#define FULL_CODE -1
+
 namespace partest {
 
 typedef struct {
@@ -130,9 +132,11 @@ public:
 	/**
 	 * @brief Gets a string identifier for the scheme.
 	 *
+	 * @param[in] codeLine If the code has more than 1 line (i.e, more than 10 elements), determines the line to get.
+	 *
 	 * @return A string identifier for the scheme.
 	 */
-	string getCode();
+	string getCode(int codeLine=FULL_CODE);
 
 	/**
 	 * @brief Gets a string name for the scheme.

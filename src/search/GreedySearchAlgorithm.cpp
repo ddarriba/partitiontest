@@ -204,29 +204,68 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	mo->attach(this);
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
-		/* Starting topology */
-		notify_observers(MT_FTREE_INIT, time(NULL));
 
-		PLLAlignment * alignment =
-				static_cast<PLLAlignment *>(options->getAlignment());
+		int loadedTree = false;
+		char * startingTree;
 
-		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
-				alignment->getPhylip());
+		if (ckpAvailable) {
+			fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
+					ios::in);
 
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
-				alignment->getPartitions());
+			if (ofs) {
+				ofs.seekg(0);
+				int treeLen;
+				ofs.read((char *) &(treeLen), sizeof(int));
+				startingTree = (char *) malloc(treeLen + 1);
+				ofs.read((char *) startingTree, treeLen);
+				options->setTreeString(startingTree, false);
+				loadedTree = true;
+				ofs.close();
+			}
+		}
 
-		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true, true);
+		if (!loadedTree) {
+			/* Starting topology */
+			notify_observers(MT_FTREE_INIT, time(NULL));
 
-		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
-				alignment->getPartitions(), alignment->getTree()->start->back,
-				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-		char * startingTree = alignment->getTree()->tree_string;
-		startingTree[strlen(startingTree)-1] = '\0';
-		options->setTreeString(startingTree);
+			PLLAlignment * alignment =
+					static_cast<PLLAlignment *>(options->getAlignment());
+
+			mo->initializeStructs(alignment->getTree(),
+					alignment->getPartitions(), alignment->getPhylip());
+
+			pllComputeRandomizedStepwiseAdditionParsimonyTree(
+					alignment->getTree(), alignment->getPartitions());
+
+			mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(),
+					true, true);
+
+			pllTreeToNewick(alignment->getTree()->tree_string,
+					alignment->getTree(), alignment->getPartitions(),
+					alignment->getTree()->start->back,
+					PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+					PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+			startingTree = alignment->getTree()->tree_string;
+			startingTree[strlen(startingTree) - 1] = '\0';
+			options->setTreeString(startingTree, true);
+
+			if (ckpAvailable) {
+				/* store tree */
+				fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
+						ios::out);
+				ofs.seekg(0);
+				ofs.write((char *) &(alignment->getTree()->treeStringLength),
+						sizeof(int));
+				ofs.write((char *) startingTree,
+						alignment->getTree()->treeStringLength);
+				ofs.close();
+			}
+		}
+
+		//alignment->destroyTree();
 
 		notify_observers(MT_FTREE_END, time(NULL), startingTree);
+
 	}
 
 	/* 1. start with k=n groups */

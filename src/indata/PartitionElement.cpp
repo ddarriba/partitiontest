@@ -26,7 +26,8 @@ int PartitionElement::loadData() {
 	cout << "Checking " << (ckpPath + os_separator + ckpname).c_str() << endl;
 	if (!ofs) return CHECKPOINT_UNEXISTENT;
 
-	cout << "LOADING CHECKPOINT" << endl;
+	alignment = 0;
+
 	ofs.seekg (0);
 	int numTaxa;
 	ofs.read((char *) &(numTaxa), sizeof(int));
@@ -34,17 +35,19 @@ int PartitionElement::loadData() {
 	ofs.read((char *) &(treeLen), sizeof(int));
 	char treeStr[treeLen];
 	ofs.read((char *) treeStr, treeLen);
-	modelset = (ModelSet *) malloc(sizeof(ModelSet));
-	if (!modelset) {
+	ModelSet * ms = (ModelSet *) alloca(sizeof(ModelSet));
+	if (!ms) {
 		cerr << "[INTERNAL_ERROR] Error allocating memory for modelset" << endl;
 		Utilities::exit_partest(EX_SOFTWARE);
 	}
-	ofs.read((char *) modelset, sizeof(ModelSet));
-	modelset->allocateModels(modelset->getNumberOfModels());
-	size_t modelSize = modelset->getDataType()==DT_NUCLEIC?sizeof(NucleicModel):sizeof(ProteicModel);
-	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
+	ofs.read((char *) ms, sizeof(ModelSet));
+
+	modelset = new ModelSet(rateVariation, ms->getDataType(), numTaxa, optimizeMode, false, true);
+	ms->allocateModels(ms->getNumberOfModels());
+	size_t modelSize = ms->getDataType()==DT_NUCLEIC?sizeof(NucleicModel):sizeof(ProteicModel);
+	for (unsigned int i = 0; i < ms->getNumberOfModels(); i++) {
 			Model * model = 0;
-			switch (modelset->getDataType()) {
+			switch (ms->getDataType()) {
 			case DT_NUCLEIC:
 			  model = (NucleicModel *) alloca(modelSize);
 			  break;
@@ -63,23 +66,17 @@ int PartitionElement::loadData() {
 			//model->setFrequencies(freqs);
 
 			double * rates = 0;
-			if (modelset->getDataType()==DT_NUCLEIC) {
+			if (ms->getDataType()==DT_NUCLEIC) {
 				rates = (double *) alloca(NUM_RATES * sizeof(double));
 				ofs.read((char *) rates, NUM_RATES * sizeof(double));
 				//model->setRates(rates);
 			}
 			int len_tree;
-//			ofs.read((char *) &len_name, sizeof(size_t));
-//			char cname[len_name];
-//			ofs.read((char *) &cname, len_name);
-//			ofs.read((char *) &len_matrixname, sizeof(size_t));
-//			char cmatrixname[len_matrixname];
-//			ofs.read((char *) &cmatrixname, len_matrixname);
 			ofs.read((char *) &len_tree, sizeof(size_t));
 			char ctree[len_tree];
 			ofs.read((char *) &ctree, len_tree);
 
-			if (modelset->getDataType() == DT_NUCLEIC) {
+			if (ms->getDataType() == DT_NUCLEIC) {
 				NucleicModel * finalModel = new NucleicModel(((NucleicModel *)model)->getMatrix(), model->getRateVariation(), numTaxa);
 				finalModel->setFrequencies(freqs);
 				finalModel->setRates(rates);
@@ -102,8 +99,17 @@ int PartitionElement::loadData() {
 				modelset->setModel(finalModel, i);
 			}
 	}
-//	exit(-1);
-
+	int bestModelIndex;
+	ofs.read((char *) &bestModelIndex, sizeof(int));
+	SelectionModel * sm = (SelectionModel *) alloca(sizeof(SelectionModel));
+	ofs.read((char *) sm, sizeof(SelectionModel));
+	SelectionModel * selectionmodel = new SelectionModel(modelset->getModel(bestModelIndex), sm->getValue());
+	selectionmodel->setWeight(sm->getWeight());
+	selectionmodel->setCumWeight(sm->getCumWeight());
+	selectionmodel->setDelta(sm->getDelta());
+	selectionmodel->setIndex(bestModelIndex);
+	setBestModel(selectionmodel, false);
+	ofs.close();
 	return CHECKPOINT_LOADED;
 }
 
@@ -126,8 +132,12 @@ int PartitionElement::storeData() {
 	ofs.write((char *) tree->tree_string, tree->treeStringLength);
 	ofs.write((char *) modelset, sizeof(ModelSet));
 	size_t modelSize = modelset->getDataType()==DT_NUCLEIC?sizeof(NucleicModel):sizeof(ProteicModel);
+	int bestModelIndex = 0;
 	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
 		Model * model = modelset->getModel(i);
+		if (model == getBestModel()->getModel()) {
+			bestModelIndex = i;
+		}
 		model->setFrequencies(model->getFrequencies());
 		ofs.write((char *) model, modelSize);
 		ofs.write((char *) model->getFrequencies(), model->getNumberOfFrequencies() * sizeof(double));
@@ -137,21 +147,30 @@ int PartitionElement::storeData() {
 		name_len = model->getName().length() + 1;
 		matrixname_len = model->getMatrixName().length() + 1;
 		tree_len = model->getTree().length() + 1;
-//		ofs.write((char *) &name_len, sizeof(size_t));
-//		ofs.write((char *) model->getName().c_str(), name_len);
-//		ofs.write((char *) &matrixname_len, sizeof(size_t));
-//		ofs.write((char *) model->getMatrixName().c_str(), matrixname_len);
 		ofs.write((char *) &tree_len, sizeof(size_t));
 		ofs.write((char *) model->getTree().c_str(), tree_len);
 	}
+	/* best model */
+	SelectionModel * selectionmodel = getBestModel();
+	ofs.write((char *) &bestModelIndex, sizeof(int));
+	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
 	ofs.close();
+
+//	modelset->setModel(modelset->getModel(bestModelIndex), 0);
+//	for (int i=1; i<modelset->getNumberOfModels(); i++) {
+//		delete (modelset->getModel(i));
+//		modelset->setModel(0, i);
+//	}
+	delete alignment;
+	alignment = 0;
+
 	return 0;
 }
 
 PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		Alignment * alignment, int start, int end, int stride,
 		bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
-		id(id), name(name), ckpname(name), optimizeMode(optimizeMode) {
+		id(id), name(name), ckpname(name), optimizeMode(optimizeMode), rateVariation(rateVariation) {
 
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Creating " << name << endl;
@@ -164,7 +183,6 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 	this->start[0] = start;
 	this->end[0] = end;
 	this->stride[0] = stride;
-	this->alignment = alignment->splitAlignment(start, end);
 
 #ifdef _PLL
 	partitionInfo = 0;
@@ -175,13 +193,15 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 
 	if (loadData() != CHECKPOINT_LOADED) {
 		modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs(), optimizeMode);
+		this->alignment = alignment->splitAlignment(start, end);
 	}
 }
 
 PartitionElement::PartitionElement(t_partitionElementId id, string name,
 		Alignment * alignment, int * start, int * end, int * stride,
 		int numberOfSections, bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
-		id(id), name(name), ckpname(name), numberOfSections(numberOfSections), optimizeMode(optimizeMode) {
+		id(id), name(name), ckpname(name), numberOfSections(numberOfSections), optimizeMode(optimizeMode),
+		rateVariation(rateVariation) {
 
 #ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Creating " << name <<  "  Sections: " << numberOfSections << endl;
@@ -202,10 +222,6 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 	this->bestModel = 0;
 
 #ifdef DEBUG
-	cout << "[TRACE] PartitionElement: Creating alignment" << endl;
-#endif
-	this->alignment = alignment->splitAlignment(start, end, numberOfSections);
-#ifdef DEBUG
 	cout << "[TRACE] PartitionElement: Done" << endl;
 #endif
 
@@ -221,6 +237,10 @@ PartitionElement::PartitionElement(t_partitionElementId id, string name,
 #endif
 	if (loadData() != CHECKPOINT_LOADED) {
 		modelset = new ModelSet(rateVariation, dataType, alignment->getNumSeqs(), optimizeMode);
+#ifdef DEBUG
+	cout << "[TRACE] PartitionElement: Creating alignment" << endl;
+#endif
+		this->alignment = alignment->splitAlignment(start, end, numberOfSections);
 	}
 }
 
@@ -229,8 +249,10 @@ PartitionElement::~PartitionElement() {
 	free(end);
 	free(stride);
 
-	delete alignment;
-	delete modelset;
+	if (alignment)
+		delete alignment;
+	if (modelset)
+		delete modelset;
 
 	if (bestModel != 0)
 		delete bestModel;
@@ -240,12 +262,13 @@ SelectionModel * PartitionElement::getBestModel(void) {
 	return bestModel;
 }
 
-void PartitionElement::setBestModel(SelectionModel * bestModel) {
+void PartitionElement::setBestModel(SelectionModel * bestModel, bool save) {
 	if (this->bestModel) {
 		delete this->bestModel;
 	}
 	this->bestModel = bestModel->clone();
-	storeData();
+	if (save)
+		storeData();
 }
 
 bool PartitionElement::isOptimized() {

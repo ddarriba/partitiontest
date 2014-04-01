@@ -80,7 +80,7 @@ public:
 		return (log(x) / log(2));
 	}
 	static inline int iDecLog(int x) {
-		return floor(log(x) / log(10));
+		return x>0?floor(log(x) / log(10)):0;
 	}
 	static int copyFile(string initialFilePath, string outputFilePath);
 	static char * getTempFilename();

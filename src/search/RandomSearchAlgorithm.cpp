@@ -93,15 +93,13 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 		PartitionSelector partSelector(schemesArray, numSchemes, options);
 
 		bestScheme = partSelector.getBestScheme();
-cout << "SELECTED " << bestScheme->getCode() << endl;
+
 //		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
 //			if (schemesArray[currentScheme] != bestScheme)
 //				delete schemesArray[currentScheme];
 //		}
 
-		cout << "NEXT STEP!" << endl;
 		free(schemesArray);
-		cout << "NEXT STEPPPP!" << endl;
 	}
 	delete mo;
 	delete observer;

@@ -80,7 +80,6 @@ ModelSelector::ModelSelector(ModelSet * modelset, InformationCriterion ic,
 	dataType = modelset->getDataType();
 	doSelection(modelset, ic, sampleSize);
 
-	//print();
 }
 
 ModelSelector::~ModelSelector() {
@@ -147,7 +146,7 @@ void ModelSelector::print(ostream& out) {
 		break;
 	}
 	out << "Sample size: " << sampleSize << endl << endl;
-	out << setw(110) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(5) << "###" << setw(15) << "Model" << setw(10) << "K" << setw(20)
 			<< "lnL" << setw(20) << "Value" << setw(15) << "Delta" << setw(15)
 			<< setprecision(4) << "Weight" << setw(15) << "CumWeight" << endl;
@@ -165,24 +164,28 @@ void ModelSelector::print(ostream& out) {
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	out << setw(110) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 	if (selectionModels->size() > 1) {
 		out << "PARAMETER IMPORTANCE" << endl;
 		out << setw(16) << "alpha: " << alphaImportance << endl;
+#ifndef _PLL
 		out << setw(16) << "pInv: " << invImportance << endl;
 		out << setw(16) << "alpha + pInv: " << alphaInvImportance << endl;
+#endif
 		out << setw(16) << "frequencies: " << fImportance << endl;
 		out << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
 		out << setw(16) << "alpha:" << overallAlpha << endl;
+#ifndef _PLL
 		out << setw(16) << "pInv:" << overallInv << endl;
 		out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
 		out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
-		out << setw(100) << setfill('-') << "" << setfill(' ') << endl << endl;
+#endif
+		out << setw(115) << setfill('-') << "" << setfill(' ') << endl << endl;
 	}
 
 
-	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(5) << "###";
 	if (dataType == DT_NUCLEIC) {
 		out << setw(10) << "f(A)" << setw(10) << "f(C)" << setw(10) << "f(G)"
@@ -190,8 +193,12 @@ void ModelSelector::print(ostream& out) {
 				<< "R(a->g)" << setw(10) << "R(a->t)" << setw(10) << "R(c->g)"
 				<< setw(10) << "R(c->t)" << setw(10) << "R(g->t)";
 	}
-	out << setw(10) << "alpha" << setw(10) << "pInv" << endl;
-	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(10) << "alpha";
+#ifndef _PLL
+	out << setw(10) << "pInv";
+#endif
+	out << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
 	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		Model * model = selectionModels->at(i)->getModel();
 
@@ -202,11 +209,13 @@ void ModelSelector::print(ostream& out) {
 						<< model->getFrequencies()[j];
 			}
 			for (int j = 0; j < NUM_RATES; j++) {
-				out << setw(10) << setprecision(4) << model->getRates()[j];
+				out << setw(10) << setprecision(4) << min(model->getRates()[j], 999.9999);
 			}
 		}
-		out << setw(10) << setprecision(4) << model->getAlpha() << setw(10)
-				<< setprecision(4) << model->getpInv();
+		out << setw(10) << fixed << setprecision(4) << min(model->getAlpha(), 1000.0000);
+#ifndef _PLL
+		out << setw(10)	<< fixed << setprecision(4) << model->getpInv();
+#endif
 		out << endl;
 	}
 	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;

@@ -115,30 +115,48 @@ PartitionSelector::~PartitionSelector() {
 
 void PartitionSelector::print(ostream& out, int limit) {
 
-	out << endl;
-	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
-	out << setw(5) << "###" << setw(15) << "Scheme" << setw(5) << "N" << setw(10)
-			<< "K" << setw(20) << "lnL" << setw(20) << "Value" << endl;
-	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 	int maxSchemes = (limit == -1 ? schemesVector->size() : limit);
+	int barLength = 75;
+
+	out << endl;
+	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(7) << "###" << setw(5) << " " << "Scheme" << endl;
+	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
 	for (int id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
-		out << setw(5) << id + 1 << setw(15) << sp->scheme->getCode() << setw(5)
+		int numCodeLines = Utilities::iDecLog(sp->scheme->getNumberOfElements() - 1);
+		out << setw(7) << id + 1 << setw(5) << " " << sp->scheme->getCode(numCodeLines) << endl;
+		for (int i = (numCodeLines - 1) ; i >= 0; i--) {
+			out << setw(12) << " " << sp->scheme->getCode(i) << endl;
+		}
+	}
+	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(7) << "###" << setw(10) << "N" << setw(10)
+			<< "K" << setw(20) << "lnL     " << setw(20) << "Value     " << endl;
+	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
+	for (int id = 0; id < maxSchemes; id++) {
+		SelectionPartitioningScheme * sp = schemesVector->at(id);
+		out << setw(7) << id + 1 << setw(10)
 				<< sp->scheme->getNumberOfElements() << setw(10)
-				<< sp->numParameters << setw(20) << fixed << setprecision(4) << sp->lnL << setw(20)
+				<< fixed << setprecision(0) << sp->numParameters
+				<< setw(20) << fixed << setprecision(4) << sp->lnL << setw(20)
 				<< sp->value << endl;
 	}
 	if (limit > 0 && ((int) schemesVector->size()) > limit) {
 		out << "Not showing " << schemesVector->size() - limit
 				<< " schemes more..." << endl;
 	}
-	out << setw(115) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 }
 
 void SelectionPartitioningScheme::print(ostream & out) {
 	out << endl;
-	out << "Scheme:     " << scheme->getCode() << endl;
+	int numCodeLines = Utilities::iDecLog(scheme->getNumberOfElements() - 1);
+	out << "Scheme:     " << scheme->getCode(numCodeLines) << endl;
+	for (int i = (numCodeLines - 1) ; i >= 0; i--) {
+		out << "            " << scheme->getCode(i) << endl;
+	}
 	out << "Num.Params: " << numParameters << endl;
 	out << "lnL:        " << lnL << endl;
 	out << "value:      " << value << endl;

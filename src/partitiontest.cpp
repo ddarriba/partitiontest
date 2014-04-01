@@ -35,6 +35,7 @@ using namespace partest;
 
 int main(int argc, char *argv[]) {
 
+	int numCodeLines;
 	time_t iniTime, endTime;
 
 	time(&iniTime);
@@ -77,11 +78,15 @@ int main(int argc, char *argv[]) {
 
 	cout << "Search done... it took " << time(NULL) - iniTime << " seconds."
 			<< endl;
-	cout << "Best Scheme:" << endl << partitioningScheme->getCode() << endl
-			<< partitioningScheme->getName() << endl;
+	cout << "Best Scheme:" << endl;
+	numCodeLines = Utilities::iDecLog(partitioningScheme->getNumberOfElements() - 1);
+	for (int i = numCodeLines; i >= 0; i--) {
+		cout << partitioningScheme->getCode(i) << endl;
+	}
+	cout << partitioningScheme->getName() << endl;
 
 #ifdef DEBUG
-	cout << "[TRACE] Optimizing best scheme: " << partitioningScheme->getCode() << endl;
+	cout << "[TRACE] Optimizing best scheme " << endl;
 #endif
 
 	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
@@ -105,7 +110,7 @@ int main(int argc, char *argv[]) {
 	delete observer;
 
 	#ifdef DEBUG
-	cout << "[TRACE] Done: " << partitioningScheme->getCode() << endl;
+	cout << "[TRACE] Done" << endl;
 #endif
 
 	cout << "Optimization done... it took " << time(NULL) - iniTime
@@ -122,8 +127,13 @@ int main(int argc, char *argv[]) {
 	PrintMeta::print_options(cout, *options);
 	cout << "Number of elements:  " << partitioningScheme->getNumberOfElements()
 			<< endl;
-	cout << "Partitioning scheme: " << endl << partitioningScheme->getCode()
-			<< endl;
+
+	cout << "Partitioning scheme: " << endl;
+	numCodeLines = Utilities::iDecLog(partitioningScheme->getNumberOfElements() - 1);
+	for (int i = numCodeLines; i >= 0; i--) {
+		cout << partitioningScheme->getCode(i) << endl;
+	}
+
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);
 		cout << setw(10) << right << i << " : ";
@@ -166,8 +176,11 @@ int main(int argc, char *argv[]) {
 	PrintMeta::print_options(*rout, *options);
 	*rout << "Number of elements:  "
 			<< partitioningScheme->getNumberOfElements() << endl;
-	*rout << "Partitioning scheme: " << endl << partitioningScheme->getCode()
-			<< endl;
+	*rout << "Partitioning scheme: " << endl;
+	numCodeLines = Utilities::iDecLog(partitioningScheme->getNumberOfElements() - 1);
+	for (int i = numCodeLines; i >= 0; i--) {
+		*rout << partitioningScheme->getCode(i) << endl;
+	}
 	for (int i = 0; i < partitioningScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = partitioningScheme->getElement(i);
 		*rout << setw(10) << right << i << " : ";
