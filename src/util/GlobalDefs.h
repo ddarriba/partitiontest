@@ -207,6 +207,7 @@ enum OptimizeMode {
 extern bitMask protModelsMask;
 extern bool ckpAvailable;
 extern std::string ckpPath;
+extern std::string ckpStartingTree;
 
 
 } /* namespace partest */

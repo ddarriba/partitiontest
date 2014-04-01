@@ -201,7 +201,7 @@ public:
 	 *
 	 * @param[in] bestModel The best-fit model for this partition.
 	 */
-	void setBestModel(SelectionModel * bestModel);
+	void setBestModel(SelectionModel * bestModel, bool save=true);
 
 #ifdef _PLL
 	/**
@@ -245,6 +245,7 @@ private:
 	string name, ckpname; /** The name of the partition. */
 	SelectionModel * bestModel; /** The best-fit model for this partition. */
 	ModelSet * modelset; /** The set of candidate models. */
+	bitMask rateVariation;
 	OptimizeMode optimizeMode;
 #ifdef _PLL
 	pInfo * partitionInfo; /** Partition info for PLL */

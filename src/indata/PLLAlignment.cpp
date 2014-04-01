@@ -39,13 +39,8 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	dataType = alignment->dataType;
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
-	uniqueName += "_";
 	for (int i = 0; i < numberOfSections; i++) {
 		numSites += lastPosition[i] - firstPosition[i] + 1;
-		uniqueName += to_string(firstPosition[i]);
-		uniqueName +=  "-";
-		uniqueName += to_string(lastPosition[i]);
-		uniqueName += "_";
 	}
 	phylip = pllInitAlignmentData(numSeqs, numSites);
 
@@ -68,7 +63,6 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		}
 	}
 
-	/* pllCreateInstance: int rateHetModel, int fastScaling, int saveMemory, int useRecom, long randomNumberSeed */
 	pllInstanceAttr * attr = (pllInstanceAttr *) malloc(
 			sizeof(pllInstanceAttr));
 
@@ -161,15 +155,10 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 #ifdef DEBUG
 	cout << "[TRACE] Committing partitions " << phylip->sequenceLength << endl;
 #endif
-	uniqueName += "_";
 	partitions = pllPartitionsCommit(pllPartitions, phylip);
 
 	for (int i=0; i<partitions->numberOfPartitions;i++) {
 		partitions->partitionData[i]->dataType = dataType;
-		uniqueName += to_string(partitions->partitionData[i]->lower);
-		uniqueName +=  "-";
-		uniqueName += to_string(partitions->partitionData[i]->upper);
-		uniqueName += "_";
 	}
 
 #ifdef DEBUG
@@ -186,15 +175,21 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 }
 
 PLLAlignment::~PLLAlignment() {
-	if (phylip)
+	if (phylip) {
 		pllAlignmentDataDestroy(phylip);
+	}
 	if (tr && tr->mxtips > 0) {
 		if (partitions) {
 			pllPartitionsDestroy(tr, &partitions);
 		}
+	}
+	destroyTree();
+}
+
+void PLLAlignment::destroyTree(void) {
+	if (tr) {
 		pllDestroyInstance(tr);
-	} else if (tr) {
-		pllDestroyInstance(tr);
+		tr = 0;
 	}
 }
 
@@ -203,8 +198,7 @@ void PLLAlignment::destroyStructures(void) {
 		pllAlignmentDataDestroy(phylip);
 	if (partitions)
 		pllPartitionsDestroy(tr, &partitions);
-	if (tr)
-		pllDestroyInstance(tr);
+	destroyTree();
 	phylip = 0;
 	partitions = 0;
 	tr = 0;

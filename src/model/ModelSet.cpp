@@ -23,7 +23,7 @@
 namespace partest {
 
 ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
-		OptimizeMode optimizeMode, bool forceCompleteSet) :
+		OptimizeMode optimizeMode, bool forceCompleteSet, bool emptySet) :
 		rateVar(rateVar), dataType(dataType), numberOfTaxa(numberOfTaxa), optimizeMode(
 				optimizeMode) {
 	int numberOfParameters = Utilities::setbitsCount(rateVar >> 1);
@@ -54,7 +54,7 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 		numberOfModels *= numberOfMatrices;
 	}
 
-	models = (Model **) malloc(numberOfModels * sizeof(Model *));
+	models = (Model **) calloc(numberOfModels, sizeof(Model *));
 
 #ifdef DEBUG
 	cout << "[TRACE] Creating modelset for ratevar " << rateVar
@@ -63,21 +63,23 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 
 	unsigned int current = 0;
 
-	if (optimizeMode == OPT_GTR) {
-		buildModelSet(&(models[0]), 0, false);
-	} else {
-		// Loop over the parameters
-		for (bitMask rateVarLoop = 0; rateVarLoop <= rateVar >> 1;
-				rateVarLoop++) {
-			// check this for avoiding duplicates
-			if (!(rateVarLoop & ~(rateVar >> 1))) {
-#ifdef DEBUG
-				cout << "[TRACE] Creating models for ratevar " << (rateVarLoop<<1)
-				<< " (" << current << "/" << numberOfModels << ")" << endl;
-#endif
-				buildModelSet(&(models[current]), rateVarLoop << 1,
-						forceCompleteSet);
-				current += numberOfMatrices;
+	if (!emptySet) {
+		if (optimizeMode == OPT_GTR) {
+			buildModelSet(&(models[0]), 0, false);
+		} else {
+			// Loop over the parameters
+			for (bitMask rateVarLoop = 0; rateVarLoop <= rateVar >> 1;
+					rateVarLoop++) {
+				// check this for avoiding duplicates
+				if (!(rateVarLoop & ~(rateVar >> 1))) {
+	#ifdef DEBUG
+					cout << "[TRACE] Creating models for ratevar " << (rateVarLoop<<1)
+					<< " (" << current << "/" << numberOfModels << ")" << endl;
+	#endif
+					buildModelSet(&(models[current]), rateVarLoop << 1,
+							forceCompleteSet);
+					current += numberOfMatrices;
+				}
 			}
 		}
 	}
@@ -86,7 +88,9 @@ ModelSet::ModelSet(bitMask rateVar, DataType dataType, int numberOfTaxa,
 ModelSet::~ModelSet() {
 	if (models) {
 		for (unsigned int i = 0; i < numberOfModels; i++) {
-			delete models[i];
+			if (models[i]) {
+				delete models[i];
+			}
 		}
 		free(models);
 	}

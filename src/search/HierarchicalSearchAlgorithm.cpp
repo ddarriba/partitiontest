@@ -98,27 +98,64 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 
 	if (options->getStartingTopology() == StartTopoFIXED) {
 
-		/* Starting topology */
-		notify_observers(MT_FTREE_INIT, time(NULL));
+		int loadedTree = false;
+		char * startingTree;
 
-		PLLAlignment * alignment =
-				static_cast<PLLAlignment *>(options->getAlignment());
+		if (ckpAvailable) {
+			fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
+					ios::in);
 
-		mo->initializeStructs(alignment->getTree(), alignment->getPartitions(),
-				alignment->getPhylip());
+			if (ofs) {
+				ofs.seekg(0);
+				int treeLen;
+				ofs.read((char *) &(treeLen), sizeof(int));
+				startingTree = (char *) malloc(treeLen + 1);
+				ofs.read((char *) startingTree, treeLen);
+				options->setTreeString(startingTree, false);
+				loadedTree = true;
+				ofs.close();
+			}
+		}
 
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(alignment->getTree(),
-				alignment->getPartitions());
+		if (!loadedTree) {
+			/* Starting topology */
+			notify_observers(MT_FTREE_INIT, time(NULL));
 
-		mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(), true, true);
+			PLLAlignment * alignment =
+					static_cast<PLLAlignment *>(options->getAlignment());
 
-		pllTreeToNewick(alignment->getTree()->tree_string, alignment->getTree(),
-				alignment->getPartitions(), alignment->getTree()->start->back,
-				PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-				PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-		char * startingTree = alignment->getTree()->tree_string;
-		startingTree[strlen(startingTree)-1] = '\0';
-		options->setTreeString(startingTree);
+			mo->initializeStructs(alignment->getTree(),
+					alignment->getPartitions(), alignment->getPhylip());
+
+			pllComputeRandomizedStepwiseAdditionParsimonyTree(
+					alignment->getTree(), alignment->getPartitions());
+
+			mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(),
+					true, true);
+
+			pllTreeToNewick(alignment->getTree()->tree_string,
+					alignment->getTree(), alignment->getPartitions(),
+					alignment->getTree()->start->back,
+					PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+					PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+			startingTree = alignment->getTree()->tree_string;
+			startingTree[strlen(startingTree) - 1] = '\0';
+			options->setTreeString(startingTree, true);
+
+			if (ckpAvailable) {
+				/* store tree */
+				fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
+						ios::out);
+				ofs.seekg(0);
+				ofs.write((char *) &(alignment->getTree()->treeStringLength),
+						sizeof(int));
+				ofs.write((char *) startingTree,
+						alignment->getTree()->treeStringLength);
+				ofs.close();
+			}
+		}
+
+		//alignment->destroyTree();
 
 		notify_observers(MT_FTREE_END, time(NULL), startingTree);
 
@@ -140,30 +177,40 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 					++current_scheme, partitionMap->getNumberOfPartitions());
 		}
 
-		PartitionSelector partSelector(&(nextSchemes.at(0)), nextSchemes.size(), options);
-					double criterionValue = partSelector.getBestSelectionScheme()->value;
+		PartitionSelector partSelector(&(nextSchemes.at(0)), nextSchemes.size(),
+				options);
+		double criterionValue = partSelector.getBestSelectionScheme()->value;
 
-					if (criterionValue < bestCriterionValue) {
-						bestCriterionValue = criterionValue;
-						bestScheme = partSelector.getBestScheme();
-						reachedMaximum = false;
-					}
-
-		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
-			for (unsigned int j = 0; j < nextSchemes.at(i)->getNumberOfElements(); j++) {
-				t_partitionElementId t1 = nextSchemes.at(i)->getElement(j)->getId();
-				if (t1.size() > 1) {
-					for (unsigned int k=0; k<bestScheme->getNumberOfElements(); k++) {
-						t_partitionElementId t2 = bestScheme->getElement(k)->getId();
-						if (t1 == t2) break;
-						if (Utilities::intersec(t1, t2)) {
-							partitionMap->deletePartitionElement(t1);
-							break;
-						}
-					}
-				}
-			}
+		if (criterionValue < bestCriterionValue) {
+			bestCriterionValue = criterionValue;
+			bestScheme = partSelector.getBestScheme();
+			reachedMaximum = false;
 		}
+
+		for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+			partitionMap->purgePartitionMap(bestScheme->getElement(i)->getId());
+		}
+
+//		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
+//			for (unsigned int j = 0;
+//					j < nextSchemes.at(i)->getNumberOfElements(); j++) {
+//				t_partitionElementId t1 =
+//						nextSchemes.at(i)->getElement(j)->getId();
+//				if (t1.size() > 1) {
+//					for (unsigned int k = 0;
+//							k < bestScheme->getNumberOfElements(); k++) {
+//						t_partitionElementId t2 =
+//								bestScheme->getElement(k)->getId();
+//						if (t1 == t2)
+//							break;
+//						if (Utilities::intersec(t1, t2)) {
+//							partitionMap->deletePartitionElement(t1);
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
 
 #ifdef DEBUG
 		cout << "[TRACE] Hcluster - Computing distances" << endl;

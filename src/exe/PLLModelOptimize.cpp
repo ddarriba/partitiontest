@@ -20,7 +20,7 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 		partitionList * partitions, pllAlignmentData * phylip) {
 
 #ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Loading alignment" << endl;
+	cout << "[TRACE] PLLModelOptimize - Initializing structures" << endl;
 #endif
 	/* Connect the alignment with the tree structure */
 	if (!pllLoadAlignment(tree, phylip, partitions, PLL_SHALLOW_COPY)) {
@@ -34,6 +34,7 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 #endif
 	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, partitions);
 	tree->start = tree->nodep[1];
+
 #ifdef DEBUG
 	cout << "[TRACE] PLLModelOptimize - Initializing model (str)" << endl;
 #endif
@@ -53,30 +54,8 @@ void PLLModelOptimize::initializeStructs(pllInstance * tree,
 	pllInitModel(tree, partitions, phylip);
 
 #ifdef DEBUG
-	cout << "[TRACE] PLLModelOptimize - Initialized model" << endl;
+	cout << "[TRACE] PLLModelOptimize - Initializing structures (DONE)" << endl;
 #endif
-}
-
-double PLLModelOptimize::evaluateNNI(pllInstance * tr, partitionList *pr,
-		bool estimateModel) {
-
-#ifdef DEBUG
-	cout << "[TRACE] START EVALUATING NNI WITH PLL" << endl;
-#endif
-	if (pllNniSearch(tr, pr, estimateModel)) {
-#ifdef DEBUG
-		cout << "[TRACE] DONE EVALUATING NNI WITH PLL " << endl;
-		cout << "[TRACE] LIKELIHOOD IS " << tr->likelihood << endl;
-#endif
-		return tr->likelihood;
-	} else {
-#ifdef DEBUG
-		cout << "[TRACE] ERROR EVALUATING NNI WITH PLL" << endl;
-		exit(-1);
-#endif
-		return 0;
-	}
-
 }
 
 double PLLModelOptimize::optimizeParameters(pllInstance * tr,
@@ -101,15 +80,6 @@ double PLLModelOptimize::optimizeParameters(pllInstance * tr,
 
 	return tr->likelihood;
 }
-
-#ifdef _WIN32
-string ExePath() {
-	char buffer[255];
-	GetModuleFileName( NULL, buffer, 255 );
-	string::size_type pos = string( buffer ).find_last_of( "\\/" );
-	return string( buffer ).substr( 0, pos);
-}
-#endif
 
 double PLLModelOptimize::evaluateSPR(pllInstance * tr,
 		partitionList *partitions, bool estimateModel, bool estimateTopology) {
@@ -404,7 +374,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 	}
 
 	pllEvaluateLikelihood(tr, partitions, tr->start, PLL_TRUE, PLL_FALSE);
-	//evaluateSPR(tr, partitions, options->getOptimizeMode() == OPT_GTR, true);
+
 	evaluateSPR(tr, partitions, true, true);
 
 	pllTreeToNewick(tr->tree_string, tr, partitions, tr->start->back, PLL_TRUE,

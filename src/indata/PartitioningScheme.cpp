@@ -225,7 +225,7 @@ string PartitioningScheme::getName() {
 	return ss.str();
 }
 
-string PartitioningScheme::getCode() {
+string PartitioningScheme::getCode(int codeLine) {
 	if (!code) {
 		int numDigits =
 				(numberOfElements > 10) ?
@@ -255,15 +255,20 @@ string PartitioningScheme::getCode() {
 						hashmap[intcode[i]] / pow(10, j)) % 10) + '0';
 			}
 		}
-		for (int j = 0; j < numDigits; j++) {
-			charcode[j * numberOfBits + numberOfBits] = '\n';
-		}
+//		for (int j = 0; j < numDigits; j++) {
+//			charcode[j * numberOfBits + numberOfBits] = '\n';
+//		}
 		charcode[numDigits * numberOfBits] = '\0';
 
 		code = new string(charcode);
-
 	}
-	return *code;
+
+	if (codeLine == FULL_CODE) {
+		return *code;
+	} else {
+		string the_code = code->substr(codeLine * numberOfElements, numberOfElements);
+		return the_code;
+	}
 }
 
 void PartitioningScheme::setTree(char * tree) {
