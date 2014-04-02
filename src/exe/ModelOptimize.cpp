@@ -38,14 +38,10 @@ ModelOptimize::~ModelOptimize() {
 int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 		int current_index, int max_index) {
 	ModelSet * modelset = partitionElement->getModelset();
-	//(options->getRateVariation(), options->getDataType());
-#pragma omp single
-	{
-		notify_observers(MT_MODELSET_INIT, partitionElement->getId(), modelset,
-				time(NULL), current_index, max_index,
-				partitionElement->getName());
-	}
-#pragma omp for schedule(dynamic)
+
+	notify_observers(MT_MODELSET_INIT, partitionElement->getId(), modelset,
+			time(NULL), current_index, max_index, partitionElement->getName());
+
 	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
 		//for (int i = modelset->getNumberOfModels() - 1; i >= 0; i--) {
 		notify_observers(MT_SINGLE_INIT, partitionElement->getId(),
@@ -55,38 +51,39 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
 
 		if (!modelset->getModel(i)->isOptimized())
 			optimizeModel(modelset->getModel(i), partitionElement, i,
-				modelset->getNumberOfModels());
+					modelset->getNumberOfModels());
 
 		notify_observers(MT_SINGLE_END, partitionElement->getId(),
 				modelset->getModel(i), time(NULL), i + 1,
 				modelset->getNumberOfModels(),
 				modelset->getModel(i)->getName());
 	}
-#pragma omp single
-	{
-		double pSampleSize = 0.0;
-		switch (options->getSampleSize()) {
-		case SS_ALIGNMENT:
-			pSampleSize = partitionElement->getAlignment()->getNumSites()
-					* partitionElement->getAlignment()->getNumSeqs();
-			break;
-		case SS_SHANNON:
-			pSampleSize = partitionElement->getAlignment()->getShannonEntropy();
-			break;
-		default:
-			pSampleSize = options->getSampleSize();
-			break;
-		}
-		ModelSelector selector = ModelSelector(partitionElement,
-				options->getInformationCriterion(), pSampleSize);
-		selector.print(cout);
-
-		notify_observers(MT_MODELSET_END, partitionElement->getId(),
-				partitionElement->getBestModel()->getModel(), time(NULL),
-				current_index, max_index, partitionElement->getName());
-		notify_observers(new ObservableInfo(MT_MODELSET_SELECTION, partitionElement->getId(),
-						partitionElement, time(NULL), 0, 0, ""));
+	double pSampleSize = 0.0;
+	switch (options->getSampleSize()) {
+	case SS_ALIGNMENT:
+		pSampleSize = partitionElement->getAlignment()->getNumSites()
+				* partitionElement->getAlignment()->getNumSeqs();
+		break;
+	case SS_SHANNON:
+		pSampleSize = partitionElement->getAlignment()->getShannonEntropy();
+		break;
+	default:
+		pSampleSize = options->getSampleSize();
+		break;
 	}
+
+	ModelSelector selector = ModelSelector(partitionElement,
+			options->getInformationCriterion(), pSampleSize);
+
+#pragma omp critical
+	selector.print(cout);
+
+	notify_observers(MT_MODELSET_END, partitionElement->getId(),
+			partitionElement->getBestModel()->getModel(), time(NULL),
+			current_index, max_index, partitionElement->getName());
+	notify_observers(
+			new ObservableInfo(MT_MODELSET_SELECTION, partitionElement->getId(),
+					partitionElement, time(NULL), 0, 0, ""));
 
 	return 0;
 }

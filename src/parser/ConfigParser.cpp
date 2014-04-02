@@ -38,7 +38,6 @@ ConfigParser::ConfigParser(const char * configFile) :
 				DEFAULT_OUTPUT_TMP_PATH) {
 
 	maxSamples = 1;
-	protModels = 0;
 
 	dataType = DT_DEFAULT;
 
@@ -74,6 +73,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 				dataType = DT_PROTEIC;
 			} else if (!strcmp(value, "nt")){
 				dataType = DT_NUCLEIC;
+			} else {
+				dataType = DT_NUCLEIC;
 			}
 		}
 
@@ -87,6 +88,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 				optimizeMode = OPT_GTR;
 			} else {
 				// parse protein matrices
+				protModels = 0;
 				optimizeMode = OPT_CUSTOM;
 				istringstream iss(value);
 				string curMatrix;

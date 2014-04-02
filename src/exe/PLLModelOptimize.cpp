@@ -401,6 +401,7 @@ char * PLLModelOptimize::getMlTree(PartitioningScheme * scheme,
 int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 		bool forceRecomputation, int current_index, int max_index) {
 
+#pragma omp parallel for
 	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * element = scheme->getElement(i);
 		if (!element->getBestModel()) {
@@ -411,6 +412,7 @@ int PLLModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 			partitionList * partitions = alignment->getPartitions();
 			pllAlignmentData * phylip = alignment->getPhylip();
 
+#pragma omp critical
 			initializeStructs(tree, partitions, phylip);
 
 			optimizePartitionElement(element, i + 1,

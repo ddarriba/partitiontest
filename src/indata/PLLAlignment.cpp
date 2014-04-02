@@ -15,6 +15,10 @@
 #include <pll.h>
 #include <parsePartition.h>
 
+#ifdef PTHREADS
+	extern volatile int threadJob;
+#endif
+
 namespace partest {
 
 using namespace std;
@@ -36,6 +40,7 @@ char convert(unsigned char c) {
 
 PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 		int * lastPosition, int numberOfSections) {
+
 	dataType = alignment->dataType;
 	numSeqs = alignment->phylip->sequenceCount;
 	numSites = 0;
@@ -71,7 +76,11 @@ PLLAlignment::PLLAlignment(PLLAlignment * alignment, int * firstPosition,
 	attr->saveMemory = PLL_FALSE;
 	attr->useRecom = PLL_FALSE;
 	attr->randomNumberSeed = rand();
+#ifdef PTHREADS
+	attr->numberOfThreads = number_of_threads;
+#else
 	attr->numberOfThreads = 1;
+#endif
 
 	tr = pllCreateInstance(attr);
 	free(attr);
@@ -140,7 +149,12 @@ PLLAlignment::PLLAlignment(string alignmentFile, DataType dataType,
 	attr->saveMemory = PLL_FALSE;
 	attr->useRecom = PLL_FALSE;
 	attr->randomNumberSeed = rand();
+#ifdef PTHREADS
+	attr->numberOfThreads = number_of_threads;
+#else
 	attr->numberOfThreads = 1;
+#endif
+
 #ifdef DEBUG
 	cout << "[TRACE] Creating PLL tree instance" << endl;
 #endif
@@ -178,16 +192,21 @@ PLLAlignment::~PLLAlignment() {
 	if (phylip) {
 		pllAlignmentDataDestroy(phylip);
 	}
-	if (tr && tr->mxtips > 0) {
-		if (partitions) {
-			pllPartitionsDestroy(tr, &partitions);
-		}
+	if (partitions && partitions->alphaList) {
+		pllPartitionsDestroy(tr, &partitions);
 	}
 	destroyTree();
 }
 
+void PLLAlignment::destroyPartitions(void) {
+	if (tr && partitions) {
+		pllPartitionsDestroy(tr, &partitions);
+		partitions = 0;
+	}
+}
+
 void PLLAlignment::destroyTree(void) {
-	if (tr) {
+	if (tr && tr->mxtips) {
 		pllDestroyInstance(tr);
 		tr = 0;
 	}

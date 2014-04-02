@@ -23,7 +23,6 @@ int PartitionElement::loadData() {
 
 	fstream ofs ((ckpPath + os_separator + ckpname).c_str(), ios::in);
 
-	cout << "Checking " << (ckpPath + os_separator + ckpname).c_str() << endl;
 	if (!ofs) return CHECKPOINT_UNEXISTENT;
 
 	alignment = 0;
@@ -156,11 +155,6 @@ int PartitionElement::storeData() {
 	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
 	ofs.close();
 
-//	modelset->setModel(modelset->getModel(bestModelIndex), 0);
-//	for (int i=1; i<modelset->getNumberOfModels(); i++) {
-//		delete (modelset->getModel(i));
-//		modelset->setModel(0, i);
-//	}
 	delete alignment;
 	alignment = 0;
 

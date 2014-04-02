@@ -397,7 +397,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			break;
 		case ARG_NUM_PROCS:
 #ifdef PTHREADS
-			Globals::set_number_of_threads(atoi(value));
+			number_of_threads = atoi(value);
 #else
 			cerr
 					<< "[ERROR] PThreads version is not available. You must recompile with PTHREADS flag."

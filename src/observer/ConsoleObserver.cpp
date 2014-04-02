@@ -55,7 +55,7 @@ void ConsoleObserver::update(string name, unsigned int current_index,
 void ConsoleObserver::update(const ObservableInfo & info,
 		ParTestOptions * run_instance) {
 	//boost::mutex::scoped_lock lock(m_io_monitor);
-#pragma omp critical
+#pragma omp single
 	switch (info.type) {
 	case MT_FTREE_INIT:
 		cout << Utilities::timeToString(info.time - initTime) << " [FIXED_TREE] Building fixed topology... " << info.message << endl;
