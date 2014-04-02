@@ -44,6 +44,7 @@ public:
 	Alignment * splitAlignment(int * firstPosition, int * lastPosition,
 			int numberOfSections);
 	void destroyStructures(void);
+	void destroyPartitions(void);
 	void destroyTree(void);
 
 	/**

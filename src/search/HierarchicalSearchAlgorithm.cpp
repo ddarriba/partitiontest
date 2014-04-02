@@ -153,9 +153,8 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 						alignment->getTree()->treeStringLength);
 				ofs.close();
 			}
+			alignment->destroyPartitions();
 		}
-
-		//alignment->destroyTree();
 
 		notify_observers(MT_FTREE_END, time(NULL), startingTree);
 
@@ -172,6 +171,7 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		reachedMaximum = true;
 		notify_observers(MT_NEXT_STEP, nullId, time(NULL), currentStep++,
 				numberOfBits);
+
 		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
 			mo->optimizePartitioningScheme(nextSchemes.at(i), false,
 					++current_scheme, partitionMap->getNumberOfPartitions());
@@ -190,27 +190,6 @@ PartitioningScheme * HierarchicalSearchAlgorithm::start() {
 		for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
 			partitionMap->purgePartitionMap(bestScheme->getElement(i)->getId());
 		}
-
-//		for (unsigned int i = 0; i < nextSchemes.size(); i++) {
-//			for (unsigned int j = 0;
-//					j < nextSchemes.at(i)->getNumberOfElements(); j++) {
-//				t_partitionElementId t1 =
-//						nextSchemes.at(i)->getElement(j)->getId();
-//				if (t1.size() > 1) {
-//					for (unsigned int k = 0;
-//							k < bestScheme->getNumberOfElements(); k++) {
-//						t_partitionElementId t2 =
-//								bestScheme->getElement(k)->getId();
-//						if (t1 == t2)
-//							break;
-//						if (Utilities::intersec(t1, t2)) {
-//							partitionMap->deletePartitionElement(t1);
-//							break;
-//						}
-//					}
-//				}
-//			}
-//		}
 
 #ifdef DEBUG
 		cout << "[TRACE] Hcluster - Computing distances" << endl;

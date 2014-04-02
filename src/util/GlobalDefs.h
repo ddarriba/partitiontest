@@ -204,6 +204,9 @@ enum OptimizeMode {
 	OPT_SEARCH, OPT_GTR, OPT_CUSTOM, OPT_DEFAULT
 };
 
+#ifdef PTHREADS
+extern int number_of_threads;
+#endif
 extern bitMask protModelsMask;
 extern bool ckpAvailable;
 extern std::string ckpPath;
