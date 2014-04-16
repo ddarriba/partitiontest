@@ -12,6 +12,8 @@
 #include "indata/PartitioningScheme.h"
 #include "indata/PartitionElement.h"
 
+#include <string>
+
 namespace partest {
 
 class ModelOptimize {
@@ -19,6 +21,8 @@ public:
 	ModelOptimize();
 	virtual ~ModelOptimize();
 
+	std::string buildStartingTree();
+	std::string buildFinalTree(PartitioningScheme * finalScheme, bool reoptimizeParameters);
 	int optimizePartitioningScheme(PartitioningScheme * scheme, int index=0, int limit=1);
 	int optimizePartitionElement(PartitionElement * scheme, int index=0, int limit=1);
 private:

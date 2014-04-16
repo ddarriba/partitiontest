@@ -24,6 +24,12 @@ typedef std::vector<unsigned int> t_partitionElementId;
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;
 
+typedef struct {
+	unsigned int start;
+	unsigned int end;
+	unsigned int id;
+} PEsection;
+
 #define DOUBLE_INF 1e140
 
 #define CKP_DIR "ckpfiles"
@@ -159,6 +165,7 @@ enum OptimizeMode {
 extern bool ckpAvailable;
 extern std::string ckpPath;
 extern std::string ckpStartingTree;
+extern std:: string ckpFinalTree;
 
 /* configuration */
 extern int number_of_threads;
@@ -196,7 +203,10 @@ extern partitionList * pllPartitions;
 extern pllAlignmentData * phylip;
 extern pllInstance * tree;
 
+extern time_t start_time;
+
 void exit_partest(int status);
+std::string timestamp();
 
 }
 

@@ -10,6 +10,9 @@
 #include "PrintMeta.h"
 
 #include <stdlib.h>
+#include <time.h>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -19,6 +22,7 @@ namespace partest {
 	bool ckpAvailable = false;
 	string ckpPath;
 	string ckpStartingTree = "starting_tree";
+	string ckpFinalTree = "final_tree";
 	string ** singleGeneNames;
 	char * starting_tree = 0;
 
@@ -82,5 +86,18 @@ namespace partest {
 			cerr << " ... internal error that should NEVER raise ..." << endl;
 		}
 		exit(status);
+	}
+
+	time_t start_time = time(NULL);
+
+	string timestamp() {
+		time_t seconds = time(NULL) - start_time;
+		int hours = seconds / 3600;
+		seconds %= 3600;
+		int minutes = seconds / 60;
+		seconds %= 60;
+		stringstream ss;
+		ss << setw(2) << setfill('0') << hours << ":" << setw(2) << minutes << ":" << setw(2) << seconds;
+		return ss.str();
 	}
 }

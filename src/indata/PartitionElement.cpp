@@ -32,9 +32,16 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	numberOfSites = 0;
 	numberOfPatterns = 0;
 
+	sections = (PEsection *) malloc(numberOfSections * sizeof(PEsection));
+
 	name.append("(");
 	for (int i = 0; i < numberOfSections; i++) {
 		unsigned int part = id.at(i);
+
+		sections[i].start = pllPartitions->partitionData[part]->lower + 1;
+		sections[i].end = pllPartitions->partitionData[part]->upper;
+		sections[i].id = part;
+
 		name.append(*(singleGeneNames[part]));
 		if (i < numberOfSections - 1)
 			name.append(",");
@@ -243,6 +250,10 @@ int PartitionElement::setupStructures(void) {
 					}
 					break;
 				case OPT_GTR:
+					models.push_back(
+							new ProteicModel(PROT_MATRIX_AUTO, RateVarG,
+									num_taxa));
+					break;
 				case OPT_DEFAULT:
 					exit_partest(EX_SOFTWARE);
 				}
@@ -278,6 +289,9 @@ int PartitionElement::destroyStructures(void) {
 }
 
 PartitionElement::~PartitionElement() {
+
+	free (sections);
+
 	for (Model * model : models) {
 		delete model;
 	}
@@ -336,6 +350,13 @@ int PartitionElement::getNumberOfSites(void) const {
 
 int PartitionElement::getNumberOfSections(void) const {
 	return numberOfSections;
+}
+
+PEsection PartitionElement::getSection(unsigned int i) {
+	if (i >= numberOfSections) {
+		exit_partest(EX_SOFTWARE);
+	}
+	return sections[i];
 }
 
 int PartitionElement::getNumberOfPatterns(void) const {
@@ -408,8 +429,8 @@ int PartitionElement::loadData(void) {
 		int hashlen;
 		ofs.read((char *) &hashlen, sizeof(int));
 		if (hashlen > 0) {
-			char * charhash = (char *)malloc(hashlen+1);
-			ofs.read((char *) charhash , hashlen);
+			char * charhash = (char *) malloc(hashlen + 1);
+			ofs.read((char *) charhash, hashlen);
 			charhash[hashlen] = '\0';
 			if (!strcmp(charhash, ckphash.c_str())) {
 				ckpLoaded = true;
@@ -508,7 +529,7 @@ int PartitionElement::loadData(void) {
 
 	ofs.close();
 
-	return ckpLoaded?CHECKPOINT_LOADED:CHECKPOINT_UNEXISTENT;
+	return ckpLoaded ? CHECKPOINT_LOADED : CHECKPOINT_UNEXISTENT;
 }
 
 int PartitionElement::storeData(void) {
@@ -522,22 +543,27 @@ int PartitionElement::storeData(void) {
 		exit_partest(EX_SOFTWARE);
 	}
 
-	fstream ofs((ckpPath + os_separator + ckpname).c_str(), ios::in | ios::out | ios::app);
+	fstream ofs((ckpPath + os_separator + ckpname).c_str(),
+			ios::in | ios::out | ios::app);
 
 	//ofs.open((ckpPath + os_separator + ckpname).c_str());
 	size_t modelSize =
-				data_type == DT_NUCLEIC ?
-						sizeof(NucleicModel) : sizeof(ProteicModel);
+			data_type == DT_NUCLEIC ?
+					sizeof(NucleicModel) : sizeof(ProteicModel);
 	int numberOfFrequencies = data_type == DT_NUCLEIC ?
-			NUM_NUC_FREQS : NUM_PROT_FREQS;
+	NUM_NUC_FREQS :
+														NUM_PROT_FREQS;
 	int numberOfRates = data_type == DT_NUCLEIC ?
-				NUM_DNA_RATES : 0;
+	NUM_DNA_RATES :
+													0;
 	streampos startPos = ofs.tellp();
 	int hashlen = ckphash.length();
 	int ckpSize = 4 * sizeof(int) + hashlen
-			+ models.size() * (modelSize + sizeof(size_t) + tree->treeStringLength
-					+ (numberOfFrequencies + numberOfRates) * sizeof(double))
-			+ sizeof(int) + sizeof(SelectionModel);
+			+ models.size()
+					* (modelSize + sizeof(size_t) + tree->treeStringLength
+							+ (numberOfFrequencies + numberOfRates)
+									* sizeof(double)) + sizeof(int)
+			+ sizeof(SelectionModel);
 	ofs.write((char *) &ckpSize, sizeof(int));
 	ofs.write((char *) &hashlen, sizeof(int));
 	if (hashlen > 0) {
@@ -562,7 +588,7 @@ int PartitionElement::storeData(void) {
 		int name_len, matrixname_len, tree_len;
 		name_len = model->getName().length() + 1;
 		matrixname_len = model->getMatrixName().length() + 1;
-		tree_len = strlen(model->getTree().c_str())+1;
+		tree_len = strlen(model->getTree().c_str()) + 1;
 		ofs.write((char *) &tree_len, sizeof(size_t));
 		ofs.write((char *) model->getTree().c_str(), tree_len);
 	}
@@ -580,7 +606,8 @@ int PartitionElement::storeData(void) {
 void PartitionElement::print(ostream & out) {
 	cout << name << endl;
 	cout << "Best model: " << bestModel->getModel()->getName() << endl;
-	cout << "Num.Params: " << bestModel->getModel()->getNumberOfFreeParameters() << endl;
+	cout << "Num.Params: " << bestModel->getModel()->getNumberOfFreeParameters()
+			<< endl;
 	cout << "BIC score:  " << bestModel->getValue() << endl;
 	cout << "BIC weight: " << bestModel->getWeight() << endl;
 	bestModel->getModel()->print(out, "  ");

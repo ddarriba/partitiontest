@@ -7,6 +7,9 @@
 
 #include "PrintMeta.h"
 #include "parser/ArgumentParser.h"
+#include "util/Utilities.h"
+#include "util/GlobalDefs.h"
+
 #include <iomanip>
 #include <string.h>
 #ifdef HAVE_CONFIG_H
@@ -30,97 +33,92 @@ void PrintMeta::print_header(ostream& output) {
 	output << "|          (c) Diego Darriba 2014          |" << endl;
 	output << "|                                          |" << endl;
 	output << "| Model selection for genomic alignments   |" << endl;
-	output << "| PLL version (Stamatakis et.al)           |" << endl;
+	output << "| PLL version (Stamatakis et al.)           |" << endl;
 	output << "--------------------------------------------" << endl << endl;
 }
 
 void PrintMeta::print_options(ostream& output) {
 	output << endl << ":: General Settings ::" << endl;
-		output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
-		output << setw(OPT_DESCR_LENGTH) << left << "  Input alignment:";
-		if (input_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-			output << endl << setw(H_RULE_LENGTH - input_file->length())
-					<< " ";
-		}
-		output << *input_file << endl;
-		output << setw(OPT_DESCR_LENGTH - 5) << left << "     Number of taxa:"
-				<< setw(10) << right << num_taxa
-				<< endl;
-		output << setw(OPT_DESCR_LENGTH - 5) << left
-				<< "     Number of sites (total):" << setw(10) << right
-				<< seq_len << endl;
-		output << setw(OPT_DESCR_LENGTH - 5) << left
-				<< "     Number of unique patterns:" << setw(10) << right
-				<< num_patterns << endl;
+	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Input alignment:";
+	if (input_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
+		output << endl << setw(H_RULE_LENGTH - input_file->length()) << " ";
+	}
+	output << *input_file << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Number of taxa:"
+			<< setw(10) << right << num_taxa << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left
+			<< "     Number of sites (total):" << setw(10) << right << seq_len
+			<< endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left
+			<< "     Number of unique patterns:" << setw(10) << right
+			<< num_patterns << endl;
 
-		if (user_tree) {
-			output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
-			if (user_tree->length() > 0) {
-				if (user_tree->length()
-						> (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-					output << endl
-							<< setw(H_RULE_LENGTH - user_tree->length())
-							<< " ";
-				}
-				output << *user_tree << endl;
-			} else {
-				output << "N/A" << endl;
+	if (user_tree) {
+		output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
+		if (user_tree->length() > 0) {
+			if (user_tree->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
+				output << endl << setw(H_RULE_LENGTH - user_tree->length())
+						<< " ";
 			}
+			output << *user_tree << endl;
+		} else {
+			output << "N/A" << endl;
 		}
+	}
 
-		output << setw(OPT_DESCR_LENGTH) << left << "  Config file:";
-		if (config_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-			output << endl << setw(H_RULE_LENGTH - config_file->length())
-					<< " ";
-		}
-		output << *config_file << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Config file:";
+	if (config_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
+		output << endl << setw(H_RULE_LENGTH - config_file->length()) << " ";
+	}
+	output << *config_file << endl;
 
-		output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
-		switch (data_type) {
-		case DT_NUCLEIC:
-		case DT_DEFAULT:
-			output << "Nucleic" << endl;
-			output << setw(OPT_DESCR_LENGTH) << left
-					<< "  Include models with unequal frequencies:";
-			break;
-		case DT_PROTEIC:
-			output << "Proteic" << endl;
-			output << setw(OPT_DESCR_LENGTH) << left
-					<< "  Include models with empirical frequencies:";
-			break;
-		}
-		if (do_rate & RateVarF)
-			output << "True " << endl;
-		else
-			output << "False" << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
+	switch (data_type) {
+	case DT_NUCLEIC:
+	case DT_DEFAULT:
+		output << "Nucleic" << endl;
 		output << setw(OPT_DESCR_LENGTH) << left
-				<< "  Include models with rate variation:";
-		if (do_rate & RateVarG)
-			output << "True" << endl;
-		else
-			output << "False" << endl;
-		output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
-		switch (search_algo) {
-		case SearchGreedy:
-		case SearchDefault:
-			output << left << "Greedy" << endl;
-			break;
-		case SearchGreedyExtended:
-			output << left << "Greedy extended" << endl;
-			break;
-		case SearchHCluster:
-			output << left << "Hierarchical Cluster (" << max_samples
-					<< ")" << endl;
-			break;
-		case SearchRandom:
-			output << left << "Random" << endl;
-			break;
-		case SearchExhaustive:
-			output << left << "Exahustive" << endl;
-			break;
-		}
-		output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
-					<< endl;
+				<< "  Include models with unequal frequencies:";
+		break;
+	case DT_PROTEIC:
+		output << "Proteic" << endl;
+		output << setw(OPT_DESCR_LENGTH) << left
+				<< "  Include models with empirical frequencies:";
+		break;
+	}
+	if (do_rate & RateVarF)
+		output << "True " << endl;
+	else
+		output << "False" << endl;
+	output << setw(OPT_DESCR_LENGTH) << left
+			<< "  Include models with rate variation:";
+	if (do_rate & RateVarG)
+		output << "True" << endl;
+	else
+		output << "False" << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
+	switch (search_algo) {
+	case SearchGreedy:
+	case SearchDefault:
+		output << left << "Greedy" << endl;
+		break;
+	case SearchGreedyExtended:
+		output << left << "Greedy extended" << endl;
+		break;
+	case SearchHCluster:
+		output << left << "Hierarchical Cluster (" << max_samples << ")"
+				<< endl;
+		break;
+	case SearchRandom:
+		output << left << "Random" << endl;
+		break;
+	case SearchExhaustive:
+		output << left << "Exahustive" << endl;
+		break;
+	}
+	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
+			<< endl;
 }
 
 void PrintMeta::print_usage(std::ostream& out) {
@@ -186,10 +184,12 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search exhaustive" << "Exhaustive search" << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -r, --replicates N"
-				<< "Sets the number of replicates on Hierarchical Clustering" << endl;
+			<< "Sets the number of replicates on Hierarchical Clustering"
+			<< endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--non-stop" << "Algorithms do not stop if no improvement found at one step"
-				<< endl;
+			<< "--non-stop"
+			<< "Algorithms do not stop if no improvement found at one step"
+			<< endl;
 	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left
 			<< "  -s, --selection-criterion CRITERION"
@@ -215,7 +215,9 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "--optimize findModel"
 			<< "Find the best-fit model for each partition" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--optimize gtr" << "Use GTR model for each partition" << endl;
+			<< "--optimize gtr"
+			<< "Use only GTR model for each partition (nucleic data)" << endl;
+	out << setw(MAX_OPT_LENGTH) << " " << "or AUTO for protein data." << endl;
 	out << endl;
 	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
 			<< "Sets the input configuration file for gene partition" << endl;
@@ -230,14 +232,79 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--config-template" << "Generates a configuration file template"
 			<< endl;
-	//  out << setw(MAX_OPT_LENGTH) << " " <<
-//      << "  GENE_NAME=START,END[\\CODON_POSITION]"
-//      << endl;
-//  out << setw(MAX_OPT_LENGTH) << " " << "Example:" << endl;
-//  out << setw(MAX_OPT_LENGTH) << " " << "  GENE1_1=1,150\\1" << endl;
-//  out << setw(MAX_OPT_LENGTH) << " " << "  GENE1_2=1,150\\2" << endl;
-//  out << setw(MAX_OPT_LENGTH) << " " << "  GENE1_3=1,150\\3" << endl;
-//  out << setw(MAX_OPT_LENGTH) << " " << "  GENE2=151,300" << endl;
+}
+
+void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme) {
+	ofs << "<best_scheme num_elements=\"" << bestScheme->getNumberOfElements()
+			<< "\" lnL=\"" << bestScheme->getLnL() << "\" BIC_score=\""
+			<< bestScheme->getIcValue() << "\">" << endl;
+	ofs << "  <name>" << endl << "    " << bestScheme->getName() << endl
+			<< "  </name>" << endl;
+	int numCodeLines = bestScheme->getCodeLines();
+	ofs << "  <code nlines=\"" << numCodeLines << "\">" << endl;
+	for (int i = numCodeLines - 1; i >= 0; i--) {
+		ofs << "    " << bestScheme->getCode(i) << endl;
+	}
+	ofs << "  </code>" << endl;
+	if (bestScheme->getTree()) {
+		ofs << "  <tree>" << endl;
+		ofs << "    " << bestScheme->getTree() << endl;
+		ofs << "  </tree>" << endl;
+	}
+	for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = bestScheme->getElement(i);
+		ofs << "  <partition id=\"" << i + 1 << "\" num_elements=\""
+				<< element->getNumberOfSections() << "\" num_sites=\""
+				<< element->getNumberOfSites() << "\" num_patterns=\""
+				<< element->getNumberOfPatterns() << "\">" << endl;
+		ofs << "    <name>" << endl << "      " << element->getName() << endl
+				<< "    </name>" << endl;
+		ofs << "    <bestModel name=\""
+				<< element->getBestModel()->getModel()->getName() << "\" lnL=\""
+				<< element->getBestModel()->getModel()->getLnL()
+				<< "\" BIC_score=\"" << element->getBestModel()->getValue()
+				<< "\">" << endl;
+		ofs << "    </bestModel>" << endl;
+		ofs << "    <tree>" << endl;
+		ofs << "      " << element->getBestModel()->getModel()->getTree()
+				<< endl;
+		ofs << "    </tree>" << endl;
+		ofs << "  </partition>" << endl;
+	}
+	ofs << "  <raxml_control>" << endl;
+	for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+		PartitionElement * element = bestScheme->getElement(i);
+		switch (data_type) {
+		case DT_NUCLEIC:
+			ofs << "    DNA, ";
+			break;
+		case DT_PROTEIC:
+			ofs << "    "
+					<< Utilities::getProtRaxmlName(
+							static_cast<ProteicModel *>(element->getBestModel()->getModel())->getMatrix())
+					<< ", ";
+
+			break;
+		}
+		ofs << "PART" << i + 1 << " = ";
+		for (int j = 0; j < element->getNumberOfSections(); j++) {
+			PEsection section = element->getSection(j);
+			if (j > 0) {
+				ofs << ",";
+			}
+			ofs << section.start << "-" << section.end;
+		}
+		ofs << endl;
+	}
+	ofs << "  </raxml_control>" << endl;
+	ofs << "</mbest_scheme>" << endl;
+}
+
+void PrintMeta::print_results(ostream & ofs, PartitioningScheme * bestScheme) {
+	ofs << endl << ":: Selection results ::" << endl;
+	ofs << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
+	bestScheme->print(ofs);
+	ofs << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
 }
 
 } /* namespace partest */

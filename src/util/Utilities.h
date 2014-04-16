@@ -55,6 +55,9 @@ public:
 	static bool contains(t_partitionElementId vec, int num);
 	static bool contains(t_partitioningScheme vec, t_partitionElementId id);
 
+	static std::string getProtMatrixName(ProtMatrix matrix);
+	static std::string getProtRaxmlName(ProtMatrix matrix);
+
 private:
 	static char encoding_table[];
 };

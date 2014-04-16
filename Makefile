@@ -21,6 +21,7 @@ PARTEST_CXXFILES = \
 	model/SelectionModel.cpp \
 	parser/ArgumentParser.cpp \
 	parser/ConfigParser.cpp \
+	search/SearchAlgorithm.cpp \
 	search/HierarchicalClusteringSearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
 	util/Utilities.cpp \
