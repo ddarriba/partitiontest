@@ -6,8 +6,15 @@
  */
 
 #include "PartitioningScheme.h"
-#include "PartitionMap.h"
+#include "util/Utilities.h"
+#include "indata/PartitionMap.h"
+
+#include <math.h>
 #include <stdlib.h>
+#include <algorithm>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #define UNDEFINED -1
 
@@ -26,100 +33,47 @@ struct comparePartitionElements {
 			cerr
 					<< "[ERROR] There are 2 different elements in the set with the same ID"
 					<< endl;
-			Utilities::exit_partest(EX_SOFTWARE);
+			exit_partest(EX_SOFTWARE);
 		}
 
 		return i1 < i2;
 	}
 };
 
-PartitioningScheme::PartitioningScheme(int numberOfElements) :
-		numberOfElements(numberOfElements) {
-	eps = 0;
-	tree = 0;
-	currentElement = 0;
-	partitions = new vector<PartitionElement *>(numberOfElements);
-	numberOfBits = 1;
-	code = 0;
-}
+PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector) :
+		partitions(schemeVector->size()), id(schemeVector->size()) {
 
-PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector,
-		PartitionMap * partitionMap) {
 	eps = 0;
 	tree = 0;
 	currentElement = 0;
 	code = 0;
+	sort(schemeVector->begin(), schemeVector->end());
 	numberOfElements = schemeVector->size();
-	partitions = new vector<PartitionElement *>(numberOfElements);
-	unsigned int i;
-#ifdef DEBUG
-	cout << "[TRACE] PARTITION (" << numberOfElements << " elements):";
-#endif
-	numberOfBits = 1;
+	codeLines = Utilities::iDecLog(numberOfElements - 1) + 1;
 
-	for (i = 0; i < numberOfElements; i++) {
-#ifdef DEBUG
-		cout << "[TRACE] ADDING ELEMENT "
-		<< i+1 << "/" << numberOfElements << endl; //" (" << schemeVector->at(i) << ")" << endl;
-#endif
-		PartitionElement * newPE = partitionMap->getPartitionElement(
+	for (unsigned int i = 0; i < schemeVector->size(); i++) {
+		id.at(i) = schemeVector->at(i);
+		partitions.at(i) = PartitionMap::getInstance()->getPartitionElement(
 				schemeVector->at(i));
-
-		if (newPE->getMaxId() >= numberOfBits) {
-			numberOfBits = (newPE->getMaxId() + 1);
-		}
-		addElement(newPE);
 	}
 }
 
 PartitioningScheme::~PartitioningScheme() {
-	delete partitions;
 	if (code)
 		delete code;
 	if (tree)
 		free(tree);
-}
-
-int PartitioningScheme::addElement(PartitionElement * element) {
-	if (currentElement < numberOfElements) {
-
-		t_partitionElementId id(element->getId());
-		// Security checks
-		for (unsigned int i = 0; i < currentElement; i++) {
-			t_partitionElementId id_c(partitions->at(i)->getId());
-			if (id_c == id) {
-				cerr << "[Error] Duplicated element" << endl;
-				Utilities::vprint(cerr, id);
-				Utilities::exit_partest(EX_SOFTWARE);
-			}
-			if (Utilities::intersec(id_c, id)) {
-				cerr << "[Error] Overlapped elements" << endl;
-				t_partitionElementId id1 = element->getId();
-				t_partitionElementId id2 = partitions->at(i)->getId();
-				Utilities::vprint(cerr, id1);
-				Utilities::vprint(cerr, id2);
-				Utilities::exit_partest(EX_SOFTWARE);
-			}
+	if (eps) {
+		for (elementPair *ep : *eps) {
+			free(ep);
 		}
-
-		partitions->at(currentElement++) = element;
-
-		if (element->getMaxId() >= numberOfBits) {
-			numberOfBits = (element->getMaxId() + 1);
-		}
-		if (currentElement == numberOfElements) {
-			std::sort(partitions->begin(), partitions->end(),
-					comparePartitionElements());
-		}
-		return 0;
-	} else {
-		return 1;
+		delete eps;
 	}
 }
 
 PartitionElement * PartitioningScheme::getElement(unsigned int id) {
 	if ((id >= 0) & (id < numberOfElements)) {
-		return partitions->at(id);
+		return partitions.at(id);
 	} else {
 		return 0;
 	}
@@ -127,32 +81,15 @@ PartitionElement * PartitioningScheme::getElement(unsigned int id) {
 
 bool PartitioningScheme::isOptimized(void) {
 	bool optimized = true;
-	for (unsigned int i = 0; i < numberOfElements; i++) {
-		optimized &= partitions->at(i)->isOptimized();
+	for (PartitionElement * pe : partitions) {
+		optimized &= pe->isOptimized();
 	}
 	return optimized;
 }
 
-void PartitioningScheme::resetModelSet() {
-	for (unsigned int i = 0; i < numberOfElements; i++) {
-		for (unsigned int j = 0;
-				j < partitions->at(i)->getModelset()->getNumberOfModels();
-				j++) {
-			partitions->at(i)->getModelset()->getModel(j)->setLnL(0.0);
-		}
-	}
-}
-
-void PartitioningScheme::buildCompleteModelSet(bool clearAll) {
-	for (unsigned int i = 0; i < numberOfElements; i++) {
-		partitions->at(i)->buildCompleteModelSet(clearAll);
-	}
-}
-
 /** Functor for sorting the pairs */
 struct compareDistancesVector {
-	inline bool operator()(elementPair * struct1,
-			elementPair * struct2) {
+	inline bool operator()(elementPair * struct1, elementPair * struct2) {
 		return (struct1->distance < struct2->distance);
 	}
 };
@@ -165,7 +102,7 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 			cerr
 					<< "[ERROR] Attempting to get differences of unoptimized partitions"
 					<< endl;
-			Utilities::exit_partest(EX_SOFTWARE);
+			exit_partest(EX_SOFTWARE);
 		}
 
 		eps = new vector<elementPair *>(
@@ -219,21 +156,24 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 
 string PartitioningScheme::getName() {
 	stringstream ss;
-	for (unsigned int i = 0; i < numberOfElements; i++) {
-		ss << partitions->at(i)->getName() << " ";
+	for (PartitionElement * pe : partitions) {
+		ss << pe->getName() << " ";
 	}
 	return ss.str();
 }
 
+int PartitioningScheme::getCodeLines(void) {
+	return codeLines;
+}
+
 string PartitioningScheme::getCode(int codeLine) {
 	if (!code) {
-		int numDigits =
-				(numberOfElements > 10) ?
-						(Utilities::iDecLog(numberOfElements - 1) + 1) : 1;
+		if (codeLine >= (int) codeLines)
+			exit_partest(EX_SOFTWARE);
 
 		int hashmap[numberOfElements];
-		int intcode[numberOfBits];
-		char charcode[numDigits * numberOfBits + 1];
+		int intcode[number_of_genes];
+		char charcode[codeLines * number_of_genes + 1];
 		for (unsigned int i = 0; i < numberOfElements; i++) {
 			t_partitionElementId id = getElement(i)->getId();
 			hashmap[i] = UNDEFINED;
@@ -243,22 +183,19 @@ string PartitioningScheme::getCode(int codeLine) {
 		}
 		hashmap[intcode[0]] = 0;
 		int nextCode = 0;
-		for (int i = 0; i < numDigits; i++) {
-			charcode[i * numberOfBits + 0] = '0';
+		for (unsigned int i = 0; i < codeLines; i++) {
+			charcode[i * number_of_genes + 0] = '0';
 		}
-		for (unsigned int i = 1; i < numberOfBits; i++) {
+		for (unsigned int i = 1; i < number_of_genes; i++) {
 			if (hashmap[intcode[i]] == UNDEFINED) {
 				hashmap[intcode[i]] = ++nextCode;
 			}
-			for (int j = 0; j < numDigits; j++) {
-				charcode[j * numberOfBits + i] = ((int) floor(
+			for (unsigned int j = 0; j < codeLines; j++) {
+				charcode[j * number_of_genes + i] = ((int) floor(
 						hashmap[intcode[i]] / pow(10, j)) % 10) + '0';
 			}
 		}
-//		for (int j = 0; j < numDigits; j++) {
-//			charcode[j * numberOfBits + numberOfBits] = '\n';
-//		}
-		charcode[numDigits * numberOfBits] = '\0';
+		charcode[codeLines * number_of_genes] = '\0';
 
 		code = new string(charcode);
 	}
@@ -266,7 +203,8 @@ string PartitioningScheme::getCode(int codeLine) {
 	if (codeLine == FULL_CODE) {
 		return *code;
 	} else {
-		string the_code = code->substr(codeLine * numberOfElements, numberOfElements);
+		string the_code = code->substr(codeLine * number_of_genes,
+				number_of_genes);
 		return the_code;
 	}
 }
@@ -283,9 +221,49 @@ double PartitioningScheme::getLnL() {
 	if (!isOptimized())
 		return 0.0;
 	double lk = 0.0;
-	for (unsigned int i = 0; i < numberOfElements; i++) {
-		lk += partitions->at(i)->getBestModel()->getModel()->getLnL();
+	for (PartitionElement * pe : partitions) {
+		lk += pe->getLnL();
 	}
 	return lk;
 }
+
+double PartitioningScheme::getIcValue() {
+	if (!isOptimized())
+		return 0.0;
+	double score = 0.0;
+	for (PartitionElement * pe : partitions) {
+		score += pe->getBestModel()->getValue();
+	}
+	return score;
+}
+
+void PartitioningScheme::print(ostream & out) {
+	out << getName() << endl;
+	out << "Code Lines: " << codeLines << endl;
+	for (int i = codeLines-1; i >= 0; i--) {
+		out << "  " << getCode(i) << endl;
+	}
+	out << "Num.Elements: " << numberOfElements << endl;
+	if (isOptimized()) {
+		out << "LnL:          " << getLnL() << endl;
+		out << "BIC_score:    " << getIcValue() << endl;
+		if (tree > 0) {
+			out << "Tree:         " << getTree() << endl;
+		}
+		out << endl;
+		out << setw(6) << "--ID-"
+			<< setw(11) << "---Model-- "
+							<< setw(5) << " --K-"
+							<< setw(21) << " ---------LnL--------"
+							<< setw(21) << " ---------BIC--------" << endl;
+		for (unsigned int i=0; i<numberOfElements; i++) {
+			out << setw(6) << left << i + 1
+					<< setw(11) << left << getElement(i)->getBestModel()->getModel()->getName()
+					<< setw(5) << right << getElement(i)->getBestModel()->getModel()->getNumberOfFreeParameters()
+					<< setw(21) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getModel()->getLnL()
+					<< setw(21) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getValue() << endl;
+		}
+	}
+}
+
 } /* namespace partest */

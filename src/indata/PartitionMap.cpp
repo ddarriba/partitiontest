@@ -9,62 +9,23 @@
 #include "util/Utilities.h"
 #include <assert.h>
 #include <string.h>
-#include <sstream>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
 
 namespace partest {
 
-PartitionMap::PartitionMap(const char * configFile, Alignment * alignment,
-		bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode) :
-		alignment(alignment), rateVariation(rateVariation), dataType(dataType), optimizeMode(optimizeMode) {
-#ifdef DEBUG
-	cout << "[TRACE] Instantiated partition map from config file" << endl;
-#endif
-
-	if (strcmp(configFile, "")) {
-
-		ConfigParser parser(configFile);
-
-		partitions = new vector<partitionMappingInfo>(
-				parser.getNumberOfPartitions());
-		numberOfElements = numberOfPartitions = parser.getNumberOfPartitions();
-		for (int i = 0; i < parser.getNumberOfPartitions(); i++) {
-			struct partitionInfo nextPartition = parser.getPartition(i);
-			partitions->at(i).partitionId = nextPartition.partitionId;
-
-			partitions->at(i).partitionElement = new PartitionElement(
-					nextPartition.partitionId, nextPartition.name, alignment,
-					nextPartition.start, nextPartition.end,
-					nextPartition.stride, nextPartition.numberOfSections,
-					rateVariation, dataType, optimizeMode);
+PartitionMap::PartitionMap() {
+		_keep.reserve(number_of_genes);
+		partitions = new vector<partitionMappingInfo>(pllPartitions->numberOfPartitions);
+		numberOfElements = numberOfPartitions = pllPartitions->numberOfPartitions;
+		for (unsigned int i = 0; i < numberOfPartitions; i++) {
+			t_partitionElementId nextId;
+			nextId.push_back(i);
+			partitions->at(i).partitionId = nextId;
+			partitions->at(i).partitionElement = new PartitionElement(nextId);
 		}
-
-	} else {
-		partitions = new vector<partitionMappingInfo>(1);
-		string nameStr("UNIQUE");
-		int start = 1;
-		int end = alignment->getNumSites();
-		int stride = 0;
-
-		partitions->at(0).partitionId.push_back(1);
-		partitions->at(0).partitionElement = new PartitionElement(
-				partitions->at(0).partitionId, nameStr, alignment, start, end,
-				stride, rateVariation, dataType, optimizeMode);
-		numberOfElements = numberOfPartitions = 1;
-	}
-}
-
-PartitionMap::PartitionMap(Alignment * alignment,
-		unsigned int numberOfPartitions, bitMask rateVariation,
-		DataType dataType, OptimizeMode optimizeMode) :
-		alignment(alignment), numberOfElements(numberOfPartitions), numberOfPartitions(
-				numberOfPartitions), rateVariation(rateVariation), dataType(
-				dataType), optimizeMode(optimizeMode) {
-
-#ifdef DEBUG
-	cout << "[TRACE] Instantiated partition map from void" << endl;
-#endif
-
-	partitions = new vector<partitionMappingInfo>(numberOfElements);
 }
 
 PartitionMap::~PartitionMap() {
@@ -74,37 +35,19 @@ PartitionMap::~PartitionMap() {
 	delete partitions;
 }
 
-bool PartitionMap::addPartitionElement(unsigned int partitionId, string name,
-		unsigned int startPosition, unsigned int endPosition, char stride) {
-
-	/* only gene-partitions can be added */
-	if (partitionId >= numberOfElements)
-		return false;
-
-	/* partitionId is translated into partition mask */
-	partitions->at(partitionId).partitionId.push_back(partitionId);
-	partitions->at(partitionId).partitionElement = new PartitionElement(
-			partitions->at(partitionId).partitionId, name, alignment,
-			startPosition, endPosition, stride, rateVariation, dataType, optimizeMode);
-
-	return true;
-}
-
-PartitionElement * PartitionMap::getPartitionElement(unsigned int id) {
-	assert(id < numberOfPartitions);
-	return partitions->at(id).partitionElement;
-}
-
 PartitionElement * PartitionMap::getPartitionElement(
 		t_partitionElementId partitionId) {
 
-	assert(partitionId.size() > 0);
+	if (!partitionId.size()) {
+		cerr << "[ERROR] [PartitionMap] Bad ID " << endl;
+		exit_partest(EX_SOFTWARE);
+	}
 
 	if (partitionId.size() == 1) {
 		return partitions->at(partitionId.at(0)).partitionElement;
 	}
 
-	std::sort(partitionId.begin(), partitionId.end());
+	sort(partitionId.begin(), partitionId.end());
 
 	/* search for element */
 	for (unsigned int i = 0; i < partitions->size(); i++) {
@@ -115,31 +58,10 @@ PartitionElement * PartitionMap::getPartitionElement(
 	}
 
 	/* we need to merge partitions */
-	int numberOfSections = partitionId.size();
-	int * start = (int *) malloc(numberOfSections * sizeof(int));
-	int * end = (int *) malloc(numberOfSections * sizeof(int));
-	int * stride = (int *) malloc(numberOfSections * sizeof(int));
-	int curIndex = 0;
-	stringstream name;
-	name << "( ";
-	for (int i = 0; i < numberOfSections; i++) {
-		start[curIndex] = getPartitionElement(partitionId.at(i))->getStart();
-		end[curIndex] = getPartitionElement(partitionId.at(i))->getEnd();
-		stride[curIndex] = getPartitionElement(partitionId.at(i))->getStride();
-		name << getPartitionElement(partitionId.at(i))->getName() << " ";
-		curIndex++;
-	}
-	name << ")";
-
-	//	for (int j=0; j<numberOfSections; j++)
-//		cout << "SITTING " << (getPartitionElement(partitionId.at(i))->getStart())[j] << " to " << (getPartitionElement(partitionId.at(i))->getEnd())[j] << endl;
-
 	partitionMappingInfo pInfo;
 	pInfo.partitionId = partitionId;
 
-	pInfo.partitionElement = new PartitionElement(partitionId, name.str(),
-			alignment, start, end, stride, numberOfSections, rateVariation,
-			dataType, optimizeMode);
+	pInfo.partitionElement = new PartitionElement(partitionId);
 
 	partitions->push_back(pInfo);
 	numberOfElements++;
@@ -148,7 +70,6 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 
-	if (id.size() > 1) {
 		for (unsigned int i = numberOfPartitions; i < numberOfElements; i++) {
 			if (partitions->at(i).partitionId == id) {
 				delete partitions->at(i).partitionElement;
@@ -157,10 +78,9 @@ void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 				return;
 			}
 		}
-		cerr << "[ERROR] Attempting to delete an inexistent partition element"
+		cerr << "[ERROR] [PartitionMap] Attempting to delete an inexistent partition element"
 				<< endl;
-		Utilities::exit_partest(EX_SOFTWARE);
-	}
+		exit_partest(EX_SOFTWARE);
 }
 
 void PartitionMap::purgePartitionMap(t_partitionElementId id) {
@@ -171,10 +91,50 @@ void PartitionMap::purgePartitionMap(t_partitionElementId id) {
 	/* Loop backwards over complex elements */
 	for (unsigned int i = numberOfElements - 1; i >= numberOfPartitions; i--) {
 		t_partitionElementId mId = partitions->at(i).partitionId;
-		if (mId != id && Utilities::intersec(mId, id)) {
+		if (mId != id && Utilities::intersec(mId, id) && !Utilities::contains(_keep, mId)) {
 			deletePartitionElement(mId);
 		}
 	}
+}
+
+void PartitionMap::keep(t_partitioningScheme id) {
+	_keep.clear();
+	for (t_partitionElementId eId : id) {
+		_keep.push_back(eId);
+	}
+}
+
+void PartitionMap::keep_add(t_partitioningScheme id) {
+	for (t_partitionElementId eId : id) {
+		if (!Utilities::contains(_keep, eId)) {
+			_keep.push_back(eId);
+		}
+	}
+}
+
+void PartitionMap::keep_remove(t_partitioningScheme id) {
+	int position = 0;
+	for (t_partitionElementId eId : id) {
+		if (Utilities::contains(_keep, eId)) {
+			_keep.erase(_keep.begin() + position);
+		}
+		position++;
+	}
+}
+
+PartitionMap * PartitionMap::instance = 0;
+
+PartitionMap * PartitionMap::getInstance() {
+	if (!instance) {
+		instance = new PartitionMap();
+	}
+	return instance;
+}
+
+void PartitionMap::deleteInstance() {
+	if (instance)
+		delete instance;
+	instance = 0;
 }
 
 } /* namespace partest */

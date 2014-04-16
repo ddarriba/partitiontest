@@ -1,16 +1,86 @@
+/*
+ * GlobalDefs.cpp
+ *
+ *  Created on: Apr 8, 2014
+ *      Author: diego
+ */
+
 #include "GlobalDefs.h"
 #include "Utilities.h"
+#include "PrintMeta.h"
+
+#include <stdlib.h>
 
 using namespace std;
 
 namespace partest {
 
-#ifdef PTHREADS
 	int number_of_threads = 1;
-#endif
-
-	bitMask protModelsMask = Utilities::binaryPow(8*sizeof(bitMask)-1)-1;
 	bool ckpAvailable = false;
 	string ckpPath;
 	string ckpStartingTree = "starting_tree";
+	string ** singleGeneNames;
+	char * starting_tree = 0;
+
+	DataType data_type;
+	bitMask do_rate;
+	StartTopo starting_topology;
+	SearchAlgo search_algo;
+	int max_samples;
+	InformationCriterion ic_type;
+	OptimizeMode optimize_mode;
+	bool non_stop = false;
+
+	string * input_file = 0;
+	string * config_file = 0;
+	string * user_tree = 0;
+	string * output_dir = 0;
+	string * models_logfile = 0;
+	string * schemes_logfile = 0;
+	string * results_logfile = 0;
+
+	bitMask protModels = Utilities::binaryPow(max(NUC_MATRIX_SIZE,PROT_MATRIX_SIZE)) - 1;
+
+	pllQueue * pllPartsQueue = 0;
+	partitionList * pllPartitions = 0;
+	pllAlignmentData * phylip = 0;
+	pllInstance * tree = 0;
+
+	unsigned int num_taxa;
+	unsigned int seq_len;
+	unsigned int num_patterns;
+	unsigned int number_of_models;
+	unsigned int number_of_genes;
+
+	void exit_partest(int status) {
+		/* free global variables */
+		for (unsigned int i=0; i<number_of_genes; i++) {
+			delete singleGeneNames[i];
+		}
+		free(singleGeneNames);
+
+		if (user_tree)
+			delete (user_tree);
+		if (config_file)
+			delete (config_file);
+		if (input_file)
+			delete (input_file);
+		if (output_dir)
+			delete (output_dir);
+		if (models_logfile)
+			delete (models_logfile);
+		if (schemes_logfile)
+			delete (schemes_logfile);
+		if (results_logfile)
+			delete (results_logfile);
+
+		/* exit */
+		if (status == EX_USAGE) {
+			PrintMeta::print_usage(cout);
+		}
+		if (status == EX_SOFTWARE) {
+			cerr << " ... internal error that should NEVER raise ..." << endl;
+		}
+		exit(status);
+	}
 }

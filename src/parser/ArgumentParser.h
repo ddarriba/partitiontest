@@ -24,17 +24,13 @@
 #ifndef ARGUMENT_PARSER_HPP
 #define ARGUMENT_PARSER_HPP
 
-#include "options/ParTestOptions.h"
+#include "PartitionTest.h"
+
 #include <iomanip>
 
 #define ARG_DT_NUCLEIC "nt"		/** Argument for nucleotide datatype */
 #define ARG_DT_PROTEIC "aa"		/** Argument for amino-acid datatype */
-#ifndef _PLL
-#define ARG_TOPO_BIONJ "bionj"	/** Argument for NJ starting topology */
-#define ARG_TOPO_ML    "ml"		/** Argument for ML starting topology */
-#else
 #define ARG_TOPO_MP    "mp"		/** Argument for MP starting topology */
-#endif
 #define ARG_TOPO_FIXED "fixed"	/** Argument for fixed JC/JTT starting topology */
 #define ARG_TOPO_USER  "user"	/** Argument for custom starting topology */
 #define ARG_IC_AIC     "aic"	/** Argument for using AIC for model selection */
@@ -79,6 +75,7 @@ enum ArgIndex {
 	ARG_HELP, /** Argument for show help */
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */
+	ARG_NON_STOP, /** Search until the end */
 	ARG_END
 };
 
@@ -94,7 +91,7 @@ namespace partest {
 class ArgumentParser {
 
 public:
-	ArgumentParser();
+	ArgumentParser(PartitionTest * ptest);
 	~ArgumentParser();
 
 	/**
@@ -109,19 +106,15 @@ public:
 	 */
 	ArgIndex get_opt(int argc, char *argv[], char *argument, char *value);
 
-	/**
-	 * @brief Fills an options instance with the arguments array.
-	 *
-	 * @param argc Arguments array.
-	 * @param argv Number of arguments.
-	 * @param[in,out] options The options instance.
-	 */
-	void fill_options(int argc, char *argv[], ParTestOptions * options);
+	void parse(int argc, char *argv[]);
+
 private:
 	void init();
 	int index; /** Current argument index within the arguments array. */
 	int subindex; /** Current artument subindex within an arguments chain. */
+
 	option* arguments; /** Read arguments. */
+	PartitionTest * ptest;
 };
 
 } /* namespace partest */

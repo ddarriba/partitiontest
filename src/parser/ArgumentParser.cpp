@@ -26,25 +26,21 @@
 #include <iostream>
 #include "ConfigParser.h"
 #include "util/Utilities.h"
-#include "util/PrintMeta.h"
-#include "indata/Alignment.h"
 
 using namespace std;
 
 namespace partest {
 
-#ifndef _PLL
-#define NUM_ARGUMENTS 19
-#else
-#define NUM_ARGUMENTS 17
-#endif
+#define NUM_ARGUMENTS 18
 
 void ArgumentParser::init() {
 	index = 1;
 	subindex = 1;
 }
 
-ArgumentParser::ArgumentParser() {
+ArgumentParser::ArgumentParser(PartitionTest * ptest) :
+	ptest(ptest), index(0), subindex(0) {
+
 	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
 			ARG_INPUT_FILE, 'i', "input-file", true }, {
 			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
@@ -65,8 +61,10 @@ ArgumentParser::ArgumentParser() {
 			ARG_IC_TYPE, 's', "selection-criterion", true }, {
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
 			ARG_CONFIG_HELP, 0, "config-help", false }, {
-			ARG_CONFIG_TEMPLATE, 0, "config-template", false } };
+			ARG_CONFIG_TEMPLATE, 0, "config-template", false }, {
+			ARG_NON_STOP, 0, "non-stop", false }};
 	unsigned int size = NUM_ARGUMENTS * sizeof(option);
+
 	arguments = (option *) malloc(size);
 	memcpy(arguments, options_list, size);
 	init();
@@ -96,7 +94,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 								if (index >= argc || argv[index][0] == '-') {
 									cerr << "ERROR! Argument " << arg
 											<< " requires a value." << endl;
-									Utilities::exit_partest(EX_USAGE);
+									exit_partest(EX_CONFIG);
 								}
 								strcpy(value, argv[index]);
 							}
@@ -114,13 +112,13 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 							if (num_arguments > 1) {
 								cerr << "ERROR! Argument " << arg[subindex]
 										<< " cannot be used in a row." << endl;
-								Utilities::exit_partest(EX_USAGE);
+								exit_partest(EX_CONFIG);
 							} else {
 								index++;
 								if (index >= argc || argv[index][0] == '-') {
 									cerr << "ERROR! Argument " << arg[subindex]
 											<< " requires a value." << endl;
-									Utilities::exit_partest(EX_USAGE);
+									exit_partest(EX_CONFIG);
 								}
 								strcpy(value, argv[index]);
 							}
@@ -137,7 +135,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 					cerr << "[ERROR] \"" << argument
 							<< "\" option not recognized." << endl;
 					cerr << "Run with --help for more information." << endl;
-					Utilities::exit_partest(EX_USAGE);
+					exit_partest(EX_USAGE);
 				}
 			}
 		} else {
@@ -147,19 +145,18 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 			cerr << "Arguments must start with '-' (short) or '--' (long)"
 					<< endl;
 			cerr << "Run with --help for more information." << endl;
-			Utilities::exit_partest(EX_USAGE);
+			exit_partest(EX_USAGE);
 		}
+
+
 		return arg_index;
 	}
 }
 
-void ArgumentParser::fill_options(int argc, char *argv[],
-		ParTestOptions *options) {
+void ArgumentParser::parse(int argc, char *argv[]) {
 
 	bool requiredInputFile = false;
-
 	init();
-
 	int argument_index;
 	char value[256];
 	char argument[256];
@@ -179,37 +176,15 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	SearchAlgo searchAlgo = SearchDefault;
 	int maxSamples = 1;
 	OptimizeMode optimize = OPT_DEFAULT;
-//  AlignFormat input_format = AF_PHYLIP_SEQ;
 
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
 		switch (argument_index) {
 		case ARG_HELP:
-			PrintMeta::print_usage(cout);
-			Utilities::exit_partest(EX_OK);
+			exit_partest(EX_USAGE);
 			break;
 		case ARG_INPUT_FILE:
 			strcpy(input_file, value);
 			requiredInputFile = true;
-			break;
-		case ARG_INPUT_FORMAT:
-			//        if ( !strcmp(value, ARG_AF_PHYLIP_SEQ) ) {
-//          input_format = AF_PHYLIP_SEQ;
-//        } else if ( !strcmp(value, ARG_AF_PHYLIP_INT) ) {
-//          input_format = AF_PHYLIP_INT;
-//        } else if ( !strcmp(value, ARG_AF_NEXUS) ) {
-//          input_format = AF_NEXUS;
-//        } else if ( !strcmp(value, ARG_AF_CLUSTAL) ) {
-//          input_format = AF_CLUSTAL;
-//        } else if ( !strcmp(value, ARG_AF_FASTA) ) {
-//          input_format = AF_FASTA;
-//        } else if ( !strcmp(value, ARG_AF_DCSE) ) {
-//          input_format = AF_DCSE;
-//        } else if ( !strcmp(value, ARG_AF_GENBANK) ) {
-//          input_format = AF_GENBANK;
-//        } else {
-//          //***ERROR!
-//          Utilities::exit_partest(EX_USAGE);
-//        }
 			break;
 		case ARG_USER_TREE:
 			strcpy(user_tree, value);
@@ -227,19 +202,12 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< "Protein sequence alignment" << endl;
 				cerr << "  -d " << setw(8) << left << ARG_DT_NUCLEIC
 						<< "DNA sequence alignment (DEFAULT)" << endl;
-				Utilities::exit_partest(EX_USAGE);
+				exit_partest(EX_CONFIG);
 			}
 			break;
 		case ARG_TOPOLOGY:
-#ifndef _PLL
-			if (!strcmp(value, ARG_TOPO_BIONJ)) {
-				startingTopology = StartTopoBIONJ;
-			} else if (!strcmp(value, ARG_TOPO_ML)) {
-				startingTopology = StartTopoML;
-#else
 				if (!strcmp(value, ARG_TOPO_MP)) {
 					startingTopology = StartTopoMP;
-#endif
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
 				startingTopology = StartTopoFIXED;
 			} else if (!strcmp(value, ARG_TOPO_USER)) {
@@ -248,23 +216,13 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				cerr << "[ERROR] \"-t " << value
 						<< "\" is not a valid input topology. Use one of the following:"
 						<< endl;
-#ifndef _PLL
-				cerr << "  -t " << setw(8) << left << ARG_TOPO_BIONJ
-						<< "BIONJ topology" << endl;
-				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
-						<< "Fixed BIONJ topology for every model" << endl;
-				cerr << "  -t " << setw(8) << left << ARG_TOPO_ML
-						<< "Maximum Likelihood topology (DEFAULT, slowest)"
-						<< endl;
-#else
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_MP
 				<< "MP topology" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
 				<< "Fixed ML topology for every model" << endl;
-#endif
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_USER
 						<< "User-defined topology" << endl;
-				Utilities::exit_partest(EX_USAGE);
+				exit_partest(EX_CONFIG);
 			}
 			break;
 		case ARG_SEARCH_ALGORITHM:
@@ -294,7 +252,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< "Extended greedy hill climbing algorithm" << endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_HIERARCHICAL
 						<< "Hierarchical clustering algorithm" << endl;
-				Utilities::exit_partest(EX_USAGE);
+				exit_partest(EX_CONFIG);
 			}
 			break;
 		case ARG_HCLUSTER_REPS:
@@ -303,9 +261,12 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 					cerr << "[ERROR] \"-r " << value
 					<< "\" must be an integer."
 					<< endl;
-					Utilities::exit_partest(EX_USAGE);
+					exit_partest(EX_CONFIG);
 				}
 				maxSamples = atoi(value);
+			break;
+		case ARG_NON_STOP:
+			non_stop = true;
 			break;
 		case ARG_IC_TYPE:
 			if (!strcmp(value, ARG_IC_AIC)) {
@@ -328,7 +289,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 						<< "Corrected Akaike Information Criterion" << endl;
 				cerr << "  -s " << setw(8) << left << ARG_IC_DT
 						<< "Decision Theory" << endl;
-				Utilities::exit_partest(EX_USAGE);
+				exit_partest(EX_CONFIG);
 			}
 			break;
 		case ARG_SAMPLE_SIZE:
@@ -349,7 +310,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 							<< "Shannon entropy of the alignment" << endl;
 					cerr << "  -n " << setw(16) << left << "[CUSTOM_VALUE]"
 							<< "Custom sample size" << endl;
-					Utilities::exit_partest(EX_USAGE);
+					exit_partest(EX_CONFIG);
 				}
 				sampleSize = SS_CUSTOM;
 			}
@@ -378,7 +339,7 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 				cerr << "  -O " << setw(16) << left << ARG_OPTIMIZE_GTR
 						<< "\t Optimize only GTR models on the best partition"
 						<< endl;
-				Utilities::exit_partest(EX_USAGE);
+				exit_partest(EX_CONFIG);
 			}
 			break;
 		case ARG_OUTPUT:
@@ -389,11 +350,11 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			break;
 		case ARG_CONFIG_HELP:
 			ConfigParser::printFormat();
-			Utilities::exit_partest(0);
+			exit_partest(0);
 			break;
 		case ARG_CONFIG_TEMPLATE:
 			ConfigParser::createTemplate();
-			Utilities::exit_partest(0);
+			exit_partest(0);
 			break;
 		case ARG_NUM_PROCS:
 #ifdef PTHREADS
@@ -402,21 +363,17 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 			cerr
 					<< "[ERROR] PThreads version is not available. You must recompile with PTHREADS flag."
 					<< endl;
-			Utilities::exit_partest(EX_USAGE);
+			exit_partest(EX_CONFIG);
 #endif
 			break;
 		default:
 			cerr << "[ERROR] \"" << argument
 					<< "\" option not recognized.\n Run with --help for more information."
 					<< endl;
-			Utilities::exit_partest(EX_USAGE);
+			exit_partest(EX_CONFIG);
 			break;
 		}
 	}
-
-#ifdef DEBUG
-	cout << "[TRACE] All arguments were parsed" << endl;
-#endif
 
 	bitMask do_rate = RateVarM;
 	if (do_f)
@@ -426,17 +383,21 @@ void ArgumentParser::fill_options(int argc, char *argv[],
 	if (do_g)
 		do_rate |= (RateVarG);
 
-#ifdef DEBUG
-	cout << "[TRACE] Attempting to set ParTest Options  " << endl;
-#endif
+	if (strcmp(input_file, ""))
+		ptest->setInputFile(input_file);
+	if (strcmp(config_file, ""))
+		ptest->setConfigFile(config_file);
+	if (strcmp(user_tree, ""))
+		ptest->setUserTree(user_tree);
+	if (strcmp(output_dir, ""))
+		ptest->setOutputDir(output_dir);
+	ptest->setDataType(data_type);
+	ptest->setDoRate(do_rate);
+	ptest->setStartingTopology(startingTopology);
+	ptest->setMaxSamples(maxSamples);
+	ptest->setOptimize(optimize);
+	ptest->setSearchAlgo(searchAlgo);
 
-	options->set(input_file, data_type, do_rate, config_file, startingTopology,
-			searchAlgo, maxSamples, optimize, ic_type, sampleSize, sampleSizeValue,
-			user_tree, output_dir);
-
-#ifdef DEBUG
-	cout << "[TRACE] ParTest options set" << endl;
-#endif
 }
 
 } /* namespace partest */

@@ -142,7 +142,7 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 		break;
 	default:
 		cerr << "ERROR: Unknown nucleic matrix" << endl;
-		exit(-1);
+		exit_partest(EX_SOFTWARE);
 #ifdef _PLL
 
 #endif

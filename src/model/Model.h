@@ -44,12 +44,19 @@ public:
 	 *        the free parameters.
 	 */
 	Model(bitMask rateVariation, int numberOfTaxa);
+
 	/**
 	 * @brief Gets the name of the model.
 	 *
 	 * @return The name of the model.
 	 */
 	string getName(void);
+
+	/**
+	 * @brief Sets the name of the model.
+	 *
+	 * @param name The name of the model.
+	 */
 	void setName(string name);
 
 	/**
@@ -58,31 +65,42 @@ public:
 	 * @return The name of the substitution scheme.
 	 */
 	string getMatrixName(void);
+
+	/**
+	 * @brief Sets the name of the substitution scheme.
+	 *
+	 * @param matrixName The name of the substitution scheme.
+	 */
 	void setMatrixName(string matrixName);
+
 	/**
 	 * @brief Gets the rate variation and frequencies parameters as a bitmask.
 	 *
 	 * @return The rate variation and frequencies parameters as a bitmask.
 	 */
 	bitMask getRateVariation(void);
+
 	/**
 	 * @brief Gets the model tree in Newick format.
 	 *
 	 * @return The model tree in Newick format.
 	 */
 	string getTree(void);
+
 	/**
 	 * @brief Gets whether the model considers a proportion of invariable sites.
 	 *
 	 * @return True, if it is a +I model.
 	 */
 	bool isPInv(void);
+
 	/**
 	 * @brief Gets whether the model considers rate variation among sites.
 	 *
 	 * @return True, if it is a +G model.
 	 */
 	bool isGamma(void);
+
 	/**
 	 * @brief Gets whether the model considers model-driven/empirical/equal frequencies.
 	 *
@@ -94,6 +112,7 @@ public:
 	 * @return True, if it is a +F model.
 	 */
 	bool isPF(void);
+
 	/**
 	 * @brief Gets whether the model was already optimized.
 	 *
@@ -103,6 +122,7 @@ public:
 	 * @return True, if the model was optimized.
 	 */
 	bool isOptimized(void);
+
 	/**
 	 * @brief Gets the positive log likelihood score.
 	 *
@@ -111,6 +131,7 @@ public:
 	double getLnL(void) {
 		return lnL;
 	}
+
 	/**
 	 * @brief Gets the gamma shape (alpha parameter).
 	 *
@@ -121,6 +142,7 @@ public:
 	double getAlpha(void) {
 		return alpha;
 	}
+
 	/**
 	 * @brief Gets the proportion of invariable sites.
 	 *
@@ -137,6 +159,7 @@ public:
 	int getNumberOfFrequencies(void) {
 		return numberOfFrequencies;
 	}
+
 	/**
 	 * @brief Gets the total number of free parameters.
 	 *
@@ -145,6 +168,7 @@ public:
 	int getNumberOfFreeParameters(void) {
 		return (modelFreeParameters + treeFreeParameters);
 	}
+
 	/**
 	 * @brief Gets the number of free parameters of the model (whithout the branch lengths parameters).
 	 *
@@ -153,6 +177,7 @@ public:
 	int getModelFreeParameters(void) {
 		return modelFreeParameters;
 	}
+
 	/**
 	 * @brief Gets the number of free parameters of the tree (branch lengths).
 	 *
@@ -161,6 +186,7 @@ public:
 	int getTreeFreeParameters(void) {
 		return treeFreeParameters;
 	}
+
 	/**
 	 * @brief Sets the positive log likelihood score.
 	 *
@@ -169,6 +195,7 @@ public:
 	void setLnL(double lnL) {
 		this->lnL = lnL;
 	}
+
 	/**
 	 * @brief Sets the gamma shape (alpha parameter).
 	 *
@@ -177,19 +204,21 @@ public:
 	 * @param alpha The alpha parameter for the gamma distribution.
 	 */
 	void setAlpha(double alpha);
+
 	/**
 	 * @brief Sets the proportion of invariable sites.
 	 *
 	 * @param pInv The proportion of invariable sites.
 	 */
-
 	void setpInv(double pInv);
+
 	/**
 	 * @brief Sets the model tree in Newick format.
 	 *
 	 * @param tree The model tree in Newick format.
 	 */
 	void setTree(string tree);
+
 	/**
 	 * @brief Sets the model tree in Newick format.
 	 *
@@ -206,6 +235,9 @@ public:
 	 */
 	virtual void setFrequencies(const double * frequencies) = 0;
 
+	/**
+	 * Gets the exchangeability rates.
+	 */
 	double * getRates(void) const;
 
 	/**
@@ -213,7 +245,7 @@ public:
 	 *
 	 * @param rates Array with the exchangeability rates.
 	 */
-	virtual void setRates(const double * rates);
+	virtual void setRates(const double * rates) = 0;
 	/**
 	 * @brief Computes the distance to other model.
 	 *
@@ -225,9 +257,6 @@ public:
 	 * @brief Prints the model details and parameters.
 	 */
 	virtual void print(ostream& out, const char * prefix = "");
-
-	void allocateFrequencies(int numberOfFrequencies);
-	virtual void allocateRates(void) = 0;
 
 	virtual ~Model();
 protected:

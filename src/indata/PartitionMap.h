@@ -27,10 +27,11 @@
 
 #include <stdlib.h>
 #include <vector>
+
 #include "PartitionElement.h"
-#include "parser/ConfigParser.h"
 #include "util/GlobalDefs.h"
-#include "options/ParTestOptions.h"
+
+using namespace std;
 
 namespace partest {
 
@@ -41,7 +42,7 @@ struct partitionMappingInfo {
 	t_partitionElementId partitionId;
 	PartitionElement * partitionElement;
 	~partitionMappingInfo(void) {
-	} //delete partitionElement; }
+	}
 };
 
 /**
@@ -55,47 +56,6 @@ class PartitionMap {
 public:
 
 	/**
-	 * @brief Constructs a new partition map.
-	 *
-	 * @param[in] alignment The MSA containing all the genes.
-	 * @param[in] numberOfPartitions The number of minimum partitions (i.e, single genes)
-	 * @param[in] rateVariation The rate variations mask to be evaluated.
-	 * @param[in] dataType Whether the data is nucleic or proteic.
-	 */
-	PartitionMap(Alignment * alignment, unsigned int numberOfPartitions,
-			bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
-
-	/**
-	 * @brief Constructs a new partition map.
-	 *
-	 * @param[in] configFile Configuration file containing the description of all the partitions.
-	 * @param[in] alignment The MSA containing all the genes.
-	 * @param[in] rateVariation The rate variations mask to be evaluated.
-	 * @param[in] dataType Whether the data is nucleic or proteic.
-	 */
-	PartitionMap(const char * configFile, Alignment * alignment,
-			bitMask rateVariation, DataType dataType, OptimizeMode optimizeMode);
-
-	virtual ~PartitionMap();
-
-	/**
-	 * @brief Adds a new single-gene partition to the map.
-	 *
-	 * Adds a new single-gene partition to the map. All this partitions will be mapped to positions
-	 * with identifier power of 2. For example, the partition with partitionId 4 will be mapped to
-	 * the position 16. This allows to create new partitions were each bit of the identifier means
-	 * whether the single-gene partition in that position is present or not.
-	 *
-	 * @param[in] partitionId Sequential identifier of the partition.
-	 * @param[in] iniPosition Position of the first site of the partition in the whole alignment.
-	 * @param[in] endPosition Position of the last site of the partition in the whole alignment.
-	 * @param[in] stride [1,3] if this partition uses only a codon position. 0 otherwise.
-	 *
-	 * @return true, if the partition was successfully added to the map.
-	 */
-	bool addPartitionElement(unsigned int partitionId, string name,
-			unsigned int iniPosition, unsigned int endPosition, char stride);
-	/**
 	 * @brief Gets the partition in a fixed position.
 	 *
 	 * @param[in] partitionId Position of the partition.
@@ -103,15 +63,6 @@ public:
 	 * @return The partition.
 	 */
 	PartitionElement * getPartitionElement(t_partitionElementId partitionId);
-
-	/**
-	 * @brief Gets the partition in a fixed position.
-	 *
-	 * @param[in] partitionId Position of the partition.
-	 *
-	 * @return The partition.
-	 */
-	PartitionElement * getPartitionElement(unsigned int id);
 
 	/**
 	 * @brief Deletes a PartitionElement
@@ -142,15 +93,34 @@ public:
 	}
 
 	void purgePartitionMap(t_partitionElementId id);
+	void keep(t_partitioningScheme id);
+	void keep_add(t_partitioningScheme id);
+	void keep_remove(t_partitioningScheme id);
+
+	static PartitionMap * getInstance(void);
+	static void deleteInstance(void);
 
 private:
-	Alignment * alignment; /** MSA with the information of all the genes. */
+
+	/**
+	 * @brief Constructs a new partition map.
+	 *
+	 * @param[in] alignment The MSA containing all the genes.
+	 * @param[in] numberOfPartitions The number of minimum partitions (i.e, single genes)
+	 * @param[in] rateVariation The rate variations mask to be evaluated.
+	 * @param[in] dataType Whether the data is nucleic or proteic.
+	 */
+	PartitionMap();
+
+	virtual ~PartitionMap();
+
+
 	unsigned int numberOfElements; /** Number of partitions already created in the map. */
 	unsigned int numberOfPartitions; /** Number of single-gene partitions */
 	vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
-	bitMask rateVariation; /** The rate variations mask to be evaluated. */
-	DataType dataType; /** Whether the data is nucleic or proteic. */
-	OptimizeMode optimizeMode;
+	t_partitioningScheme _keep; /** Set of elements to keep in purge operations*/
+
+	static PartitionMap * instance;
 };
 
 } /* namespace partest */

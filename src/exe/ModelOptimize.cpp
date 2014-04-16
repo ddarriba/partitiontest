@@ -1,117 +1,162 @@
-/*  PartitionTest, fast selection of the best fit partitioning scheme for
- *  multi-gene data sets.
- *  Copyright May 2013 by Diego Darriba
+/*
+ * ModelOptimize.cpp
  *
- *  This program is free software; you may redistribute it and/or modify its
- *  under the terms of the GNU General Public License as published by the Free
- *  Software Foundation; either version 3 of the License, or (at your option)
- *  any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  For any other enquiries send an Email to Diego Darriba
- *  ddarriba@udc.es
- */
-
-/**
- * @file ModelOptimize.cpp
- *
- * @brief Implementation for common model optimizers interface
+ *  Created on: Apr 9, 2014
+ *      Author: diego
  */
 
 #include "ModelOptimize.h"
-#include "selection/ModelSelector.h"
+
+#include "exe/ModelSelector.h"
+#include "util/Utilities.h"
+
+#include <iostream>
+#include <iomanip>
+#include <pll.h>
+#include <math.h>
+#include <string.h>
+#include <assert.h>
+
+using namespace std;
 
 namespace partest {
 
-ModelOptimize::ModelOptimize(ParTestOptions * options) :
-		options(options) {
+ModelOptimize::ModelOptimize() {
 
 }
 
 ModelOptimize::~ModelOptimize() {
+
 }
 
-int ModelOptimize::optimizePartitionElement(PartitionElement * partitionElement,
-		int current_index, int max_index) {
-	ModelSet * modelset = partitionElement->getModelset();
+int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme, int index, int limit) {
 
-	notify_observers(MT_MODELSET_INIT, partitionElement->getId(), modelset,
-			time(NULL), current_index, max_index, partitionElement->getName());
+	cout << " - scheme " << setw(Utilities::iDecLog(limit)+1) << setfill('0') << right << index+1 << "/" << limit  << setfill(' ') << endl;
 
-	for (unsigned int i = 0; i < modelset->getNumberOfModels(); i++) {
-		//for (int i = modelset->getNumberOfModels() - 1; i >= 0; i--) {
-		notify_observers(MT_SINGLE_INIT, partitionElement->getId(),
-				modelset->getModel(i), time(NULL), i + 1,
-				modelset->getNumberOfModels(),
-				modelset->getModel(i)->getName());
-
-		if (!modelset->getModel(i)->isOptimized())
-			optimizeModel(modelset->getModel(i), partitionElement, i,
-					modelset->getNumberOfModels());
-
-		notify_observers(MT_SINGLE_END, partitionElement->getId(),
-				modelset->getModel(i), time(NULL), i + 1,
-				modelset->getNumberOfModels(),
-				modelset->getModel(i)->getName());
-	}
-	double pSampleSize = 0.0;
-	switch (options->getSampleSize()) {
-	case SS_ALIGNMENT:
-		pSampleSize = partitionElement->getAlignment()->getNumSites()
-				* partitionElement->getAlignment()->getNumSeqs();
-		break;
-	case SS_SHANNON:
-		pSampleSize = partitionElement->getAlignment()->getShannonEntropy();
-		break;
-	default:
-		pSampleSize = options->getSampleSize();
-		break;
+	for (int cur_element = 0; cur_element < scheme->getNumberOfElements();
+			cur_element++) {
+		PartitionElement * element = scheme->getElement(cur_element);
+		optimizePartitionElement(element, cur_element, scheme->getNumberOfElements());
 	}
 
-	ModelSelector selector = ModelSelector(partitionElement,
-			options->getInformationCriterion(), pSampleSize);
-
-#pragma omp critical
-	selector.print(cout);
-
-	notify_observers(MT_MODELSET_END, partitionElement->getId(),
-			partitionElement->getBestModel()->getModel(), time(NULL),
-			current_index, max_index, partitionElement->getName());
-	notify_observers(
-			new ObservableInfo(MT_MODELSET_SELECTION, partitionElement->getId(),
-					partitionElement, time(NULL), 0, 0, ""));
-
-	return 0;
+	return EX_OK;
 }
 
-int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
-		bool forceRecomputation, int current_index, int max_index) {
-	if (!scheme->isOptimized() || forceRecomputation) {
-		string pString(scheme->getName());
+int ModelOptimize::optimizePartitionElement(PartitionElement * element, int index, int limit) {
 
-		t_partitionElementId nullId;
-		notify_observers(MT_SCHEME_INIT, nullId, time(NULL), current_index,
-				max_index, pString);
-		for (int i = 0; i < scheme->getNumberOfElements(); i++) {
-			PartitionElement * currentElement = scheme->getElement(i);
-#pragma omp parallel
-			if (!currentElement->isOptimized() || forceRecomputation) {
-				optimizePartitionElement(currentElement, i + 1,
-						scheme->getNumberOfElements());
-			}
-#pragma omp end parallel
+	cout << " - - element " << setw(Utilities::iDecLog(limit)+1) << setfill('0') << right << index+1 << "/" << limit  << setfill(' ') << endl;
+
+	if (element->isOptimized()) return EX_OK;
+
+	element->setupStructures();
+
+	for (int modelIndex = 0; modelIndex < element->getNumberOfModels();
+			modelIndex++) {
+		optimizeModel(element, modelIndex, element->getNumberOfModels());
+	}
+
+	ModelSelector ms(element, BIC, element->getSampleSize());
+	//ms.print(cout);
+
+	element->destroyStructures();
+
+	return EX_OK;
+}
+
+void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
+		partitionList * _partitions, pllAlignmentData * _alignData, int index,
+		bool setAlphaFreqs) {
+	pInfo * current_part = _partitions->partitionData[index];
+
+	if (data_type == DT_NUCLEIC) {
+		current_part->optimizeBaseFrequencies = _model->isPF();
+		current_part->alpha = _model->getAlpha();
+		current_part->nonGTR = PLL_FALSE;
+		current_part->dataType = PLL_DNA_DATA;
+		const char * m = _model->getMatrixName().c_str();
+		char * symmetryPar = (char *) malloc(12 * sizeof(char));
+		symmetryPar[0] = m[0];
+		symmetryPar[11] = '\0';
+		for (int j = 1; j < 6; j++) {
+			symmetryPar[(j - 1) * 2 + 1] = ',';
+			symmetryPar[j * 2] = m[j];
 		}
 
-		//pString = scheme->getLk();
-		notify_observers(MT_SCHEME_END, nullId, time(NULL), current_index,
-				max_index, pString);
-	}
+		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, _partitions, index);
 
-	return 0;
+		if (setAlphaFreqs) {
+			memcpy(current_part->frequencies, _model->getFrequencies(),
+					4 * sizeof(double));
+			memcpy(current_part->substRates, _model->getRates(),
+					6 * sizeof(double));
+			current_part->alpha = _model->getAlpha();
+		} else {
+			current_part->optimizeBaseFrequencies = _model->isPF();
+			if (!_model->isPF()) {
+				for (int i = 0; i < 4; i++) {
+					current_part->frequencies[i] = 0.25;
+				}
+			}
+			for (int i = 0; i < 6; i++) {
+				current_part->substRates[i] = 1;
+			}
+
+			current_part->alpha = 100;
+		}
+
+		free(symmetryPar);
+	} else {
+		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
+		current_part->dataType = PLL_AA_DATA;
+		current_part->protFreqs = pModel->isPF();
+		current_part->optimizeBaseFrequencies = PLL_FALSE;
+		current_part->protModels = pModel->getMatrix();
+		current_part->alpha = pModel->getAlpha();
+	}
+	//TODO: This works if partitions has one single partitions
+	assert(_partitions->numberOfPartitions == 1);
+	double **ef = pllBaseFrequenciesGTR(_partitions, _alignData);
+	initModel(_tree, ef, _partitions);
+	free(*ef); free(ef);
+}
+
+void ModelOptimize::optimizeModel(PartitionElement * element, unsigned int modelIndex, int limit) {
+	pllInstance * _tree = element->getTree();
+	partitionList * _partitions = element->getPartitions();
+	pllAlignmentData * _alignData = element->getAlignData();
+	Model * model = element->getModel(modelIndex);
+
+	/* set parameters for single partition element */
+	setModelParameters(model, _tree, _partitions, _alignData, 0, false);
+	double lk;
+	double epsilon = 0.1;
+
+	_tree->thoroughInsertion = PLL_FALSE;
+
+	pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
+			PLL_FALSE);
+
+	do {
+		lk = _tree->likelihood;
+		pllOptimizeModelParameters(_tree, _partitions, 1);
+		pllOptimizeBranchLengths(_tree, _partitions, 10);
+		pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
+				PLL_FALSE);
+	} while (fabs(lk - _tree->likelihood) > epsilon);
+
+	pllTreeToNewick(_tree->tree_string, _tree, _partitions, _tree->start->back,
+			PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
+			PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
+	_tree->tree_string[_tree->treeStringLength-10] = '\0';
+	model->setLnL(_tree->likelihood);
+	model->setTree(_tree->tree_string);
+
+	model->setFrequencies(_partitions->partitionData[0]->frequencies);
+	if (model->isGamma())
+		model->setAlpha(_partitions->partitionData[0]->alpha);
+	model->setRates(_partitions->partitionData[0]->substRates);
+
+	cout << " - - - " << setw(Utilities::iDecLog(limit)+1) << setfill('0') << right << modelIndex+1 << "/" << limit  << " " << model->getName() << " (" << _tree->likelihood << ")" << setfill(' ') << endl;
 }
 
 } /* namespace partest */

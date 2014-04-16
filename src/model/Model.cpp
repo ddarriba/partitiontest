@@ -17,7 +17,7 @@
  */
 
 #include "Model.h"
-#include "../util/Utilities.h"
+#include "util/Utilities.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <iostream>
@@ -26,7 +26,8 @@ namespace partest {
 
 Model::Model(bitMask rateVariation, int numberOfTaxa) :
 		rateVariation(rateVariation), alpha(100.0), pInv(0.0), lnL(0.0),
-		numberOfFrequencies(0), frequencies(0), rates(0), modelFreeParameters(0), name() {
+		numberOfFrequencies(0), frequencies(0), rates(0),
+		modelFreeParameters(0), name() {
 
 	/* The free parameters are initialized with the number of branches */
 	treeFreeParameters = Utilities::numberOfBranches(numberOfTaxa);
@@ -98,7 +99,7 @@ void Model::print(ostream& cout, const char * prefix) {
 		if (isGamma()) {
 			cout << prefix << "alpha: " << alpha << endl;
 		}
-			cout << prefix << "Most Likely Tree: " << tree;
+		cout << prefix << "Most Likely Tree: " << tree;
 	} else {
 		cout << prefix << "State: Unoptimized" << endl;
 	}
@@ -112,24 +113,12 @@ void Model::setTree(char * tree) {
 	this->tree = string(tree);
 }
 
-void Model::allocateFrequencies(int numberOfFrequencies) {
-	frequencies = (double *) malloc (numberOfFrequencies * sizeof(double));
-}
-
 double * Model::getFrequencies(void) const {
 	return frequencies;
 }
 
-//void Model::setFrequencies(const double * frequencies) {
-//// ignore
-//}
-
 double * Model::getRates(void) const {
 	return rates;
-}
-
-void Model::setRates(const double * rates) {
-// ignore
 }
 
 } /* namespace partest */
