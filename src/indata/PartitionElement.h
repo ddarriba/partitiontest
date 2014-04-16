@@ -34,6 +34,7 @@ public:
 	int getNumberOfSites(void) const;
 	int getNumberOfPatterns(void) const;
 	int getNumberOfSections(void) const;
+	PEsection getSection(unsigned int i);
 
 	int getNumberOfModels(void) const;
 	Model * getModel(unsigned int index);
@@ -75,6 +76,8 @@ private:
 	pllAlignmentData * _alignData = 0;
 	pllInstance * _tree = 0;
 	partitionList * _partitions = 0;
+
+	PEsection * sections;
 
 	bool ckpLoaded = false;
 };

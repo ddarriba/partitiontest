@@ -158,4 +158,79 @@ int Utilities::duplicateAlignmentData(pllAlignmentData ** out,
 	return 0;
 }
 
+std::string Utilities::getProtRaxmlName(ProtMatrix matrix) {
+	std::string matrixName = getProtMatrixName(matrix);
+	std::transform(matrixName.begin(), matrixName.end(),matrixName.begin(), ::toupper);
+	return matrixName;
+}
+
+std::string Utilities::getProtMatrixName(ProtMatrix matrix) {
+	std::string matrixName;
+	switch (matrix) {
+		case PROT_MATRIX_DAYHOFF:
+			matrixName = "DAYHOFF";
+			break;
+		case PROT_MATRIX_DCMUT:
+			matrixName = "DCMut";
+			break;
+		case PROT_MATRIX_JTT:
+			matrixName = "JTT";
+			break;
+		case PROT_MATRIX_MTREV:
+			matrixName = "MtREV";
+			break;
+		case PROT_MATRIX_WAG:
+			matrixName = "WAG";
+			break;
+		case PROT_MATRIX_RTREV:
+			matrixName = "RtREV";
+			break;
+		case PROT_MATRIX_CPREV:
+			matrixName = "CpREV";
+			break;
+		case PROT_MATRIX_VT:
+			matrixName = "VT";
+			break;
+		case PROT_MATRIX_BLOSUM62:
+			matrixName = "Blosum62";
+			break;
+		case PROT_MATRIX_MTMAM:
+			matrixName = "MtMam";
+			break;
+		case PROT_MATRIX_LG:
+			matrixName = "LG";
+			break;
+		case PROT_MATRIX_MTART:
+			matrixName = "MtArt";
+			break;
+		case PROT_MATRIX_HIVB:
+			matrixName = "HIVb";
+			break;
+		case PROT_MATRIX_HIVW:
+			matrixName = "HIVw";
+			break;
+		case PROT_MATRIX_MTZOA:
+			matrixName = "MtZoa";
+			break;
+		case PROT_MATRIX_PMB:
+			matrixName = "PMB";
+			break;
+		case PROT_MATRIX_JTTDCMUT:
+			matrixName = "JTTDCMut";
+			break;
+		case PROT_MATRIX_FLU:
+			matrixName = "FLU";
+			break;
+		case PROT_MATRIX_AUTO:
+			matrixName = "Auto";
+			break;
+		case PROT_MATRIX_GTR:
+			matrixName = "Auto";
+			break;
+		default:
+			exit_partest(EX_SOFTWARE);
+	}
+	return matrixName;
+}
+
 } /* namespace partest */

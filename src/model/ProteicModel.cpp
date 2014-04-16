@@ -17,6 +17,7 @@
  */
 
 #include "ProteicModel.h"
+#include "util/Utilities.h"
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
@@ -51,69 +52,10 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 	this->numberOfFrequencies = NUM_PROT_FREQS;
 	this->frequencies = (double *) malloc(NUM_PROT_FREQS * sizeof(double));
 
-	switch (matrix) {
-	case PROT_MATRIX_DAYHOFF:
-		matrixName = "Dayhoff";
-		break;
-	case PROT_MATRIX_DCMUT:
-		matrixName = "DCMut";
-		break;
-	case PROT_MATRIX_JTT:
-		matrixName = "JTT";
-		break;
-	case PROT_MATRIX_MTREV:
-		matrixName = "MtREV";
-		break;
-	case PROT_MATRIX_WAG:
-		matrixName = "WAG";
-		break;
-	case PROT_MATRIX_RTREV:
-		matrixName = "RtREV";
-		break;
-	case PROT_MATRIX_CPREV:
-		matrixName = "CpREV";
-		break;
-	case PROT_MATRIX_VT:
-		matrixName = "VT";
-		break;
-	case PROT_MATRIX_BLOSUM62:
-		matrixName = "Blosum62";
-		break;
-	case PROT_MATRIX_MTMAM:
-		matrixName = "MtMam";
-		break;
-	case PROT_MATRIX_LG:
-		matrixName = "LG";
-		break;
-	case PROT_MATRIX_MTART:
-		matrixName = "MtArt";
-		break;
-	case PROT_MATRIX_HIVB:
-		matrixName = "HIVb";
-		break;
-	case PROT_MATRIX_HIVW:
-		matrixName = "HIVw";
-		break;
-	case PROT_MATRIX_MTZOA:
-		matrixName = "MtZoa";
-		break;
-	case PROT_MATRIX_PMB:
-		matrixName = "PMB";
-		break;
-	case PROT_MATRIX_JTTDCMUT:
-		matrixName = "JTTDCMut";
-		break;
-	case PROT_MATRIX_FLU:
-		matrixName = "FLU";
-		break;
-	case PROT_MATRIX_AUTO:
-		matrixName = "Auto";
-		break;
-	case PROT_MATRIX_GTR:
-		matrixName = "GTR";
+	matrixName = Utilities::getProtMatrixName(matrix);
+	if (matrix == PROT_MATRIX_GTR) {
 		/* 189 substitution rates have to be optimized! (190-1) */
 		modelFreeParameters += (NUM_AA_RATES - 1);
-		break;
 	}
 
 	name = matrixName;
