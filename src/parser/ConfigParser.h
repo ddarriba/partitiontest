@@ -26,7 +26,6 @@
 
 #define MAX_SECTIONS 10
 #include "util/GlobalDefs.h"
-#include "indata/PartitionElement.h"
 #include "SimpleIni.h"
 #include <vector>
 
@@ -115,7 +114,7 @@ public:
 	 * @return The number of partitions.
 	 */
 	int getNumberOfPartitions() {
-		return numberOfPartitions;
+		return number_of_genes;
 	}
 
 	/**
@@ -177,18 +176,9 @@ public:
 		return maxSamples;
 	}
 
-#ifdef _PLL
-	/**
-	 * @brief Gets the partition definitions for PLL.
-	 */
-	pllQueue * getPllPartitions() const {
-		return parts;
-	}
-#endif
-
 	DataType getDataType(void) {
-			return dataType;
-		}
+		return dataType;
+	}
 
 	const char * getInputFile(void) {
 		return input_file;
@@ -200,10 +190,6 @@ public:
 
 	OptimizeMode getOptimizeMode(void) {
 		return optimizeMode;
-	}
-
-	bitMask getProtModels(void) {
-		return protModels;
 	}
 
 private:
@@ -232,8 +218,6 @@ private:
 	char input_file[256]; /** User input alignment */
 	char user_tree[256]; /** User input tree */
 	OptimizeMode optimizeMode; /** Mode of optimization */
-	bitMask protModels; /** Models to evaluate */
-	int numberOfPartitions; /** The numnber of partitions */
 	vector<partitionInfo> * partitions; /** Vector of partitions */
 	/** search algorithm **/
 	bool searchData; /** TODO: Not sure what is this doing here */
@@ -246,10 +230,6 @@ private:
 	string outputFileSchemes; /** File name for scheme selections output */
 	string outputBasePath; /** Base path for output files */
 	string outputTmpPath; /** Base path for output files */
-
-#ifdef _PLL
-	pllQueue * parts; /** Partitions definition for PLL */
-#endif
 };
 
 } /* namespace partest */

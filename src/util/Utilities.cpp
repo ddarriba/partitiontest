@@ -1,13 +1,116 @@
+/*
+ * Utilities.cpp
+ *
+ *  Created on: Apr 8, 2014
+ *      Author: diego
+ */
+
 #include "Utilities.h"
-#include "parser/ArgumentParser.h"
-#include <iomanip>
-#include <algorithm>    // std::sort
-#include <string.h>
+
 #include <stdlib.h>
+#include <string.h>
+#include <algorithm>
+#include <iostream>
 
 namespace partest {
 
-CfgMap Utilities::config;
+char Utilities::encoding_table[] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+		'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+		'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+		'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_' };
+
+char Utilities::toBase64(int value) {
+	if (value > 63)
+		exit_partest(EX_SOFTWARE);
+	return encoding_table[value];
+}
+
+unsigned long int Utilities::binaryPow(unsigned long int x) {
+	unsigned long int nextId = 1;
+	nextId <<= x;
+	return nextId;
+}
+
+// Brian Kernighan’s Algorithm
+int Utilities::setbitsCount(bitMask n) {
+	unsigned int count = 0;
+	while (n) {
+		n &= (n - 1);
+		count++;
+	}
+	return count;
+}
+
+double Utilities::mean(double series[], int n) {
+	double sum = 0.0;
+	for (int i = 0; i < n; i++) {
+		sum += series[i];
+	}
+	return sum / n;
+}
+
+double Utilities::variance(double series[], int n) {
+
+	double vmean = mean(series, n);
+	double temp = 0;
+
+	for (int i = 0; i < n; i++)
+		temp += (series[i] - vmean) * (series[i] - vmean);
+
+	return temp / (n - 1);
+}
+
+double Utilities::standardDeviation(double series[], int n) {
+	return sqrt(variance(series, n));
+}
+
+double Utilities::covariance(double X[], double Y[], int n) {
+
+	double xmean = mean(X, n);
+	double ymean = mean(Y, n);
+	double total = 0;
+
+	for (int i = 0; i < n; i++)
+		total += (X[i] - xmean) * (Y[i] - ymean);
+
+	return total / n;
+
+}
+
+double Utilities::euclideanDistance(double X[], double Y[], int n) {
+
+	double sum = 0.0;
+	for (int i = 0; i < n; i++) {
+		sum += (X[i] - Y[i]) * (X[i] - Y[i]);
+	}
+	return sqrt(sum);
+
+}
+double Utilities::normalizedEuclideanDistance(double X[], double Y[], int n) {
+	double meanX = mean(X, n);
+	double meanY = mean(Y, n);
+	//double sdX = standardDeviation(X, n);
+	//double sdY = standardDeviation(Y, n);
+	double sum = 0.0;
+	for (int i = 0; i < n; i++) {
+		//sum += pow((X[i] - meanX)/sdX - (Y[i] - meanY)/sdY, 2);
+		sum += pow(X[i] / meanX - Y[i] / meanY, 2);
+	}
+	return sqrt(sum);
+}
+
+int Utilities::numberOfBranches(int numTaxa) {
+	return 2 * numTaxa - 3;
+}
+
+void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
+		t_partitionElementId id2) {
+	dest.reserve(id1.size() + id2.size());
+	dest.insert(dest.end(), id1.begin(), id1.end());
+	dest.insert(dest.end(), id2.begin(), id2.end());
+	sort(dest.begin(), dest.end());
+}
 
 bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
 	for (unsigned int i = 0; i < e1.size(); i++) {
@@ -19,440 +122,40 @@ bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
 	return false;
 }
 
-void Utilities::vprint(ostream& out, t_partitionElementId & v) {
-	out << "( ";
-	for (unsigned int i = 0; i < v.size(); i++) {
-		out << v[i] << " ";
+bool Utilities::contains(t_partitionElementId vec, int num) {
+	for (int n : vec) {
+		if (n == num)
+			return true;
 	}
-	out << ")" << endl;
+	return false;
 }
 
-long Utilities::factorial(unsigned int x) {
-	if (x <= 1)
-		return 1;
-	else
-		return x * factorial(x - 1);
-}
-
-double Utilities::mean(double series[], int numberOfElements) {
-	double sum = 0.0;
-	for (int i = 0; i < numberOfElements; i++) {
-		sum += series[i];
+bool Utilities::contains(t_partitioningScheme vec, t_partitionElementId id) {
+	for (t_partitionElementId eId : vec) {
+		if (eId == id)
+			return true;
 	}
-	return sum / numberOfElements;
+	return false;
 }
 
-double Utilities::variance(double series[], int numberOfElements)
-
-{
-
-	double vmean = mean(series, numberOfElements);
-
-	double temp = 0;
-
-	for (int i = 0; i < numberOfElements; i++)
-
-	{
-
-		temp += (series[i] - vmean) * (series[i] - vmean);
-
-	}
-
-	return temp / (numberOfElements - 1);
-
-}
-
-double Utilities::standardDeviation(double series[], int numberOfElements)
-
-{
-
-	return sqrt(variance(series, numberOfElements));
-
-}
-
-double Utilities::covariance(double XSeries[], double YSeries[],
-		int numberOfElements)
-
-		{
-
-	double xmean = mean(XSeries, numberOfElements);
-
-	double ymean = mean(YSeries, numberOfElements);
-
-	double total = 0;
-
-	for (int i = 0; i < numberOfElements; i++)
-
-	{
-
-		total += (XSeries[i] - xmean) * (YSeries[i] - ymean);
-
-	}
-
-	return total / numberOfElements;
-
-}
-
-double Utilities::normalizedEuclideanDistance(double XSeries[],
-		double YSeries[], int numberOfElements) {
-	double meanX = mean(XSeries, numberOfElements);
-	double meanY = mean(YSeries, numberOfElements);
-	//double sdX = standardDeviation(XSeries, numberOfElements);
-	//double sdY = standardDeviation(YSeries, numberOfElements);
-	double sum = 0.0;
-	for (int i = 0; i < numberOfElements; i++) {
-		//sum += pow((XSeries[i] - meanX)/sdX - (YSeries[i] - meanY)/sdY, 2);
-		sum += pow(XSeries[i] / meanX - YSeries[i] / meanY, 2);
-	}
-	return sqrt(sum);
-}
-
-double Utilities::euclideanDistance(double XSeries[], double YSeries[],
-		int numberOfElements) {
-
-	double sum = 0.0;
-	for (int i = 0; i < numberOfElements; i++) {
-		sum += (XSeries[i] - YSeries[i]) * (XSeries[i] - YSeries[i]);
-	}
-	return sqrt(sum);
-
-}
-
-double Utilities::correlation(double XSeries[], double YSeries[],
-		int numberOfElements)
-
-		{
-
-	double meanX = mean(XSeries, numberOfElements);
-	double meanY = mean(YSeries, numberOfElements);
-	double sX = standardDeviation(XSeries, numberOfElements);
-	double sY = standardDeviation(YSeries, numberOfElements);
-	double correl = 0.0;
-	for (int i = 0; i < numberOfElements; i++) {
-		correl += ((XSeries[i] - meanX) / sX) * ((YSeries[i] - meanY) / sY);
-	}
-	correl /= numberOfElements - 1;
-
-	//	double cov = covariance(XSeries, YSeries, numberOfElements);
-//	double correlation = 1.0;
-//	if (cov > 0.0) {
-//		correlation = cov
-//			/ (standardDeviation(XSeries, numberOfElements)
-//					* standardDeviation(YSeries, numberOfElements));
-//	}
-	return correl;
-
-}
-
-long Utilities::combinatorial(unsigned int a, unsigned int b) {
-	if (a <= 1)
-		return 1;
-
-	return factorial(a) / (factorial(b) * factorial(a - b));
-}
-
-int Utilities::bell(int n) {
-	/* HARDCODED for n <= 15 */
-	switch (n) {
-	case 0:
-		return 1;
-	case 1:
-		return 1;
-	case 2:
-		return 2;
-	case 3:
-		return 5;
-	case 4:
-		return 15;
-	case 5:
-		return 52;
-	case 6:
-		return 203;
-	case 7:
-		return 877;
-	case 8:
-		return 4140;
-	case 9:
-		return 21147;
-	case 10:
-		return 115975;
-	case 11:
-		return 678570;
-	case 12:
-		return 4213597;
-	case 13:
-		return 27644437;
-	case 14:
-		return 190899322;
-	case 15:
-		return 1382958545;
-	default:
-		return 1382958545;
-	}
-}
-
-double Utilities::stringToDouble(const string& s) {
-	istringstream i(s);
-	double x;
-	if (!(i >> x))
-		return 0;
-	return x;
-}
-
-int Utilities::stringToInt(const string& s) {
-	istringstream i(s);
-	int x;
-	if (!(i >> x))
-		return 0;
-	return x;
-}
-
-string Utilities::timeToString(time_t time) {
-	time_t seconds = time;
-	int hours = seconds / 3600;
-	seconds -= hours * 3600;
-	int minutes = seconds / 60;
-	seconds -= minutes * 60;
-	stringstream ss;
-	ss << setfill('0') << setw(2) << hours << "h:" << setw(2) << minutes << "m:"
-			<< setw(2) << seconds << "s";
-	return (ss.str());
-}
-
-int Utilities::countWords(string strString) {
-	int nSpaces = 0;
-	unsigned int i = 0;
-
-	// Skip over spaces at the beginning of the word
-	while (isspace(strString.at(i)))
-		i++;
-
-	for (; i < strString.length(); i++) {
-		if (isspace(strString.at(i))) {
-			nSpaces++;
-
-			// Skip over duplicate spaces & if a NULL character is found, we're at the end of the string
-			while (isspace(strString.at(i + 1)))
-				i++;
-			if (strString.at(i) == '\0') {
-				nSpaces--;
-			}
-		}
-	}
-
-	// The number of words = the number of spaces + 1
-	return nSpaces + 1;
-}
-
-// generic solution
-int Utilities::numDigits(int number) {
-	int digits = 0;
-	if (number < 0)
-		digits = 1; // remove this line if '-' counts as a digit
-	while (number) {
-		number /= 10;
-		digits++;
-	}
-	return digits;
-}
-
-// variable-precision SWAR algorithm
-int Utilities::setbitsCount(unsigned int value) {
-	value = value - ((value >> 1) & 0x55555555);
-	value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
-	return (((value + (value >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-}
-
-bool Utilities::existProperty(const string& property) {
-	return !config[property].empty();
-}
-
-string Utilities::getValue(const string& property) {
-	return config[property];
-}
-
-char * Utilities::getTempFilename() {
-	bool valid_name = false;
-	char * filename = 0;
-	while (!valid_name) {
-		stringstream chk_filename;
-		chk_filename << "/tmp/partest" << rand() << ".tmp";
-		FILE *check = fopen(chk_filename.str().c_str(), "r");
-		if (!check) {
-			filename = strdup(chk_filename.str().c_str());
-			valid_name = true;
-		} else {
-			fclose(check);
-		}
-	}
-	return filename;
-}
-
-char * Utilities::getStreamTempFilename() {
-	bool valid_name = false;
-	char * filename = 0;
-	while (!valid_name) {
-		stringstream chk_filename;
-		chk_filename << "/tmp/partest_stream_" << rand() << ".tmp";
-		FILE *check = fopen(chk_filename.str().c_str(), "r");
-		if (!check) {
-			filename = strdup(chk_filename.str().c_str());
-			valid_name = true;
-		} else {
-			fclose(check);
-		}
-	}
-	return filename;
-}
-
-/*!
- * Simple function that copies a file from initialFilePath to outputFilePath
- */
-int Utilities::copyFile(string initialFilePath, string outputFilePath) {
-
-	ifstream initialFile(initialFilePath.c_str(), ios::in | ios::binary);
-	ofstream outputFile(outputFilePath.c_str(), ios::out | ios::binary);
-	//defines the size of the buffer
-	initialFile.seekg(0, ios::end);
-	long fileSize = initialFile.tellg();
-	//Requests the buffer of the predefined size
-
-	//As long as both the input and output files are open...
-	if (initialFile.is_open() && outputFile.is_open()) {
-		short * buffer = new short[fileSize / 2];
-		//Determine the file's size
-		//Then starts from the beginning
-		initialFile.seekg(0, ios::beg);
-		//Then read enough of the file to fill the buffer
-		initialFile.read((char*) buffer, fileSize);
-		//And then write out all that was read
-		outputFile.write((char*) buffer, fileSize);
-		delete[] buffer;
-	}
-	//If there were any problems with the copying process, let the user know
-	else if (!outputFile.is_open()) {
-		cout << "I couldn't open " << outputFilePath << " for copying!\n";
-		return 1;
-	} else if (!initialFile.is_open()) {
-		cout << "I couldn't open " << initialFilePath << " for copying!\n";
-		return 1;
-	}
-
-	initialFile.close();
-	outputFile.close();
-
-	return 0;
-}
-
-void Utilities::mergeIds(t_partitionElementId & dest,
-		t_partitionElementId id1) {
-	dest.reserve(dest.size() + id1.size());
-	dest.insert(dest.end(), id1.begin(), id1.end());
-	sort(dest.begin(), dest.end());
-}
-
-void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
-		t_partitionElementId id2) {
-	dest.reserve(id1.size() + id2.size());
-	dest.insert(dest.end(), id1.begin(), id1.end());
-	dest.insert(dest.end(), id2.begin(), id2.end());
-	sort(dest.begin(), dest.end());
-}
-
-void Utilities::exit_partest(int exitValue) {
-	switch (exitValue) {
-	case EX_OK:
-	case EX_USAGE:
-		break;
-	default:
-		cerr << "[ERROR] Exiting with error code " << exitValue << endl;
-		break;
-	}
-
-	exit(exitValue);
-}
-
-FILE * Utilities::myfopen(const char *path, const char *mode, bool lazy) {
-	FILE *fp = fopen(path, mode);
-
-	if (strcmp(mode, "r") == 0 || strcmp(mode, "rb") == 0) {
-		if (fp)
-			return fp;
-		else {
-			if (lazy) {
-				return (FILE *) NULL;
-			} else {
-				printf(
-						"\n Error: the file %s you want to open for reading does not exist, exiting ...\n\n",
-						path);
-				exit(-1);
-
-			}
-		}
-	} else {
-		if (fp)
-			return fp;
-		else {
-			if (lazy) {
-				return (FILE *) NULL;
-			} else {
-				printf(
-						"\n Error: the file %s you want to open for writing or appending can not be opened [mode: %s], exiting ...\n\n",
-						path, mode);
-				exit(-1);
-			}
-		}
-	}
-}
-
-int Utilities::myGetline(char **lineptr, int *n, FILE *stream) {
-	char *line, *p;
-	int size, copy, len;
-	int chunkSize = 256 * sizeof(char);
-
-	if (*lineptr == NULL || *n < 2) {
-		line = (char *) realloc(*lineptr, chunkSize);
-		if (line == NULL)
-			return -1;
-		*lineptr = line;
-		*n = chunkSize;
-	}
-
-	line = *lineptr;
-	size = *n;
-
-	copy = size;
-	p = line;
-
-	while (1) {
-		while (--copy > 0) {
-			register int c = getc(stream);
-			if (c == EOF)
-				goto lose;
-			else {
-				*p++ = c;
-				if (c == '\n' || c == '\r')
-					goto win;
-			}
-		}
-
-		/* Need to enlarge the line buffer.  */
-		len = p - line;
-		size *= 2;
-		line = (char *) realloc(line, size);
-		if (line == NULL)
-			goto lose;
-		*lineptr = line;
-		*n = size;
-		p = line + len;
-		copy = size - len;
-	}
-
-	lose: if (p == *lineptr)
+int Utilities::duplicateAlignmentData(pllAlignmentData ** out,
+		pllAlignmentData * in) {
+	if ((*out) > 0) {
 		return -1;
-	/* Return a partial line since we got an error in the middle.  */
-	win: *p = '\0';
-	return p - *lineptr;
+	}
+	(*out) = pllInitAlignmentData(in->sequenceCount, in->sequenceLength);
+	(*out)->siteWeights = (int *) malloc((*out)->sequenceLength * sizeof(int));
+	for (int seq = 1; seq <= (*out)->sequenceCount; seq++) {
+		(*out)->sequenceLabels[seq] = (char *) malloc(
+				strlen(in->sequenceLabels[seq]) + 1);
+		strcpy((*out)->sequenceLabels[seq], in->sequenceLabels[seq]);
+		memcpy((*out)->sequenceData[seq], in->sequenceData[seq],
+				(*out)->sequenceLength * sizeof(unsigned char));
+	}
+	for (int site = 0; site < (*out)->sequenceLength; site++) {
+		(*out)->siteWeights[site] = 1;
+	}
+	return 0;
 }
 
 } /* namespace partest */

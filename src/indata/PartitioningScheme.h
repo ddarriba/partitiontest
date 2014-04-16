@@ -25,9 +25,9 @@
 #define PARTITION_H_
 
 #include "PartitionElement.h"
-#include "PartitionMap.h"
 #include "util/GlobalDefs.h"
 #include <string>
+#include <ostream>
 
 #define FULL_CODE -1
 
@@ -48,23 +48,12 @@ class PartitioningScheme {
 public:
 
 	/**
-	 * @brief Creates an empty partitioning scheme.
-	 *
-	 * Creates an empty partitioning scheme. The number of partitions must be declared.
-	 * The new scheme is not valid until all the inner partitions are declared using
-	 * the PartitioningScheme::addElement member function.
-	 * @param[in] numberOfElements The number of partitions of the scheme.
-	 */
-	PartitioningScheme(int numberOfElements);
-
-	/**
 	 * @brief Creates a new partitioning scheme.
 	 *
 	 * @param[in] partition Vector of partition indexes of this scheme.
-	 * @param[in] partitionMap Reference to the map of partitions.
 	 */
-	PartitioningScheme(t_partitioningScheme * partition,
-			PartitionMap * partitionMap);
+	PartitioningScheme(t_partitioningScheme * partition);
+
 	/**
 	 * @brief Gets the number of partitions of this scheme.
 	 * @return The number of partitions of this scheme.
@@ -74,33 +63,14 @@ public:
 	}
 
 	/**
-	 * @brief Gets the number of single genes in the scheme.
-	 * @return The number of single genes.
-	 */
-	int getNumberOfBits() {
-		return numberOfBits;
-	}
-
-	/**
-	 * @brief Adds a new partition to the scheme.
-	 *
-	 * Adds a new partition to the scheme. This method works only when the scheme
-	 * definition is not complete (i.e., when the scheme was created with the
-	 * PartitioningScheme::PartitioningScheme(int numberOfElements) constructor and
-	 * the number of defined partitions is less than the declared number of partitions).
-	 *
-	 * @param[in] element The partition to be added.
-	 * @return 0, if successfully added the partition.
-	 */
-	int addElement(PartitionElement * element);
-
-	/**
 	 * @brief Gets a locally indexed partition.
 	 *
 	 * @param[in] id The local id of the partition (i.e., in range [0,numberOfElements-1]
 	 * @return The partition.
 	 */
-	PartitionElement * getElement(unsigned int id);
+	PartitionElement * getElement(unsigned int index);
+
+	t_partitioningScheme getId(void) { return id; }
 
 	/**
 	 * @brief Gets whether all the PartitionElement instances were optimized or not.
@@ -110,8 +80,6 @@ public:
 	bool isOptimized(void);
 
 	void buildCompleteModelSet(bool clearAll = false);
-
-	void resetModelSet();
 
 	void setTree(char * tree);
 
@@ -128,6 +96,11 @@ public:
 	 * @param[out] el1, el2 the two closest partitions
 	 */
 	vector<elementPair *> * getElementDistances();
+
+	/**
+	 * @brief Gets the number of lines of the code
+	 */
+	int getCodeLines(void);
 
 	/**
 	 * @brief Gets a string identifier for the scheme.
@@ -148,13 +121,19 @@ public:
 	virtual ~PartitioningScheme();
 
 	double getLnL();
+	double getIcValue();
+
+	void print(ostream & out);
 private:
-	vector<PartitionElement*> * partitions; /** Array of reference to the partitions of this scheme */
+	t_partitioningScheme id;
+	vector<PartitionElement*> partitions; /** Array of reference to the partitions of this scheme */
 	unsigned int currentElement; /** Current element index for the step-by-step construction of the scheme */
 	unsigned int numberOfElements; /** The number of partitions */
-	unsigned int numberOfBits; /** The number of single genes in the scheme. */
 	vector<elementPair *> * eps;
 	char * tree;
+
+	/** Number of lines of the scheme code */
+	unsigned int codeLines;
 
 	/**
 	 * @brief String identifier of this scheme.

@@ -1,123 +1,64 @@
-#pragma once
-#ifndef UTILITIES_HPP
-#define UTILITIES_HPP
+/*
+ * Utilities.h
+ *
+ *  Created on: Apr 8, 2014
+ *      Author: diego
+ */
 
-#include "GlobalDefs.h"
-#include <map>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <stdlib.h>
-#include <stdio.h>
+#ifndef UTILITIES_H_
+#define UTILITIES_H_
+
+#include <pll.h>
 #include <math.h>
 
-using namespace std;
+#include "util/GlobalDefs.h"
 
 namespace partest {
 
-typedef map<const string, string> CfgMap;
-
 class Utilities {
-private:
-	static CfgMap config;
 public:
 
-	static void vprint(ostream & out, t_partitionElementId & v);
-
-	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
-
 	/**
-	 * Common function for exiting partitiontest.
+	 * Binary power of x.
+	 * @return 2 to the x
 	 */
-	static void exit_partest(int exit_value);
-
-	/**
-	 * Computes the factorial of a number
-	 *
-	 */
-	static long factorial(unsigned int x);
-	static long combinatorial(unsigned int a, unsigned int b);
-	static int bell(int n);
-	static double mean(double series[], int numberOfElements);
-	static double variance(double series[], int numberOfElements);
-	static double standardDeviation(double series[], int numberOfElements);
-	static double covariance(double XSeries[], double YSeries[],
-			int numberOfElements);
-	static double correlation(double XSeries[], double YSeries[],
-			int numberOfElements);
-	static double euclideanDistance(double XSeries[], double YSeries[],
-			int numberOfElements);
-	static double normalizedEuclideanDistance(double XSeries[],
-			double YSeries[], int numberOfElements);
-
-	static bool existProperty(const string& property);
-	static string getValue(const string& property);
-
-	static double stringToDouble(const string& s);
-	static int stringToInt(const string& s);
-	static string timeToString(time_t time);
-	static int numDigits(int number);
-	static int setbitsCount(unsigned int value);
-	static inline string toString(int n) {
-		stringstream ss;
-		ss << n;
-		return ss.str();
-	}
-	static inline bool isPowerOfTwo(unsigned int x) {
-		return ((x != 0) && !(x & (x - 1)));
-	}
-	static inline unsigned long int binaryPow(unsigned long int x) {
-		unsigned int nextId = 1;
-		nextId <<= x;
-		return nextId;
-	}
-	static inline unsigned int binaryLog(unsigned int x) {
+	static unsigned long int binaryPow(unsigned long int x);
+	static inline unsigned int iBinaryLog(unsigned int x) {
 		return ceil(log(x) / log(2));
 	}
 	static inline double dBinaryLog(double x) {
 		return (log(x) / log(2));
 	}
 	static inline int iDecLog(int x) {
-		return x>0?floor(log(x) / log(10)):0;
+		return x > 0 ? floor(log(x) / log(10)) : 0;
 	}
-	static int copyFile(string initialFilePath, string outputFilePath);
-	static char * getTempFilename();
-	static char * getStreamTempFilename();
-	static int countWords(string ss);
+	static char toBase64(int value);
+	static int setbitsCount(bitMask value);
 
-	static FILE * myfopen(const char *path, const char *mode,
-			bool lazy = false);
-	static int myGetline(char **lineptr, int *n, FILE *stream);
+	static double mean(double series[], int n);
+	static double variance(double series[], int n);
+	static double standardDeviation(double series[], int n);
+	static double covariance(double X[], double Y[], int n);
+	static double correlation(double X[], double Y[], int n);
+	static double euclideanDistance(double X[], double Y[], int n);
+	static double normalizedEuclideanDistance(double X[], double Y[], int n);
 
-	static inline int numberOfBranches(int numberOfTaxa) {
-		return ((2 * numberOfTaxa) - 2);
-	}
-
-	static void mergeIds(t_partitionElementId & dest, t_partitionElementId id1);
+	/** Number of branches according to the number of taxa. */
+	static int numberOfBranches(int numTaxa);
 
 	static void mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
 			t_partitionElementId id2);
+	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
+	static int duplicateAlignmentData(pllAlignmentData ** out,
+			pllAlignmentData * in);
 
-	class PropertiesInitializer {
-	public:
-		PropertiesInitializer() {
-			srand(time(NULL));
-			ifstream read_file;
-			read_file.open("partest.properties");
-			string s;
-			while (!read_file.eof()) {
-				read_file >> s;
-				config[s.substr(0, s.find('='))] = s.substr(s.find('=') + 1);
-			}
+	static bool contains(t_partitionElementId vec, int num);
+	static bool contains(t_partitioningScheme vec, t_partitionElementId id);
 
-		}
-	};
-
-	friend class Utilities::PropertiesInitializer;
+private:
+	static char encoding_table[];
 };
 
 } /* namespace partest */
 
-#endif
+#endif /* UTILITIES_H_ */

@@ -10,6 +10,8 @@
 #include <string.h>
 #include <assert.h>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 #include <parsePartition.h>
 
 namespace partest {
@@ -28,24 +30,13 @@ struct comparePartitionInfos {
 	}
 };
 
-ConfigParser::ConfigParser(const char * configFile) :
-		configFile(configFile), partitions(0), numberOfPartitions(0), outputBasePath(
-				DEFAULT_OUTPUT_BASE_PATH), outputFileModels(
-				DEFAULT_OUTPUT_MODELS_TAG), outputFilePartitions(
-				DEFAULT_OUTPUT_PARTS_TAG), outputFileSchemes(
-				DEFAULT_OUTPUT_SCHEMES_TAG), outputFileResults(
-				DEFAULT_OUTPUT_RESULTS_TAG), outputTmpPath(
-				DEFAULT_OUTPUT_TMP_PATH) {
-
+ConfigParser::ConfigParser(const char * configFile) {
 	maxSamples = 1;
 
 	dataType = DT_DEFAULT;
+	optimizeMode = OPT_SEARCH;
 
 	if (configFile != 0 && strcmp(configFile, "")) {
-
-#ifdef DEBUG
-	cout << "[TRACE] Parsing config file" << endl;
-#endif
 
 		int partitionId = 0;
 		const char * value;
@@ -53,7 +44,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 		ini.SetUnicode();
 		SI_Error rc = ini.LoadFile(configFile);
 		if (rc < 0)
-			Utilities::exit_partest(EX_IOERR);
+			exit_partest(EX_IOERR);
 
 		CSimpleIniA::TNamesDepend keys;
 
@@ -127,6 +118,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 						curValue = PROT_MATRIX_PMB;
 					} else if (!strcmp(curMatrix.c_str(), "flu")) {
 						curValue = PROT_MATRIX_FLU;
+					} else if (!strcmp(curMatrix.c_str(), "auto")) {
+						curValue = PROT_MATRIX_AUTO;
 					}
 					protModels |= Utilities::binaryPow(curValue);
 				}
@@ -149,7 +142,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 				searchAlgorithm = SearchHCluster;
 			} else {
 				cerr << "Invalid search algorithm : " << value << endl;
-				Utilities::exit_partest(EX_SOFTWARE);
+				exit_partest(EX_SOFTWARE);
 			}
 
 			value = ini.GetValue(SEARCH_TAG, SEARCH_ALGORITHM_REPS, "1");\
@@ -158,23 +151,25 @@ ConfigParser::ConfigParser(const char * configFile) :
 					cerr << "[ERROR] Number of replicates \"" << value
 					<< "\" must be an integer."
 					<< endl;
-					Utilities::exit_partest(EX_USAGE);
+					exit_partest(EX_USAGE);
 			}
 			maxSamples = atoi(value);
 		}
 
 		/** PARTITIONS **/
 		ini.GetAllKeys(PARTITIONS_TAG, keys);
-		numberOfPartitions = keys.size();
-#ifdef DEBUG
-	cout << "[TRACE] Got "<< numberOfPartitions << " partitions" << endl;
-#endif
-		partitions = new vector<partitionInfo>(numberOfPartitions);
+		number_of_genes = keys.size();
+
+		partitions = new vector<partitionInfo>(number_of_genes);
+		singleGeneNames = (string **) malloc(number_of_genes * sizeof(string*));
+
 		char * lineBuffer = (char *) malloc(150);
 		for (CSimpleIniA::TNamesDepend::iterator it = keys.begin();
 				it != keys.end(); it++) {
 			CSimpleIniA::Entry entry = *it;
 			partitions->at(partitionId).name = entry.pItem;
+			singleGeneNames[partitionId] = new string(entry.pItem);
+
 			strcpy(lineBuffer,
 					ini.GetValue(PARTITIONS_TAG, entry.pItem, "default"));
 			parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
@@ -185,25 +180,20 @@ ConfigParser::ConfigParser(const char * configFile) :
 		std::sort(partitions->begin(), partitions->end(),
 				comparePartitionInfos());
 
-#ifdef _PLL
 		pllPartitionRegion * pregion;
 		pllPartitionInfo * pinfo;
 
-		pllQueueInit(&parts);
-#endif
+		pllQueueInit(&pllPartsQueue);
 
-#ifdef DEBUG
-	cout << "[TRACE] Creating partitions" << endl;
-#endif
-		for (int i = 0; i < numberOfPartitions; i++) {
+
+		for (unsigned int i = 0; i < number_of_genes; i++) {
 			partitions->at(i).partitionId.push_back(i);
-#ifdef _PLL
 			pinfo = (pllPartitionInfo *) malloc(
 					sizeof(pllPartitionInfo));
 			pllQueueInit(&(pinfo->regionList));
-			pllQueueAppend(parts, (void *) pinfo);
+			pllQueueAppend(pllPartsQueue, (void *) pinfo);
 
-			pinfo->partitionName= (char *) malloc ((partitions->at(i).name.size() + 1) * sizeof(char));
+			pinfo->partitionName = (char *) malloc ((partitions->at(i).name.size() + 1) * sizeof(char));
 			strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
 			pinfo->partitionModel = (char *) malloc (1);
 
@@ -219,7 +209,6 @@ ConfigParser::ConfigParser(const char * configFile) :
 				pregion->stride = partitions->at(i).stride[j];
 				pllQueueAppend(pinfo->regionList, (void *) pregion);
 			}
-#endif
 		}
 
 		/** OUTPUT **/
@@ -259,11 +248,11 @@ ConfigParser::ConfigParser(const char * configFile) :
 		if ((optimizeMode == OPT_CUSTOM) & (dataType == DT_NUCLEIC)) {
 			cerr << "[ERROR] Custom model set is not available for nucleic data." << endl;
 			cerr << "        Please use \"gtr\" or \"all\" option." << endl;
-			Utilities::exit_partest(EX_USAGE);
+			exit_partest(EX_USAGE);
 		} else if ((optimizeMode == OPT_GTR) & (dataType == DT_PROTEIC)) {
 			cerr << "[ERROR] GTR option is not available for proteic data." << endl;
 			cerr << "        Please use \"all\" option or define the set of models." << endl;
-			Utilities::exit_partest(EX_USAGE);
+			exit_partest(EX_USAGE);
 		}
 	}
 
@@ -312,9 +301,6 @@ int ConfigParser::parsePartitionLine(char * line,
 }
 
 ConfigParser::~ConfigParser() {
-#ifdef _PLL
-	pllQueuePartitionsDestroy(&parts);
-#endif
 	if (partitions) {
 		delete partitions;
 	}
@@ -323,7 +309,7 @@ ConfigParser::~ConfigParser() {
 struct partitionInfo ConfigParser::getPartition(int index) {
 	if (!partitions) {
 		cerr << "ERROR: No partitions were defined" << endl;
-		Utilities::exit_partest(EX_SOFTWARE);
+		exit_partest(EX_SOFTWARE);
 	}
 	return partitions->at(index);
 

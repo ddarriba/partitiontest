@@ -1,378 +1,189 @@
-/*  PartitionTest, fast selection of the best fit partitioning scheme for
- *  multi-gene data sets.
- *  Copyright May 2013 by Diego Darriba
+/*
+ * GreedySearchAlgorithm.cpp
  *
- *  This program is free software; you may redistribute it and/or modify its
- *  under the terms of the GNU General Public License as published by the Free
- *  Software Foundation; either version 3 of the License, or (at your option)
- *  any later version.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- *  for more details.
- *
- *  For any other inquiries send an Email to Diego Darriba
- *  ddarriba@udc.es
+ *  Created on: Apr 11, 2014
+ *      Author: diego
  */
 
-/**
- * @file GreedySearchAlgorithm.cpp
- */
 #include "GreedySearchAlgorithm.h"
-#include "util/ParTestFactory.h"
+
 #include "util/Utilities.h"
-#include "exe/PLLModelOptimize.h"
-#include "observer/ConsoleObserver.h"
-#include "selection/ModelSelector.h"
-#include "selection/PartitionSelector.h"
-#include "indata/PartitioningScheme.h"
-#include "indata/PartitionElement.h"
+#include "exe/ModelOptimize.h"
+#include "indata/PartitionMap.h"
+#include "exe/PartitionSelector.h"
+#include <iostream>
+
+using namespace std;
 
 namespace partest {
 
-/* functor for getting the next partitioning scheme in a group */
 struct nextSchemeFunctor {
-	nextSchemeFunctor(PartitioningScheme * currentScheme,
-			PartitionMap * partitionMap, bool extended) :
-			currentScheme(currentScheme), partitionMap(partitionMap), extended(
-					extended) {
-		numberOfElements = currentScheme->getNumberOfElements();
-		i = 0;
-		j = 1;
-		schemeVector = 0;
-		mask = 0;
-		maskIndex = 0;
-//		t_partitionElementId maxIndex = 0;
-
-		if (extended) {
-			// TODO: NOT IMPLEMENTED YET
-//			mask = (t_partitionElementId *) malloc(
-//					(numberOfElements * (1 + numberOfElements)) / 2
-//							* sizeof(t_partitionElementId));
-//			for (maskIndex = 0; maskIndex < numberOfElements; maskIndex++) {
-//				t_partitionElementId nextId = currentScheme->getElement(
-//						maskIndex)->getId();
-//				mask[maskIndex] = nextId;
-//				if (nextId > maxIndex)
-//					maxIndex = nextId;
-//			}
-//
-//			for (i = 0; i < numberOfElements; i++) {
-//				for (j = i + 1; j < numberOfElements; j++) {
-//
-//					t_partitionElementId nextId = mask[i] + mask[j];
-//					mask[maskIndex++] = nextId;
-//					if (nextId > maxIndex)
-//						maxIndex = nextId;
-//				}
-//			}
-//			i = 0;
-//			schemeVector = new t_schemesVector;
-//			unsigned int bitMask;
-//			if (Utilities::isPowerOfTwo(maskIndex)) {
-//				bitMask = maskIndex - 1;
-//			} else {
-//				bitMask = Utilities::binaryPow(Utilities::binaryLog(maxIndex))
-//						- 1;
-//			}
-//			PartitionManager::getPermutations(mask, maskIndex, bitMask,
-//					schemeVector);
-		}
+	nextSchemeFunctor(PartitioningScheme * scheme) :
+			scheme(scheme) {
+		numberOfElements = scheme->getNumberOfElements();
+		numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
+		currentScheme = 0;
 	}
 
 	~nextSchemeFunctor() {
-		if (mask)
-			free(mask);
-		delete schemeVector;
-	}
 
+	}
 	PartitioningScheme * operator()(void) {
-		if (extended) {
 
-			if (i == schemeVector->size()) {
-				return 0;
+		if (currentScheme >= numberOfSchemes)
+			return 0;
+
+		t_partitioningScheme nextSchemeId;
+		nextSchemeId.reserve(numberOfElements - 1);
+
+		t_partitionElementId e1 = scheme->getElement(i)->getId();
+		t_partitionElementId e2 = scheme->getElement(j)->getId();
+		t_partitionElementId nextId;
+		Utilities::mergeIds(nextId, e1, e2);
+		nextSchemeId.push_back(nextId);
+
+		/* fill */
+		for (unsigned int k = 0; k < numberOfElements; k++) {
+
+			t_partitionElementId eX = scheme->getElement(k)->getId();
+			if (eX != e1 && eX != e2) {
+				nextSchemeId.push_back(eX);
 			}
-			t_partitioningScheme elements = schemeVector->at(i);
-			PartitioningScheme * nextScheme = new PartitioningScheme(
-					elements.size());
-
-			if (!elements.size()) {
-				return 0;
-			}
-
-			for (j = 0; j < elements.size(); j++) {
-
-				PartitionElement * nextElement =
-						partitionMap->getPartitionElement(elements.at(j));
-				nextScheme->addElement(nextElement);
-			}
-
-			i++;
-			return nextScheme;
-
-		} else {
-
-			if (i == (numberOfElements - 1)) {
-				return 0;
-			}
-
-			PartitioningScheme * nextScheme = new PartitioningScheme(
-					numberOfElements - 1);
-
-			for (unsigned int k = 0; k < numberOfElements; k++) {
-				if (k != i && k != j) {
-					nextScheme->addElement(currentScheme->getElement(k));
-				}
-			}
-
-			t_partitionElementId nextId;
-			Utilities::mergeIds(nextId, currentScheme->getElement(i)->getId(),
-					currentScheme->getElement(j)->getId());
-
-			PartitionElement * nextElement = partitionMap->getPartitionElement(
-					nextId);
-
-			nextScheme->addElement(nextElement);
-
-			/* increment loop iterators */
-			j++;
-			if (j == numberOfElements) {
-				i++;
-				j = i + 1;
-			}
-			return nextScheme;
-
 		}
-	}
 
-	t_partitionElementId * getMask() {
-		return mask;
-	}
+		currentScheme++;
+		j++;
+		if (j == i) {
+			i++; j=0;
+		}
 
-	unsigned int size() {
-		if (extended)
-			return schemeVector->size();
-		else
-			return (numberOfElements * (numberOfElements - 1) / 2);
+		return (new PartitioningScheme(&nextSchemeId));
 	}
-
+	int size() {
+		return ((numberOfElements * (numberOfElements - 1)) / 2);
+	}
 private:
-	t_schemesVector * schemeVector;
-	t_partitionElementId * mask;
-	int maskIndex;
-	unsigned int i, j;
-	unsigned int numberOfElements;
-	PartitioningScheme * currentScheme;
-	PartitionMap * partitionMap;
-	bool extended;
-}
-;
+	unsigned int i = 1, j = 0;
+	unsigned int numberOfElements, numberOfSchemes, currentScheme;
+	PartitioningScheme * scheme;
+};
 
-GreedySearchAlgorithm::GreedySearchAlgorithm(ParTestOptions * options,
-		PartitionMap * partitionMap, bool extended) :
-		SearchAlgorithm(options, partitionMap), extended(extended) {
-
-	numberOfBits = this->getNumberOfElements();
+GreedySearchAlgorithm::GreedySearchAlgorithm() {
+	// TODO Auto-generated constructor stub
 
 }
 
 GreedySearchAlgorithm::~GreedySearchAlgorithm() {
+	// TODO Auto-generated destructor stub
 }
 
-PartitioningScheme * GreedySearchAlgorithm::start(
-		PartitioningScheme * startingPoint) {
-	cerr << "[ERROR] Not implemented yet" << endl;
-	Utilities::exit_partest(EX_UNAVAILABLE);
-	return 0;
+vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
+		const t_partitioningScheme * startingScheme) {
+
+	vector<PartitioningScheme *> nextSchemes;
+	for (unsigned int i = 1; i < startingScheme->size(); i++) {
+		t_partitionElementId e1 = startingScheme->at(i);
+		for (unsigned int j = 0; j < i; j++) {
+
+			t_partitioningScheme nextSchemeId(startingScheme->size() - 1);
+
+			/* merge elements i and j */
+			t_partitionElementId e2 = startingScheme->at(j);
+			t_partitionElementId nextId;
+			Utilities::mergeIds(nextId, e1, e2);
+
+			/* fill */
+			for (unsigned int k = 0; k < startingScheme->size(); k++) {
+
+				t_partitionElementId eX = startingScheme->at(k);
+				if (eX != e1 && eX != e2) {
+					nextSchemeId.push_back(eX);
+				}
+			}
+			nextSchemes.push_back(new PartitioningScheme(&nextSchemeId));
+		}
+	}
+	return nextSchemes;
+
 }
 
 PartitioningScheme * GreedySearchAlgorithm::start() {
 
-#ifdef DEBUG
-	cout << "[TRACE] Greedy - START" << endl;
-#endif
+	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
+	double bestScore, score;
+	ModelOptimize * modelOptimize = new ModelOptimize();
+	int numberOfPartitions = number_of_genes;
+	vector<PartitioningScheme *> nextSchemes;
+	int step = 1;
+	int maxSteps = number_of_genes;
 
-	int i;
+	/* building first scheme */
+	cout << "Step " << step++ << "/" << maxSteps << endl;
+	t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+			number_of_genes);
+	for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+		t_partitionElementId geneId(1);
+		geneId.at(0) = gene;
+		firstSchemeId->at(gene) = geneId;
+	}
 
-	PLLModelOptimize * mo =
-			static_cast<PLLModelOptimize *>(ParTestFactory::createModelOptimize(
-					options));
-	ConsoleObserver * observer = new ConsoleObserver();
-	this->attach(observer);
-	mo->attach(observer);
-	mo->attach(this);
+	localBestScheme = bestScheme = new PartitioningScheme(firstSchemeId);
+	nextSchemes.push_back(bestScheme);
+	delete firstSchemeId;
 
-	if (options->getStartingTopology() == StartTopoFIXED) {
+	modelOptimize->optimizePartitioningScheme(bestScheme);
 
-		int loadedTree = false;
-		char * startingTree;
+	PartitionSelector ps(nextSchemes);
+	nextSchemes.clear();
 
-		if (ckpAvailable) {
-			fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
-					ios::in);
+	bestScore = score = ps.getBestScheme()->getIcValue();
 
-			if (ofs) {
-				ofs.seekg(0);
-				int treeLen;
-				ofs.read((char *) &(treeLen), sizeof(int));
-				startingTree = (char *) malloc(treeLen + 1);
-				ofs.read((char *) startingTree, treeLen);
-				options->setTreeString(startingTree, false);
-				loadedTree = true;
-				ofs.close();
+	bool improving = true;
+	while (improving) {
+		cout << "Step " << step++ << "/" << maxSteps << endl;
+		nextSchemeFunctor nextScheme(localBestScheme);
+		nextSchemes.reserve(nextScheme.size());
+
+		int schemeIndex = 0;
+		while (PartitioningScheme * scheme = nextScheme()) {
+			modelOptimize->optimizePartitioningScheme(scheme, schemeIndex++, nextScheme.size());
+			nextSchemes.push_back(scheme);
+		}
+		numberOfPartitions = localBestScheme->getNumberOfElements()-1;
+
+		PartitionSelector ps(nextSchemes);
+		//ps.print(cout);
+		localBestScheme = ps.getBestScheme();
+		score = localBestScheme->getIcValue();
+
+		if (score < bestScore) {
+			delete bestScheme;
+			bestScheme = localBestScheme;
+			PartitionMap::getInstance()->keep(bestScheme->getId());
+			cout << "Improving " << bestScore - score << " score units." << endl;
+			bestScore = score;
+		} else {
+			cout << "Scheme is " << score - bestScore << " score units ahead the best score." << endl;
+		}
+		improving = ((non_stop || bestScore == score) && (numberOfPartitions > 1));
+
+		for (PartitioningScheme * scheme : nextSchemes) {
+			if (scheme != bestScheme) {
+				delete scheme;
 			}
 		}
 
-		if (!loadedTree) {
-			/* Starting topology */
-			notify_observers(MT_FTREE_INIT, time(NULL));
-
-			PLLAlignment * alignment =
-					static_cast<PLLAlignment *>(options->getAlignment());
-
-			mo->initializeStructs(alignment->getTree(),
-					alignment->getPartitions(), alignment->getPhylip());
-
-			pllComputeRandomizedStepwiseAdditionParsimonyTree(
-					alignment->getTree(), alignment->getPartitions());
-
-			mo->evaluateSPR(alignment->getTree(), alignment->getPartitions(),
-					true, true);
-
-			pllTreeToNewick(alignment->getTree()->tree_string,
-					alignment->getTree(), alignment->getPartitions(),
-					alignment->getTree()->start->back,
-					PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-					PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-			startingTree = alignment->getTree()->tree_string;
-			startingTree[strlen(startingTree) - 1] = '\0';
-			options->setTreeString(startingTree, true);
-
-			if (ckpAvailable) {
-				/* store tree */
-				fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
-						ios::out);
-				ofs.seekg(0);
-				ofs.write((char *) &(alignment->getTree()->treeStringLength),
-						sizeof(int));
-				ofs.write((char *) startingTree,
-						alignment->getTree()->treeStringLength);
-				ofs.close();
+		if (improving) {
+			for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+				PartitionMap::getInstance()->purgePartitionMap(
+						bestScheme->getElement(i)->getId());
 			}
 		}
 
-		//alignment->destroyTree();
-
-		notify_observers(MT_FTREE_END, time(NULL), startingTree);
-
+		nextSchemes.clear();
 	}
-
-	/* 1. start with k=n groups */
-	PartitioningScheme * firstScheme = new PartitioningScheme(
-			partitionMap->getNumberOfPartitions());
-	for (unsigned int i = 0; i < partitionMap->getNumberOfPartitions(); i++) {
-		firstScheme->addElement(partitionMap->getPartitionElement(i));
-	}
-
-#ifdef DEBUG
-	cout << "[TRACE] Greedy - Optimizing first scheme" << endl;
-#endif
-
-	mo->optimizePartitioningScheme(firstScheme, false, 1, 1);
-	PartitionSelector partSelector(&firstScheme, 1, options);
-	double bestCriterionValue = partSelector.getBestSelectionScheme()->value;
-	partSelector.print(cout);
-
-	PartitioningScheme * bestScheme = firstScheme;
-
-#ifdef DEBUG
-	cout << "[TRACE] Greedy - First Scheme Done " << firstScheme->getName() << endl;
-#endif
-
-	bool reachedMaximum = firstScheme->getNumberOfElements() == 1;
-
-	while (!reachedMaximum) {
-		/* 2. evaluate next-step partitions */
-
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Next iteration" << endl;
-#endif
-
-		nextSchemeFunctor nextScheme(bestScheme, partitionMap, extended);
-
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Created functor" << endl;
-#endif
-
-		int numberOfSchemes = nextScheme.size();
-		PartitioningScheme **partitioningSchemesVector =
-				(PartitioningScheme **) malloc(
-						numberOfSchemes * sizeof(PartitioningScheme *));
-		i = 0;
-		while (PartitioningScheme * currentScheme = nextScheme()) {
-			partitioningSchemesVector[i++] = currentScheme;
-#ifdef DEBUG
-			cout << "[TRACE] Greedy - Optimizing next scheme: " << currentScheme->getName() << endl;
-#endif
-			mo->optimizePartitioningScheme(currentScheme, false, i,
-					nextScheme.size());
-		}
-
-		PartitionSelector partSelector(partitioningSchemesVector,
-				numberOfSchemes, options);
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Best scheme: " << partSelector.getBestScheme()->getName() << endl;
-#endif
-
-		reachedMaximum = (bestCriterionValue
-				<= partSelector.getBestSelectionScheme()->value);
-		if (!reachedMaximum) {
-			bestCriterionValue = partSelector.getBestSelectionScheme()->value;
-			bestScheme = partSelector.getBestScheme();
-			reachedMaximum |= bestScheme->getNumberOfElements() == 1;
-		}
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Purging schemes" << endl;
-#endif
-		for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
-			partitionMap->purgePartitionMap(bestScheme->getElement(i)->getId());
-//			for (int j=0; j<bestScheme->getNumberOfElements(); j++) {
-//				if (bestScheme->getElement(j)->getNumberOfSections() > 0) {
-//					for (int k=0; k<bestScheme->getElement(j)->getNumberOfSections()) {
-//						bestScheme->getElement(j)->getId().at(k)
-//						t_partitionElementId k;
-//					}
-//				}
-//			}
-		}
-#ifdef DEBUG
-		cout << "[TRACE] Greedy - Free schemes vector" << endl;
-#endif
-		free(partitioningSchemesVector);
-	}
-
-#ifdef DEBUG
-	cout << "[TRACE] Greedy - DONE " << endl;
-#endif
-
-	delete mo;
 
 	return bestScheme;
-}
-
-void GreedySearchAlgorithm::update(const ObservableInfo& info,
-		ParTestOptions* run_instance) {
-
-}
-
-int GreedySearchAlgorithm::getNextPartitioningSchemes(
-		PartitioningScheme *currentScheme, PartitioningScheme **nextSchemes) {
-
-//	int numberOfPartitions = currentScheme->getNumberOfElements()
-//			* (currentScheme->getNumberOfElements() - 1);
-
-	return 0;
 }
 
 } /* namespace partest */
