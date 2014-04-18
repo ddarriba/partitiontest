@@ -168,15 +168,15 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		improving = ((non_stop || bestScore == score) && (numberOfPartitions > 1));
 
 		for (PartitioningScheme * scheme : nextSchemes) {
-			if (scheme != bestScheme) {
+			if (scheme != localBestScheme) {
 				delete scheme;
 			}
 		}
 
 		if (improving) {
-			for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+			for (int i = 0; i < localBestScheme->getNumberOfElements(); i++) {
 				PartitionMap::getInstance()->purgePartitionMap(
-						bestScheme->getElement(i)->getId());
+						localBestScheme->getElement(i)->getId());
 			}
 		}
 
