@@ -22,20 +22,17 @@
 
 #include "ExhaustiveSearchAlgorithm.h"
 
-#include "util/ParTestFactory.h"
 #include "exe/ModelOptimize.h"
-#include "observer/ConsoleObserver.h"
-#include "selection/ModelSelector.h"
-#include "selection/PartitionSelector.h"
+#include "exe/ModelSelector.h"
+#include "exe/PartitionSelector.h"
 #include <algorithm>    // std::adjacent_find
 #include <iostream>     // std::cout
 #include <vector>
 
 namespace partest {
 
-ExhaustiveSearchAlgorithm::ExhaustiveSearchAlgorithm(ParTestOptions * options,
-		PartitionMap * partitionMap) :
-		SearchAlgorithm(options, partitionMap) {
+ExhaustiveSearchAlgorithm::ExhaustiveSearchAlgorithm() :
+		SearchAlgorithm() {
 
 }
 
@@ -46,7 +43,7 @@ ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {
 PartitioningScheme * ExhaustiveSearchAlgorithm::start(
 		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
-	Utilities::exit_partest(EX_UNAVAILABLE);
+	exit_partest(EX_UNAVAILABLE);
 	return 0;
 }
 
@@ -57,7 +54,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 
 //TODO: UNINPLEMENTED
 	cerr << "TO BE IMPLEMENTED" << endl;
-	Utilities::exit_partest(EX_UNAVAILABLE);
+	exit_partest(EX_UNAVAILABLE);
 //#ifdef DEBUG
 //	cout << "[TRACE] START SEARCH FOR " << n << " ELEMENTS"<< endl;
 //#endif
@@ -150,16 +147,6 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
 //#endif
 //	return partSelector.getBestScheme();
 	return 0;
-}
-
-void ExhaustiveSearchAlgorithm::update(const ObservableInfo & info,
-		ParTestOptions * run_instance) {
-//	switch (info.type) {
-//	case MT_MODELSET_INIT:
-//		break;
-//	case MT_MODELSET_END:
-//		break;
-//	}
 }
 
 } /* namespace partest */

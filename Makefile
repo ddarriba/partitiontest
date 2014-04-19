@@ -22,6 +22,7 @@ PARTEST_CXXFILES = \
 	parser/ArgumentParser.cpp \
 	parser/ConfigParser.cpp \
 	search/SearchAlgorithm.cpp \
+	search/ExhaustiveSearchAlgorithm.cpp \
 	search/HierarchicalClusteringSearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
 	util/Utilities.cpp \
