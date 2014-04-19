@@ -35,12 +35,10 @@ namespace partest {
  */
 class ExhaustiveSearchAlgorithm: public SearchAlgorithm {
 public:
-	ExhaustiveSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
+	ExhaustiveSearchAlgorithm();
 	virtual ~ExhaustiveSearchAlgorithm();
 	virtual PartitioningScheme * start();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
-	virtual void update(const ObservableInfo & info,
-	        ParTestOptions * run_instance = NULL);
 };
 
 } /* namespace partest */
