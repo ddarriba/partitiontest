@@ -13,6 +13,8 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
+options("scipen"=100, "digits"=4)
+
 args = commandArgs(trailingOnly = T)
 if (length(args) < 9) {
   cat("Number of arguments is ", length(args), "\n")
@@ -64,7 +66,7 @@ if (DATA_TYPE == "aa") {
 
 current_index = 0
 
-for(sample_index in 0:(SAMPLES-1)) {
+for(sample_index in 1:(SAMPLES)) {
 
 	if (MIN_GENES < MAX_GENES) {
 		num_genes = sample(MIN_GENES:MAX_GENES,1,replace=T)
@@ -134,7 +136,7 @@ for(sample_index in 0:(SAMPLES-1)) {
 		model = buildDNAmodel(inp, avoid)
 		models_mat[i,1:15] = model
 		id = as.numeric(model[15])
-		if (id <= 40) {
+		if (id <= 20) {
 			avoid = c(id, avoid)
 			if (id %% 2 > 0) {
 				avoid = c( id + 1, avoid)

@@ -15,7 +15,7 @@ buildDNAmodel <- function(inp, avoid) {
 	model <- c("",0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
 	repeat {
-		modelid <- sample(1:44,1,replace=T)
+		modelid <- sample(1:22,1,replace=T)
 		if (!modelid %in% avoid) break
 	}
 
