@@ -13,7 +13,7 @@ library (MCMCpack)
 library (ape)
 library (phylosim)
 
-options("scipen"=100, "digits"=4)
+options("scipen"=100, "digits"=6)
 
 args = commandArgs(trailingOnly = T)
 if (length(args) < 9) {
@@ -43,6 +43,7 @@ MAX_PARTITIONS = 100
 
 BASE_DIR = paste("../sims.",PREFIX, sep="")
 OUT_TREE_FILE   = paste(BASE_DIR,"/treefile.out", sep="")              # Output file for trees
+OUT_SUMMARY_FILE   = paste(BASE_DIR,"/true.summary", sep="")
 OUT_MODELS_FILE = paste(BASE_DIR,"/modelsfile.out", sep="")            # Output file for models
 OUT_GENTOPART_FILE = paste(BASE_DIR,"/genestopartitions.out", sep="")  # Output file for gene mapping to partitions
 OUT_PARTITIONS_FILE = paste(BASE_DIR,"/partitionsfile.out", sep="")     # Output file for partitions
@@ -217,6 +218,13 @@ for(sample_index in 1:(SAMPLES)) {
     scaledPhyloTree$treeLength
     scaledTree = getPhylo(scaledPhyloTree)
     write.tree(scaledTree, file=OUT_TREE_FILE, append=TRUE)
+
+    treeStr = write.tree(scaledTree)
+    treeLen = sum(scaledTree$edge.length)
+
+    tList = list(id=sample_index, ngenes=num_genes, nparts=num_partitions, part0=partitionstring, 
+      part1=partitionstringDEC, ntaxa=TAXA_COUNT, seqlen=(startposition-1),treelen=treeLen,tree=treeStr)
+    write.table(tList, file=OUT_SUMMARY_FILE, append=TRUE, col.names=FALSE, row.names=FALSE, quote=FALSE)
 
 } # end SAMPLES
 cat("\nDone R script\n")

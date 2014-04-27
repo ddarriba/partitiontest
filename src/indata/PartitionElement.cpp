@@ -166,11 +166,12 @@ int PartitionElement::setupStructures(void) {
 			}
 			break;
 		case DT_NUCLEIC:
-			for (int i = 0; i < _partitions->numberOfPartitions; i++) {
-				_partitions->partitionData[i]->dataType = PLL_DNA_DATA;
-				_partitions->partitionData[i]->states = 4;
+			for (int cur_part = 0; cur_part < _partitions->numberOfPartitions;
+								cur_part++) {
+				pInfo * current_part = _partitions->partitionData[cur_part];
+				current_part->dataType = PLL_DNA_DATA;
+				current_part->states = 4;
 			}
-			exit_partest(EX_UNAVAILABLE);
 			break;
 		default:
 			exit_partest(EX_UNAVAILABLE);
@@ -206,12 +207,12 @@ int PartitionElement::setupStructures(void) {
 				switch (optimize_mode) {
 				case OPT_GTR:
 					models.push_back(
-							new NucleicModel(NUC_MATRIX_GTR, RateVarG,
+							new NucleicModel(NUC_MATRIX_GTR, RateVarG | RateVarF,
 									num_taxa));
 					break;
 				case OPT_SEARCH:
 					for (int current_model = 0; current_model < NUC_MATRIX_SIZE;
-							current_model++) {
+							current_model += 2) {
 						models.push_back(
 								new NucleicModel(
 										static_cast<NucMatrix>(current_model),
@@ -219,7 +220,7 @@ int PartitionElement::setupStructures(void) {
 						if (do_rate & RateVarF) {
 							models.push_back(
 									new NucleicModel(
-											static_cast<NucMatrix>(current_model),
+											static_cast<NucMatrix>(current_model+1),
 											RateVarG | RateVarF, num_taxa));
 						}
 					}
@@ -596,8 +597,6 @@ int PartitionElement::storeData(void) {
 	SelectionModel * selectionmodel = getBestModel();
 	ofs.write((char *) &bestModelIndex, sizeof(int));
 	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
-	//ofs.seekp(0);
-	//cout << endl << ofs.tellp() << endl;
 	ofs.close();
 
 	return CHECKPOINT_SAVED;

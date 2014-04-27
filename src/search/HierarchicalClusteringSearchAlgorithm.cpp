@@ -80,6 +80,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 				cout << timestamp() << " [HCL] Improving " << bestScore - score << " score units." << endl;
 			}
 			bestScore = score;
+			cout << "mpro " << bestScheme->getNumberOfElements() << endl;
 		} else {
 			cout << timestamp() << " [HCL] Scheme is " << score - bestScore << " score units ahead the best score." << endl;
 		}
@@ -99,6 +100,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 				t_partitioningScheme nextScheme;
 				Utilities::mergeIds(nextId, eps->at(i)->e1->getId(),
 						eps->at(i)->e2->getId());
+				cout << "Merge " << eps->at(i)->e1->getId().at(0) << " " << eps->at(i)->e2->getId().at(0) << endl;
 				nextScheme.push_back(nextId);
 				for (int j = 0; j < localBestScheme->getNumberOfElements(); j++) {
 

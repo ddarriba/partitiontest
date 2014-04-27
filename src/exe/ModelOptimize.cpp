@@ -99,12 +99,12 @@ string ModelOptimize::buildStartingTree() {
 				current_part->optimizeAlphaParameter = PLL_TRUE;
 				current_part->optimizeSubstitutionRates = PLL_TRUE;
 			}
-			exit_partest(EX_UNAVAILABLE);
 			break;
 		default:
-			exit_partest(EX_UNAVAILABLE);
+			cerr << "Unknown datatype " << data_type << endl;
+			exit_partest(EX_SOFTWARE);
 		}
-
+		cout << "START" << endl;
 		pllInitModel(tree, compParts, alignData);
 
 		pllRaxmlSearchAlgorithm(tree, compParts, PLL_FALSE);
@@ -136,7 +136,90 @@ string ModelOptimize::buildStartingTree() {
 	return string(tree->tree_string);
 }
 
-string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme, bool reoptimizeParameters) {
+string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
+		bool reoptimizeParameters) {
+	cout << timestamp() << " Computing fixed topology..." << endl;
+	pllAlignmentData * alignData = 0;
+	Utilities::duplicateAlignmentData(&alignData, phylip);
+
+	partitionList * compParts = pllPartitionsCommit(pllPartsQueue, alignData);
+
+	pllAlignmentRemoveDups(alignData, compParts);
+
+	pllTreeInitTopologyForAlignment(tree, alignData);
+	pllLoadAlignment(tree, alignData, compParts, PLL_DEEP_COPY);
+
+	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
+	tree->start = tree->nodep[1];
+
+	for (unsigned int i = 0; i < finalScheme->getNumberOfElements(); i++) {
+		PartitionElement * pe = finalScheme->getElement(i);
+	switch (data_type) {
+	case DT_PROTEIC:
+		for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+				cur_part++) {
+			pe = finalScheme->getElement(cur_part);
+			ProteicModel * pModel =
+					static_cast<ProteicModel *>(pe->getBestModel()->getModel());
+			int matrix = pModel->getMatrix();
+			pInfo * current_part = compParts->partitionData[cur_part];
+			current_part->dataType = PLL_AA_DATA;
+			current_part->states = 20;
+			current_part->protFreqs = pModel->isPF();
+			current_part->optimizeBaseFrequencies = PLL_FALSE;
+			current_part->optimizeAlphaParameter =
+					reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
+			current_part->optimizeSubstitutionRates = PLL_FALSE;
+			current_part->protModels = matrix;
+			current_part->alpha = pModel->getAlpha();
+		}
+		break;
+	case DT_NUCLEIC: {
+		for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+				cur_part++) {
+			pe = finalScheme->getElement(cur_part);
+			NucleicModel * nModel =
+					static_cast<NucleicModel *>(pe->getBestModel()->getModel());
+			int matrix = nModel->getMatrix();
+			pInfo * current_part = compParts->partitionData[cur_part];
+			current_part->dataType = PLL_DNA_DATA;
+			current_part->states = 4;
+			current_part->optimizeBaseFrequencies = nModel->isPF();
+			current_part->optimizeAlphaParameter =
+					reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
+			current_part->optimizeSubstitutionRates =
+					reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
+		}
+		break;
+	}
+	default:
+		exit_partest(EX_UNAVAILABLE);
+	}
+}
+
+
+
+	pllInitModel(tree, compParts, alignData);
+
+	pllRaxmlSearchAlgorithm(tree, compParts, PLL_FALSE);
+
+	pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
+	PLL_TRUE,
+	PLL_TRUE,
+	PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
+	PLL_FALSE);
+	tree->tree_string[tree->treeStringLength - 1] = '\0';
+
+	pllPartitionsDestroy(tree, &compParts);
+	pllAlignmentDataDestroy(alignData);
+
+	starting_tree = tree->tree_string;
+	cout << timestamp() << " Starting tree loaded" << endl << endl;
+	return string(tree->tree_string);
+}
+
+string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
+		bool reoptimizeParameters) {
 	bool loadedTree = false;
 
 	char * final_tree = 0;
@@ -208,8 +291,25 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme, bool reop
 		pllTreeInitTopologyForAlignment(fTree, phylip);
 		pllLoadAlignment(fTree, phylip, compParts, PLL_SHALLOW_COPY);
 
-		pllComputeRandomizedStepwiseAdditionParsimonyTree(fTree, compParts);
-		fTree->start = fTree->nodep[1];
+		switch (starting_topology) {
+				case StartTopoMP:
+					pllComputeRandomizedStepwiseAdditionParsimonyTree(fTree,
+							compParts);
+					fTree->start = fTree->nodep[1];
+					break;
+				case StartTopoFIXED:
+				{
+					pllNewickTree * nt;
+					nt = pllNewickParseString(starting_tree);
+					pllTreeInitTopologyNewick(fTree, nt, PLL_FALSE);
+					pllNewickParseDestroy(&nt);
+					break;
+				}
+				case StartTopoUSER:
+					cerr << "User Topo Not Available" << endl;
+					exit_partest(EX_UNAVAILABLE);
+					break;
+				}
 
 		switch (data_type) {
 		case DT_PROTEIC:
@@ -224,7 +324,8 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme, bool reop
 				current_part->states = 20;
 				current_part->protFreqs = pModel->isPF();
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
-				current_part->optimizeAlphaParameter = reoptimizeParameters?PLL_TRUE:PLL_FALSE;
+				current_part->optimizeAlphaParameter =
+						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
 				current_part->optimizeSubstitutionRates = PLL_FALSE;
 				current_part->protModels = matrix;
 				current_part->alpha = pModel->getAlpha();
@@ -241,10 +342,11 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme, bool reop
 				current_part->dataType = PLL_DNA_DATA;
 				current_part->states = 4;
 				current_part->optimizeBaseFrequencies = nModel->isPF();
-				current_part->optimizeAlphaParameter = reoptimizeParameters?PLL_TRUE:PLL_FALSE;
-				current_part->optimizeSubstitutionRates = reoptimizeParameters?PLL_TRUE:PLL_FALSE;
+				current_part->optimizeAlphaParameter =
+						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
+				current_part->optimizeSubstitutionRates =
+						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
 			}
-			exit_partest(EX_UNAVAILABLE);
 			break;
 		}
 		default:
@@ -341,13 +443,10 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		partitionList * _partitions, pllAlignmentData * _alignData, int index,
 		bool setAlphaFreqs) {
+
 	pInfo * current_part = _partitions->partitionData[index];
 
 	if (data_type == DT_NUCLEIC) {
-		current_part->optimizeBaseFrequencies = _model->isPF();
-		current_part->alpha = _model->getAlpha();
-		current_part->nonGTR = PLL_FALSE;
-		current_part->dataType = PLL_DNA_DATA;
 		const char * m = _model->getMatrixName().c_str();
 		char * symmetryPar = (char *) malloc(12 * sizeof(char));
 		symmetryPar[0] = m[0];
@@ -356,9 +455,20 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 			symmetryPar[(j - 1) * 2 + 1] = ',';
 			symmetryPar[j * 2] = m[j];
 		}
+		int res = pllSetSubstitutionRateMatrixSymmetries(symmetryPar,
+				_partitions, index);
 
-		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, _partitions, index);
+		current_part->optimizeBaseFrequencies = _model->isPF();
+		if (!_model->isPF()) {
+			for (int i = 0; i < 4; i++) {
+				current_part->frequencies[i] = 0.25;
+			}
+		}
+		current_part->alpha = _model->getAlpha();
+		//current_part->nonGTR = PLL_FALSE;
+		current_part->dataType = PLL_DNA_DATA;
 
+		//pllInitReversibleGTR(_tree, _partitions, index);
 		if (setAlphaFreqs) {
 			memcpy(current_part->frequencies, _model->getFrequencies(),
 					4 * sizeof(double));
@@ -377,8 +487,8 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 			}
 
 			current_part->alpha = 100;
-		}
 
+		}
 		free(symmetryPar);
 	} else {
 		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
@@ -390,21 +500,23 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 	}
 	//TODO: This works if partitions has one single partitions
 	assert(_partitions->numberOfPartitions == 1);
+
 	double **ef = pllBaseFrequenciesGTR(_partitions, _alignData);
-	initModel(_tree, ef, _partitions);
+	//initModel(_tree, ef, _partitions);
 	free(*ef);
 	free(ef);
 }
 
 void ModelOptimize::optimizeModel(PartitionElement * element,
 		unsigned int modelIndex, int limit) {
+
 	pllInstance * _tree = element->getTree();
 	partitionList * _partitions = element->getPartitions();
 	pllAlignmentData * _alignData = element->getAlignData();
 	Model * model = element->getModel(modelIndex);
 
 	/* set parameters for single partition element */
-	setModelParameters(model, _tree, _partitions, _alignData, 0, false);
+	setModelParameters(model, _tree, _partitions, _alignData, 0, false);\
 	double lk;
 	double epsilon = 0.1;
 
@@ -441,6 +553,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element,
 				Utilities::getProtMatrixName(
 						static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels)));
 	}
+
 	cout << timestamp() << " - - - - - " << setw(Utilities::iDecLog(limit) + 1)
 			<< setfill('0') << right << modelIndex + 1 << "/" << limit << " "
 			<< model->getName() << " (" << _tree->likelihood << ")"

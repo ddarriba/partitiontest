@@ -205,12 +205,12 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //	return globalDistance;
 //
 //	double invDistance = pInv - other->pInv;
-//	double shapeDistance = alpha - other->alpha;
-//	double matrixDistance = 0.0;
-//	for (int i = 0; i < 6; i++) {
-//		matrixDistance += (rates[i] - other->rates[i])
-//				* (rates[i] - other->rates[i]);
-//	}
+	double shapeDistance = fabs(alpha - other->alpha);
+	double rDistance = 0.0;
+	for (int i = 0; i < 6; i++) {
+		rDistance += (rates[i] - other->rates[i])
+				* (rates[i] - other->rates[i]);
+	}
 //	double freqsDistance = 0.0;
 //	for (int i = 0; i < numberOfFrequencies; i++) {
 //		freqsDistance += (frequencies[i] - other->frequencies[i])
@@ -221,11 +221,11 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
 	//double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-	double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
+	//double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
 	//double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
 	double fDistance = Utilities::euclideanDistance(frequencies, other->frequencies, 4);
 	//if (correlation < 0) correlation *= -1;
-	double distance = rDistance + fDistance;
+	double distance = rDistance + fDistance + shapeDistance;
 
 	return distance;
 }

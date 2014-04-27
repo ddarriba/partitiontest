@@ -222,7 +222,7 @@ void ModelSelector::print(ostream& out) {
 	case IC_DEFAULT:
 	default:
 		cerr << "ERROR: Undefined Criterion" << endl;
-		exit_partest(EX_UNAVAILABLE);
+		exit_partest(EX_SOFTWARE);
 		break;
 	}
 	out << "Sample size: " << sampleSize << endl << endl;

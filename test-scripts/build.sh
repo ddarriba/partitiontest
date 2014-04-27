@@ -2,15 +2,15 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 
-prefix=testbed
+prefix=kgenes
 datatype=dna
-NUM_SIMS=10
-mintaxa=10
+NUM_SIMS=5
+mintaxa=20
 maxtaxa=50
-mingenes=5
-maxgenes=50
+mingenes=1000
+maxgenes=1000
 minlen=500
-maxlen=1500
+maxlen=500
 
 simsdir=sims.$prefix
 
@@ -20,6 +20,7 @@ INPUT_MODELFILE="${simsdir}/modelsfile.out"
 INPUT_GEN2PARTFILE="${simsdir}/genestopartitions.out"
 INPUT_PARTITIONSFILE="${simsdir}/partitionsfile.out"
 
+OUTPUT_PARTFINDER_DIR="${simsdir}/partitionfinder"
 OUTPUT_INDELIBLE_DIR="${simsdir}/indelible"
 OUTPUT_ALIGNS_DIR="${simsdir}/alignments"
 OUTPUT_PARTEST_DIR="${simsdir}/partitiontest"
@@ -35,6 +36,12 @@ cd -
 
 rm -rf ${LOG_DIR} ${OUTPUT_INDELIBLE_DIR} ${OUTPUT_ALIGNS_DIR} ${OUTPUT_PARTEST_DIR} ${OUTPUT_RKN_DIR} ${OUTPUT_RKT_DIR}
 mkdir  ${LOG_DIR} ${OUTPUT_INDELIBLE_DIR} ${OUTPUT_ALIGNS_DIR} ${OUTPUT_PARTEST_DIR} ${OUTPUT_RKN_DIR} ${OUTPUT_RKT_DIR}
+# make partitionfinder directories
+HCLUSTER_DIR="${OUTPUT_PARTFINDER_DIR}/hcluster"
+RCLUSTER_DIR="${OUTPUT_PARTFINDER_DIR}/rcluster"
+GREEDY_DIR="${OUTPUT_PARTFINDER_DIR}/greedy"
+mkdir -p $HCLUSTER_DIR $RCLUSTER_DIR $GREEDY_DIR
+
 cp bin/indelible ${OUTPUT_INDELIBLE_DIR}/
 
 AUX_FILE=${OUTPUT_INDELIBLE_DIR}/aux.txt
@@ -165,7 +172,24 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	partition_line=`sed "$((sim_index * 3 - 2))q;d" $INPUT_PARTITIONSFILE`
 	num_genes=`echo $partition_line | cut -d' ' -f 2`
 	echo "TRACE    ${num_genes} genes"
-	echo [PARTITIONS] > ${partest_filename}
+	echo [INPUT] > ${partest_filename}
+	echo datatype = nt >> ${partest_filename}
+	echo tree = fixed >> ${partest_filename}
+
+	echo [MODELS] > ${partest_filename}
+	echo include = gtr >> ${partest_filename}
+
+	echo [PARTITIONS] >> ${partest_filename}
+
+	# make partitionfinder output
+	mkdir ${HCLUSTER_DIR}/alignment${sim_index} ${RCLUSTER_DIR}/alignment${sim_index} ${GREEDY_DIR}/alignment${sim_index}
+        partfinder_filename=${HCLUSTER_DIR}/alignment${sim_index}/partition_finder.cfg
+
+        echo alignment = alignment${sim_index}.phy\; >> ${partfinder_filename}
+        echo branchlengths = unlinked\; >> ${partfinder_filename}
+        echo models = all\; >> ${partfinder_filename}
+        echo model_selection = BIC\; >> ${partfinder_filename}
+        echo [data_blocks] >> ${partfinder_filename}
 
 	echo "TRACE    build raxml kn file and partest"
 	next_start=1
@@ -173,6 +197,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		partmodel=`sed "$((part_header_line + gene_index))q;d" ${INPUT_GEN2PARTFILE}`
 		gene_length=`echo ${partmodel} | cut -d' ' -f4`
 		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partest_filename}
+		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partfinder_filename}
 		if [ "$datatype" == "dna" ]; then
 		echo "DNA, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
 		else
@@ -181,7 +206,19 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		next_start=$((next_start+gene_length))
 	done
 	echo [OUTPUT] >> ${partest_filename}
-	echo models=models${sim_index}.out >> ${partest_filename}
-	echo partitions=partitions${sim_index}.out >> ${partest_filename}
-	echo schemes=schemes${sim_index}.out >> ${partest_filename}
+	echo path=alignment${sim_index} >> ${partest_filename}
+
+
+        echo [schemes] >> ${partfinder_filename}
+	cp ${partfinder_filename} ${RCLUSTER_DIR}/alignment${sim_index}/partition_finder.cfg
+	cp ${partfinder_filename} ${GREEDY_DIR}/alignment${sim_index}/partition_finder.cfg
+        echo search = hcluster\; >> ${partfinder_filename}
+        echo search = rcluster\; >> ${RCLUSTER_DIR}/alignment${sim_index}/partition_finder.cfg
+        echo search = greedy\; >> ${GREEDY_DIR}/alignment${sim_index}/partition_finder.cfg
+
+	ln -s ../../../alignments/alignment${sim_index}.phy ${HCLUSTER_DIR}/alignment${sim_index}/alignment${sim_index}.phy
+	ln -s ../../../alignments/alignment${sim_index}.phy ${RCLUSTER_DIR}/alignment${sim_index}/alignment${sim_index}.phy
+	ln -s ../../../alignments/alignment${sim_index}.phy ${GREEDY_DIR}/alignment${sim_index}/alignment${sim_index}.phy
+
+        echo ${index}
 done
