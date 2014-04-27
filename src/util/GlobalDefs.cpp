@@ -85,6 +85,9 @@ namespace partest {
 		if (status == EX_SOFTWARE) {
 			cerr << " ... internal error that should NEVER raise ..." << endl;
 		}
+		if (status == EX_UNAVAILABLE) {
+			cerr << " ... attempting to use an unavailable feature ..." << endl;
+		}
 		exit(status);
 	}
 
