@@ -26,7 +26,6 @@
 
 #define MAX_SECTIONS 10
 #include "util/GlobalDefs.h"
-#include "SimpleIni.h"
 #include <vector>
 
 #define PARTITIONS_TAG 		"partitions"
