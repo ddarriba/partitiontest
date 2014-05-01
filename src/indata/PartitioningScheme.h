@@ -58,7 +58,7 @@ public:
 	 * @brief Gets the number of partitions of this scheme.
 	 * @return The number of partitions of this scheme.
 	 */
-	int getNumberOfElements() {
+	unsigned int getNumberOfElements() {
 		return numberOfElements;
 	}
 

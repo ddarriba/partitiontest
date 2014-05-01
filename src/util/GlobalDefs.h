@@ -14,7 +14,7 @@
 #include <climits>
 #include <string>
 
-#define MAX_FILE_LENGTH 5
+#define MAX_FILE_LENGTH 250
 
 namespace partest {
 

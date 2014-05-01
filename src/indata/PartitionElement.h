@@ -62,10 +62,10 @@ private:
 	bool ready = false;
 
 	t_partitionElementId id;
-	int numberOfSections;
+	unsigned int numberOfSections;
 
-	int numberOfSites;
-	int numberOfPatterns;
+	unsigned int numberOfSites;
+	unsigned int numberOfPatterns;
 
 	vector<Model *> models;
 	SelectionModel * bestModel;

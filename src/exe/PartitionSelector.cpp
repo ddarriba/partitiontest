@@ -44,7 +44,7 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 		double lk = 0;
 		int parms = 0;
 		double value = 0.0;
-		for (int id = 0; id < scheme->getNumberOfElements(); id++) {
+		for (unsigned int id = 0; id < scheme->getNumberOfElements(); id++) {
 			PartitionElement * pe = scheme->getElement(id);
 			SelectionModel * bestModel;
 			if (!pe->getBestModel()) {
@@ -144,7 +144,7 @@ void SelectionPartitioningScheme::print(ostream & out) {
 			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< "Weight" << setw(15) << "CumWeight" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * pe = scheme->getElement(i);
 		SelectionModel * selectionModel = pe->getBestModel();
 
@@ -159,7 +159,7 @@ void SelectionPartitioningScheme::print(ostream & out) {
 				<< selectionModel->getCumWeight() << endl;
 	}
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	for (int i = 0; i < scheme->getNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < scheme->getNumberOfElements(); i++) {
 		out << setw(5) << i + 1 << ": " << scheme->getElement(i)->getName()
 				<< endl;
 	}

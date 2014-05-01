@@ -31,17 +31,14 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	numberOfSections = id.size();
 	numberOfSites = 0;
 	numberOfPatterns = 0;
-
 	sections = (PEsection *) malloc(numberOfSections * sizeof(PEsection));
-
 	name.append("(");
-	for (int i = 0; i < numberOfSections; i++) {
+	for (unsigned int i = 0; i < numberOfSections; i++) {
 		unsigned int part = id.at(i);
 
 		sections[i].start = pllPartitions->partitionData[part]->lower + 1;
 		sections[i].end = pllPartitions->partitionData[part]->upper;
 		sections[i].id = part;
-
 		name.append(*(singleGeneNames[part]));
 		if (i < numberOfSections - 1)
 			name.append(",");
@@ -102,7 +99,7 @@ int PartitionElement::setupStructures(void) {
 			strcpy(_alignData->sequenceLabels[seq],
 					phylip->sequenceLabels[seq]);
 			int nextSite = 0;
-			for (int i = 0; i < numberOfSections; i++) {
+			for (unsigned int i = 0; i < numberOfSections; i++) {
 				unsigned int part = id.at(i);
 				int lower = pllPartitions->partitionData[part]->lower;
 				int width = pllPartitions->partitionData[part]->width;
@@ -112,7 +109,7 @@ int PartitionElement::setupStructures(void) {
 				nextSite += width;
 			}
 		}
-		for (int site = 0; site < numberOfSites; site++) {
+		for (unsigned int site = 0; site < numberOfSites; site++) {
 			_alignData->siteWeights[site] = 1;
 		}
 		pllQueue * partsQueue;
@@ -148,7 +145,7 @@ int PartitionElement::setupStructures(void) {
 
 		pllQueuePartitionsDestroy(&partsQueue);
 
-		assert(_alignData->sequenceLength == numberOfSites);
+		assert(_alignData->sequenceLength == (int) numberOfSites);
 		pllAlignmentRemoveDups(_alignData, _partitions);
 		numberOfPatterns = _alignData->sequenceLength;
 
@@ -439,6 +436,7 @@ int PartitionElement::loadData(void) {
 		} else if (ckphash == "") {
 			ckpLoaded = true;
 		}
+
 		if (!ckpLoaded) {
 			if (ckpSize <= 0) {
 				cerr << "ERROR LOADING CHECKPOINTS" << endl;
@@ -529,7 +527,6 @@ int PartitionElement::loadData(void) {
 	}
 
 	ofs.close();
-
 	return ckpLoaded ? CHECKPOINT_LOADED : CHECKPOINT_UNEXISTENT;
 }
 

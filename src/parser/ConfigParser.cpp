@@ -7,7 +7,7 @@
 
 #include "ConfigParser.h"
 #include "util/Utilities.h"
-#include "IniParser.h"
+#include "INIReader.h"
 #include <string.h>
 #include <assert.h>
 #include <algorithm>
@@ -37,52 +37,32 @@ ConfigParser::ConfigParser(const char * configFile) {
 	dataType = DT_DEFAULT;
 	optimizeMode = OPT_SEARCH;
 
-	vector<const char *> * keys;
-
 	if (configFile != 0 && strcmp(configFile, "")) {
 
-		int partitionId = 0;
 		const char * value;
 
-#ifdef SIMPLEINI
-		CSimpleIniA ini;
-		ini.SetUnicode();
-		SI_Error rc = ini.LoadFile(configFile);
-		if (rc < 0)
-		exit_partest(EX_IOERR);
-
-		CSimpleIniA::TNamesDepend keys;
-#else
-		IniParser ini(configFile);
-#endif
+		//IniParser ini(configFile);
+		INIReader ini(configFile);
 		/** INPUT **/
-		keys = ini.GetAllKeys(INPUT_TAG);
-		if (keys->size() > 0) {
-			value = ini.GetValue(INPUT_TAG, INPUT_MSA_TAG, "");
-			if (strcmp(value, "")) {
-				strcpy(input_file, value);
-			}
-			value = ini.GetValue(INPUT_TAG, INPUT_TREE_TAG, "");
-			if (strcmp(value, "")) {
-				strcpy(user_tree, value);
-			}
-			value = ini.GetValue(INPUT_TAG, INPUT_DATATYPE_TAG, "nt");
-			if (!strcmp(value, "aa")) {
-				dataType = DT_PROTEIC;
-			} else if (!strcmp(value, "nt")) {
-				dataType = DT_NUCLEIC;
-			} else {
-				dataType = DT_NUCLEIC;
-			}
+		value = ini.Get(INPUT_TAG, INPUT_MSA_TAG, "").c_str();
+		if (strcmp(value, "")) {
+			strcpy(input_file, value);
+		}
+		value = ini.Get(INPUT_TAG, INPUT_TREE_TAG, "").c_str();
+		if (strcmp(value, "")) {
+			strcpy(user_tree, value);
+		}
+		value = ini.Get(INPUT_TAG, INPUT_DATATYPE_TAG, "nt").c_str();
+		if (!strcmp(value, "aa")) {
+			dataType = DT_PROTEIC;
+		} else if (!strcmp(value, "nt")) {
+			dataType = DT_NUCLEIC;
+		} else {
+			dataType = DT_NUCLEIC;
 		}
 
 		/** CANDIDATE MODELS **/
-#ifdef SIMPLEINI
-		ini.GetAllKeys(MODELS_TAG, keys);
-		if (keys.size() > 0) {
-#else
-#endif
-		value = ini.GetValue(MODELS_TAG, MODELS_INCLUDE_TAG, "all");
+		value = ini.Get(MODELS_TAG, MODELS_INCLUDE_TAG, "all").c_str();
 		if (!strcmp(value, "all")) {
 			optimizeMode = OPT_SEARCH;
 		} else if (!strcmp(value, "gtr")) {
@@ -136,10 +116,8 @@ ConfigParser::ConfigParser(const char * configFile) {
 		}
 
 		/** SEARCH ALGORITHM **/
-		keys = ini.GetAllKeys(SEARCH_TAG);
-		searchData = keys->size() > 0;
-		if (searchData) {
-			value = ini.GetValue(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "none");
+		if (search_algo == SearchDefault) {
+			value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "none").c_str();
 			if (!strcmp(value, "greedy")) {
 				searchAlgorithm = SearchGreedy;
 			} else if (!strcmp(value, "exhaustive")) {
@@ -152,35 +130,30 @@ ConfigParser::ConfigParser(const char * configFile) {
 				cerr << "Invalid search algorithm : " << value << endl;
 				exit_partest(EX_SOFTWARE);
 			}
-
-			value = ini.GetValue(SEARCH_TAG, SEARCH_ALGORITHM_REPS, "1");\
-			for (int i = 0; value[i] != 0; i++)
-				if (!isdigit(value[i])) {
-					cerr << "[ERROR] Number of replicates \"" << value
-							<< "\" must be an integer." << endl;
-					exit_partest(EX_USAGE);
-				}
-			maxSamples = atoi(value);
 		}
 
+		maxSamples = ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
+
 		/** PARTITIONS **/
-		keys = ini.GetAllKeys(PARTITIONS_TAG);
+		std::map<std::string, std::string> * keys = ini.getGenes(
+		PARTITIONS_TAG);
 		number_of_genes = keys->size();
 
 		partitions = new vector<partitionInfo>(number_of_genes);
 		singleGeneNames = (string **) malloc(number_of_genes * sizeof(string*));
 
-		char * lineBuffer = (char *) malloc(150);
-		for (const char * key : *keys) {
-			partitions->at(partitionId).name = key;
-			singleGeneNames[partitionId] = new string(key);
+		std::map<std::string, std::string>::iterator iter;
+		int partitionId = 0;
+		for (iter = keys->begin(); iter != keys->end(); iter++) {
+			partitions->at(partitionId).name = iter->first;
+			singleGeneNames[partitionId] = new string(iter->first);
 
-			strcpy(lineBuffer,
-					ini.GetValue(PARTITIONS_TAG, key, "default"));
+			char lineBuffer[iter->second.length() + 1];
+			strcpy(lineBuffer, iter->second.c_str());
 			parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
 			partitionId++;
 		}
-		free(lineBuffer);
+		delete keys;
 
 		std::sort(partitions->begin(), partitions->end(),
 				comparePartitionInfos());
@@ -216,15 +189,15 @@ ConfigParser::ConfigParser(const char * configFile) {
 		}
 
 		/** OUTPUT **/
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_BASE_PATH, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_BASE_PATH, "").c_str();
+		if (strcmp(value, "")) {
 			if (value[strlen(value) - 1] != char_separator)
 				outputBasePath = string(value) + os_separator;
 			else
 				outputBasePath = string(value);
 		}
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_TMP_PATH, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_TMP_PATH, "").c_str();
+		if (strcmp(value, "")) {
 			if (value[strlen(value) - 1] != char_separator)
 				outputTmpPath = string(value) + os_separator;
 			else
@@ -232,20 +205,20 @@ ConfigParser::ConfigParser(const char * configFile) {
 		} else {
 			outputTmpPath = outputBasePath;
 		}
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_RESULTS_TAG, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_RESULTS_TAG, "").c_str();
+		if (strcmp(value, "")) {
 			outputFileResults = outputBasePath + string(value);
 		}
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_MODELS_TAG, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_MODELS_TAG, "").c_str();
+		if (strcmp(value, "")) {
 			outputFileModels = outputBasePath + string(value);
 		}
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_PARTS_TAG, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_PARTS_TAG, "").c_str();
+		if (strcmp(value, "")) {
 			outputFilePartitions = outputBasePath + string(value);
 		}
-		value = ini.GetValue(OUTPUT_TAG, OUTPUT_SCHEMES_TAG, 0);
-		if (value) {
+		value = ini.Get(OUTPUT_TAG, OUTPUT_SCHEMES_TAG, "").c_str();
+		if (strcmp(value, "")) {
 			outputFileSchemes = outputBasePath + string(value);
 		}
 
@@ -279,7 +252,6 @@ int ConfigParser::parsePartitionDetails(char * line,
 		pInfo->start[numberOfSections] = start;
 		pInfo->end[numberOfSections] = end;
 		pInfo->stride[numberOfSections] = 1;
-
 		numberOfSections++;
 		parsed = strtok(NULL, "-");
 	}

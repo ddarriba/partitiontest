@@ -174,7 +174,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		}
 
 		if (improving) {
-			for (int i = 0; i < localBestScheme->getNumberOfElements(); i++) {
+			for (unsigned int i = 0; i < localBestScheme->getNumberOfElements(); i++) {
 				PartitionMap::getInstance()->purgePartitionMap(
 						localBestScheme->getElement(i)->getId());
 			}
