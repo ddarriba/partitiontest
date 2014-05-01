@@ -251,7 +251,7 @@ void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme
 		ofs << "    " << bestScheme->getTree() << endl;
 		ofs << "  </tree>" << endl;
 	}
-	for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = bestScheme->getElement(i);
 		ofs << "  <partition id=\"" << i + 1 << "\" num_elements=\""
 				<< element->getNumberOfSections() << "\" num_sites=\""
@@ -272,7 +272,7 @@ void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme
 		ofs << "  </partition>" << endl;
 	}
 	ofs << "  <raxml_control>" << endl;
-	for (int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+	for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = bestScheme->getElement(i);
 		switch (data_type) {
 		case DT_NUCLEIC:
@@ -285,6 +285,9 @@ void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme
 					<< ", ";
 
 			break;
+		case DT_DEFAULT:
+				cerr << "Uninitialized DataType" << endl;
+				exit_partest(EX_SOFTWARE);
 		}
 		ofs << "PART" << i + 1 << " = ";
 		for (int j = 0; j < element->getNumberOfSections(); j++) {

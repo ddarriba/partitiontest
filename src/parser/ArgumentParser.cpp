@@ -39,7 +39,7 @@ void ArgumentParser::init() {
 }
 
 ArgumentParser::ArgumentParser(PartitionTest * ptest) :
-	ptest(ptest), index(0), subindex(0) {
+		ptest(ptest), index(0), subindex(0) {
 
 	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
 			ARG_INPUT_FILE, 'i', "input-file", true }, {
@@ -62,7 +62,7 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
 			ARG_CONFIG_HELP, 0, "config-help", false }, {
 			ARG_CONFIG_TEMPLATE, 0, "config-template", false }, {
-			ARG_NON_STOP, 0, "non-stop", false }};
+			ARG_NON_STOP, 0, "non-stop", false } };
 	unsigned int size = NUM_ARGUMENTS * sizeof(option);
 
 	arguments = (option *) malloc(size);
@@ -148,7 +148,6 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 			exit_partest(EX_USAGE);
 		}
 
-
 		return arg_index;
 	}
 }
@@ -206,8 +205,8 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_TOPOLOGY:
-				if (!strcmp(value, ARG_TOPO_MP)) {
-					startingTopology = StartTopoMP;
+			if (!strcmp(value, ARG_TOPO_MP)) {
+				startingTopology = StartTopoMP;
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
 				startingTopology = StartTopoFIXED;
 			} else if (!strcmp(value, ARG_TOPO_USER)) {
@@ -217,9 +216,9 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 						<< "\" is not a valid input topology. Use one of the following:"
 						<< endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_MP
-				<< "MP topology" << endl;
+						<< "MP topology" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
-				<< "Fixed ML topology for every model" << endl;
+						<< "Fixed ML topology for every model" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_USER
 						<< "User-defined topology" << endl;
 				exit_partest(EX_CONFIG);
@@ -256,14 +255,13 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_HCLUSTER_REPS:
-			for (int i=0; value[i]!=0; i++)
-				if(!isdigit(value[i])) {
-					cerr << "[ERROR] \"-r " << value
-					<< "\" must be an integer."
-					<< endl;
+			for (int i = 0; value[i] != 0; i++)
+				if (!isdigit(value[i])) {
+					cerr << "[ERROR] \"-r " << value << "\" must be an integer."
+							<< endl;
 					exit_partest(EX_CONFIG);
 				}
-				maxSamples = atoi(value);
+			maxSamples = atoi(value);
 			break;
 		case ARG_NON_STOP:
 			non_stop = true;

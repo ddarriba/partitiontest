@@ -65,6 +65,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 	partitions->push_back(pInfo);
 	numberOfElements++;
+
 	return pInfo.partitionElement;
 }
 

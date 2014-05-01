@@ -265,7 +265,6 @@ int main(int argc, char * argv[]) {
 
 	PartitioningScheme * bestScheme = searchAlgo->start();
 
-	cout << "Final Tree" << endl;
 	ModelOptimize mo;
 	mo.buildFinalTree(bestScheme, true);
 

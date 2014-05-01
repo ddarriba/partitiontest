@@ -2,15 +2,15 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 
-prefix=kgenes
+prefix=sim1c
 datatype=dna
-NUM_SIMS=5
-mintaxa=20
-maxtaxa=50
-mingenes=1000
-maxgenes=1000
+NUM_SIMS=2400
+mintaxa=6
+maxtaxa=40
+mingenes=10
+maxgenes=50
 minlen=500
-maxlen=500
+maxlen=1500
 
 simsdir=sims.$prefix
 
@@ -141,21 +141,20 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		cur_len=`echo ${partline} | cut -d' ' -f4`
 		if [ "" == "${trueparts[$cur_part]}" ]; then
 			if [ "$datatype" == "dna" ]; then
-				trueparts[$cur_part]="DNA, PART$cur_part=${next_pos}-$((next_pos + cur_len))"
+				trueparts[$cur_part]="DNAX, PART$cur_part=${next_pos}-$((next_pos + cur_len - 1))"
 			else
-				trueparts[$cur_part]="AUTO, PART$cur_part=${next_pos}-$((next_pos + cur_len))"
+				trueparts[$cur_part]="AUTO, PART$cur_part=${next_pos}-$((next_pos + cur_len - 1))"
 			fi
 		else
-			trueparts[$cur_part]="${trueparts[$cur_part]},${next_pos}-$((next_pos + cur_len))"
+			trueparts[$cur_part]="${trueparts[$cur_part]},${next_pos}-$((next_pos + cur_len - 1))"
 		fi
-		next_pos=$((next_pos + cur_len + 1))
+		next_pos=$((next_pos + cur_len))
 	done
 
 	for ((partition_index=1; partition_index<=${num_partitions}; partition_index++)); do
 		echo ${trueparts[$partition_index]} >> $OUTPUT_RKT_DIR/control${sim_index}
 	done
 
-	part_header_line=$((part_header_line + num_genes + 1))
 
 	echo "TRACE    build alignment"
 	cd ${OUTPUT_INDELIBLE_DIR}
@@ -194,6 +193,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	echo "TRACE    build raxml kn file and partest"
 	next_start=1
 	for ((gene_index=1; gene_index<=${num_genes}; gene_index++)); do
+echo B $part_header_line
 		partmodel=`sed "$((part_header_line + gene_index))q;d" ${INPUT_GEN2PARTFILE}`
 		gene_length=`echo ${partmodel} | cut -d' ' -f4`
 		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partest_filename}
@@ -219,6 +219,8 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	ln -s ../../../alignments/alignment${sim_index}.phy ${HCLUSTER_DIR}/alignment${sim_index}/alignment${sim_index}.phy
 	ln -s ../../../alignments/alignment${sim_index}.phy ${RCLUSTER_DIR}/alignment${sim_index}/alignment${sim_index}.phy
 	ln -s ../../../alignments/alignment${sim_index}.phy ${GREEDY_DIR}/alignment${sim_index}/alignment${sim_index}.phy
+
+	part_header_line=$((part_header_line + num_genes + 1))
 
         echo ${index}
 done

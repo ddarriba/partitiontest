@@ -206,17 +206,22 @@ for(sample_index in 1:(SAMPLES)) {
     } else {
 	TAXA_COUNT = MIN_TAXA
     }
-    tree = rtree(TAXA_COUNT,TRUE,NULL,rexp,rate=10)
-    PhyloSim(tree)$treeLength
-    write.tree(tree)
+    goodTree = FALSE
+    while (!goodTree) {
+      tree = rtree(TAXA_COUNT,TRUE,NULL,rexp,rate=10)
+      PhyloSim(tree)$treeLength
+    
+      write.tree(tree)
 
-    # Scale total tree length so the tree length uniformly distributed in the [0.5, 10] range
-    runiform = runif(1,0,1)
-    scale_factor = (2.0 + 10.0*runiform)
-    scaledPhyloTree=PhyloSim(tree)
-    scaleTree(scaledPhyloTree,scale_factor/scaledPhyloTree$treeLength)
-    scaledPhyloTree$treeLength
-    scaledTree = getPhylo(scaledPhyloTree)
+      # Scale total tree length so the tree length uniformly distributed in the [0.5, 10] range
+      runiform = runif(1,0,1)
+      scale_factor = (2.0 + 10.0*runiform)
+      scaledPhyloTree=PhyloSim(tree)
+      scaleTree(scaledPhyloTree,scale_factor/scaledPhyloTree$treeLength)
+      scaledPhyloTree$treeLength
+      scaledTree = getPhylo(scaledPhyloTree)
+      goodTree = (max(tree$edge.length)/min(tree$edge.length) < 200 && max(scaledTree$edge.length < 2) && min(scaledTree$edge.length>0.005))
+    }
     write.tree(scaledTree, file=OUT_TREE_FILE, append=TRUE)
 
     treeStr = write.tree(scaledTree)
@@ -225,7 +230,7 @@ for(sample_index in 1:(SAMPLES)) {
     tList = list(id=sample_index, ngenes=num_genes, nparts=num_partitions, part0=partitionstring, 
       part1=partitionstringDEC, ntaxa=TAXA_COUNT, seqlen=(startposition-1),treelen=treeLen,tree=treeStr)
     write.table(tList, file=OUT_SUMMARY_FILE, append=TRUE, col.names=FALSE, row.names=FALSE, quote=FALSE)
-
+    cat(sample_index,"\n")
 } # end SAMPLES
 cat("\nDone R script\n")
 
