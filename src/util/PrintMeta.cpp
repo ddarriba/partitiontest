@@ -300,7 +300,7 @@ void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme
 		ofs << endl;
 	}
 	ofs << "  </raxml_control>" << endl;
-	ofs << "</mbest_scheme>" << endl;
+	ofs << "</best_scheme>" << endl;
 }
 
 void PrintMeta::print_results(ostream & ofs, PartitioningScheme * bestScheme) {
