@@ -54,7 +54,8 @@ struct nextSchemeFunctor {
 		currentScheme++;
 		j++;
 		if (j == i) {
-			i++; j=0;
+			i++;
+			j = 0;
 		}
 
 		return (new PartitioningScheme(&nextSchemeId));
@@ -109,79 +110,125 @@ vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
 
 PartitioningScheme * GreedySearchAlgorithm::start() {
 
+	SchemeManager schemeManager;
+
 	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
 	double bestScore, score;
-	ModelOptimize * modelOptimize = new ModelOptimize();
 	int numberOfPartitions = number_of_genes;
 	vector<PartitioningScheme *> nextSchemes;
 	int step = 1;
 	int maxSteps = number_of_genes;
 
-	/* building first scheme */
-	cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps << endl;
-	t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
-			number_of_genes);
-	for (unsigned int gene = 0; gene < number_of_genes; gene++) {
-		t_partitionElementId geneId(1);
-		geneId.at(0) = gene;
-		firstSchemeId->at(gene) = geneId;
-	}
-
-	localBestScheme = bestScheme = new PartitioningScheme(firstSchemeId);
-	nextSchemes.push_back(bestScheme);
-	delete firstSchemeId;
-
-	modelOptimize->optimizePartitioningScheme(bestScheme);
-
-	PartitionSelector ps(nextSchemes);
-	nextSchemes.clear();
-
-	bestScore = score = ps.getBestScheme()->getIcValue();
-
 	bool improving = true;
-	while (improving) {
-		cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps << endl;
-		nextSchemeFunctor nextScheme(localBestScheme);
-		nextSchemes.reserve(nextScheme.size());
+	if (I_AM_ROOT) {
 
-		int schemeIndex = 0;
-		while (PartitioningScheme * scheme = nextScheme()) {
-			modelOptimize->optimizePartitioningScheme(scheme, schemeIndex++, nextScheme.size());
-			nextSchemes.push_back(scheme);
+		/* building first scheme */
+		cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
+				<< endl;
+		t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+				number_of_genes);
+		for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+			t_partitionElementId geneId(1);
+			geneId.at(0) = gene;
+			firstSchemeId->at(gene) = geneId;
 		}
-		numberOfPartitions = localBestScheme->getNumberOfElements()-1;
+
+		localBestScheme = bestScheme = new PartitioningScheme(firstSchemeId);
+		nextSchemes.push_back(bestScheme);
+		delete firstSchemeId;
+
+		mo.optimizePartitioningScheme(bestScheme);
 
 		PartitionSelector ps(nextSchemes);
-		//ps.print(cout);
-		localBestScheme = ps.getBestScheme();
-		score = localBestScheme->getIcValue();
-
-		if (score < bestScore) {
-			delete bestScheme;
-			bestScheme = localBestScheme;
-			PartitionMap::getInstance()->keep(bestScheme->getId());
-			cout << timestamp() << " [GRE] Improving " << bestScore - score << " score units." << endl;
-			bestScore = score;
-		} else {
-			cout << timestamp() << " [GRE] Scheme is " << score - bestScore << " score units ahead the best score." << endl;
-		}
-		improving = ((non_stop || bestScore == score) && (numberOfPartitions > 1));
-
-		for (PartitioningScheme * scheme : nextSchemes) {
-			if (scheme != localBestScheme) {
-				delete scheme;
-			}
-		}
-
-		if (improving) {
-			for (unsigned int i = 0; i < localBestScheme->getNumberOfElements(); i++) {
-				PartitionMap::getInstance()->purgePartitionMap(
-						localBestScheme->getElement(i)->getId());
-			}
-		}
-
 		nextSchemes.clear();
+
+		bestScore = score = ps.getBestScheme()->getIcValue();
+
+		while (improving) {
+			cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
+					<< endl;
+			nextSchemeFunctor nextScheme(localBestScheme);
+			nextSchemes.reserve(nextScheme.size());
+
+			int schemeIndex = 0;
+			while (PartitioningScheme * scheme = nextScheme()) {
+				if (!scheme->isOptimized())
+					schemeManager.addScheme(scheme);
+				nextSchemes.push_back(scheme);
+			}
+			schemeManager.optimize(mo);
+
+			numberOfPartitions = localBestScheme->getNumberOfElements() - 1;
+
+			PartitionSelector ps(nextSchemes);
+			//ps.print(cout);
+			localBestScheme = ps.getBestScheme();
+			score = localBestScheme->getIcValue();
+
+			if (score < bestScore) {
+				delete bestScheme;
+				bestScheme = localBestScheme;
+				PartitionMap::getInstance()->keep(bestScheme->getId());
+				cout << timestamp() << " [GRE] Improving " << bestScore - score
+						<< " score units." << endl;
+				bestScore = score;
+			} else {
+				cout << timestamp() << " [GRE] Scheme is " << score - bestScore
+						<< " score units ahead the best score." << endl;
+			}
+#ifdef _MPI
+			// wait for all the results
+			//MPI_Barrier(MPI_COMM_WORLD);
+#endif
+			improving = ((non_stop || bestScore == score)
+					&& (numberOfPartitions > 1));
+#ifdef _MPI
+			//MPI_Bcast(&improving, 1, MPI_INT, myRank, MPI_COMM_WORLD );
+#endif
+			for (PartitioningScheme * scheme : nextSchemes) {
+				if (scheme != localBestScheme) {
+					delete scheme;
+				}
+			}
+
+			if (improving) {
+				for (unsigned int i = 0;
+						i < localBestScheme->getNumberOfElements(); i++) {
+					PartitionMap::getInstance()->purgePartitionMap(
+							localBestScheme->getElement(i)->getId());
+				}
+			}
+
+			nextSchemes.clear();
+		}
 	}
+
+#ifdef _MPI
+	else {
+//		while(improving) {
+//			MPI_Status status;
+//			int numElemsInScheme;
+//			MPI_Recv(&numElemsInScheme, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
+//			if (numElemsInScheme > 0) {
+//				t_partitioningScheme nextSchemeId(numElemsInScheme);
+//				for (int i=0; i<numElemsInScheme; i++) {
+//					int arrSize;
+//					MPI_Recv(&arrSize, 1, MPI_INT, 0, i+1, MPI_COMM_WORLD, &status);
+//					t_partitionElementId * nextElement = new t_partitionElementId(arrSize);
+//					MPI_Recv(&(nextElement->front()), arrSize, MPI_INT, 0, i+1, MPI_COMM_WORLD, &status);
+//					nextSchemeId.at(i) = *nextElement;
+//				}
+//				PartitioningScheme nextScheme(&nextSchemeId);
+//				modelOptimize->optimizePartitioningScheme(&nextScheme, 0,
+//										1);
+//				cout << "::::::" << nextScheme.getLnL() << endl;
+//			} else {
+			//	MPI_Barrier(MPI_COMM_WORLD);
+			//	MPI_Bcast(&improving, 1, MPI_INT, 0, MPI_COMM_WORLD );
+//			}
+//		}
+	}
+#endif
 
 	return bestScheme;
 }

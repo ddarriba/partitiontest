@@ -20,6 +20,17 @@ public:
 	virtual PartitioningScheme * start() = 0;
 protected:
 	ModelOptimize mo;
+	class SchemeManager {
+	public:
+		SchemeManager();
+		~SchemeManager();
+
+		int addSchemes(vector<PartitioningScheme *> schemesToAdd);
+		int addScheme(PartitioningScheme * schemeToAdd);
+		int optimize(ModelOptimize &mo);
+	private:
+		vector<PartitioningScheme *> * nextSchemes;
+	};
 };
 
 } /* namespace partest */

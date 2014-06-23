@@ -18,6 +18,11 @@ using namespace std;
 
 namespace partest {
 
+#ifdef _MPI
+	int myRank = 0;
+	int numProcs = 0;
+#endif
+
 	int number_of_threads = 1;
 	bool ckpAvailable = false;
 	string ckpPath;
