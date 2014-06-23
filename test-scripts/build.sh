@@ -2,15 +2,15 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 
-prefix=sim1c
+prefix=simkgenes
 datatype=dna
-NUM_SIMS=2400
-mintaxa=6
-maxtaxa=40
-mingenes=10
-maxgenes=50
+NUM_SIMS=200
+mintaxa=10
+maxtaxa=20
+mingenes=1000
+maxgenes=1000
 minlen=500
-maxlen=1500
+maxlen=1000
 
 simsdir=sims.$prefix
 
@@ -197,7 +197,7 @@ echo B $part_header_line
 		partmodel=`sed "$((part_header_line + gene_index))q;d" ${INPUT_GEN2PARTFILE}`
 		gene_length=`echo ${partmodel} | cut -d' ' -f4`
 		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partest_filename}
-		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partfinder_filename}
+		echo "GENE${gene_index}=${next_start}-$((next_start+gene_length-1));" >> ${partfinder_filename}
 		if [ "$datatype" == "dna" ]; then
 		echo "DNA, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
 		else

@@ -46,7 +46,16 @@ ConfigParser::ConfigParser(const char * configFile) {
 		/** INPUT **/
 		value = ini.Get(INPUT_TAG, INPUT_MSA_TAG, "").c_str();
 		if (strcmp(value, "")) {
-			strcpy(input_file, value);
+			int prefixLen = 0;
+			char basedir[strlen(configFile)];
+			strcpy(basedir, configFile);
+			char * lastSlash = strrchr(basedir, char_separator);
+			if (lastSlash) {
+				*(lastSlash + 1) = 0;
+				strcpy(input_file, basedir);
+				prefixLen = strlen(basedir);
+			}
+			strcpy(input_file + prefixLen, value);
 		}
 		value = ini.Get(INPUT_TAG, INPUT_TREE_TAG, "").c_str();
 		if (strcmp(value, "")) {
