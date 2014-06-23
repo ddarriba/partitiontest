@@ -234,9 +234,21 @@ using namespace std;
 
 int main(int argc, char * argv[]) {
 
+#ifdef _MPI
+	if (MPI_Init( &argc, &argv )) {
+		cerr << "Error initializing MPI!!" << endl;
+		exit_partest(EX_PROTOCOL);
+	}
+
+	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+	MPI_Comm_rank( MPI_COMM_WORLD, &myRank );
+#endif
+
 	PartitionTest * ptest = new PartitionTest();
 
-	PrintMeta::print_header(cout);
+	if (I_AM_ROOT) {
+		PrintMeta::print_header(cout);
+	}
 
 	ArgumentParser * parser = new ArgumentParser(ptest);
 	parser->parse(argc, argv);
@@ -265,15 +277,17 @@ int main(int argc, char * argv[]) {
 
 	PartitioningScheme * bestScheme = searchAlgo->start();
 
-	ModelOptimize mo;
-	mo.buildFinalTree(bestScheme, true);
+	if (I_AM_ROOT) {
+		ModelOptimize mo;
+		mo.buildFinalTree(bestScheme, true);
 
-	if (ckpAvailable && results_logfile) {
-		ofstream ofs(results_logfile->c_str(), ios::out);
-		PrintMeta::print_results_xml(ofs, bestScheme);
-		ofs.close();
+		if (ckpAvailable && results_logfile) {
+			ofstream ofs(results_logfile->c_str(), ios::out);
+			PrintMeta::print_results_xml(ofs, bestScheme);
+			ofs.close();
+		}
+		PrintMeta::print_results(cout, bestScheme);
 	}
-	PrintMeta::print_results(cout, bestScheme);
 
 	delete bestScheme;
 	delete searchAlgo;
@@ -282,6 +296,11 @@ int main(int argc, char * argv[]) {
 
 	delete parser;
 	delete ptest;
+
+#ifdef _MPI
+	cout << "My rank is " << myRank << endl;
+	MPI_Finalize();
+#endif
 
 	exit_partest(EX_OK);
 }

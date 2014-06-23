@@ -14,6 +14,14 @@
 #include <climits>
 #include <string>
 
+#ifdef _MPI
+  #include <mpi.h>
+  #define I_AM_ROOT myRank==0
+#else
+  #define I_AM_ROOT 1
+#endif
+
+
 #define MAX_FILE_LENGTH 250
 
 namespace partest {
@@ -188,6 +196,11 @@ extern std::string * output_dir;
 extern std::string * models_logfile;
 extern std::string * schemes_logfile;
 extern std::string * results_logfile;
+
+#ifdef _MPI
+	extern int myRank;
+	extern int numProcs;
+#endif
 
 /* data description */
 extern unsigned int num_taxa;

@@ -3,8 +3,8 @@ OBJ_DIR = src/
 PLL_DIR = /usr/local/include/pll
 
 CLIBRARIES = -lm -lpthread -lpll-sse3-pthreads # -fopenmp
-CPP = g++
-CXXFLAGS = -O3 -I$(PLL_DIR) -D_PLL -DHAVE_CONFIG_H -D_GNU_SOURCE -g -std=c++0x \
+CPP = mpic++
+CXXFLAGS = -O3 -I$(PLL_DIR) -D_MPI -D_PLL -DHAVE_CONFIG_H -D_GNU_SOURCE -g -std=c++0x \
    -Waddress -Warray-bounds -Wc++11-compat -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain -Wmaybe-uninitialized -Wmissing-braces -Wnonnull -Wparentheses -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunused-function -Wunused-label -Wunused-value -Wunused-variable -Wvolatile-register-var -DPTHREADS  #-fopenmp 
 
 
@@ -38,7 +38,6 @@ PARTEST_OBJ = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(PARTEST_CXXFILES))
 all: partest 
 	$(CPP) $(CXXFLAGS) \
 	$(PARTEST_OBJ) -o partest-pll $(CLIBRARIES)
-
 
 clean:
 	-rm $(PARTEST_OBJ) 
