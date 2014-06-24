@@ -43,7 +43,7 @@ public:
 	RandomSearchAlgorithm();
 	virtual ~RandomSearchAlgorithm();
 	virtual PartitioningScheme * start();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 private:
 	int getRandomPartitioningScheme(vector<PartitioningScheme *> & nextSchemes,
 			int numberOfSchemes, t_partitioningScheme p0);
