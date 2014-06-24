@@ -60,7 +60,6 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 			cout << timestamp() << " [HCL] Step " << currentStep++ << "/"
 					<< maxSteps << endl;
 
-			int schemeIndex = 0;
 			for (PartitioningScheme * scheme : nextSchemes) {
 				if (!scheme->isOptimized())
 					schemeManager.addScheme(scheme);
@@ -136,6 +135,9 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 		}
 	}
 #endif
+
+	if (bestScheme != localBestScheme)
+			delete localBestScheme;
 
 	delete modelOptimize;
 	return bestScheme;

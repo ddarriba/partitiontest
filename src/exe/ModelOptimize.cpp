@@ -390,7 +390,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 				}
 				pllSetSubstitutionRateMatrixSymmetries(symmetryPar, compParts,
 						cur_part);
-
+				free(symmetryPar);
 			}
 		}
 		pllRaxmlSearchAlgorithm(fTree, compParts, PLL_FALSE);
@@ -426,7 +426,10 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 	cout << timestamp() << " Final tree: " << final_tree << endl;
 
-	return string(final_tree);
+	string finalTreeStr(final_tree);
+	free(final_tree);
+
+	return finalTreeStr;
 }
 
 int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,

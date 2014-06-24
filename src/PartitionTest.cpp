@@ -9,6 +9,7 @@
 #include "search/SearchAlgorithm.h"
 #include "search/HierarchicalClusteringSearchAlgorithm.h"
 #include "search/GreedySearchAlgorithm.h"
+#include "search/RandomSearchAlgorithm.h"
 #include "indata/PartitioningScheme.h"
 #include "indata/PartitionMap.h"
 #include "util/PrintMeta.h"
@@ -54,7 +55,7 @@ PartitionTest::~PartitionTest() {
 		pllQueuePartitionsDestroy(&pllPartsQueue);
 	if (tree) {
 		if (pllPartitions && pllPartitions->alphaList) {
-			//pllPartitionsDestroy(tree, &pllPartitions);
+//			pllPartitionsDestroy(tree, &pllPartitions);
 		}
 		if (tree->nameHash) {
 			pllDestroyInstance(tree);
@@ -276,8 +277,10 @@ int main(int argc, char * argv[]) {
 	case SearchGreedy:
 		searchAlgo = new GreedySearchAlgorithm();
 		break;
-	case SearchExhaustive:
 	case SearchRandom:
+		searchAlgo = new RandomSearchAlgorithm();
+		break;
+	case SearchExhaustive:
 	case SearchGreedyExtended:
 	default:
 		break;
