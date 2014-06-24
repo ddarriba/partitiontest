@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <thread>
 #include <memory>
-//#include <mpi.h>
+#include <unistd.h>
 
 namespace partest {
 
@@ -26,7 +26,6 @@ SearchAlgorithm::SchemeManager::~SchemeManager() {
 
 int SearchAlgorithm::SchemeManager::addSchemes(
 		vector<PartitioningScheme *> schemesToAdd) {
-
 	(*nextSchemes) = schemesToAdd;
 	return nextSchemes->size();
 }
@@ -37,99 +36,105 @@ int SearchAlgorithm::SchemeManager::addScheme(
 	return nextSchemes->size();
 }
 
+#ifdef _MPI
 void * distribute(void * arg) {
-
 	vector<PartitioningScheme *> * nextSchemes =
 			(vector<PartitioningScheme *> *) arg;
-	//vector<int *> * vec = (vector<int *> *)arg;
-	int buf;
-	MPI_Status targetStatus, statusRecv;
 
-	for (unsigned int i = 0; i < nextSchemes->size(); i++) {
-		PartitioningScheme * scheme = nextSchemes->at(i);
-		for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
-			PartitionElement * element = scheme->getElement(j);
-			if (!element->isOptimized()) {
-				// wait for request
-//				cerr << "MASTER: wait for request" << endl;
-				MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG,
-						MPI_COMM_WORLD, &targetStatus);
-				MPI_Barrier (MPI_COMM_WORLD);
-				buf = element->getId().size(); //getNumberOfSections();
-				// send element
-//				cerr << "MASTER: " << buf << " sending request" << endl;
-				MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1,
-						MPI_COMM_WORLD);
-				MPI_Barrier(MPI_COMM_WORLD);
-//				cerr << "MASTER: " << buf << " sent request" << endl;
-				MPI_Ssend(&(element->getId().front()), buf, MPI_INT,
-						targetStatus.MPI_SOURCE, 2, MPI_COMM_WORLD);
-//				cerr << "MASTER: " << element->getId().size() << " sent objects" << endl;
+	if (numProcs > 1) {
+		int buf;
+		MPI_Status targetStatus;
+		for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+			PartitioningScheme * scheme = nextSchemes->at(i);
+			for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+				PartitionElement * element = scheme->getElement(j);
+				if (!(element->isOptimized() || element->isTagged())) {
+					// wait for request
+					element->setTagged(true);
+					MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, 0,
+							MPI_COMM_WORLD, &targetStatus);
+					buf = element->getId().size(); //getNumberOfSections();
+					// send element
+					MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1,
+							MPI_COMM_WORLD);
+					MPI_Ssend(&(element->getId().front()), buf, MPI_INT,
+							targetStatus.MPI_SOURCE, 2, MPI_COMM_WORLD);
+				}
 			}
 		}
+		for (int i = 1; i < numProcs; i++) {
+			MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,
+					&targetStatus);
+			buf = 0;
+			MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1,
+					MPI_COMM_WORLD);
+		}
 	}
-	cerr << "FINALIZING FOR " << numProcs << endl;
-	for (int i = 0; i < numProcs; i++) {
-		// wait for request
-		cout << "Going to finish!" << endl;
-		MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD,
-				&targetStatus);
-		// send termination
-		cout << "Send FINALIZING!" << endl;
-		buf = 0;
-		MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1, MPI_COMM_WORLD);
-	}
+
 	return 0;
 }
+#endif
 
 int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 	t_partitionElementId id(3);
 #ifdef _MPI
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Status status;
 	if (I_AM_ROOT) {
 		pthread_t t1;
-		cout << "LAUNCH NEW THREAD" << endl;
 		pthread_create(&t1, NULL, &distribute, (void *) nextSchemes);
-
+		int nextItem = 1;
+		while (nextItem) {
+			nextItem = 0;
+			for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+				PartitioningScheme * scheme = nextSchemes->at(i);
+				for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+					PartitionElement * element = scheme->getElement(j);
+					if (!(element->isOptimized() || element->isTagged())) {
+						element->setTagged(true);
+						nextItem = 1;
+						mo.optimizePartitionElement(element);
+					}
+				}
+			}
+		}
+		pthread_join(t1, NULL);
 	} else {
 		int nextItem = 1;
 		while (nextItem > 0) {
-			//			cerr << "SLAVE: send request" << endl;
 			MPI_Ssend(&nextItem, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-			//			cerr << "SLAVE: receiving request" << endl;
 			MPI_Recv(&nextItem, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
-			//			cerr << "SLAVE: " << nextItem << " received request" << endl;
 			if (nextItem) {
 				t_partitionElementId id(nextItem);
 				MPI_Recv(&(id.front()), nextItem, MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
-				//				cerr << "SLAVE: " << id.size() << " received objects" << endl;
 				PartitionElement * element = PartitionMap::getInstance()->getPartitionElement(id);
 				mo.optimizePartitionElement(element);
-			} else {
-				cout << "FINALIZING!" << endl;
 			}
 		}
-		nextSchemes->clear();
-//#ifdef _MPI
-//				int numElemsInScheme = scheme->getId().size();
-//				MPI_Ssend(&numElemsInScheme, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-//				for (int i=0; i<numElemsInScheme; i++) {
-//					int vecSize = scheme->getId().at(i).size();
-//					MPI_Ssend(&vecSize, 1, MPI_INT, 1, i+1, MPI_COMM_WORLD);
-//					MPI_Ssend(&(scheme->getId().at(i).front()), scheme->getId().at(i).size(), MPI_INT, 1, i+1, MPI_COMM_WORLD);
-//				}
-//#endif
-//#ifdef _MPI
-//			int zeroSend = 0;
-//			MPI_Ssend(&zeroSend, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-//#endif
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (I_AM_ROOT) {
+		for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+			PartitioningScheme * scheme = nextSchemes->at(i);
+			for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+				PartitionElement * element = scheme->getElement(j);
+				if (element->isTagged() && !element->isOptimized()) {
+					if (element->loadData()) {
+						exit_partest(EX_IOERR);
+					}
+				}
+			}
+		}
 	}
 #else
-	for (int i = 0; i < nextSchemes.size(); i++) {
-		PartitioningScheme * scheme = nextSchemes.at(i);
-		mo.optimizePartitioningScheme(scheme, i, nextSchemes.size());
+	for (int i = 0; i < nextSchemes->size(); i++) {
+		PartitioningScheme * scheme = nextSchemes->at(i);
+		mo.optimizePartitioningScheme(scheme, i, nextSchemes->size());
 	}
 #endif
+	nextSchemes->clear();
 	return 0;
 }
 

@@ -28,6 +28,7 @@ HierarchicalClusteringSearchAlgorithm::~HierarchicalClusteringSearchAlgorithm() 
 
 PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 
+	SchemeManager schemeManager;
 	vector<PartitioningScheme *> nextSchemes;
 
 	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
@@ -46,7 +47,6 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 			geneId.at(0) = gene;
 			firstSchemeId->at(gene) = geneId;
 		}
-		//bestScheme = new PartitioningScheme(firstSchemeId);
 		nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
 
 		bestScore = DOUBLE_INF;
@@ -62,9 +62,10 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 
 			int schemeIndex = 0;
 			for (PartitioningScheme * scheme : nextSchemes) {
-				modelOptimize->optimizePartitioningScheme(scheme, schemeIndex++,
-						nextSchemes.size());
+				if (!scheme->isOptimized())
+					schemeManager.addScheme(scheme);
 			}
+			schemeManager.optimize(mo);
 
 			PartitionSelector ps(nextSchemes);
 			localBestScheme = ps.getBestScheme();
@@ -90,15 +91,10 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 						<< " score units ahead the best score." << endl;
 			}
 
-#ifdef _MPI
-			// wait for all the results
-			MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
 			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));
 #ifdef _MPI
-			MPI_Bcast(&continueExec, 1, MPI_INT, myRank, MPI_COMM_WORLD );
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 			for (PartitioningScheme * scheme : nextSchemes) {
 				if (scheme != localBestScheme)
@@ -135,7 +131,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 #ifdef _MPI
 	else {
 		while(continueExec) {
-			MPI_Barrier(MPI_COMM_WORLD);
+			schemeManager.optimize(mo);
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 		}
 	}

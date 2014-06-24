@@ -50,12 +50,15 @@ PartitionTest::~PartitionTest() {
 	if (phylip) {
 		pllAlignmentDataDestroy(phylip);
 	}
+	if (pllPartsQueue)
+		pllQueuePartitionsDestroy(&pllPartsQueue);
 	if (tree) {
 		if (pllPartitions && pllPartitions->alphaList) {
 			//pllPartitionsDestroy(tree, &pllPartitions);
 		}
 		if (tree->nameHash) {
 			pllDestroyInstance(tree);
+			tree = 0;
 		}
 	}
 
@@ -100,26 +103,34 @@ bool PartitionTest::configure(void) {
 	schemes_logfile = new string(*output_dir + "schemes");
 	results_logfile = new string(*output_dir + "results");
 
-	int resMkdir = mkdir(output_dir->c_str(), 0777);
 	ckpPath = (*output_dir) + CKP_DIR;
-	if (resMkdir) {
-		if (errno == EEXIST) {
-			cerr << "[WARNING] Output directory " << (*output_dir)
-					<< " already exists. Output files might be overwritten."
-					<< endl;
-		} else {
-			cerr << "[WARNING] ***** WARNING *****" << endl;
-			cerr << "[WARNING] Output directory " << (*output_dir)
-					<< " cannot be created. No output files will be stored."
-					<< endl;
-			cerr << "[WARNING] ***** WARNING *****" << endl;
+	if (I_AM_ROOT) {
+		int resMkdir = mkdir(output_dir->c_str(), 0777);
+		if (resMkdir) {
+			if (errno == EEXIST) {
+				cerr << "[WARNING] Output directory " << (*output_dir)
+						<< " already exists. Output files might be overwritten."
+						<< endl;
+			} else {
+				cerr << "[WARNING] ***** WARNING *****" << endl;
+				cerr << "[WARNING] Output directory " << (*output_dir)
+						<< " cannot be created. No output files will be stored."
+						<< endl;
+				cerr << "[WARNING] ***** WARNING *****" << endl;
+			}
+		}
+
+		if (!resMkdir || errno == EEXIST) {
+			mkdir(ckpPath.c_str(), 0777);
+			ckpAvailable = true;
 		}
 	}
 
-	if (!resMkdir || errno == EEXIST) {
-		mkdir(ckpPath.c_str(), 0777);
-		ckpAvailable = true;
-	}
+#ifdef _MPI
+	int tmpInt = ckpAvailable;
+	MPI_Bcast(&tmpInt, 1, MPI_INT, 0, MPI_COMM_WORLD );
+	ckpAvailable = tmpInt;
+#endif
 
 	pllInstanceAttr attr;
 	attr.fastScaling = PLL_FALSE;
@@ -164,13 +175,7 @@ bool PartitionTest::configure(void) {
 	num_taxa = phylip->sequenceCount;
 	seq_len = phylip->sequenceLength;
 
-//	pllAlignmentData * tPhylip = phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());;
-//	pllAlignmentRemoveDups(tPhylip, pllPartitions);
 	num_patterns = phylip->sequenceLength;
-//	pllAlignmentDataDestroy(tPhylip);
-
-	cout << " - " << num_taxa << "x" << seq_len << " (" << num_patterns
-			<< " patterns)" << endl;
 
 	return EX_OK;
 }
@@ -258,7 +263,10 @@ int main(int argc, char * argv[]) {
 		cerr << "ERROR: Configuration parameters are missing" << endl;
 		exit_partest(EX_CONFIG);
 	}
-	PrintMeta::print_options(cout);
+
+	if (I_AM_ROOT) {
+		PrintMeta::print_options(cout);
+	}
 
 	SearchAlgorithm * searchAlgo = 0;
 	switch (search_algo) {
@@ -298,7 +306,6 @@ int main(int argc, char * argv[]) {
 	delete ptest;
 
 #ifdef _MPI
-	cout << "My rank is " << myRank << endl;
 	MPI_Finalize();
 #endif
 

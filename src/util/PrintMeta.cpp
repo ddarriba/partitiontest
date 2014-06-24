@@ -33,7 +33,7 @@ void PrintMeta::print_header(ostream& output) {
 	output << "|          (c) Diego Darriba 2014          |" << endl;
 	output << "|                                          |" << endl;
 	output << "| Model selection for genomic alignments   |" << endl;
-	output << "| PLL version (Stamatakis et al.)           |" << endl;
+	output << "| PLL version (Stamatakis et al.)          |" << endl;
 	output << "--------------------------------------------" << endl << endl;
 }
 
@@ -72,7 +72,9 @@ void PrintMeta::print_options(ostream& output) {
 		output << endl << setw(H_RULE_LENGTH - config_file->length()) << " ";
 	}
 	output << *config_file << endl;
-
+	output << setw(OPT_DESCR_LENGTH - 5) << left
+				<< "     Number of partitions:" << setw(10) << right
+				<< number_of_genes << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:
@@ -97,6 +99,8 @@ void PrintMeta::print_options(ostream& output) {
 		output << "True" << endl;
 	else
 		output << "False" << endl;
+	output << setw(OPT_DESCR_LENGTH) << left
+				<< "  Number of candidate models:"<< number_of_models << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
 	switch (search_algo) {
 	case SearchGreedy:
