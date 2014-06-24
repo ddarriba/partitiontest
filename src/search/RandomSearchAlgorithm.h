@@ -40,16 +40,13 @@ namespace partest {
  */
 class RandomSearchAlgorithm: public SearchAlgorithm {
 public:
-	RandomSearchAlgorithm(ParTestOptions * options, PartitionMap * partitionMap);
+	RandomSearchAlgorithm();
 	virtual ~RandomSearchAlgorithm();
 	virtual PartitioningScheme * start();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
-	virtual void update(const ObservableInfo & info, ParTestOptions * run_instance =
-			NULL);
 private:
-	PartitioningScheme * getRandomPartitioningScheme(PartitioningScheme ** schemesArray, int numberOfSchemes);
-	PartitioningScheme * getRandomPartitioningScheme(PartitioningScheme * p0, PartitioningScheme ** schemesArray, int numberOfSchemes);
-	int numberOfBits;
+	int getRandomPartitioningScheme(vector<PartitioningScheme *> & nextSchemes,
+			int numberOfSchemes, t_partitioningScheme p0);
 };
 
 } /* namespace partest */

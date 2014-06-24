@@ -26,6 +26,7 @@ PARTEST_CXXFILES = \
 	search/ExhaustiveSearchAlgorithm.cpp \
 	search/HierarchicalClusteringSearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
+	search/RandomSearchAlgorithm.cpp \
 	util/Utilities.cpp \
 	util/GlobalDefs.cpp \
 	util/PrintMeta.cpp \

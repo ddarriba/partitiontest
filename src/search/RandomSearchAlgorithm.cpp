@@ -21,217 +21,188 @@
  */
 
 #include "RandomSearchAlgorithm.h"
-#include "util/ParTestFactory.h"
-#include "exe/ModelOptimize.h"
-#include "observer/ConsoleObserver.h"
-#include "selection/ModelSelector.h"
-#include "selection/PartitionSelector.h"
-#include "indata/PartitioningScheme.h"
-#include "indata/PartitionElement.h"
 
-#define RND_THRESHOLD 0.5
+#include "util/GlobalDefs.h"
+#include "util/Utilities.h"
+#include "exe/ModelOptimize.h"
+#include "exe/PartitionSelector.h"
+#include "indata/PartitioningScheme.h"
+#include "indata/PartitionMap.h"
+
+#include <iostream>
+
 #define NUM_STEPS 3
 #define NUM_PARTITIONS 20
 
+using namespace std;
+
 namespace partest {
 
-RandomSearchAlgorithm::RandomSearchAlgorithm(ParTestOptions * options,
-		PartitionMap * partitionMap) :
-		SearchAlgorithm(options, partitionMap) {
-
-	numberOfBits = this->getNumberOfElements();
-
+RandomSearchAlgorithm::RandomSearchAlgorithm() {
 }
 
 RandomSearchAlgorithm::~RandomSearchAlgorithm() {
-	// TODO Auto-generated destructor stub
 }
 
 PartitioningScheme * RandomSearchAlgorithm::start(
 		PartitioningScheme * startingPoint) {
 	cerr << "[ERROR] Not implemented yet" << endl;
-	Utilities::exit_partest(EX_UNAVAILABLE);
+	exit_partest(EX_UNAVAILABLE);
 	return 0;
 }
 
 PartitioningScheme * RandomSearchAlgorithm::start() {
+	SchemeManager schemeManager;
+	vector<PartitioningScheme *> nextSchemes;
 
-	int currentScheme, currentStep;
+	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
+	double bestScore, score;
 
-	ModelOptimize * mo = ParTestFactory::createModelOptimize(options);
-	ConsoleObserver * observer = new ConsoleObserver();
-	mo->attach(observer);
-	mo->attach(this);
+	ModelOptimize * modelOptimize = new ModelOptimize();
+	int numberOfPartitions = number_of_genes;
 
-	PartitioningScheme * bestScheme = 0;
-	int numSchemes =
-			(NUM_PARTITIONS < Utilities::bell(numberOfBits)) ?
-					NUM_PARTITIONS : Utilities::bell(numberOfBits);
-	for (currentStep = 0; currentStep < NUM_STEPS; currentStep++) {
-		PartitioningScheme ** schemesArray = (PartitioningScheme **) malloc(
-				numSchemes * sizeof(PartitioningScheme *));
-		if (bestScheme) {
-			if (bestScheme->getNumberOfElements() == 1)
-				break;
-			numSchemes =
-					(NUM_PARTITIONS
-							< Utilities::bell(bestScheme->getNumberOfElements()-1)) ?
-							NUM_PARTITIONS :
-							Utilities::bell(bestScheme->getNumberOfElements()-1);
+	bool continueExec = true;
+	if (I_AM_ROOT) {
+		/* building first scheme */
+		t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+				number_of_genes);
+		for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+			t_partitionElementId geneId(1);
+			geneId.at(0) = gene;
+			firstSchemeId->at(gene) = geneId;
 		}
-		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
+		nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
 
-			cout << "NEXT SCHEME! " << currentScheme+1 << "/" << numSchemes << endl;
-			if (!(schemesArray[currentScheme] = getRandomPartitioningScheme(
-					bestScheme, schemesArray, currentScheme))) {
-				break;
+		bestScore = DOUBLE_INF;
+
+		int currentStep = 1;
+		int maxSteps = firstSchemeId->size();
+		delete firstSchemeId;
+
+		while (continueExec) {
+
+			cout << timestamp() << " [RND] Step " << currentStep++ << "/"
+					<< maxSteps << endl;
+
+			int schemeIndex = 0;
+			for (PartitioningScheme * scheme : nextSchemes) {
+				if (!scheme->isOptimized())
+					schemeManager.addScheme(scheme);
 			}
-			cout << "OPTIMIZING... " << schemesArray[currentScheme]->getNumberOfElements() << endl;
-			mo->optimizePartitioningScheme(schemesArray[currentScheme]);
-			cout << "NEXT SCHEME!" << endl;
+			schemeManager.optimize(mo);
+
+			PartitionSelector ps(nextSchemes);
+			localBestScheme = ps.getBestScheme();
+			score = ps.getBestScheme()->getIcValue();
+
+			if (score < bestScore) {
+				//bestScheme->print(cout);
+				delete bestScheme;
+				bestScheme = localBestScheme;
+				PartitionMap::getInstance()->keep(bestScheme->getId());
+				for (unsigned int i = 0;
+						i < localBestScheme->getNumberOfElements(); i++) {
+					PartitionMap::getInstance()->purgePartitionMap(
+							localBestScheme->getElement(i)->getId());
+				}
+				if (currentStep > 1) {
+					cout << timestamp() << " [RND] Improving "
+							<< bestScore - score << " score units." << endl;
+				}
+				bestScore = score;
+			} else {
+				cout << timestamp() << " [RND] Scheme is " << score - bestScore
+						<< " score units ahead the best score." << endl;
+			}
+
+			continueExec = ((non_stop || bestScore == score)
+					&& (numberOfPartitions > 1));
+#ifdef _MPI
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+#endif
+			for (PartitioningScheme * scheme : nextSchemes) {
+				if (scheme != localBestScheme)
+					delete scheme;
+			}
+			nextSchemes.clear();
+
+			if (continueExec) {
+				vector<elementPair *> * eps =
+						localBestScheme->getElementDistances();
+				getRandomPartitioningScheme(nextSchemes, max_samples, localBestScheme->getId());
+				numberOfPartitions = nextSchemes.at(0)->getNumberOfElements();
+			}
 		}
-		PartitionSelector partSelector(schemesArray, numSchemes, options);
-
-		bestScheme = partSelector.getBestScheme();
-
-//		for (currentScheme = 0; currentScheme < numSchemes; currentScheme++) {
-//			if (schemesArray[currentScheme] != bestScheme)
-//				delete schemesArray[currentScheme];
-//		}
-
-		free(schemesArray);
 	}
-	delete mo;
-	delete observer;
+#ifdef _MPI
+	else {
+		while(continueExec) {
+			schemeManager.optimize(mo);
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+		}
+	}
+#endif
 
+	if (bestScheme != localBestScheme)
+		delete localBestScheme;
+
+	delete modelOptimize;
 	return bestScheme;
 }
 
-void RandomSearchAlgorithm::update(const ObservableInfo& info,
-		ParTestOptions* run_instance) {
+int RandomSearchAlgorithm::getRandomPartitioningScheme(
+		vector<PartitioningScheme *> & nextSchemes, int numberOfSchemes,
+		t_partitioningScheme p0) {
 
-}
+	int maxClasses = p0.size();
 
-bool existPartition(t_partitionElementId * classes, int numberOfClasses,
-		PartitioningScheme ** schemesArray, int numberOfSchemes) {
-	for (int i = 0; i < numberOfSchemes; i++) {
-		if (schemesArray[i]->getNumberOfElements() == numberOfClasses) {
-			bool equals = true;
-			for (int j = 0; j < numberOfClasses; j++) {
-				bool existElement = false;
-				t_partitionElementId id =
-						schemesArray[i]->getElement(j)->getId();
-				for (int k = 0; k < numberOfClasses; k++) {
-					existElement |= (id == classes[j]);
-				}
-				equals &= existElement;
-			}
-			if (equals) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
+	for (int schemeIndex = 0; schemeIndex < numberOfSchemes; schemeIndex++) {
+		t_partitionElementId classes[maxClasses];
 
-PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
-		PartitioningScheme ** schemesArray, int numberOfSchemes) {
-
-	bool gotScheme = false;
-	int numberOfClasses;
-	t_partitionElementId classes[numberOfBits];
-
-	while (!gotScheme) {
-
-		numberOfClasses = 1;
+		int numberOfClasses = 1;
 		// first element to the first
-		classes[0].push_back(0);
-		for (int i = 1; i < numberOfBits; i++) {
+		for (int singleP : p0.at(0)) {
+			classes[0].push_back(singleP);
+		}
+		for (int i = 1; i < maxClasses; i++) {
 			int currentClass = 0;
-			int assigned = 0;
 
 			//randomly assign each bit to each class
-			while (!assigned) {
-				double rndNumber = (double) (rand() % 500 / 500.0);
-				if (rndNumber < RND_THRESHOLD) {
-					classes[currentClass].push_back(i);
-					assigned = 1;
-				} else {
-					currentClass++;
-					if (currentClass == numberOfClasses) {
-						classes[currentClass].push_back(i);
-						numberOfClasses++;
-						assigned = 1;
-					}
+			double rndNumber = (double) (rand() % 4000 / 4000.0);
+			double RND_THRESHOLD = 1.0 / (numberOfClasses + 1);
+			currentClass = rndNumber / RND_THRESHOLD;
+			if (currentClass < numberOfClasses) {
+				for (int singleP : p0.at(i)) {
+					classes[currentClass].push_back(singleP);
 				}
+			} else {
+				currentClass = numberOfClasses;
+				for (int singleP : p0.at(i)) {
+					classes[currentClass].push_back(singleP);
+				}
+				numberOfClasses++;
 			}
 		}
 
-		gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
-				numberOfSchemes);
-	}
-	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
-	for (int i = 0; i < numberOfClasses; i++) {
-		p->addElement(partitionMap->getPartitionElement(classes[i]));
-	}
-
-	return p;
-}
-
-PartitioningScheme * RandomSearchAlgorithm::getRandomPartitioningScheme(
-		PartitioningScheme * p0, PartitioningScheme ** schemesArray,
-		int numberOfSchemes) {
-
-	if (p0 == 0)
-		return getRandomPartitioningScheme(schemesArray, numberOfSchemes);
-
-	int maxClasses = p0->getNumberOfElements() - 1;
-
-	bool gotScheme = false;
-	int i;
-	int numberOfClasses;
-	t_partitionElementId classes[maxClasses];
-
-	while (!gotScheme) {
-
-		numberOfClasses = 1;
-		// first element to the first
-		Utilities::mergeIds(classes[0], p0->getElement(0)->getId());
-
-		for (i = 1; i < maxClasses; i++) {
-			int currentClass = 0;
-			int assigned = 0;
-
-			//randomly assign each bit to each class
-			while (!assigned) {
-				double rndNumber = (double) (rand() % 500 / 500.0);
-				if (rndNumber < RND_THRESHOLD) {
-
-					Utilities::mergeIds(classes[currentClass],
-							p0->getElement(i)->getId());
-					assigned = 1;
-				} else {
-					currentClass++;
-					if (currentClass == numberOfClasses) {
-						Utilities::mergeIds(classes[currentClass],
-								p0->getElement(i)->getId());
-						numberOfClasses++;
-						assigned = 1;
-					}
-				}
+		t_partitioningScheme * newSchemeId = new t_partitioningScheme(
+				numberOfClasses);
+		for (int i = 0; i < numberOfClasses; i++) {
+			for (int j = 0; j < classes[i].size(); j++) {
+				newSchemeId->at(i).push_back(classes[i].at(j));
 			}
 		}
-
-		gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
-				numberOfSchemes);
+		nextSchemes.push_back(new PartitioningScheme(newSchemeId));
+		delete newSchemeId;
 	}
+	//gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
+	//		numberOfSchemes);
+	//}
+//	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
+//	for (int i = 0; i < numberOfClasses; i++) {
+//		p->addElement(partitionMap->getPartitionElement(classes[i]));
+//	}
 
-	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
-	for (i = 0; i < numberOfClasses; i++) {
-		p->addElement(partitionMap->getPartitionElement(classes[i]));
-	}
-
-	return p;
+	return 0;
 }
 
 } /* namespace partest */
