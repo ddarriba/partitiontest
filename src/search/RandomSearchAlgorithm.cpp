@@ -44,14 +44,13 @@ RandomSearchAlgorithm::RandomSearchAlgorithm() {
 RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 }
 
-PartitioningScheme * RandomSearchAlgorithm::start(
-		PartitioningScheme * startingPoint) {
-	cerr << "[ERROR] Not implemented yet" << endl;
-	exit_partest(EX_UNAVAILABLE);
-	return 0;
+PartitioningScheme * RandomSearchAlgorithm::start() {
+	return start(0);
 }
 
-PartitioningScheme * RandomSearchAlgorithm::start() {
+PartitioningScheme * RandomSearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
+
 	SchemeManager schemeManager;
 	vector<PartitioningScheme *> nextSchemes;
 
@@ -59,32 +58,36 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 	double bestScore, score;
 
 	ModelOptimize * modelOptimize = new ModelOptimize();
-	int numberOfPartitions = number_of_genes;
 
 	bool continueExec = true;
+	int maxSteps;
 	if (I_AM_ROOT) {
-		/* building first scheme */
-		t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
-				number_of_genes);
-		for (unsigned int gene = 0; gene < number_of_genes; gene++) {
-			t_partitionElementId geneId(1);
-			geneId.at(0) = gene;
-			firstSchemeId->at(gene) = geneId;
+		if (startingPoint) {
+			nextSchemes.push_back(startingPoint);
+			maxSteps = startingPoint->getId().size();
+		} else {
+			/* building first scheme */
+			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+					number_of_genes);
+			for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+				t_partitionElementId geneId(1);
+				geneId.at(0) = gene;
+				firstSchemeId->at(gene) = geneId;
+			}
+			nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
+
+			maxSteps = firstSchemeId->size();
+			delete firstSchemeId;
 		}
-		nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
 
 		bestScore = DOUBLE_INF;
-
 		int currentStep = 1;
-		int maxSteps = firstSchemeId->size();
-		delete firstSchemeId;
 
 		while (continueExec) {
 
 			cout << timestamp() << " [RND] Step " << currentStep++ << "/"
 					<< maxSteps << endl;
 
-			int schemeIndex = 0;
 			for (PartitioningScheme * scheme : nextSchemes) {
 				if (!scheme->isOptimized())
 					schemeManager.addScheme(scheme);
@@ -96,7 +99,6 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 			score = ps.getBestScheme()->getIcValue();
 
 			if (score < bestScore) {
-				//bestScheme->print(cout);
 				delete bestScheme;
 				bestScheme = localBestScheme;
 				PartitionMap::getInstance()->keep(bestScheme->getId());
@@ -116,7 +118,7 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 			}
 
 			continueExec = ((non_stop || bestScore == score)
-					&& (numberOfPartitions > 1));
+					&& (localBestScheme->getNumberOfElements() > 1));
 #ifdef _MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
@@ -127,10 +129,8 @@ PartitioningScheme * RandomSearchAlgorithm::start() {
 			nextSchemes.clear();
 
 			if (continueExec) {
-				vector<elementPair *> * eps =
-						localBestScheme->getElementDistances();
-				getRandomPartitioningScheme(nextSchemes, max_samples, localBestScheme->getId());
-				numberOfPartitions = nextSchemes.at(0)->getNumberOfElements();
+				getRandomPartitioningScheme(nextSchemes, max_samples,
+						localBestScheme->getId());
 			}
 		}
 	}
@@ -187,20 +187,13 @@ int RandomSearchAlgorithm::getRandomPartitioningScheme(
 		t_partitioningScheme * newSchemeId = new t_partitioningScheme(
 				numberOfClasses);
 		for (int i = 0; i < numberOfClasses; i++) {
-			for (int j = 0; j < classes[i].size(); j++) {
+			for (size_t j = 0; j < classes[i].size(); j++) {
 				newSchemeId->at(i).push_back(classes[i].at(j));
 			}
 		}
 		nextSchemes.push_back(new PartitioningScheme(newSchemeId));
 		delete newSchemeId;
 	}
-	//gotScheme = !existPartition(classes, numberOfClasses, schemesArray,
-	//		numberOfSchemes);
-	//}
-//	PartitioningScheme * p = new PartitioningScheme(numberOfClasses);
-//	for (int i = 0; i < numberOfClasses; i++) {
-//		p->addElement(partitionMap->getPartitionElement(classes[i]));
-//	}
 
 	return 0;
 }
