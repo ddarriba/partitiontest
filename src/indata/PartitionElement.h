@@ -44,6 +44,9 @@ public:
 	SelectionModel * getBestModel(void);
 	void setBestModel(SelectionModel * model);
 
+	void setTagged(bool tag_status) { tag = tag_status; }
+	bool isTagged() { return tag; }
+
 	bool isReady(void);
 	bool isOptimized(void);
 
@@ -53,11 +56,11 @@ public:
 
 	double getSampleSize(void);
 
-	void print(ostream & out);
-private:
-
 	int loadData(void);
 	int storeData(void);
+
+	void print(ostream & out);
+private:
 
 	bool ready = false;
 
@@ -80,6 +83,7 @@ private:
 	PEsection * sections;
 
 	bool ckpLoaded = false;
+	bool tag = false;
 };
 
 }

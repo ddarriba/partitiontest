@@ -524,6 +524,7 @@ int PartitionElement::loadData(void) {
 		selectionmodel->setDelta(sm->getDelta());
 		selectionmodel->setIndex(bestModelIndex);
 		setBestModel(selectionmodel);
+		delete selectionmodel;
 	}
 
 	ofs.close();
@@ -555,6 +556,7 @@ int PartitionElement::storeData(void) {
 	NUM_DNA_RATES :
 													0;
 	streampos startPos = ofs.tellp();
+
 	int hashlen = ckphash.length();
 	int ckpSize = 4 * sizeof(int) + hashlen
 			+ models.size()
@@ -583,10 +585,9 @@ int PartitionElement::storeData(void) {
 		if (data_type == DT_NUCLEIC) {
 			ofs.write((char *) model->getRates(), NUM_RATES * sizeof(double));
 		}
-		int name_len, matrixname_len, tree_len;
-		name_len = model->getName().length() + 1;
-		matrixname_len = model->getMatrixName().length() + 1;
-		tree_len = strlen(model->getTree().c_str()) + 1;
+		size_t name_len = model->getName().length() + 1;
+		size_t matrixname_len = model->getMatrixName().length() + 1;
+		size_t tree_len = strlen(model->getTree().c_str()) + 1;
 		ofs.write((char *) &tree_len, sizeof(size_t));
 		ofs.write((char *) model->getTree().c_str(), tree_len);
 	}
@@ -595,18 +596,19 @@ int PartitionElement::storeData(void) {
 	ofs.write((char *) &bestModelIndex, sizeof(int));
 	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
 	ofs.close();
-
 	return CHECKPOINT_SAVED;
 }
 
 void PartitionElement::print(ostream & out) {
 	cout << name << endl;
-	cout << "Best model: " << bestModel->getModel()->getName() << endl;
-	cout << "Num.Params: " << bestModel->getModel()->getNumberOfFreeParameters()
-			<< endl;
-	cout << "BIC score:  " << bestModel->getValue() << endl;
-	cout << "BIC weight: " << bestModel->getWeight() << endl;
-	bestModel->getModel()->print(out, "  ");
+	if (isOptimized()) {
+		cout << "Best model: " << bestModel->getModel()->getName() << endl;
+		cout << "Num.Params: " << bestModel->getModel()->getNumberOfFreeParameters()
+				<< endl;
+		cout << "BIC score:  " << bestModel->getValue() << endl;
+		cout << "BIC weight: " << bestModel->getWeight() << endl;
+		bestModel->getModel()->print(out, "  ");
+	}
 }
 
 }

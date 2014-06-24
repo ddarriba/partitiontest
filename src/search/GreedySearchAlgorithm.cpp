@@ -119,7 +119,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	int step = 1;
 	int maxSteps = number_of_genes;
 
-	bool improving = true;
+	bool continueExec = true;
 	if (I_AM_ROOT) {
 
 		/* building first scheme */
@@ -137,14 +137,19 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		nextSchemes.push_back(bestScheme);
 		delete firstSchemeId;
 
-		mo.optimizePartitioningScheme(bestScheme);
+		schemeManager.addScheme(bestScheme);
+		schemeManager.optimize(mo);
+#ifdef _MPI
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+#endif
 
+		//mo.optimizePartitioningScheme(bestScheme);
 		PartitionSelector ps(nextSchemes);
 		nextSchemes.clear();
 
 		bestScore = score = ps.getBestScheme()->getIcValue();
 
-		while (improving) {
+		while (continueExec) {
 			cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
 					<< endl;
 			nextSchemeFunctor nextScheme(localBestScheme);
@@ -176,14 +181,11 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 				cout << timestamp() << " [GRE] Scheme is " << score - bestScore
 						<< " score units ahead the best score." << endl;
 			}
-#ifdef _MPI
-			// wait for all the results
-			//MPI_Barrier(MPI_COMM_WORLD);
-#endif
-			improving = ((non_stop || bestScore == score)
+
+			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));
 #ifdef _MPI
-			//MPI_Bcast(&improving, 1, MPI_INT, myRank, MPI_COMM_WORLD );
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 			for (PartitioningScheme * scheme : nextSchemes) {
 				if (scheme != localBestScheme) {
@@ -191,7 +193,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 				}
 			}
 
-			if (improving) {
+			if (continueExec) {
 				for (unsigned int i = 0;
 						i < localBestScheme->getNumberOfElements(); i++) {
 					PartitionMap::getInstance()->purgePartitionMap(
@@ -205,28 +207,10 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 
 #ifdef _MPI
 	else {
-//		while(improving) {
-//			MPI_Status status;
-//			int numElemsInScheme;
-//			MPI_Recv(&numElemsInScheme, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
-//			if (numElemsInScheme > 0) {
-//				t_partitioningScheme nextSchemeId(numElemsInScheme);
-//				for (int i=0; i<numElemsInScheme; i++) {
-//					int arrSize;
-//					MPI_Recv(&arrSize, 1, MPI_INT, 0, i+1, MPI_COMM_WORLD, &status);
-//					t_partitionElementId * nextElement = new t_partitionElementId(arrSize);
-//					MPI_Recv(&(nextElement->front()), arrSize, MPI_INT, 0, i+1, MPI_COMM_WORLD, &status);
-//					nextSchemeId.at(i) = *nextElement;
-//				}
-//				PartitioningScheme nextScheme(&nextSchemeId);
-//				modelOptimize->optimizePartitioningScheme(&nextScheme, 0,
-//										1);
-//				cout << "::::::" << nextScheme.getLnL() << endl;
-//			} else {
-			//	MPI_Barrier(MPI_COMM_WORLD);
-			//	MPI_Bcast(&improving, 1, MPI_INT, 0, MPI_COMM_WORLD );
-//			}
-//		}
+		while(continueExec) {
+			schemeManager.optimize(mo);
+			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+		}
 	}
 #endif
 
