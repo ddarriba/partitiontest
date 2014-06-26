@@ -62,7 +62,7 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
 			ARG_CONFIG_HELP, 0, "config-help", false }, {
 			ARG_CONFIG_TEMPLATE, 0, "config-template", false }, {
-			ARG_NON_STOP, 0, "non-stop", false } };
+			ARG_NON_STOP, 'N', "non-stop", false } };
 	unsigned int size = NUM_ARGUMENTS * sizeof(option);
 
 	arguments = (option *) malloc(size);

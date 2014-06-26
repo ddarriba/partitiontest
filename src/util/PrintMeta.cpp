@@ -126,19 +126,33 @@ void PrintMeta::print_options(ostream& output) {
 }
 
 void PrintMeta::print_usage(std::ostream& out) {
-	out << "Usage: " << PACKAGE << " -i INPUT_FILE [OPTION]..." << endl;
+	out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
+	out << "            [-c configFile] [-d nt|aa] [-F] [-h] [-N] [-O findModel|gtr]" << endl;
+	out << "            [-p numberOfThreads] [-r numberOfReplicates] [-s aic|bic|aicc|dt] " << endl;
+	out << "            [-S greedy|greedyext|hcluster|random|exhaustive]" << endl;
+	out << "            [-t mp|fixed|user] [-u treeFile]" << endl;
+	out << "            [--config-help] [--config-template]" << endl;
 	out << endl;
 	out << "Selects the best-fit model of amino acid or nucleotide replacement."
 			<< endl << endl;
 	out
 			<< "Mandatory arguments for long options are also mandatory for short options."
 			<< endl << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
-			<< "Displays this help message" << endl;
-	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -i, --input-file INPUT_FILE"
-			<< "Sets the input alignment file (REQUIRED)" << endl;
-	out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
+			<< "Sets the input configuration file for gene partition" << endl;
+	out << setw(MAX_OPT_LENGTH) << " "
+			<< "Configuration file defines the gene bounds in the alignment"
+			<< endl;
+	out << setw(MAX_OPT_LENGTH) << " "
+			<< "Use argument --help-config for info about the format:" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--config-help" << "Shows help about configuration files"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--config-template" << "Generates a configuration file template"
+			<< endl;
+
 	out << setw(MAX_OPT_LENGTH) << left << "  -d, --data-type DATA_TYPE"
 			<< "Sets the type of the input data" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
@@ -146,6 +160,78 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--data-type aa" << "Amino-acid sequences" << endl;
 	out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
+				<< "Includes models with empirical frequencies (+F)" << endl;
+		out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
+			<< "Displays this help message" << endl;
+	out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -i, --input-file INPUT_FILE"
+			<< "Sets the input alignment file (REQUIRED)" << endl;
+	out << endl;
+
+	out << setw(SHORT_OPT_LENGTH) << "  -N" << setw(COMPL_OPT_LENGTH)
+			<< "--non-stop"
+			<< "Algorithms do not stop if no improvement found at one step"
+			<< endl;
+	out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -O, --optimize OPTIMIZE_MODE"
+			<< "Sets the model optimization for the best-fit partition" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--optimize findModel"
+			<< "Find the best-fit model for each partition" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--optimize gtr"
+			<< "Use only GTR model for each partition (nucleic data)" << endl;
+	out << setw(MAX_OPT_LENGTH) << " " << "or AUTO for protein data." << endl;
+	out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -p, --num-procs NUMBER_OF_THREADS"
+				<< "Number of threads for model evaluation (DEFAULT: 1)" << endl;
+		out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -r, --replicates N"
+			<< "Sets the number of replicates on Hierarchical Clustering"
+			<< endl;
+
+	out << setw(MAX_OPT_LENGTH) << left
+				<< "  -s, --selection-criterion CRITERION"
+				<< "Sets the criterion for model selection" << endl;
+		out << setw(MAX_OPT_LENGTH) << " "
+				<< "Sample size for bic, aicc and dt criteria is the alignment length"
+				<< endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--selection-criterion bic"
+				<< "Bayesian Information Criterion (DEFAULT)" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--selection-criterion aic" << "Akaike Information Criterion"
+				<< endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--selection-criterion aicc"
+				<< "Corrected Akaike Information Criterion" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--selection-criterion dt" << "Decision Theory" << endl;
+		out << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
+				<< "Sets the search algorithm" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search greedyext"
+				<< "Extended greedy search algorithm" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search hcluster" << "Hierarchical clustering algorithm"
+				<< endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search random" << "Multiple step random sampling" << endl;
+		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search exhaustive" << "Exhaustive search" << endl;
+
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
 			<< "Sets the starting topology for optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
@@ -163,6 +249,7 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "However, if \"-u\" argument is used this option is automatically set"
 			<< endl;
 	out << endl;
+
 	out << setw(MAX_OPT_LENGTH) << left << "  -u, --user-tree TREE_FILE"
 			<< "Sets a user-defined topology. This option ignores all" << endl;
 	out << setw(MAX_OPT_LENGTH) << " "
@@ -170,72 +257,7 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << " " << "The tree must be in Newick format"
 			<< endl;
 	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
-			<< "Includes models with empirical frequencies (+F)" << endl;
-	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
-			<< "Sets the search algorithm" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search greedyext"
-			<< "Extended greedy search algorithm (DEFAULT)" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search hcluster" << "Hierarchical clustering algorithm"
-			<< endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search random" << "Multiple step random sampling" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search exhaustive" << "Exhaustive search" << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -r, --replicates N"
-			<< "Sets the number of replicates on Hierarchical Clustering"
-			<< endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--non-stop"
-			<< "Algorithms do not stop if no improvement found at one step"
-			<< endl;
-	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left
-			<< "  -s, --selection-criterion CRITERION"
-			<< "Sets the criterion for model selection" << endl;
-	out << setw(MAX_OPT_LENGTH) << " "
-			<< "Sample size for bic, aicc and dt criteria is the alignment length"
-			<< endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--selection-criterion bic"
-			<< "Bayesian Information Criterion (DEFAULT)" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--selection-criterion aic" << "Akaike Information Criterion"
-			<< endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--selection-criterion aicc"
-			<< "Corrected Akaike Information Criterion" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--selection-criterion dt" << "Decision Theory" << endl;
-	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -O, --optimize OPTIMIZE_MODE"
-			<< "Sets the model optimization for the best-fit partition" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--optimize findModel"
-			<< "Find the best-fit model for each partition" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--optimize gtr"
-			<< "Use only GTR model for each partition (nucleic data)" << endl;
-	out << setw(MAX_OPT_LENGTH) << " " << "or AUTO for protein data." << endl;
-	out << endl;
-	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
-			<< "Sets the input configuration file for gene partition" << endl;
-	out << setw(MAX_OPT_LENGTH) << " "
-			<< "Configuration file defines the gene bounds in the alignment"
-			<< endl;
-	out << setw(MAX_OPT_LENGTH) << " "
-			<< "Use argument --help-config for info about the format:" << endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--config-help" << "Shows help about configuration files"
-			<< endl;
-	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--config-template" << "Generates a configuration file template"
-			<< endl;
+
 }
 
 void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme) {
