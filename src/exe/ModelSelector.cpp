@@ -1,8 +1,23 @@
-/*
- * ModelSelector.cpp
+/*  PartitionTest, fast selection of the best fit partitioning scheme for
+ *  multi-gene data sets.
+ *  Copyright May 2013 by Diego Darriba
  *
- *  Created on: Jan 14, 2013
- *      Author: diego
+ *  This program is free software; you may redistribute it and/or modify its
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation; either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ *  For any other inquiries send an Email to Diego Darriba
+ *  ddarriba@udc.es
+ */
+
+/*
+ * @file ModelSelector.cpp
  */
 
 #include "ModelSelector.h"
@@ -94,20 +109,21 @@ double ModelSelector::getAlphaImportance() const {
 	return alphaImportance;
 }
 
-double ModelSelector::getInvImportance() const {
-	return invImportance;
-}
-
-double ModelSelector::getAlphaInvImportance() const {
-	return alphaInvImportance;
-}
-
 double ModelSelector::getFImportance() const {
 	return fImportance;
 }
 
 double ModelSelector::getOverallAlpha() const {
 	return overallAlpha;
+}
+
+#ifdef _IG_MODELS
+double ModelSelector::getInvImportance() const {
+	return invImportance;
+}
+
+double ModelSelector::getAlphaInvImportance() const {
+	return alphaInvImportance;
 }
 
 double ModelSelector::getOverallInv() const {
@@ -121,6 +137,7 @@ double ModelSelector::getOverallInvAlpha() const {
 double ModelSelector::getOverallAlphaInv() const {
 	return overallAlphaInv;
 }
+#endif
 
 void ModelSelector::doSelection(vector<Model *> modelset,
 		InformationCriterion ic, double sampleSize) {
@@ -153,13 +170,15 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 	}
 
 	alphaImportance = 0.0;
-	invImportance = 0.0;
-	alphaInvImportance = 0.0;
 	fImportance = 0.0;
 	overallAlpha = 0.0;
+#ifdef _IG_MODELS
+	invImportance = 0.0;
+	alphaInvImportance = 0.0;
 	overallInv = 0.0;
 	overallAlphaInv = 0.0;
 	overallInvAlpha = 0.0;
+#endif
 
 	for (unsigned int i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
@@ -172,6 +191,7 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 		selectionModel->setWeight(weight);
 		selectionModel->setCumWeight(cumW += selectionModel->getWeight());
 
+#ifdef _IG_MODELS
 		if (model->isGamma() & model->isPInv()) {
 			alphaInvImportance += weight;
 			overallAlphaInv += weight * model->getAlpha();
@@ -183,6 +203,12 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 			invImportance += weight;
 			overallInv += weight * model->getpInv();
 		}
+#else
+		if (model->isGamma()) {
+			alphaImportance += weight;
+			overallAlpha += weight * model->getAlpha();
+		}
+#endif
 		if (model->isPF()) {
 			fImportance += weight;
 		}
@@ -190,12 +216,14 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 
 	if (alphaImportance > 0.0)
 		overallAlpha /= alphaImportance;
+#ifdef _IG_MODELS
 	if (invImportance > 0.0)
-		overallInv /= invImportance;
+	overallInv /= invImportance;
 	if (alphaInvImportance > 0.0)
-		overallInvAlpha /= alphaInvImportance;
+	overallInvAlpha /= alphaInvImportance;
 	if (alphaInvImportance > 0.0)
-		overallAlphaInv /= alphaInvImportance;
+	overallAlphaInv /= alphaInvImportance;
+#endif
 }
 
 void ModelSelector::print(ostream& out) {
@@ -250,14 +278,14 @@ void ModelSelector::print(ostream& out) {
 	if (selectionModels->size() > 1) {
 		out << "PARAMETER IMPORTANCE" << endl;
 		out << setw(16) << "alpha: " << alphaImportance << endl;
-#ifndef _PLL
+#ifdef _IG_MODELS
 		out << setw(16) << "pInv: " << invImportance << endl;
 		out << setw(16) << "alpha + pInv: " << alphaInvImportance << endl;
 #endif
 		out << setw(16) << "frequencies: " << fImportance << endl;
 		out << endl << "OVERALLPARAMETER IMPORTANCE" << endl;
 		out << setw(16) << "alpha:" << overallAlpha << endl;
-#ifndef _PLL
+#ifdef _IG_MODELS
 		out << setw(16) << "pInv:" << overallInv << endl;
 		out << setw(16) << "alpha + pInv:" << overallInvAlpha << endl;
 		out << setw(16) << "pInv + alpha:" << overallAlphaInv << endl;
@@ -274,7 +302,7 @@ void ModelSelector::print(ostream& out) {
 				<< setw(10) << "R(c->t)" << setw(10) << "R(g->t)";
 	}
 	out << setw(10) << "alpha";
-#ifndef _PLL
+#ifdef _IG_MODELS
 	out << setw(10) << "pInv";
 #endif
 	out << endl;
@@ -295,15 +323,14 @@ void ModelSelector::print(ostream& out) {
 		}
 		out << setw(10) << fixed << setprecision(4)
 				<< min(model->getAlpha(), 1000.0000);
-#ifndef _PLL
+#ifdef _IG_MODELS
 		out << setw(10) << fixed << setprecision(4) << model->getpInv();
 #endif
 		out << endl;
 	}
 	out << setw(122) << setfill('-') << "" << setfill(' ') << endl;
 	// bestModel->getModel()->print(out);
-	out << endl << "Best Tree: "
-			<< bestModel->getModel()->getTree() << endl;
+	out << endl << "Best Tree: " << bestModel->getModel()->getTree() << endl;
 }
 
 } /* namespace partest */

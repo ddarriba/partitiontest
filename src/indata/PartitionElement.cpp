@@ -145,7 +145,7 @@ int PartitionElement::setupStructures(void) {
 
 		pllQueuePartitionsDestroy(&partsQueue);
 
-		assert(_alignData->sequenceLength == (int) numberOfSites);
+		assert(_alignData->sequenceLength == (int ) numberOfSites);
 		pllAlignmentRemoveDups(_alignData, _partitions);
 		numberOfPatterns = _alignData->sequenceLength;
 
@@ -164,7 +164,7 @@ int PartitionElement::setupStructures(void) {
 			break;
 		case DT_NUCLEIC:
 			for (int cur_part = 0; cur_part < _partitions->numberOfPartitions;
-								cur_part++) {
+					cur_part++) {
 				pInfo * current_part = _partitions->partitionData[cur_part];
 				current_part->dataType = PLL_DNA_DATA;
 				current_part->states = 4;
@@ -204,8 +204,8 @@ int PartitionElement::setupStructures(void) {
 				switch (optimize_mode) {
 				case OPT_GTR:
 					models.push_back(
-							new NucleicModel(NUC_MATRIX_GTR, RateVarG | RateVarF,
-									num_taxa));
+							new NucleicModel(NUC_MATRIX_GTR,
+									RateVarG | RateVarF, num_taxa));
 					break;
 				case OPT_SEARCH:
 					for (int current_model = 0; current_model < NUC_MATRIX_SIZE;
@@ -217,8 +217,9 @@ int PartitionElement::setupStructures(void) {
 						if (do_rate & RateVarF) {
 							models.push_back(
 									new NucleicModel(
-											static_cast<NucMatrix>(current_model+1),
-											RateVarG | RateVarF, num_taxa));
+											static_cast<NucMatrix>(current_model
+													+ 1), RateVarG | RateVarF,
+											num_taxa));
 						}
 					}
 					break;
@@ -288,7 +289,7 @@ int PartitionElement::destroyStructures(void) {
 
 PartitionElement::~PartitionElement() {
 
-	free (sections);
+	free(sections);
 
 	for (Model * model : models) {
 		delete model;
@@ -473,8 +474,6 @@ int PartitionElement::loadData(void) {
 			ofs.read((char *) freqs,
 					model->getNumberOfFrequencies() * sizeof(double));
 
-			/* checked */
-
 			double * rates = 0;
 			if (data_type == DT_NUCLEIC) {
 				rates = (double *) alloca(NUM_RATES * sizeof(double));
@@ -493,8 +492,10 @@ int PartitionElement::loadData(void) {
 				finalModel->setRates(rates);
 				if (model->isGamma())
 					finalModel->setAlpha(model->getAlpha());
+#ifdef _IG_MODELS
 				if (model->isPInv())
 					finalModel->setpInv(model->getpInv());
+#endif
 				finalModel->setLnL(model->getLnL());
 				finalModel->setTree(ctree);
 				models.push_back(finalModel);
@@ -505,8 +506,10 @@ int PartitionElement::loadData(void) {
 				finalModel->setFrequencies(freqs);
 				if (model->isGamma())
 					finalModel->setAlpha(model->getAlpha());
+#ifdef _IG_MODELS
 				if (model->isPInv())
 					finalModel->setpInv(model->getpInv());
+#endif
 				finalModel->setLnL(model->getLnL());
 				finalModel->setTree(ctree);
 				models.push_back(finalModel);
@@ -555,8 +558,6 @@ int PartitionElement::storeData(void) {
 	int numberOfRates = data_type == DT_NUCLEIC ?
 	NUM_DNA_RATES :
 													0;
-	streampos startPos = ofs.tellp();
-
 	int hashlen = ckphash.length();
 	int ckpSize = 4 * sizeof(int) + hashlen
 			+ models.size()
@@ -585,8 +586,6 @@ int PartitionElement::storeData(void) {
 		if (data_type == DT_NUCLEIC) {
 			ofs.write((char *) model->getRates(), NUM_RATES * sizeof(double));
 		}
-		size_t name_len = model->getName().length() + 1;
-		size_t matrixname_len = model->getMatrixName().length() + 1;
 		size_t tree_len = strlen(model->getTree().c_str()) + 1;
 		ofs.write((char *) &tree_len, sizeof(size_t));
 		ofs.write((char *) model->getTree().c_str(), tree_len);
@@ -603,8 +602,8 @@ void PartitionElement::print(ostream & out) {
 	cout << name << endl;
 	if (isOptimized()) {
 		cout << "Best model: " << bestModel->getModel()->getName() << endl;
-		cout << "Num.Params: " << bestModel->getModel()->getNumberOfFreeParameters()
-				<< endl;
+		cout << "Num.Params: "
+				<< bestModel->getModel()->getNumberOfFreeParameters() << endl;
 		cout << "BIC score:  " << bestModel->getValue() << endl;
 		cout << "BIC weight: " << bestModel->getWeight() << endl;
 		bestModel->getModel()->print(out, "  ");

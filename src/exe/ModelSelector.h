@@ -1,8 +1,23 @@
-/*
- * ModelSelector.h
+/*  PartitionTest, fast selection of the best fit partitioning scheme for
+ *  multi-gene data sets.
+ *  Copyright May 2013 by Diego Darriba
  *
- *  Created on: Jan 14, 2013
- *      Author: diego
+ *  This program is free software; you may redistribute it and/or modify its
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation; either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ *  For any other inquiries send an Email to Diego Darriba
+ *  ddarriba@udc.es
+ */
+
+/*
+ * @file ModelSelector.h
  */
 
 #ifndef ModelSelector_H_
@@ -20,16 +35,18 @@ using namespace std;
 class ModelSelector {
 public:
 	ModelSelector(PartitionElement * partitionElement, InformationCriterion ic,
-				double sampleSize);
+			double sampleSize);
 	virtual ~ModelSelector();
 	double getAlphaImportance(void) const;
-	double getInvImportance(void) const;
-	double getAlphaInvImportance(void) const;
 	double getFImportance(void) const;
 	double getOverallAlpha(void) const;
+#ifdef _IG_MODELS
+	double getInvImportance(void) const;
+	double getAlphaInvImportance(void) const;
 	double getOverallInv(void) const;
 	double getOverallInvAlpha(void) const;
 	double getOverallAlphaInv(void) const;
+#endif
 	SelectionModel * getBestModel(void) {
 		return bestModel;
 	}
@@ -37,7 +54,8 @@ public:
 			int freeParameters, double sampleSize);
 	static double computeBic(double lnL, int freeParameters, double sampleSize);
 	static double computeAic(double lnL, int freeParameters);
-	static double computeAicc(double lnL, int freeParameters, double sampleSize);
+	static double computeAicc(double lnL, int freeParameters,
+			double sampleSize);
 	void print(ostream& out);
 private:
 	void doSelection(vector<Model *> modelset, InformationCriterion ic,
@@ -50,13 +68,16 @@ private:
 	double minValue;
 
 	double alphaImportance;
-	double invImportance;
-	double alphaInvImportance;
 	double fImportance;
 	double overallAlpha;
+#ifdef _IG_MODELS
+	double invImportance;
+	double alphaInvImportance;
 	double overallInv;
 	double overallAlphaInv;
 	double overallInvAlpha;
+#endif
+
 };
 
 } /* namespace partest */

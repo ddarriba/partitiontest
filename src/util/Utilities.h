@@ -58,6 +58,7 @@ public:
 	static std::string getProtMatrixName(ProtMatrix matrix);
 	static std::string getProtRaxmlName(ProtMatrix matrix);
 
+	static int toLower(char * str);
 private:
 	static char encoding_table[];
 };

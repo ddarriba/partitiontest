@@ -29,6 +29,7 @@
 #include <vector>
 
 #define PARTITIONS_TAG 		"partitions"
+#define SCHEMES_TAG	        "schemes"
 
 #define SEARCH_TAG 				"search"
 #define SEARCH_ALGORITHM_TAG 	"algorithm"
@@ -105,7 +106,7 @@ public:
 	 *
 	 * @return The partition at index
 	 */
-	struct partitionInfo getPartition(int index);
+	struct partitionInfo getPartition(unsigned int index);
 
 	/**
 	 * @brief Gets the number of partitions.
@@ -180,11 +181,11 @@ public:
 	}
 
 	const char * getInputFile(void) {
-		return input_file;
+		return inputFile;
 	}
 
 	const char * getUserTree(void) {
-		return user_tree;
+		return userTree;
 	}
 
 	OptimizeMode getOptimizeMode(void) {
@@ -194,30 +195,33 @@ public:
 private:
 
 	/**
-	 * @brief Parses a single line from the configuration file.
+	 * @brief Parses a partitioning scheme from a line definition.
 	 *
 	 * @param line The line to be parsed.
-	 * @param[out] The partitionInfo structure.
+	 * @param[out] scheme The partitioning scheme.
 	 *
 	 * @return 0 if there was no error.
 	 */
-	int parsePartitionLine(char * line, struct partitionInfo * pInfo);
+	int parseScheme(char * line, t_partitioningScheme * scheme);
 
 	/**
 	 * @brief Parses the complete details of a partition.
 	 *
 	 * @param line The line to be parsed.
-	 * @param[out] The partitionInfo structure.
+	 * @param[out] pInfo The partitionInfo structure.
 	 *
 	 * @return 0 if there was no error.
 	 */
 	int parsePartitionDetails(char * line, struct partitionInfo * pInfo);
 
+	void createSinglePartition();
+
 	const char * configFile; /** Configuration file name */
-	char input_file[256]; /** User input alignment */
-	char user_tree[256]; /** User input tree */
+	char inputFile[256]; /** User input alignment */
+	char userTree[256]; /** User input tree */
 	OptimizeMode optimizeMode; /** Mode of optimization */
 	vector<partitionInfo> * partitions; /** Vector of partitions */
+
 	/** search algorithm **/
 	bool searchData; /** TODO: Not sure what is this doing here */
 	SearchAlgo searchAlgorithm; /** Search algorithm */

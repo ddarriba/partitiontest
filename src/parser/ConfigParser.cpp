@@ -31,6 +31,41 @@ struct comparePartitionInfos {
 	}
 };
 
+void ConfigParser::createSinglePartition() {
+	cout << "INPUT :" << *input_file << endl;
+
+	number_of_genes = 1;
+	partitions = new vector<partitionInfo>(number_of_genes);
+	singleGeneNames = (string **) malloc(sizeof(string*));
+	singleGeneNames[0] = new string("SinglePartition");
+
+	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
+	num_taxa = phylip->sequenceCount;
+	seq_len = phylip->sequenceLength;
+
+	pllPartitionRegion * pregion;
+	pllPartitionInfo * pinfo;
+	pllQueueInit(&pllPartsQueue);
+
+	partitions->at(0).partitionId.push_back(0);
+	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+	pllQueueInit(&(pinfo->regionList));
+	pllQueueAppend(pllPartsQueue, (void *) pinfo);
+	pinfo->partitionName = (char *) malloc(1);
+	strcpy(pinfo->partitionName, "S");
+	pinfo->partitionModel = (char *) malloc(1);
+	pinfo->protModels = -1;
+	pinfo->protFreqs = -1;
+	pinfo->dataType = PLL_DNA_DATA;
+	pinfo->optimizeBaseFrequencies = PLL_TRUE;
+
+	pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
+	pregion->start = 1;
+	pregion->end = seq_len;
+	pregion->stride = 1;
+	pllQueueAppend(pinfo->regionList, (void *) pregion);
+}
+
 ConfigParser::ConfigParser(const char * configFile) {
 	maxSamples = 1;
 
@@ -52,14 +87,14 @@ ConfigParser::ConfigParser(const char * configFile) {
 			char * lastSlash = strrchr(basedir, char_separator);
 			if (lastSlash) {
 				*(lastSlash + 1) = 0;
-				strcpy(input_file, basedir);
+				strcpy(inputFile, basedir);
 				prefixLen = strlen(basedir);
 			}
-			strcpy(input_file + prefixLen, value);
+			strcpy(inputFile + prefixLen, value);
 		}
 		value = ini.Get(INPUT_TAG, INPUT_TREE_TAG, "").c_str();
 		if (strcmp(value, "")) {
-			strcpy(user_tree, value);
+			strcpy(userTree, value);
 		}
 		value = ini.Get(INPUT_TAG, INPUT_DATATYPE_TAG, "nt").c_str();
 		if (!strcmp(value, "aa")) {
@@ -148,54 +183,73 @@ ConfigParser::ConfigParser(const char * configFile) {
 		PARTITIONS_TAG);
 		number_of_genes = keys->size();
 
-		partitions = new vector<partitionInfo>(number_of_genes);
-		singleGeneNames = (string **) malloc(number_of_genes * sizeof(string*));
+		if (number_of_genes) {
+			partitions = new vector<partitionInfo>(number_of_genes);
+			singleGeneNames = (string **) malloc(
+					number_of_genes * sizeof(string*));
 
-		std::map<std::string, std::string>::iterator iter;
-		int partitionId = 0;
-		for (iter = keys->begin(); iter != keys->end(); iter++) {
-			partitions->at(partitionId).name = iter->first;
-			singleGeneNames[partitionId] = new string(iter->first);
+			std::map<std::string, std::string>::iterator iter;
+			int partitionId = 0;
+			for (iter = keys->begin(); iter != keys->end(); iter++) {
+				partitions->at(partitionId).name = iter->first;
+				singleGeneNames[partitionId] = new string(iter->first);
 
-			char lineBuffer[iter->second.length() + 1];
-			strcpy(lineBuffer, iter->second.c_str());
-			parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
-			partitionId++;
-		}
-		delete keys;
-
-		std::sort(partitions->begin(), partitions->end(),
-				comparePartitionInfos());
-
-		pllPartitionRegion * pregion;
-		pllPartitionInfo * pinfo;
-
-		pllQueueInit(&pllPartsQueue);
-
-		for (unsigned int i = 0; i < number_of_genes; i++) {
-			partitions->at(i).partitionId.push_back(i);
-			pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
-			pllQueueInit(&(pinfo->regionList));
-			pllQueueAppend(pllPartsQueue, (void *) pinfo);
-
-			pinfo->partitionName = (char *) malloc(
-					(partitions->at(i).name.size() + 1) * sizeof(char));
-			strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
-			pinfo->partitionModel = (char *) malloc(1);
-
-			pinfo->protModels = -1;
-			pinfo->protFreqs = -1;
-			pinfo->dataType = PLL_DNA_DATA;
-			pinfo->optimizeBaseFrequencies = PLL_TRUE;
-			for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
-				pregion = (pllPartitionRegion *) malloc(
-						sizeof(pllPartitionRegion));
-				pregion->start = partitions->at(i).start[j];
-				pregion->end = partitions->at(i).end[j];
-				pregion->stride = partitions->at(i).stride[j];
-				pllQueueAppend(pinfo->regionList, (void *) pregion);
+				char lineBuffer[iter->second.length() + 1];
+				strcpy(lineBuffer, iter->second.c_str());
+				parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
+				partitionId++;
 			}
+			delete keys;
+
+			std::sort(partitions->begin(), partitions->end(),
+					comparePartitionInfos());
+
+			pllPartitionRegion * pregion;
+			pllPartitionInfo * pinfo;
+
+			pllQueueInit(&pllPartsQueue);
+
+			for (unsigned int i = 0; i < number_of_genes; i++) {
+				partitions->at(i).partitionId.push_back(i);
+				pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+				pllQueueInit(&(pinfo->regionList));
+				pllQueueAppend(pllPartsQueue, (void *) pinfo);
+
+				pinfo->partitionName = (char *) malloc(
+						(partitions->at(i).name.size() + 1) * sizeof(char));
+				strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
+				pinfo->partitionModel = (char *) malloc(1);
+
+				pinfo->protModels = -1;
+				pinfo->protFreqs = -1;
+				pinfo->dataType = PLL_DNA_DATA;
+				pinfo->optimizeBaseFrequencies = PLL_TRUE;
+				for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
+					pregion = (pllPartitionRegion *) malloc(
+							sizeof(pllPartitionRegion));
+					pregion->start = partitions->at(i).start[j];
+					pregion->end = partitions->at(i).end[j];
+					pregion->stride = partitions->at(i).stride[j];
+					pllQueueAppend(pinfo->regionList, (void *) pregion);
+				}
+			}
+		} else {
+			createSinglePartition();
 		}
+
+		/** SCHEMES **/
+		vector<string> * defSchemes = ini.getSchemes(SCHEMES_TAG);
+		number_of_schemes = defSchemes->size();
+		schemes = new vector<t_partitioningScheme>(number_of_schemes);
+
+		int schemeId = 0;
+		for (string scheme : (*defSchemes)) {
+			char lineBuffer[scheme.length() + 1];
+			strcpy(lineBuffer, scheme.c_str());
+			parseScheme(lineBuffer, &(schemes->at(schemeId)));
+			schemeId++;
+		}
+		delete defSchemes;
 
 		/** OUTPUT **/
 		value = ini.Get(OUTPUT_TAG, OUTPUT_BASE_PATH, "").c_str();
@@ -245,6 +299,9 @@ ConfigParser::ConfigParser(const char * configFile) {
 					<< endl;
 			exit_partest(EX_USAGE);
 		}
+	} else {
+		// no configuration file provided. A single partition will be used
+		createSinglePartition();
 	}
 
 }
@@ -269,23 +326,31 @@ int ConfigParser::parsePartitionDetails(char * line,
 	return 0;
 }
 
-int ConfigParser::parsePartitionLine(char * line,
-		struct partitionInfo * pInfo) {
-	int numberOfSections = 0;
-	char * parsed = strtok(line, "-");
+int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 
+	char * parsed = strtok(line, "(");
+	char * rest = strtok(NULL, "\0");
+	parsed = strtok(parsed, ")");
 	while (parsed != NULL) {
-		int start = atoi(parsed);
-		parsed = strtok(NULL, ",");
-		int end = atoi(parsed);
-		pInfo->start[numberOfSections] = start;
-		pInfo->end[numberOfSections] = end;
-		pInfo->stride[numberOfSections] = 1;
+		char * parsedPart;
+		parsedPart = strtok(parsed, ",");
+		t_partitionElementId nextPart;
+		while (parsedPart != NULL) {
+			Utilities::toLower(parsedPart);
+			for (partitionInfo pInfo : (*partitions)) {
+				if (!pInfo.name.compare(parsedPart)) {
+					nextPart.push_back(pInfo.partitionId.at(0));
+					break;
+				}
+			}
+			parsedPart = strtok(NULL, ",");
+		}
+		scheme->push_back(nextPart);
 
-		numberOfSections++;
-		parsed = strtok(NULL, ",");
+		parsed = strtok(rest, "(");
+		rest = strtok(NULL, "\0");
+		parsed = strtok(parsed, ")");
 	}
-	pInfo->numberOfSections = numberOfSections;
 
 	return 0;
 }
@@ -294,15 +359,6 @@ ConfigParser::~ConfigParser() {
 	if (partitions) {
 		delete partitions;
 	}
-}
-
-struct partitionInfo ConfigParser::getPartition(int index) {
-	if (!partitions) {
-		cerr << "ERROR: No partitions were defined" << endl;
-		exit_partest(EX_SOFTWARE);
-	}
-	return partitions->at(index);
-
 }
 
 void ConfigParser::printFormat() {
@@ -331,11 +387,14 @@ void ConfigParser::printFormat() {
 	cout << endl << "   ; Start of output section" << endl;
 	cout << "   [" << OUTPUT_TAG << "]" << endl;
 	cout << "   " << OUTPUT_BASE_PATH
-			<< "=OUTPUT_BASE_URL (default:current directory)" << endl;
-	cout << "   " << OUTPUT_MODELS_TAG << "=OUTPUT_MODELS_FILE" << endl;
-	cout << "   " << OUTPUT_PARTS_TAG << "=OUTPUT_PARTITIONS_FILE" << endl;
-	cout << "   " << OUTPUT_SCHEMES_TAG << "=OUTPUT_SCHEMES_FILE" << endl;
-	cout << "   " << OUTPUT_RESULTS_TAG << "=OUTPUT_RESULTS_FILE" << endl;
+			<< "=OUTPUT_BASE_URL (default:partitiontest_FILENAME" << endl;
+	cout << "   " << OUTPUT_MODELS_TAG
+			<< "=OUTPUT_MODELS_FILE (default: $path/models)" << endl;
+	//cout << "   " << OUTPUT_PARTS_TAG << "=OUTPUT_PARTITIONS_FILE" << endl;
+	cout << "   " << OUTPUT_SCHEMES_TAG
+			<< "=OUTPUT_SCHEMES_FILE (default: $path/schemes)" << endl;
+	cout << "   " << OUTPUT_RESULTS_TAG
+			<< "=OUTPUT_RESULTS_FILE (default: $path/results)" << endl;
 	cout << endl << "Example:" << endl << endl;
 	cout << "   [" << PARTITIONS_TAG << "]" << endl;
 	cout << "   DNA1=1-976" << endl;
@@ -380,10 +439,10 @@ void ConfigParser::createTemplate() {
 	cout << "[" << INPUT_TAG << "]" << endl;
 	cout << INPUT_MSA_TAG << "=input.phy" << endl;
 	cout << INPUT_TREE_TAG << "=input.tree" << endl;
-	cout << INPUT_DATATYPE_TAG << "=nt" << endl;
+	cout << INPUT_DATATYPE_TAG << "=nt" << endl << endl;
 	cout << "; Start of candidate models description" << endl;
 	cout << "[" << MODELS_TAG << "]" << endl;
-	cout << MODELS_INCLUDE_TAG << "=all" << endl;
+	cout << MODELS_INCLUDE_TAG << "=all" << endl << endl;
 	cout << "; Start of searching options" << endl;
 	cout << "[" << SEARCH_TAG << "]" << endl;
 	cout << SEARCH_ALGORITHM_TAG << "=hcluster" << endl;
@@ -397,6 +456,18 @@ void ConfigParser::createTemplate() {
 
 vector<partitionInfo> * ConfigParser::getPartitions() {
 	return partitions;
+}
+
+struct partitionInfo ConfigParser::getPartition(unsigned int index) {
+	if (!partitions) {
+		cerr << "ERROR: No partitions were defined" << endl;
+		exit_partest(EX_SOFTWARE);
+	}
+	if (index >= number_of_genes) {
+		cerr << "ERROR: Requested partition does not exist" << endl;
+		exit_partest(EX_SOFTWARE);
+	}
+	return partitions->at(index);
 }
 
 } /* namespace partest */

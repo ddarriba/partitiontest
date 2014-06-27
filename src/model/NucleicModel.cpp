@@ -143,9 +143,6 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	default:
 		cerr << "ERROR: Unknown nucleic matrix" << endl;
 		exit_partest(EX_SOFTWARE);
-#ifdef _PLL
-
-#endif
 	}
 
 	if (rateVariation & RateVarF) {
@@ -180,7 +177,7 @@ NucMatrix NucleicModel::getMatrix(void) {
 }
 
 void NucleicModel::allocateRates(void) {
-	this->rates = (double *) malloc (NUM_RATES * sizeof(double));
+	this->rates = (double *) malloc(NUM_RATES * sizeof(double));
 }
 
 void NucleicModel::setRates(const double * rates) {
@@ -220,11 +217,11 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
-	//double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-	//double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
-	//double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
-	double fDistance = Utilities::euclideanDistance(frequencies, other->frequencies, 4);
-	//if (correlation < 0) correlation *= -1;
+//  double rCorrelation = Utilities::correlation(rates, other->rates, 6);
+//  double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
+//  double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
+	double fDistance = Utilities::euclideanDistance(frequencies,
+			other->frequencies, 4);
 	double distance = rDistance + fDistance + shapeDistance;
 
 	return distance;
@@ -234,9 +231,11 @@ void NucleicModel::print(ostream& cout, const char * prefix) {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;
+#ifdef _IG_MODELS
 		if (isPInv()) {
 			cout << prefix << "pInv:  " << pInv << endl;
 		}
+#endif
 		if (isGamma()) {
 			cout << prefix << "alpha: " << alpha << endl;
 		}

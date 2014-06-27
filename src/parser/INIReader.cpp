@@ -15,7 +15,7 @@
 
 #include "INIReader.h"
 
-using std::string;
+using namespace std;
 
 INIReader::INIReader(string filename) {
 	_error = ini_parse(filename.c_str(), ValueHandler, this);
@@ -50,7 +50,7 @@ double INIReader::GetReal(string section, string name, double default_value) {
 bool INIReader::GetBoolean(string section, string name, bool default_value) {
 	string valstr = Get(section, name, "");
 	// Convert to lower case to make string comparisons case-insensitive
-	std::transform(valstr.begin(), valstr.end(), valstr.begin(), ::tolower);
+	transform(valstr.begin(), valstr.end(), valstr.begin(), ::tolower);
 	if (valstr == "true" || valstr == "yes" || valstr == "on" || valstr == "1")
 		return true;
 	else if (valstr == "false" || valstr == "no" || valstr == "off"
@@ -60,12 +60,12 @@ bool INIReader::GetBoolean(string section, string name, bool default_value) {
 		return default_value;
 }
 
-std::map<std::string, std::string> * INIReader::getGenes(string section) {
+map<string, string> * INIReader::getGenes(string section) {
 
-	std::map<std::string, std::string> * geneMap = new std::map<std::string,
-			std::string>();
+	map<string, string> * geneMap = new map<string,
+			string>();
 
-	std::map<std::string, std::string>::iterator iter;
+	map<string, string>::iterator iter;
 	for (iter = _values.begin(); iter != _values.end(); iter++) {
 		if (!(iter->first.substr(0, 11).compare("partitions."))) {
 			(*geneMap)[iter->first.substr(11, iter->first.length() - 11)] =
@@ -76,10 +76,24 @@ std::map<std::string, std::string> * INIReader::getGenes(string section) {
 	return geneMap;
 }
 
+vector<string> * INIReader::getSchemes(string section) {
+
+	vector<string> * schemeLines = new vector<string>();
+
+	map<string, string>::iterator iter;
+	for (iter = _values.begin(); iter != _values.end(); iter++) {
+		if (!(iter->first.substr(0, 8).compare("schemes."))) {
+			schemeLines->push_back(iter->second);
+		}
+	}
+
+	return schemeLines;
+}
+
 string INIReader::MakeKey(string section, string name) {
 	string key = section + "." + name;
 	// Convert to lower case to make section/name lookups case-insensitive
-	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+	transform(key.begin(), key.end(), key.begin(), ::tolower);
 	return key;
 }
 

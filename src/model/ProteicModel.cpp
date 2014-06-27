@@ -59,11 +59,13 @@ ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
 	}
 
 	name = matrixName;
+#ifdef _IG_MODELS
 	if (rateVariation & RateVarI) {
 		name += "+I";
 		/* proportion of invariable sites free parameter */
 		modelFreeParameters++;
 	}
+#endif
 	if (rateVariation & RateVarG) {
 		name += "+G";
 		/* alpha free parameter */
@@ -99,7 +101,11 @@ double ProteicModel::distanceTo(Model * otherModel) {
 	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
 	//double matrixDistance = matrix!=other->matrix?getEuclideanDistance(matrix, other->matrix): 0;
 	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
+#ifdef _IG_MODELS
 	double invDistance = fabs(pInv - other->pInv);
+#else
+	double invDistance = 0.0;
+#endif
 	double shapeDistance = fabs(alpha - other->alpha);
 	double freqsDistance = 0.0;
 	for (int i = 0; i < numberOfFrequencies; i++) {
@@ -129,9 +135,11 @@ void ProteicModel::print(ostream& cout, const char * prefix) {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;
+#ifdef _IG_MODELS
 		if (isPInv()) {
 			cout << prefix << "pInv:  " << pInv << endl;
 		}
+#endif
 		if (isGamma()) {
 			cout << prefix << "alpha: " << alpha << endl;
 		}

@@ -129,7 +129,7 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 		}
 	}
 #else
-	for (int i = 0; i < nextSchemes->size(); i++) {
+	for (size_t i = 0; i < nextSchemes->size(); i++) {
 		PartitioningScheme * scheme = nextSchemes->at(i);
 		mo.optimizePartitioningScheme(scheme, i, nextSchemes->size());
 	}

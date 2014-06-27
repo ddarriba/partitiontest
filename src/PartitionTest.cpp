@@ -8,6 +8,7 @@
 #include "PartitionTest.h"
 #include "search/SearchAlgorithm.h"
 #include "search/HierarchicalClusteringSearchAlgorithm.h"
+#include "search/ExhaustiveSearchAlgorithm.h"
 #include "search/GreedySearchAlgorithm.h"
 #include "search/RandomSearchAlgorithm.h"
 #include "indata/PartitioningScheme.h"
@@ -151,7 +152,7 @@ bool PartitionTest::configure(void) {
 	switch (optimize_mode) {
 	case OPT_SEARCH:
 		number_of_models =
-				data_type == DT_NUCLEIC ? NUC_MATRIX_SIZE : PROT_MATRIX_SIZE;
+				data_type == DT_NUCLEIC ? NUC_MATRIX_SIZE/2 : PROT_MATRIX_SIZE;
 		if (do_rate & RateVarF) {
 			number_of_models *= 2;
 		}
@@ -281,7 +282,12 @@ int main(int argc, char * argv[]) {
 		searchAlgo = new RandomSearchAlgorithm();
 		break;
 	case SearchExhaustive:
+		searchAlgo = new ExhaustiveSearchAlgorithm();
+		break;
 	case SearchGreedyExtended:
+		cerr << "[ERROR] Not implemented yet" << endl;
+		exit_partest(EX_UNAVAILABLE);
+		break;
 	default:
 		break;
 	}
@@ -289,15 +295,18 @@ int main(int argc, char * argv[]) {
 	PartitioningScheme * bestScheme = searchAlgo->start();
 
 	if (I_AM_ROOT) {
-		ModelOptimize mo;
-		mo.buildFinalTree(bestScheme, true);
-
-		if (ckpAvailable && results_logfile) {
-			ofstream ofs(results_logfile->c_str(), ios::out);
-			PrintMeta::print_results_xml(ofs, bestScheme);
-			ofs.close();
-		}
 		PrintMeta::print_results(cout, bestScheme);
+
+		if (compute_final_tree) {
+			ModelOptimize mo;
+			mo.buildFinalTree(bestScheme, false);
+
+			if (ckpAvailable && results_logfile) {
+				ofstream ofs(results_logfile->c_str(), ios::out);
+				PrintMeta::print_results_xml(ofs, bestScheme);
+				ofs.close();
+			}
+		}
 	}
 
 	delete bestScheme;
