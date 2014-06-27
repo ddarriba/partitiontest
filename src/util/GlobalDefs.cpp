@@ -39,6 +39,7 @@ namespace partest {
 	InformationCriterion ic_type;
 	OptimizeMode optimize_mode;
 	bool non_stop = false;
+	bool compute_final_tree = false;
 
 	string * input_file = 0;
 	string * config_file = 0;
@@ -55,11 +56,13 @@ namespace partest {
 	pllAlignmentData * phylip = 0;
 	pllInstance * tree = 0;
 
-	unsigned int num_taxa;
-	unsigned int seq_len;
-	unsigned int num_patterns;
-	unsigned int number_of_models;
-	unsigned int number_of_genes;
+	unsigned int num_taxa = 0;
+	unsigned int seq_len = 0;
+	unsigned int num_patterns = 0;
+	unsigned int number_of_models = 0;
+	unsigned int number_of_genes = 0;
+	unsigned int number_of_schemes = 0;
+	std::vector<t_partitioningScheme> * schemes = 0;
 
 	void exit_partest(int status) {
 		/* free global variables */

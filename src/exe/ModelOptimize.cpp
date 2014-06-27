@@ -243,7 +243,6 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 	}
 
 	if (!loadedTree) {
-		PartitionElement * pe;
 
 		pllInstanceAttr attr;
 		attr.fastScaling = PLL_FALSE;
@@ -261,7 +260,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 		pllQueueInit(&parts);
 		for (unsigned int i = 0; i < finalScheme->getNumberOfElements(); i++) {
-			pe = finalScheme->getElement(i);
+			PartitionElement * pe = finalScheme->getElement(i);
 			pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 			pllQueueInit(&(pinfo->regionList));
 			pllQueueAppend(parts, (void *) pinfo);
@@ -286,7 +285,8 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		partitionList * compParts = pllPartitionsCommit(parts, phylip);
 		pllQueuePartitionsDestroy(&parts);
 
-		cout << endl << timestamp() << " Computing final topology... " << endl;
+		cout << endl << timestamp()
+				<< " Conducting final topology optimization... " << endl;
 
 		pllAlignmentRemoveDups(phylip, compParts);
 
@@ -313,9 +313,10 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 		switch (data_type) {
 		case DT_PROTEIC:
+		{
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
 					cur_part++) {
-				pe = finalScheme->getElement(cur_part);
+				PartitionElement * pe = finalScheme->getElement(cur_part);
 				ProteicModel * pModel =
 						static_cast<ProteicModel *>(pe->getBestModel()->getModel());
 				int matrix = pModel->getMatrix();
@@ -338,10 +339,12 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 				}
 			}
 			break;
-		case DT_NUCLEIC: {
+		}
+		case DT_NUCLEIC:
+		{
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
 					cur_part++) {
-				pe = finalScheme->getElement(cur_part);
+				PartitionElement * pe = finalScheme->getElement(cur_part);
 				NucleicModel * nModel =
 						static_cast<NucleicModel *>(pe->getBestModel()->getModel());
 				//int matrix = nModel->getMatrix();
@@ -353,18 +356,6 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
 				current_part->optimizeSubstitutionRates =
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
-				if (!reoptimizeParameters) {
-					current_part->alpha = nModel->getAlpha();
-					memcpy(current_part->frequencies, nModel->getFrequencies(),
-					NUM_NUC_FREQS);
-					memcpy(current_part->substRates, nModel->getRates(),
-					NUM_DNA_RATES);
-					if (!nModel->isPF()) {
-						for (int i = 0; i < 4; i++) {
-							current_part->frequencies[i] = 0.25;
-						}
-					}
-				}
 			}
 			break;
 		}
@@ -374,10 +365,33 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 		pllInitModel(fTree, compParts, phylip);
 
+		if (!reoptimizeParameters) {
+			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+					cur_part++) {
+				pInfo * current_part = compParts->partitionData[cur_part];
+				PartitionElement * pe = finalScheme->getElement(cur_part);
+				current_part->alpha =
+						pe->getBestModel()->getModel()->getAlpha();
+				memcpy(current_part->frequencies,
+						pe->getBestModel()->getModel()->getFrequencies(),
+						NUM_NUC_FREQS);
+				memcpy(current_part->substRates,
+						pe->getBestModel()->getModel()->getRates(),
+						NUM_DNA_RATES);
+				if (data_type == DT_NUCLEIC) {
+					if (!pe->getBestModel()->getModel()->isPF()) {
+						for (int i = 0; i < 4; i++) {
+							current_part->frequencies[i] = 0.25;
+						}
+					}
+				}
+			}
+		}
+
 		if (data_type == DT_NUCLEIC) {
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
 					cur_part++) {
-				pe = finalScheme->getElement(cur_part);
+				PartitionElement * pe = finalScheme->getElement(cur_part);
 				NucleicModel * nModel =
 						static_cast<NucleicModel *>(pe->getBestModel()->getModel());
 				const char * m = nModel->getMatrixName().c_str();

@@ -65,6 +65,7 @@ enum ArgIndex {
 	ARG_INV, /** Argument for including +I models */
 	ARG_GAMMA, /** Argument for including +G models */
 	ARG_TOPOLOGY, /** Argument for starting topology type */
+	ARG_FINAL_TREE, /** Argument for computing final tree */
 	ARG_CONFIG_FILE, /** Argument for configuration file name */
 	ARG_NUM_PROCS, /** Argument for number of processors */
 	ARG_SAMPLE_SIZE, /** Argument for sample size type */

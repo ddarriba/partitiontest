@@ -119,7 +119,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 	int step = 1;
 	int maxSteps = number_of_genes;
 
-	bool continueExec = true;
+	bool continueExec = (numberOfPartitions > 1);
 	if (I_AM_ROOT) {
 
 		/* building first scheme */
@@ -155,7 +155,6 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 			nextSchemeFunctor nextScheme(localBestScheme);
 			nextSchemes.reserve(nextScheme.size());
 
-			int schemeIndex = 0;
 			while (PartitioningScheme * scheme = nextScheme()) {
 				if (!scheme->isOptimized())
 					schemeManager.addScheme(scheme);
@@ -184,6 +183,7 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 
 			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));
+
 #ifdef _MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif

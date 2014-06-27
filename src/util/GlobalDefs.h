@@ -183,9 +183,11 @@ extern StartTopo starting_topology;
 extern SearchAlgo search_algo;
 extern int max_samples;
 extern bool non_stop;
+extern bool compute_final_tree;
 extern OptimizeMode optimize_mode;
 extern InformationCriterion ic_type;
 extern unsigned int number_of_models;
+extern unsigned int number_of_schemes;
 extern bitMask protModels; /** Models to evaluate */
 
 /* output */
@@ -209,6 +211,7 @@ extern unsigned int num_patterns;
 extern unsigned int number_of_genes;
 extern std::string ** singleGeneNames;
 extern char * starting_tree;
+extern std::vector<t_partitioningScheme> * schemes;
 
 /* data structures */
 extern pllQueue * pllPartsQueue;

@@ -14,11 +14,12 @@
 
 namespace partest {
 
-char Utilities::encoding_table[] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-		'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-		'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-		'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
-		'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_' };
+char Utilities::encoding_table[] = {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b',
+		'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+		'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3',
+		'4', '5', '6', '7', '8', '9', '-', '_' };
 
 char Utilities::toBase64(int value) {
 	if (value > 63)
@@ -160,77 +161,85 @@ int Utilities::duplicateAlignmentData(pllAlignmentData ** out,
 
 std::string Utilities::getProtRaxmlName(ProtMatrix matrix) {
 	std::string matrixName = getProtMatrixName(matrix);
-	std::transform(matrixName.begin(), matrixName.end(),matrixName.begin(), ::toupper);
+	std::transform(matrixName.begin(), matrixName.end(), matrixName.begin(),
+			::toupper);
 	return matrixName;
 }
 
 std::string Utilities::getProtMatrixName(ProtMatrix matrix) {
 	std::string matrixName;
 	switch (matrix) {
-		case PROT_MATRIX_DAYHOFF:
-			matrixName = "DAYHOFF";
-			break;
-		case PROT_MATRIX_DCMUT:
-			matrixName = "DCMut";
-			break;
-		case PROT_MATRIX_JTT:
-			matrixName = "JTT";
-			break;
-		case PROT_MATRIX_MTREV:
-			matrixName = "MtREV";
-			break;
-		case PROT_MATRIX_WAG:
-			matrixName = "WAG";
-			break;
-		case PROT_MATRIX_RTREV:
-			matrixName = "RtREV";
-			break;
-		case PROT_MATRIX_CPREV:
-			matrixName = "CpREV";
-			break;
-		case PROT_MATRIX_VT:
-			matrixName = "VT";
-			break;
-		case PROT_MATRIX_BLOSUM62:
-			matrixName = "Blosum62";
-			break;
-		case PROT_MATRIX_MTMAM:
-			matrixName = "MtMam";
-			break;
-		case PROT_MATRIX_LG:
-			matrixName = "LG";
-			break;
-		case PROT_MATRIX_MTART:
-			matrixName = "MtArt";
-			break;
-		case PROT_MATRIX_HIVB:
-			matrixName = "HIVb";
-			break;
-		case PROT_MATRIX_HIVW:
-			matrixName = "HIVw";
-			break;
-		case PROT_MATRIX_MTZOA:
-			matrixName = "MtZoa";
-			break;
-		case PROT_MATRIX_PMB:
-			matrixName = "PMB";
-			break;
-		case PROT_MATRIX_JTTDCMUT:
-			matrixName = "JTTDCMut";
-			break;
-		case PROT_MATRIX_FLU:
-			matrixName = "FLU";
-			break;
-		case PROT_MATRIX_AUTO:
-			matrixName = "Auto";
-			break;
-		case PROT_MATRIX_GTR:
-			matrixName = "Auto";
-			break;
-		default:
-			exit_partest(EX_SOFTWARE);
+	case PROT_MATRIX_DAYHOFF:
+		matrixName = "DAYHOFF";
+		break;
+	case PROT_MATRIX_DCMUT:
+		matrixName = "DCMut";
+		break;
+	case PROT_MATRIX_JTT:
+		matrixName = "JTT";
+		break;
+	case PROT_MATRIX_MTREV:
+		matrixName = "MtREV";
+		break;
+	case PROT_MATRIX_WAG:
+		matrixName = "WAG";
+		break;
+	case PROT_MATRIX_RTREV:
+		matrixName = "RtREV";
+		break;
+	case PROT_MATRIX_CPREV:
+		matrixName = "CpREV";
+		break;
+	case PROT_MATRIX_VT:
+		matrixName = "VT";
+		break;
+	case PROT_MATRIX_BLOSUM62:
+		matrixName = "Blosum62";
+		break;
+	case PROT_MATRIX_MTMAM:
+		matrixName = "MtMam";
+		break;
+	case PROT_MATRIX_LG:
+		matrixName = "LG";
+		break;
+	case PROT_MATRIX_MTART:
+		matrixName = "MtArt";
+		break;
+	case PROT_MATRIX_HIVB:
+		matrixName = "HIVb";
+		break;
+	case PROT_MATRIX_HIVW:
+		matrixName = "HIVw";
+		break;
+	case PROT_MATRIX_MTZOA:
+		matrixName = "MtZoa";
+		break;
+	case PROT_MATRIX_PMB:
+		matrixName = "PMB";
+		break;
+	case PROT_MATRIX_JTTDCMUT:
+		matrixName = "JTTDCMut";
+		break;
+	case PROT_MATRIX_FLU:
+		matrixName = "FLU";
+		break;
+	case PROT_MATRIX_AUTO:
+		matrixName = "Auto";
+		break;
+	case PROT_MATRIX_GTR:
+		matrixName = "Auto";
+		break;
+	default:
+		exit_partest(EX_SOFTWARE);
 	}
 	return matrixName;
+}
+
+int Utilities::toLower(char * str) {
+	for (int i = 0; str[i] != '\0'; i++)
+		if (str[i] >= 'A' && str[i] <= 'Z')
+			str[i] += 'a' - 'A';
+	return 0;
 }
 
 } /* namespace partest */

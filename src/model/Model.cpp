@@ -25,9 +25,13 @@
 namespace partest {
 
 Model::Model(bitMask rateVariation, int numberOfTaxa) :
-		rateVariation(rateVariation), alpha(100.0), pInv(0.0), lnL(0.0),
+		rateVariation(rateVariation), alpha(100.0), lnL(0.0),
 		numberOfFrequencies(0), frequencies(0), rates(0),
 		modelFreeParameters(0), name() {
+
+#ifdef _IG_MODELS
+	pInv = 0.0;
+#endif
 
 	/* The free parameters are initialized with the number of branches */
 	treeFreeParameters = Utilities::numberOfBranches(numberOfTaxa);
@@ -68,14 +72,18 @@ void Model::setAlpha(double alpha) {
 	this->alpha = alpha;
 }
 
+#ifdef _IG_MODELS
 void Model::setpInv(double pInv) {
 	assert(isPInv());
 	this->pInv = pInv;
 }
+#endif
 
+#ifdef _IG_MODELS
 bool Model::isPInv() {
 	return !(~rateVariation & RateVarI);
 }
+#endif
 
 bool Model::isGamma() {
 	return !(~rateVariation & RateVarG);
@@ -93,9 +101,11 @@ void Model::print(ostream& cout, const char * prefix) {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;
+#ifdef _IG_MODELS
 		if (isPInv()) {
 			cout << prefix << "pInv:  " << pInv << endl;
 		}
+#endif
 		if (isGamma()) {
 			cout << prefix << "alpha: " << alpha << endl;
 		}

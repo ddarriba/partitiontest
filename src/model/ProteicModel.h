@@ -46,7 +46,7 @@ public:
 	 */
   ProteicModel(ProtMatrix matrix, bitMask rateVariation, int numberOfTaxa);
   virtual void setFrequencies(const double * frequencies);
-  virtual void allocateRates(void) { /* do nothing */}
+  virtual void allocateRates(void) { /* do nothing */ }
   void setRates(const double * rates);
   ProtMatrix getMatrix(void);
   double distanceTo(Model * other);

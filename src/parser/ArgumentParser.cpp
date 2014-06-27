@@ -31,7 +31,7 @@ using namespace std;
 
 namespace partest {
 
-#define NUM_ARGUMENTS 18
+#define NUM_ARGUMENTS 19
 
 void ArgumentParser::init() {
 	index = 1;
@@ -42,27 +42,28 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 		ptest(ptest), index(0), subindex(0) {
 
 	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
-			ARG_INPUT_FILE, 'i', "input-file", true }, {
-			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
-			ARG_USER_TREE, 'u', "user-tree", true }, {
-			ARG_DATA_TYPE, 'd', "data-type", true }, {
-			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
-#ifndef _PLL
-			ARG_INV, 'I', "invariant-sites", false }, {
-			ARG_GAMMA, 'G', "gamma-rates", false }, {
-#endif
-			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
-			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
-			ARG_HCLUSTER_REPS, 'r', "replicates", true }, {
-			ARG_OPTIMIZE, 'O', "optimize", true }, {
-			ARG_OUTPUT, 'o', "output", true }, {
-			ARG_NUM_PROCS, 'p', "num-procs", true }, {
-			ARG_IC_TYPE, 's', "selection-criterion", true }, {
-			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
 			ARG_CONFIG_HELP, 0, "config-help", false }, {
 			ARG_CONFIG_TEMPLATE, 0, "config-template", false }, {
-			ARG_NON_STOP, 'N', "non-stop", false } };
+			ARG_DATA_TYPE, 'd', "data-type", true }, {
+			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
+			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
+#ifdef _IG_MODELS
+			ARG_GAMMA, 'G', "gamma-rates", false }, {
+			ARG_INV, 'I', "invariant-sites", false }, {
+#endif
+			ARG_INPUT_FILE, 'i', "input-file", true }, {
+			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
+			ARG_NON_STOP, 'N', "non-stop", false }, {
+			ARG_OUTPUT, 'o', "output", true }, {
+			ARG_OPTIMIZE, 'O', "optimize", true }, {
+			ARG_NUM_PROCS, 'p', "num-procs", true }, {
+			ARG_HCLUSTER_REPS, 'r', "replicates", true }, {
+			ARG_IC_TYPE, 's', "selection-criterion", true }, {
+			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
+			ARG_TOPOLOGY, 't', "topology", true }, {
+			ARG_FINAL_TREE, 'T', "get-final-tree", false }, {
+			ARG_USER_TREE, 'u', "user-tree", true } };
 	unsigned int size = NUM_ARGUMENTS * sizeof(option);
 
 	arguments = (option *) malloc(size);
@@ -84,7 +85,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 		strcpy(argument, argv[index]);
 		if (*arg == '-') {
 			if (*(arg + 1) == '-') {
-				// check long option
+				/* check long option */
 				for (int j = 0; j < NUM_ARGUMENTS; j++) {
 					if (arguments[j].long_code > 0) {
 						if (!strcmp(arguments[j].long_code, &(arg[2]))) {
@@ -103,7 +104,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 				}
 				index++;
 			} else {
-				// check short option
+				/* check short option */
 				int num_arguments = strlen(arg + 1);
 				for (int j = 0; j < NUM_ARGUMENTS; j++) {
 					if (arguments[j].char_code == arg[subindex]) {
@@ -139,7 +140,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 				}
 			}
 		} else {
-			// NOT AN OPTION!
+			/* not an option! */
 			cerr << "[ERROR] \"" << argv[index] << "\" is not a valid option."
 					<< endl;
 			cerr << "Arguments must start with '-' (short) or '--' (long)"
@@ -154,7 +155,6 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 
 void ArgumentParser::parse(int argc, char *argv[]) {
 
-	bool requiredInputFile = false;
 	init();
 	int argument_index;
 	char value[256];
@@ -179,16 +179,19 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
 		switch (argument_index) {
 		case ARG_HELP:
+			/* display usage */
 			exit_partest(EX_USAGE);
 			break;
 		case ARG_INPUT_FILE:
+			/* input alignment file */
 			strcpy(input_file, value);
-			requiredInputFile = true;
 			break;
 		case ARG_USER_TREE:
+			/* input user defined topology */
 			strcpy(user_tree, value);
 			break;
 		case ARG_DATA_TYPE:
+			/* data type (nucleotide or amino-acid) */
 			if (!strcmp(value, ARG_DT_PROTEIC)) {
 				data_type = DT_PROTEIC;
 			} else if (!strcmp(value, ARG_DT_NUCLEIC)) {
@@ -205,6 +208,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_TOPOLOGY:
+			/* starting topology (Fixed, Parsimony or User-defined) */
 			if (!strcmp(value, ARG_TOPO_MP)) {
 				startingTopology = StartTopoMP;
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
@@ -225,6 +229,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_SEARCH_ALGORITHM:
+			/* search algorithm (HCluster, Greedy, Random or Exhaustive) */
 			if (!strcmp(value, ARG_SEARCH_EXHAUSTIVE)) {
 				searchAlgo = SearchExhaustive;
 			} else if (!strcmp(value, ARG_SEARCH_RANDOM)) {
@@ -255,6 +260,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_HCLUSTER_REPS:
+			/* number of replicates for HCluster and Random */
 			for (int i = 0; value[i] != 0; i++)
 				if (!isdigit(value[i])) {
 					cerr << "[ERROR] \"-r " << value << "\" must be an integer."
@@ -264,9 +270,11 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			maxSamples = atoi(value);
 			break;
 		case ARG_NON_STOP:
+			/* continue until the end / non stop on local maxima */
 			non_stop = true;
 			break;
 		case ARG_IC_TYPE:
+			/* information criterion (aic, bic, aicc, dt) */
 			if (!strcmp(value, ARG_IC_AIC)) {
 				ic_type = AIC;
 			} else if (!strcmp(value, ARG_IC_BIC)) {
@@ -291,6 +299,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_SAMPLE_SIZE:
+			/* sample size used for information criteria */
 			sampleSizeValue = 0.0;
 			if (!strcmp(value, ARG_SS_ALIGN)) {
 				sampleSize = SS_ALIGNMENT;
@@ -314,15 +323,19 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 		case ARG_FREQUENCIES:
+			/* include empirical / unequal frequencies */
 			do_f = true;
 			break;
 		case ARG_INV:
+			/* include models with a proportion of invariant sites */
 			do_i = true;
 			break;
 		case ARG_GAMMA:
+			/* include models with gamma-distributed rate heterogeneity */
 			do_g = true;
 			break;
 		case ARG_OPTIMIZE:
+			/* modelset to optimize */
 			if (!strcmp(value, ARG_OPTIMIZE_BESTMODEL)) {
 				optimize = OPT_SEARCH;
 			} else if (!strcmp(value, ARG_OPTIMIZE_GTR)) {
@@ -340,21 +353,30 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 				exit_partest(EX_CONFIG);
 			}
 			break;
+		case ARG_FINAL_TREE:
+			/* compute final ML tree */
+			compute_final_tree = true;
+			break;
 		case ARG_OUTPUT:
+			/* output directory */
 			strcpy(output_dir, value);
 			break;
 		case ARG_CONFIG_FILE:
+			/* input configuration file */
 			strcpy(config_file, value);
 			break;
 		case ARG_CONFIG_HELP:
+			/* display configuration file format */
 			ConfigParser::printFormat();
 			exit_partest(0);
 			break;
 		case ARG_CONFIG_TEMPLATE:
+			/* display configuration file template */
 			ConfigParser::createTemplate();
 			exit_partest(0);
 			break;
 		case ARG_NUM_PROCS:
+			/* set the number of threads */
 #ifdef PTHREADS
 			number_of_threads = atoi(value);
 #else
@@ -395,6 +417,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	ptest->setMaxSamples(maxSamples);
 	ptest->setOptimize(optimize);
 	ptest->setSearchAlgo(searchAlgo);
+	ptest->setIcType(ic_type);
 
 }
 

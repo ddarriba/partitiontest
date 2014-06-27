@@ -110,8 +110,10 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 
 		vector<double> alphaValues(
 				numberOfElements * (numberOfElements + 1) / 2);
+#ifdef _IG_MODELS
 		vector<double> pinvValues(
 				numberOfElements * (numberOfElements + 1) / 2);
+#endif
 		vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
 		double sumAlpha = 0.0;
 		double maxAlpha = 0.0;
@@ -120,7 +122,9 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 				Model * mi = getElement(i)->getBestModel()->getModel();
 				Model * mj = getElement(j)->getBestModel()->getModel();
 				int index = (i * (i - 1) / 2) + j;
+#ifdef _IG_MODELS
 				pinvValues.at(index) = pow(mi->getpInv() - mj->getpInv(), 2);
+#endif
 				alphaValues.at(index) = pow(mi->getAlpha() - mj->getAlpha(), 2);
 				sumAlpha += alphaValues.at(index);
 				if (alphaValues.at(index) > maxAlpha) {
@@ -134,7 +138,11 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 			for (unsigned int j = 0; j < i; j++) {
 				int index = (i * (i - 1) / 2) + j;
 				//alphaValues.at(index) /= maxAlpha;
-				distances.at(index) += alphaValues[index] + pinvValues[index];
+				distances.at(index) += alphaValues[index];
+#ifdef _IG_MODELS
+				distances.at(index) += pinvValues[index]
+#endif
+				                                                ;
 				elementPair * ep = (elementPair *) malloc(sizeof(elementPair));
 				ep->e1 = getElement(i);
 				ep->e2 = getElement(j);

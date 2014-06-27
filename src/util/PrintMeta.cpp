@@ -1,8 +1,23 @@
-/*
- * PrintMeta.cc
+/*  PartitionTest, fast selection of the best fit partitioning scheme for
+ *  multi-gene data sets.
+ *  Copyright May 2013 by Diego Darriba
  *
- *  Created on: 01/06/2012
- *      Author: diego
+ *  This program is free software; you may redistribute it and/or modify its
+ *  under the terms of the GNU General Public License as published by the Free
+ *  Software Foundation; either version 3 of the License, or (at your option)
+ *  any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ *  For any other inquiries send an Email to Diego Darriba
+ *  ddarriba@udc.es
+ */
+
+/*
+ * @file PrintMeta.cc
  */
 
 #include "PrintMeta.h"
@@ -72,9 +87,8 @@ void PrintMeta::print_options(ostream& output) {
 		output << endl << setw(H_RULE_LENGTH - config_file->length()) << " ";
 	}
 	output << *config_file << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left
-				<< "     Number of partitions:" << setw(10) << right
-				<< number_of_genes << endl;
+	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Number of partitions:"
+			<< setw(10) << right << number_of_genes << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:
@@ -99,27 +113,32 @@ void PrintMeta::print_options(ostream& output) {
 		output << "True" << endl;
 	else
 		output << "False" << endl;
-	output << setw(OPT_DESCR_LENGTH) << left
-				<< "  Number of candidate models:"<< number_of_models << endl;
-	output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
-	switch (search_algo) {
-	case SearchGreedy:
-	case SearchDefault:
-		output << left << "Greedy" << endl;
-		break;
-	case SearchGreedyExtended:
-		output << left << "Greedy extended" << endl;
-		break;
-	case SearchHCluster:
-		output << left << "Hierarchical Cluster (" << max_samples << ")"
-				<< endl;
-		break;
-	case SearchRandom:
-		output << left << "Random" << endl;
-		break;
-	case SearchExhaustive:
-		output << left << "Exahustive" << endl;
-		break;
+	output << setw(OPT_DESCR_LENGTH) << left << "  Number of candidate models:"
+			<< number_of_models << endl;
+	if (number_of_schemes > 0) {
+		output << setw(OPT_DESCR_LENGTH) << left << "  Schemes to evaluate:";
+		output << left << number_of_schemes << endl;
+	} else {
+		output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
+		switch (search_algo) {
+		case SearchGreedy:
+		case SearchDefault:
+			output << left << "Greedy" << endl;
+			break;
+		case SearchGreedyExtended:
+			output << left << "Greedy extended" << endl;
+			break;
+		case SearchHCluster:
+			output << left << "Hierarchical Cluster (" << max_samples << ")"
+					<< endl;
+			break;
+		case SearchRandom:
+			output << left << "Random" << endl;
+			break;
+		case SearchExhaustive:
+			output << left << "Exahustive" << endl;
+			break;
+		}
 	}
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
 			<< endl;
@@ -127,9 +146,14 @@ void PrintMeta::print_options(ostream& output) {
 
 void PrintMeta::print_usage(std::ostream& out) {
 	out << "Usage: " << PACKAGE << " -i sequenceFilename" << endl;
-	out << "            [-c configFile] [-d nt|aa] [-F] [-h] [-N] [-O findModel|gtr]" << endl;
-	out << "            [-p numberOfThreads] [-r numberOfReplicates] [-s aic|bic|aicc|dt] " << endl;
-	out << "            [-S greedy|greedyext|hcluster|random|exhaustive]" << endl;
+	out
+			<< "            [-c configFile] [-d nt|aa] [-F] [-h] [-N] [-O findModel|gtr]"
+			<< endl;
+	out
+			<< "            [-p numberOfThreads] [-r numberOfReplicates] [-s aic|bic|aicc|dt] "
+			<< endl;
+	out << "            [-S greedy|greedyext|hcluster|random|exhaustive]"
+			<< endl;
 	out << "            [-t mp|fixed|user] [-u treeFile]" << endl;
 	out << "            [--config-help] [--config-template]" << endl;
 	out << endl;
@@ -137,7 +161,8 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< endl << endl;
 	out
 			<< "Mandatory arguments for long options are also mandatory for short options."
-			<< endl << endl;
+			<< endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
 			<< "Sets the input configuration file for gene partition" << endl;
@@ -152,6 +177,7 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--config-template" << "Generates a configuration file template"
 			<< endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -d, --data-type DATA_TYPE"
 			<< "Sets the type of the input data" << endl;
@@ -162,8 +188,8 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
-				<< "Includes models with empirical frequencies (+F)" << endl;
-		out << endl;
+			<< "Includes models with empirical frequencies (+F)" << endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"
 			<< "Displays this help message" << endl;
@@ -191,46 +217,48 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -p, --num-procs NUMBER_OF_THREADS"
-				<< "Number of threads for model evaluation (DEFAULT: 1)" << endl;
-		out << endl;
+			<< "Number of threads for model evaluation (DEFAULT: 1)" << endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -r, --replicates N"
 			<< "Sets the number of replicates on Hierarchical Clustering"
 			<< endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left
-				<< "  -s, --selection-criterion CRITERION"
-				<< "Sets the criterion for model selection" << endl;
-		out << setw(MAX_OPT_LENGTH) << " "
-				<< "Sample size for bic, aicc and dt criteria is the alignment length"
-				<< endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--selection-criterion bic"
-				<< "Bayesian Information Criterion (DEFAULT)" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--selection-criterion aic" << "Akaike Information Criterion"
-				<< endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--selection-criterion aicc"
-				<< "Corrected Akaike Information Criterion" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--selection-criterion dt" << "Decision Theory" << endl;
-		out << endl;
+			<< "  -s, --selection-criterion CRITERION"
+			<< "Sets the criterion for model selection" << endl;
+	out << setw(MAX_OPT_LENGTH) << " "
+			<< "Sample size for bic, aicc and dt criteria is the alignment length"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--selection-criterion bic"
+			<< "Bayesian Information Criterion (DEFAULT)" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--selection-criterion aic" << "Akaike Information Criterion"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--selection-criterion aicc"
+			<< "Corrected Akaike Information Criterion" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--selection-criterion dt" << "Decision Theory" << endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
-				<< "Sets the search algorithm" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--search greedyext"
-				<< "Extended greedy search algorithm" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--search hcluster" << "Hierarchical clustering algorithm"
-				<< endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--search random" << "Multiple step random sampling" << endl;
-		out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-				<< "--search exhaustive" << "Exhaustive search" << endl;
+			<< "Sets the search algorithm" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search greedyext" << "Extended greedy search algorithm"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search hcluster" << "Hierarchical clustering algorithm"
+			<< endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search random" << "Multiple step random sampling" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search exhaustive" << "Exhaustive search" << endl;
+	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
 			<< "Sets the starting topology for optimization" << endl;
@@ -250,6 +278,12 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< endl;
 	out << endl;
 
+	out << setw(SHORT_OPT_LENGTH) << "  -T" << setw(COMPL_OPT_LENGTH)
+			<< "--get-final-tree"
+			<< "Conduct final ML tree optimization"
+			<< endl;
+	out << endl;
+
 	out << setw(MAX_OPT_LENGTH) << left << "  -u, --user-tree TREE_FILE"
 			<< "Sets a user-defined topology. This option ignores all" << endl;
 	out << setw(MAX_OPT_LENGTH) << " "
@@ -260,7 +294,8 @@ void PrintMeta::print_usage(std::ostream& out) {
 
 }
 
-void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme) {
+void PrintMeta::print_results_xml(ostream & ofs,
+		PartitioningScheme * bestScheme) {
 	ofs << "<best_scheme num_elements=\"" << bestScheme->getNumberOfElements()
 			<< "\" lnL=\"" << bestScheme->getLnL() << "\" BIC_score=\""
 			<< bestScheme->getIcValue() << "\">" << endl;
@@ -312,8 +347,8 @@ void PrintMeta::print_results_xml(ostream & ofs, PartitioningScheme * bestScheme
 
 			break;
 		case DT_DEFAULT:
-				cerr << "Uninitialized DataType" << endl;
-				exit_partest(EX_SOFTWARE);
+			cerr << "Uninitialized DataType" << endl;
+			exit_partest(EX_SOFTWARE);
 		}
 		ofs << "PART" << i + 1 << " = ";
 		for (int j = 0; j < element->getNumberOfSections(); j++) {

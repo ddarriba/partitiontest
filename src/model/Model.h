@@ -87,12 +87,14 @@ public:
 	 */
 	string getTree(void);
 
+#ifdef _IG_MODELS
 	/**
 	 * @brief Gets whether the model considers a proportion of invariable sites.
 	 *
 	 * @return True, if it is a +I model.
 	 */
 	bool isPInv(void);
+#endif
 
 	/**
 	 * @brief Gets whether the model considers rate variation among sites.
@@ -143,6 +145,7 @@ public:
 		return alpha;
 	}
 
+#ifdef _IG_MODELS
 	/**
 	 * @brief Gets the proportion of invariable sites.
 	 *
@@ -151,6 +154,8 @@ public:
 	double getpInv(void) {
 		return pInv;
 	}
+#endif
+
 	/**
 	 * @brief Gets the number of state frequencies.
 	 *
@@ -205,12 +210,14 @@ public:
 	 */
 	void setAlpha(double alpha);
 
+#ifdef _IG_MODELS
 	/**
 	 * @brief Sets the proportion of invariable sites.
 	 *
 	 * @param pInv The proportion of invariable sites.
 	 */
 	void setpInv(double pInv);
+#endif
 
 	/**
 	 * @brief Sets the model tree in Newick format.
@@ -266,8 +273,10 @@ protected:
 	double lnL;
 	/** Alpha value of gamma distribution */
 	double alpha;
+#ifdef _IG_MODELS
 	/** Proportion of invariable sites */
 	double pInv;
+#endif
 	/** Substitution rates */
 	double *rates;
 	/** State frequencies */
