@@ -244,6 +244,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 		int schemeId = 0;
 		for (string scheme : (*defSchemes)) {
+			cout << "SCHEME " << scheme << endl;
 			char lineBuffer[scheme.length() + 1];
 			strcpy(lineBuffer, scheme.c_str());
 			parseScheme(lineBuffer, &(schemes->at(schemeId)));
@@ -337,12 +338,18 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 		t_partitionElementId nextPart;
 		while (parsedPart != NULL) {
 			Utilities::toLower(parsedPart);
+			unsigned int nextSingleElement = number_of_genes;
 			for (partitionInfo pInfo : (*partitions)) {
 				if (!pInfo.name.compare(parsedPart)) {
-					nextPart.push_back(pInfo.partitionId.at(0));
+					nextSingleElement = pInfo.partitionId.at(0);
 					break;
 				}
 			}
+			if (nextSingleElement >= number_of_genes) {
+				cerr << "ERROR: Partition " << parsedPart << " not found" << endl;
+				exit_partest(EX_IOERR);
+			}
+			nextPart.push_back(nextSingleElement);
 			parsedPart = strtok(NULL, ",");
 		}
 		scheme->push_back(nextPart);
