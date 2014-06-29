@@ -138,6 +138,9 @@ void PrintMeta::print_options(ostream& output) {
 		case SearchExhaustive:
 			output << left << "Exahustive" << endl;
 			break;
+		case SearchAuto:
+			output << left << "Auto" << endl;
+			break;
 		}
 	}
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
@@ -247,7 +250,7 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
 			<< "Sets the search algorithm" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search greedy" << "Greedy search algorithm (DEFAULT)" << endl;
+			<< "--search greedy" << "Greedy search algorithm" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search greedyext" << "Extended greedy search algorithm"
 			<< endl;
@@ -257,7 +260,9 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search random" << "Multiple step random sampling" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--search exhaustive" << "Exhaustive search" << endl;
+			<< "--search auto" << "Auto-select algorithm (DEFAULT)" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+				<< "--search exhaustive" << "Exhaustive search" << endl;
 	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"

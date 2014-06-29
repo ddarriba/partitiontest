@@ -26,7 +26,8 @@ HierarchicalClusteringSearchAlgorithm::HierarchicalClusteringSearchAlgorithm() {
 HierarchicalClusteringSearchAlgorithm::~HierarchicalClusteringSearchAlgorithm() {
 }
 
-PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
+PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 
 	SchemeManager schemeManager;
 	vector<PartitioningScheme *> nextSchemes;
@@ -38,22 +39,27 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 	int numberOfPartitions = number_of_genes;
 
 	bool continueExec = true;
+	int maxSteps;
 	if (I_AM_ROOT) {
-		/* building first scheme */
-		t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
-				number_of_genes);
-		for (unsigned int gene = 0; gene < number_of_genes; gene++) {
-			t_partitionElementId geneId(1);
-			geneId.at(0) = gene;
-			firstSchemeId->at(gene) = geneId;
+		if (startingPoint) {
+			nextSchemes.push_back(startingPoint);
+			maxSteps = startingPoint->getNumberOfElements();
+		} else {
+			/* building first scheme */
+			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+					number_of_genes);
+			for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+				t_partitionElementId geneId(1);
+				geneId.at(0) = gene;
+				firstSchemeId->at(gene) = geneId;
+			}
+			nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
+			maxSteps = firstSchemeId->size();
+			delete firstSchemeId;
 		}
-		nextSchemes.push_back(new PartitioningScheme(firstSchemeId));
-
 		bestScore = DOUBLE_INF;
 
 		int currentStep = 1;
-		int maxSteps = firstSchemeId->size();
-		delete firstSchemeId;
 
 		while (continueExec) {
 
@@ -137,7 +143,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start() {
 #endif
 
 	if (bestScheme != localBestScheme)
-			delete localBestScheme;
+		delete localBestScheme;
 
 	delete modelOptimize;
 	return bestScheme;

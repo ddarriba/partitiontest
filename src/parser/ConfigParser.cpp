@@ -51,7 +51,7 @@ void ConfigParser::createSinglePartition() {
 	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 	pllQueueInit(&(pinfo->regionList));
 	pllQueueAppend(pllPartsQueue, (void *) pinfo);
-	pinfo->partitionName = (char *) malloc(1);
+	pinfo->partitionName = (char *) malloc(2);
 	strcpy(pinfo->partitionName, "S");
 	pinfo->partitionModel = (char *) malloc(1);
 	pinfo->protModels = -1;
@@ -161,7 +161,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 		/** SEARCH ALGORITHM **/
 		if (search_algo == SearchDefault) {
-			value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "none").c_str();
+			value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "auto").c_str();
 			if (!strcmp(value, "greedy")) {
 				searchAlgorithm = SearchGreedy;
 			} else if (!strcmp(value, "exhaustive")) {
@@ -170,6 +170,8 @@ ConfigParser::ConfigParser(const char * configFile) {
 				searchAlgorithm = SearchRandom;
 			} else if (!strcmp(value, "hcluster")) {
 				searchAlgorithm = SearchHCluster;
+			} else if (!strcmp(value, "auto")) {
+				searchAlgorithm = SearchAuto;
 			} else {
 				cerr << "Invalid search algorithm : " << value << endl;
 				exit_partest(EX_SOFTWARE);
@@ -240,15 +242,16 @@ ConfigParser::ConfigParser(const char * configFile) {
 		/** SCHEMES **/
 		vector<string> * defSchemes = ini.getSchemes(SCHEMES_TAG);
 		number_of_schemes = defSchemes->size();
-		schemes = new vector<t_partitioningScheme>(number_of_schemes);
+		if (number_of_schemes) {
+			schemes = new vector<t_partitioningScheme>(number_of_schemes);
 
-		int schemeId = 0;
-		for (string scheme : (*defSchemes)) {
-			cout << "SCHEME " << scheme << endl;
-			char lineBuffer[scheme.length() + 1];
-			strcpy(lineBuffer, scheme.c_str());
-			parseScheme(lineBuffer, &(schemes->at(schemeId)));
-			schemeId++;
+			int schemeId = 0;
+			for (string scheme : (*defSchemes)) {
+				char lineBuffer[scheme.length() + 1];
+				strcpy(lineBuffer, scheme.c_str());
+				parseScheme(lineBuffer, &(schemes->at(schemeId)));
+				schemeId++;
+			}
 		}
 		delete defSchemes;
 
@@ -302,6 +305,9 @@ ConfigParser::ConfigParser(const char * configFile) {
 		}
 	} else {
 		// no configuration file provided. A single partition will be used
+		if (search_algo == SearchDefault) {
+			search_algo = SearchAuto;
+		}
 		createSinglePartition();
 	}
 
@@ -346,7 +352,8 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 				}
 			}
 			if (nextSingleElement >= number_of_genes) {
-				cerr << "ERROR: Partition " << parsedPart << " not found" << endl;
+				cerr << "ERROR: Partition " << parsedPart << " not found"
+						<< endl;
 				exit_partest(EX_IOERR);
 			}
 			nextPart.push_back(nextSingleElement);
@@ -379,7 +386,7 @@ void ConfigParser::printFormat() {
 	cout << endl << "   ; Start of searching options" << endl;
 	cout << "   [" << SEARCH_TAG << "]" << endl;
 	cout << "   " << SEARCH_ALGORITHM_TAG
-			<< "={greedy|hcluster} (default: greedy)";
+			<< "={greedy|hcluster|random|auto} (default: auto)";
 	cout << "   " << SEARCH_ALGORITHM_REPS << "=# (default: 1)" << endl;
 	cout << endl << "   ; Start of candidate models description" << endl;
 	cout << "   [" << MODELS_TAG << "]" << endl;
@@ -390,14 +397,19 @@ void ConfigParser::printFormat() {
 	cout << "   PART1=INI1-END1" << endl;
 	cout << "   PART1=INI2-END2" << endl;
 	cout << "   ..." << endl;
-	cout << "   PART1=INI3-END3" << endl;
+	cout << "   PARTn=INIn-ENDn" << endl;
+	cout << endl << "   ; Start of schemes" << endl;
+	cout << "   [" << SCHEMES_TAG << "]" << endl;
+	cout << "   S1=(GENE1,GENE2)(GENE3)..." << endl;
+	cout << "   S2=(GENE1,GENE2,GENE3)..." << endl;
+	cout << "   ..." << endl;
+	cout << "   Sn=(GENE1)(GENE2,GENE3,...)" << endl;
 	cout << endl << "   ; Start of output section" << endl;
 	cout << "   [" << OUTPUT_TAG << "]" << endl;
 	cout << "   " << OUTPUT_BASE_PATH
 			<< "=OUTPUT_BASE_URL (default:partitiontest_FILENAME" << endl;
 	cout << "   " << OUTPUT_MODELS_TAG
 			<< "=OUTPUT_MODELS_FILE (default: $path/models)" << endl;
-	//cout << "   " << OUTPUT_PARTS_TAG << "=OUTPUT_PARTITIONS_FILE" << endl;
 	cout << "   " << OUTPUT_SCHEMES_TAG
 			<< "=OUTPUT_SCHEMES_FILE (default: $path/schemes)" << endl;
 	cout << "   " << OUTPUT_RESULTS_TAG
@@ -407,16 +419,18 @@ void ConfigParser::printFormat() {
 	cout << "   DNA1=1-976" << endl;
 	cout << "   DNA2=976-1803" << endl;
 	cout << "   DNA3=1804-2700" << endl;
-	cout << "   DNA4=2701-3815" << endl;
-	cout << "   ; End of partitions for file.phy" << endl << endl;
+	cout << "   DNA4=2701-3815" << endl << endl;
 	cout << INPUT_TAG << "/" << INPUT_DATATYPE_TAG << endl;
 	cout << "      nt - Nucleic (DNA) data" << endl;
 	cout << "      aa - Amino Acid (protein) data" << endl;
 	cout << SEARCH_TAG << "/" << SEARCH_ALGORITHM_TAG << endl;
 	cout << "      greedy   - Greedy search" << endl;
 	cout << "      hcluster - Hierarchical Clustering search" << endl;
+	cout << "      random   - Random search" << endl;
+	cout << "      auto     - Auto selected search algorithm" << endl;
 	cout << SEARCH_TAG << "/" << SEARCH_ALGORITHM_REPS << endl;
-	cout << "      (int) # - Maximum number of replicates on each HCluster step"
+	cout
+			<< "      (int) # - Maximum number of replicates on each HCluster/Random step"
 			<< endl;
 	cout << MODELS_TAG << "/" << MODELS_INCLUDE_TAG << endl;
 	cout << "      all    - Evaluate the whole set of models" << endl;
@@ -433,11 +447,16 @@ void ConfigParser::printFormat() {
 			<< endl;
 	cout << "               e.g.,  " << MODELS_INCLUDE_TAG
 			<< "=dayhoff dcmut jtt" << endl;
+	cout << SCHEMES_TAG << endl;
+		cout
+				<< "      Define a set of schemes to evaluate instead of searching."
+				<< endl;
+		cout << "               e.g., " << "S1=(GENE1,GENE2)(GENE3,GENE5,GENE6)(GENE4)" << endl;
 	cout << OUTPUT_TAG << endl;
-	cout
-			<< "      Define urls for the output files. set to N/A for avoid output"
-			<< endl;
-	cout << "               e.g., " << OUTPUT_MODELS_TAG << "=N/A" << endl;
+		cout
+				<< "      Define urls for the output files. set to N/A for avoid output"
+				<< endl;
+		cout << "               e.g., " << OUTPUT_MODELS_TAG << "=N/A" << endl;
 }
 
 void ConfigParser::createTemplate() {
@@ -452,7 +471,7 @@ void ConfigParser::createTemplate() {
 	cout << MODELS_INCLUDE_TAG << "=all" << endl << endl;
 	cout << "; Start of searching options" << endl;
 	cout << "[" << SEARCH_TAG << "]" << endl;
-	cout << SEARCH_ALGORITHM_TAG << "=hcluster" << endl;
+	cout << SEARCH_ALGORITHM_TAG << "=auto" << endl;
 	cout << SEARCH_ALGORITHM_REPS << "=1" << endl;
 	cout << "[" << PARTITIONS_TAG << "]" << endl;
 	cout << "PART1=INI1-END1" << endl;

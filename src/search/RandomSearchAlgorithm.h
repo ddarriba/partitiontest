@@ -42,7 +42,6 @@ class RandomSearchAlgorithm: public SearchAlgorithm {
 public:
 	RandomSearchAlgorithm();
 	virtual ~RandomSearchAlgorithm();
-	virtual PartitioningScheme * start();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 private:
 	int getRandomPartitioningScheme(vector<PartitioningScheme *> & nextSchemes,

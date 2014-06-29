@@ -17,7 +17,7 @@ class SearchAlgorithm {
 public:
 	SearchAlgorithm();
 	virtual ~SearchAlgorithm();
-	virtual PartitioningScheme * start() = 0;
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0) = 0;
 protected:
 	ModelOptimize mo;
 	class SchemeManager {

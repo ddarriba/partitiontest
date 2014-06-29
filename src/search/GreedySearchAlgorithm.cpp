@@ -108,7 +108,8 @@ vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
 
 }
 
-PartitioningScheme * GreedySearchAlgorithm::start() {
+PartitioningScheme * GreedySearchAlgorithm::start(
+		PartitioningScheme * startingPoint) {
 
 	SchemeManager schemeManager;
 
@@ -125,22 +126,29 @@ PartitioningScheme * GreedySearchAlgorithm::start() {
 		/* building first scheme */
 		cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
 				<< endl;
-		t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
-				number_of_genes);
-		for (unsigned int gene = 0; gene < number_of_genes; gene++) {
-			t_partitionElementId geneId(1);
-			geneId.at(0) = gene;
-			firstSchemeId->at(gene) = geneId;
-		}
+		if (startingPoint) {
+			nextSchemes.push_back(startingPoint);
+			maxSteps = startingPoint->getNumberOfElements();
+			localBestScheme = bestScheme = startingPoint;
+		} else {
+			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
+					number_of_genes);
+			for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+				t_partitionElementId geneId(1);
+				geneId.at(0) = gene;
+				firstSchemeId->at(gene) = geneId;
+			}
 
-		localBestScheme = bestScheme = new PartitioningScheme(firstSchemeId);
-		nextSchemes.push_back(bestScheme);
-		delete firstSchemeId;
+			localBestScheme = bestScheme = new PartitioningScheme(
+					firstSchemeId);
+			nextSchemes.push_back(bestScheme);
+			delete firstSchemeId;
+		}
 
 		schemeManager.addScheme(bestScheme);
 		schemeManager.optimize(mo);
 #ifdef _MPI
-			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+		MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 
 		//mo.optimizePartitioningScheme(bestScheme);

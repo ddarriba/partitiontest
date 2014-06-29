@@ -44,36 +44,40 @@ ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {
 
 PartitioningScheme * ExhaustiveSearchAlgorithm::start(
 		PartitioningScheme * startingPoint) {
-	cerr << "[ERROR] Not implemented yet" << endl;
-	exit_partest(EX_UNAVAILABLE);
-	return 0;
-}
 
-PartitioningScheme * ExhaustiveSearchAlgorithm::start() {
-
-	ModelOptimize * modelOptimize = new ModelOptimize();
 	PartitioningScheme *bestScheme = 0;
-
-	if (number_of_schemes > 0) {
-		vector<PartitioningScheme *> candidateSchemes(number_of_schemes);
-		//double bestScore;
-
-		for (unsigned int currentStep=0; currentStep < number_of_schemes; currentStep++) {
-			t_partitioningScheme scheme = schemes->at(currentStep);
-			candidateSchemes.at(currentStep) = new PartitioningScheme(&scheme);
-			cout << timestamp() << " [EXH] Step " << currentStep+1 << "/"
-								<< number_of_schemes << endl;
-			modelOptimize->optimizePartitioningScheme(candidateSchemes.at(currentStep));
-		}
-		PartitionSelector ps(candidateSchemes);
-		bestScheme = ps.getBestScheme();
-		//bestScore = ps.getBestScheme()->getIcValue();
-	} else {
-//TODO: UNINPLEMENTED
-		cerr << "TO BE IMPLEMENTED" << endl;
+	if (startingPoint) {
+		cerr << "[ERROR] Not implemented yet" << endl;
 		exit_partest(EX_UNAVAILABLE);
+	} else {
+		ModelOptimize * modelOptimize = new ModelOptimize();
+
+		if (number_of_schemes > 0) {
+			vector<PartitioningScheme *> candidateSchemes(number_of_schemes);
+			//double bestScore;
+
+			for (unsigned int currentStep = 0; currentStep < number_of_schemes;
+					currentStep++) {
+				t_partitioningScheme scheme = schemes->at(currentStep);
+				candidateSchemes.at(currentStep) = new PartitioningScheme(
+						&scheme);
+				cout << timestamp() << " [EXH] Step " << currentStep + 1 << "/"
+						<< number_of_schemes << endl;
+				modelOptimize->optimizePartitioningScheme(
+						candidateSchemes.at(currentStep));
+			}
+			PartitionSelector ps(candidateSchemes);
+			bestScheme = ps.getBestScheme();
+			//bestScore = ps.getBestScheme()->getIcValue();
+		} else {
+			//TODO: UNINPLEMENTED
+			cerr << "TO BE IMPLEMENTED" << endl;
+			exit_partest(EX_UNAVAILABLE);
+		}
+
 	}
 	return bestScheme;
+
 }
 
 } /* namespace partest */

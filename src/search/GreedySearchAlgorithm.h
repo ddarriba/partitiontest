@@ -19,7 +19,7 @@ class GreedySearchAlgorithm: public partest::SearchAlgorithm {
 public:
 	GreedySearchAlgorithm();
 	virtual ~GreedySearchAlgorithm();
-	virtual PartitioningScheme * start();
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 private:
 	vector<PartitioningScheme *> getNextSchemes(const t_partitioningScheme * startingScheme);
 };
