@@ -62,8 +62,7 @@ bool INIReader::GetBoolean(string section, string name, bool default_value) {
 
 map<string, string> * INIReader::getGenes(string section) {
 
-	map<string, string> * geneMap = new map<string,
-			string>();
+	map<string, string> * geneMap = new map<string, string>();
 
 	map<string, string>::iterator iter;
 	for (iter = _values.begin(); iter != _values.end(); iter++) {
@@ -101,8 +100,6 @@ int INIReader::ValueHandler(void* user, const char* section, const char* name,
 		const char* value) {
 	INIReader* reader = (INIReader*) user;
 	string key = MakeKey(section, name);
-	if (reader->_values[key].size() > 0)
-		reader->_values[key] += "\n";
 	reader->_values[key] += value;
 	return 1;
 }
@@ -171,7 +168,6 @@ int INIReader::ini_parse_file(FILE* file,
 	/* Scan through file line by line */
 	while (fgets(line, INI_MAX_LINE, file) != NULL) {
 		lineno++;
-
 		start = line;
 #if INI_ALLOW_BOM
 		if (lineno == 1 && (unsigned char) start[0] == 0xEF
@@ -207,25 +203,36 @@ int INIReader::ini_parse_file(FILE* file,
 		} else if (*start && *start != ';') {
 			/* Not a comment, must be a name[=:]value pair */
 			end = find_char_or_comment(start, '=');
-			if (*end != '=') {
-				end = find_char_or_comment(start, ':');
-			}
-			if (*end == '=' || *end == ':') {
-				*end = '\0';
-				name = rstrip(start);
-				value = lskip(end + 1);
-				end = find_char_or_comment(value, '\0');
-				if (*end == ';')
-					*end = '\0';
-				rstrip(value);
-
-				/* Valid name[=:]value pair found, call handler */
-				strncpy0(prev_name, name, sizeof(prev_name));
-				if (!handler(user, section, name, value) && !error)
+			if (!*end) {
+#if INI_ALLOW_MULTILINE
+				if (!handler(user, section, prev_name, start) && !error)
 					error = lineno;
-			} else if (!error) {
-				/* No '=' or ':' found on name[=:]value line */
-				error = lineno;
+#else
+				cerr << "ERROR: Line " << lineno
+						<< "in the configuration file is too large for the current buffer" << endl;
+				exit_partest(EX_IOERR);
+#endif
+			} else {
+				if (*end != '=') {
+					end = find_char_or_comment(start, ':');
+				}
+				if (*end == '=' || *end == ':') {
+					*end = '\0';
+					name = rstrip(start);
+					value = lskip(end + 1);
+					end = find_char_or_comment(value, '\0');
+					if (*end == ';')
+						*end = '\0';
+					rstrip(value);
+
+					/* Valid name[=:]value pair found, call handler */
+					strncpy0(prev_name, name, sizeof(prev_name));
+					if (!handler(user, section, name, value) && !error)
+						error = lineno;
+				} else if (!error) {
+					/* No '=' or ':' found on name[=:]value line */
+					error = lineno;
+				}
 			}
 		}
 
@@ -238,7 +245,6 @@ int INIReader::ini_parse_file(FILE* file,
 #if !INI_USE_STACK
 	free(line);
 #endif
-
 	return error;
 }
 

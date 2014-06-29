@@ -39,7 +39,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 		t_partitionElementId partitionId) {
 
 	if (!partitionId.size()) {
-		cerr << "[ERROR] [PartitionMap] Bad ID " << endl;
+		cerr << "[ERROR] [PartitionMap] Partition ID is empty" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
 

@@ -59,6 +59,8 @@ public:
 	static std::string getProtRaxmlName(ProtMatrix matrix);
 
 	static int toLower(char * str);
+
+	static void printScheme(t_partitioningScheme scheme);
 private:
 	static char encoding_table[];
 };

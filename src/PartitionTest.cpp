@@ -171,6 +171,7 @@ bool PartitionTest::configure(void) {
 	}
 
 	tree = pllCreateInstance(&attr);
+
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
 	pllPartitions = pllPartitionsCommit(pllPartsQueue, phylip);
 
@@ -270,6 +271,7 @@ int main(int argc, char * argv[]) {
 		PrintMeta::print_options(cout);
 	}
 
+	if (number_of_schemes > 0) search_algo = SearchExhaustive;
 	SearchAlgorithm * searchAlgo = 0;
 	switch (search_algo) {
 	case SearchHCluster:
