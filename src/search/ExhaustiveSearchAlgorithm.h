@@ -37,8 +37,7 @@ class ExhaustiveSearchAlgorithm: public SearchAlgorithm {
 public:
 	ExhaustiveSearchAlgorithm();
 	virtual ~ExhaustiveSearchAlgorithm();
-	virtual PartitioningScheme * start();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint);
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 };
 
 } /* namespace partest */

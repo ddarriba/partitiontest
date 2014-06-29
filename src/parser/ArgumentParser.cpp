@@ -240,6 +240,8 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 				searchAlgo = SearchGreedyExtended;
 			} else if (!strcmp(value, ARG_SEARCH_HIERARCHICAL)) {
 				searchAlgo = SearchHCluster;
+			} else if (!strcmp(value, ARG_SEARCH_AUTO)) {
+				searchAlgo = SearchAuto;
 			} else {
 				cerr << "[ERROR] \"-S " << value
 						<< "\" is not a valid search algorithm. Use one of the following:"

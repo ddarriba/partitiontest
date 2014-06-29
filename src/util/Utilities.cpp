@@ -243,10 +243,10 @@ int Utilities::toLower(char * str) {
 }
 
 void Utilities::printScheme(t_partitioningScheme scheme) {
-	for (int i=0; i<scheme.size(); i++) {
+	for (size_t i=0; i<scheme.size(); i++) {
 		t_partitionElementId element = scheme.at(i);
 		std::cout << "(";
-		for (int j=0; j<element.size(); j++) {
+		for (size_t j=0; j<element.size(); j++) {
 			std::cout << element.at(j);
 			if (j<element.size()-1) std::cout<< " ";
 		}

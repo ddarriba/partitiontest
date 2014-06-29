@@ -135,6 +135,7 @@ enum SearchAlgo {
 	SearchGreedy,
 	SearchGreedyExtended,
 	SearchHCluster,
+	SearchAuto,
 	SearchDefault
 };
 

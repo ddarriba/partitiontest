@@ -44,10 +44,6 @@ RandomSearchAlgorithm::RandomSearchAlgorithm() {
 RandomSearchAlgorithm::~RandomSearchAlgorithm() {
 }
 
-PartitioningScheme * RandomSearchAlgorithm::start() {
-	return start(0);
-}
-
 PartitioningScheme * RandomSearchAlgorithm::start(
 		PartitioningScheme * startingPoint) {
 

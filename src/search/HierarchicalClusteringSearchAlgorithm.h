@@ -16,7 +16,7 @@ class HierarchicalClusteringSearchAlgorithm : public SearchAlgorithm {
 public:
 	HierarchicalClusteringSearchAlgorithm();
 	virtual ~HierarchicalClusteringSearchAlgorithm();
-	virtual PartitioningScheme * start();
+	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 };
 
 } /* namespace partest */
