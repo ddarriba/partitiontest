@@ -20,7 +20,7 @@ PartitionMap::PartitionMap() {
 		_keep.reserve(number_of_genes);
 		partitions = new vector<partitionMappingInfo>(pllPartitions->numberOfPartitions);
 		numberOfElements = numberOfPartitions = pllPartitions->numberOfPartitions;
-		for (unsigned int i = 0; i < numberOfPartitions; i++) {
+		for (size_t i = 0; i < numberOfPartitions; i++) {
 			t_partitionElementId nextId;
 			nextId.push_back(i);
 			partitions->at(i).partitionId = nextId;
@@ -29,7 +29,7 @@ PartitionMap::PartitionMap() {
 }
 
 PartitionMap::~PartitionMap() {
-	for (unsigned int i = 0; i < numberOfElements; i++) {
+	for (size_t i = 0; i < numberOfElements; i++) {
 		delete partitions->at(i).partitionElement;
 	}
 	delete partitions;
@@ -50,7 +50,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 	sort(partitionId.begin(), partitionId.end());
 
 	/* search for element */
-	for (unsigned int i = 0; i < partitions->size(); i++) {
+	for (size_t i = 0; i < partitions->size(); i++) {
 		partitionMappingInfo pInfo = partitions->at(i);
 		if (pInfo.partitionId == partitionId) {
 			return pInfo.partitionElement;
@@ -71,7 +71,7 @@ PartitionElement * PartitionMap::getPartitionElement(
 
 void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 
-		for (unsigned int i = numberOfPartitions; i < numberOfElements; i++) {
+		for (size_t i = numberOfPartitions; i < numberOfElements; i++) {
 			if (partitions->at(i).partitionId == id) {
 				delete partitions->at(i).partitionElement;
 				partitions->erase(partitions->begin() + i);
@@ -90,7 +90,7 @@ void PartitionMap::purgePartitionMap(t_partitionElementId id) {
 		return;
 
 	/* Loop backwards over complex elements */
-	for (unsigned int i = numberOfElements - 1; i >= numberOfPartitions; i--) {
+	for (size_t i = numberOfElements - 1; i >= numberOfPartitions; i--) {
 		t_partitionElementId mId = partitions->at(i).partitionId;
 		if (mId != id && Utilities::intersec(mId, id) && !Utilities::contains(_keep, mId)) {
 			deletePartitionElement(mId);

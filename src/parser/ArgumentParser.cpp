@@ -31,7 +31,11 @@ using namespace std;
 
 namespace partest {
 
-#define NUM_ARGUMENTS 19
+#ifdef _IG_MODELS
+#define NUM_ARGUMENTS 22
+#else
+#define NUM_ARGUMENTS 20
+#endif
 
 void ArgumentParser::init() {
 	index = 1;
@@ -39,7 +43,7 @@ void ArgumentParser::init() {
 }
 
 ArgumentParser::ArgumentParser(PartitionTest * ptest) :
-		ptest(ptest), index(0), subindex(0) {
+		index(0), subindex(0), ptest(ptest) {
 
 	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
@@ -63,8 +67,10 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_SEARCH_ALGORITHM, 'S', "search", true }, {
 			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_FINAL_TREE, 'T', "get-final-tree", false }, {
-			ARG_USER_TREE, 'u', "user-tree", true } };
-	unsigned int size = NUM_ARGUMENTS * sizeof(option);
+			ARG_USER_TREE, 'u', "user-tree", true }, {
+			ARG_VERSION, 'v', "version", false }};
+
+	size_t size = NUM_ARGUMENTS * sizeof(option);
 
 	arguments = (option *) malloc(size);
 	memcpy(arguments, options_list, size);
@@ -136,7 +142,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 					cerr << "[ERROR] \"" << argument
 							<< "\" option not recognized." << endl;
 					cerr << "Run with --help for more information." << endl;
-					exit_partest(EX_USAGE);
+					exit_partest(EX_DATAERR);
 				}
 			}
 		} else {
@@ -146,7 +152,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 			cerr << "Arguments must start with '-' (short) or '--' (long)"
 					<< endl;
 			cerr << "Run with --help for more information." << endl;
-			exit_partest(EX_USAGE);
+			exit_partest(EX_DATAERR);
 		}
 
 		return arg_index;
@@ -166,12 +172,15 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	bool do_f = DEFAULT_DO_F;
 	bool do_i = DEFAULT_DO_I;
 	bool do_g = DEFAULT_DO_G;
+#ifdef _SELECT_SAMPLE_SIZE
 	double sampleSizeValue = 0.0;
-
+#endif
 	DataType data_type = DT_DEFAULT;
 	StartTopo startingTopology = DEFAULT_STARTING_TOPOLOGY;
 	InformationCriterion ic_type = IC_DEFAULT;
+#ifdef _SELECT_SAMPLE_SIZE
 	SampleSize sampleSize = SS_DEFAULT;
+#endif
 	SearchAlgo searchAlgo = SearchDefault;
 	int maxSamples = 1;
 	OptimizeMode optimize = OPT_DEFAULT;
@@ -300,6 +309,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 				exit_partest(EX_CONFIG);
 			}
 			break;
+#ifdef _SELECT_SAMPLE_SIZE
 		case ARG_SAMPLE_SIZE:
 			/* sample size used for information criteria */
 			sampleSizeValue = 0.0;
@@ -324,6 +334,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 				sampleSize = SS_CUSTOM;
 			}
 			break;
+#endif
 		case ARG_FREQUENCIES:
 			/* include empirical / unequal frequencies */
 			do_f = true;
@@ -370,12 +381,12 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_CONFIG_HELP:
 			/* display configuration file format */
 			ConfigParser::printFormat();
-			exit_partest(0);
+			exit_partest(EX_OK);
 			break;
 		case ARG_CONFIG_TEMPLATE:
 			/* display configuration file template */
 			ConfigParser::createTemplate();
-			exit_partest(0);
+			exit_partest(EX_OK);
 			break;
 		case ARG_NUM_PROCS:
 			/* set the number of threads */
@@ -387,6 +398,16 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 					<< endl;
 			exit_partest(EX_CONFIG);
 #endif
+			break;
+		case ARG_VERSION:
+			/* display application version */
+			cout << "PartitionTest v" << PROGRAM_VERSION << endl;
+			cout << "Copyright (C) 2014 D.Darriba, G.L.Taboada, R.Doallo and David Posada" << endl;
+			cout << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
+			cout << "This is free software: you are free to change and redistribute it." << endl;
+			cout << "There is NO WARRANTY, to the extent permitted by law." << endl << endl;
+			cout << "Written by Diego Darriba (ddarriba@udc.es)." << endl;
+			exit_partest(EX_OK);
 			break;
 		default:
 			cerr << "[ERROR] \"" << argument

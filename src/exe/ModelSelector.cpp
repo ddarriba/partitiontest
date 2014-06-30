@@ -37,6 +37,29 @@ struct compareSelectionModels {
 	}
 };
 
+ModelSelector::ModelSelector(PartitionElement * partitionElement,
+		InformationCriterion ic, double sampleSize) :
+		partitionElement(partitionElement), ic(ic), sampleSize(sampleSize) {
+
+	doSelection(partitionElement->getModels(), ic, sampleSize);
+	partitionElement->setBestModel(getBestModel());
+
+	if (ckpAvailable && models_logfile) {
+		ofstream ofs(models_logfile->c_str(), ios::in | ios::out | ios::app);
+		print(ofs);
+		ofs.close();
+	}
+}
+
+ModelSelector::~ModelSelector() {
+	if (selectionModels) {
+		for (size_t i = 0; i < selectionModels->size(); i++) {
+			delete selectionModels->at(i);
+		}
+		delete selectionModels;
+	}
+}
+
 double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 		int freeParameters, double sampleSize) {
 	double value;
@@ -82,29 +105,6 @@ double ModelSelector::computeAicc(double lnL, int freeParameters,
 	return aicc;
 }
 
-ModelSelector::ModelSelector(PartitionElement * partitionElement,
-		InformationCriterion ic, double sampleSize) :
-		ic(ic), sampleSize(sampleSize), partitionElement(partitionElement) {
-
-	doSelection(partitionElement->getModels(), ic, sampleSize);
-	partitionElement->setBestModel(getBestModel());
-
-	if (ckpAvailable && models_logfile) {
-		ofstream ofs(models_logfile->c_str(), ios::in | ios::out | ios::app);
-		print(ofs);
-		ofs.close();
-	}
-}
-
-ModelSelector::~ModelSelector() {
-	if (selectionModels) {
-		for (unsigned int i = 0; i < selectionModels->size(); i++) {
-			delete selectionModels->at(i);
-		}
-		delete selectionModels;
-	}
-}
-
 double ModelSelector::getAlphaImportance() const {
 	return alphaImportance;
 }
@@ -143,7 +143,7 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 		InformationCriterion ic, double sampleSize) {
 	selectionModels = new vector<SelectionModel *>(modelset.size());
 
-	for (unsigned int i = 0; i < modelset.size(); i++) {
+	for (size_t i = 0; i < modelset.size(); i++) {
 		Model * model = modelset.at(i);
 		double value = computeIc(ic, model->getLnL(),
 				model->getNumberOfFreeParameters(), sampleSize);
@@ -162,7 +162,7 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 	minValue = selectionModels->at(0)->getValue();
 	double cumW = 0.0;
 	double sumExp = 0.0;
-	for (unsigned int i = 0; i < selectionModels->size(); i++) {
+	for (size_t i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 		selectionModel->setIndex(i);
 		selectionModel->setDelta(selectionModel->getValue() - minValue);
@@ -180,7 +180,7 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 	overallInvAlpha = 0.0;
 #endif
 
-	for (unsigned int i = 0; i < selectionModels->size(); i++) {
+	for (size_t i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 		Model * model = selectionModel->getModel();
 
@@ -260,7 +260,7 @@ void ModelSelector::print(ostream& out) {
 			<< setw(15) << setprecision(4) << "Weight" << setw(15)
 			<< "CumWeight" << endl;
 	out << setw(110) << setfill('-') << "" << setfill(' ') << endl;
-	for (unsigned int i = 0; i < selectionModels->size(); i++) {
+	for (size_t i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
 		out << setw(5) << i + 1 << setw(15)
@@ -307,7 +307,7 @@ void ModelSelector::print(ostream& out) {
 #endif
 	out << endl;
 	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
-	for (unsigned int i = 0; i < selectionModels->size(); i++) {
+	for (size_t i = 0; i < selectionModels->size(); i++) {
 		Model * model = selectionModels->at(i)->getModel();
 
 		out << setw(5) << i + 1;

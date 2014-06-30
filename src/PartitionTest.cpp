@@ -151,9 +151,9 @@ bool PartitionTest::configure(void) {
 
 	switch (optimize_mode) {
 	case OPT_SEARCH:
-		number_of_models =
-				data_type == DT_NUCLEIC ?
-						NUC_MATRIX_SIZE / 2 : PROT_MATRIX_SIZE;
+		number_of_models = data_type == DT_NUCLEIC ?
+		NUC_MATRIX_SIZE / 2 :
+														PROT_MATRIX_SIZE;
 		if (do_rate & RateVarF) {
 			number_of_models *= 2;
 		}
@@ -255,12 +255,12 @@ int main(int argc, char * argv[]) {
 
 	PartitionTest * ptest = new PartitionTest();
 
+	ArgumentParser * parser = new ArgumentParser(ptest);
+	parser->parse(argc, argv);
+
 	if (I_AM_ROOT) {
 		PrintMeta::print_header(cout);
 	}
-
-	ArgumentParser * parser = new ArgumentParser(ptest);
-	parser->parse(argc, argv);
 
 	ptest->configure();
 	if (!config_file && !ptest->checkParameters()) {
@@ -303,19 +303,20 @@ int main(int argc, char * argv[]) {
 	} else {
 		if (number_of_genes <= 20) {
 			searchAlgo = new GreedySearchAlgorithm();
-			cout<< "Searching with greedy algorithm" << endl;
+			cout << "Searching with greedy algorithm" << endl;
 			bestScheme = searchAlgo->start();
 		} else {
 			searchAlgo = new HierarchicalClusteringSearchAlgorithm();
-			cout<< "Searching with hierarchical clustering" << endl;
+			cout << "Searching with hierarchical clustering" << endl;
 			bestScheme = searchAlgo->start();
 			max_samples = bestScheme->getNumberOfElements();
-			cout<< "Searching with hierarchical clustering with " << max_samples << " samples" << endl;
+			cout << "Searching with hierarchical clustering with "
+					<< max_samples << " samples" << endl;
 			bestScheme = searchAlgo->start(bestScheme);
 			if (bestScheme->getNumberOfElements() <= 20) {
 				delete searchAlgo;
 				searchAlgo = new GreedySearchAlgorithm();
-				cout<< "Searching with greedy algorithm" << endl;
+				cout << "Searching with greedy algorithm" << endl;
 				bestScheme = searchAlgo->start(bestScheme);
 			}
 		}

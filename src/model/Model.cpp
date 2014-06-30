@@ -25,9 +25,9 @@
 namespace partest {
 
 Model::Model(bitMask rateVariation, int numberOfTaxa) :
-		rateVariation(rateVariation), alpha(100.0), lnL(0.0),
-		numberOfFrequencies(0), frequencies(0), rates(0),
-		modelFreeParameters(0), name() {
+		rateVariation(rateVariation), lnL(0.0), alpha(100.0),
+		rates(0), frequencies(0), numberOfFrequencies(0),
+		name(), modelFreeParameters(0) {
 
 #ifdef _IG_MODELS
 	pInv = 0.0;

@@ -19,7 +19,7 @@ namespace partest {
 
 struct nextSchemeFunctor {
 	nextSchemeFunctor(PartitioningScheme * scheme) :
-			scheme(scheme), i(1), j(0) {
+			elementIndex1(1), elementIndex2(0), scheme(scheme) {
 		numberOfElements = scheme->getNumberOfElements();
 		numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
 		currentScheme = 0;
@@ -36,14 +36,14 @@ struct nextSchemeFunctor {
 		t_partitioningScheme nextSchemeId;
 		nextSchemeId.reserve(numberOfElements - 1);
 
-		t_partitionElementId e1 = scheme->getElement(i)->getId();
-		t_partitionElementId e2 = scheme->getElement(j)->getId();
+		t_partitionElementId e1 = scheme->getElement(elementIndex1)->getId();
+		t_partitionElementId e2 = scheme->getElement(elementIndex2)->getId();
 		t_partitionElementId nextId;
 		Utilities::mergeIds(nextId, e1, e2);
 		nextSchemeId.push_back(nextId);
 
 		/* fill */
-		for (unsigned int k = 0; k < numberOfElements; k++) {
+		for (size_t k = 0; k < numberOfElements; k++) {
 
 			t_partitionElementId eX = scheme->getElement(k)->getId();
 			if (eX != e1 && eX != e2) {
@@ -52,10 +52,10 @@ struct nextSchemeFunctor {
 		}
 
 		currentScheme++;
-		j++;
-		if (j == i) {
-			i++;
-			j = 0;
+		elementIndex2++;
+		if (elementIndex2 == elementIndex1) {
+			elementIndex1++;
+			elementIndex2 = 0;
 		}
 
 		return (new PartitioningScheme(&nextSchemeId));
@@ -64,8 +64,8 @@ struct nextSchemeFunctor {
 		return ((numberOfElements * (numberOfElements - 1)) / 2);
 	}
 private:
-	unsigned int i, j;
-	unsigned int numberOfElements, numberOfSchemes, currentScheme;
+	size_t elementIndex1, elementIndex2;
+	size_t numberOfElements, numberOfSchemes, currentScheme;
 	PartitioningScheme * scheme;
 };
 
@@ -82,9 +82,9 @@ vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
 		const t_partitioningScheme * startingScheme) {
 
 	vector<PartitioningScheme *> nextSchemes;
-	for (unsigned int i = 1; i < startingScheme->size(); i++) {
+	for (size_t i = 1; i < startingScheme->size(); i++) {
 		t_partitionElementId e1 = startingScheme->at(i);
-		for (unsigned int j = 0; j < i; j++) {
+		for (size_t j = 0; j < i; j++) {
 
 			t_partitioningScheme nextSchemeId(startingScheme->size() - 1);
 
@@ -94,7 +94,7 @@ vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
 			Utilities::mergeIds(nextId, e1, e2);
 
 			/* fill */
-			for (unsigned int k = 0; k < startingScheme->size(); k++) {
+			for (size_t k = 0; k < startingScheme->size(); k++) {
 
 				t_partitionElementId eX = startingScheme->at(k);
 				if (eX != e1 && eX != e2) {
@@ -133,7 +133,7 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 		} else {
 			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
 					number_of_genes);
-			for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+			for (size_t gene = 0; gene < number_of_genes; gene++) {
 				t_partitionElementId geneId(1);
 				geneId.at(0) = gene;
 				firstSchemeId->at(gene) = geneId;
@@ -203,7 +203,7 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 			}
 
 			if (continueExec) {
-				for (unsigned int i = 0;
+				for (size_t i = 0;
 						i < localBestScheme->getNumberOfElements(); i++) {
 					PartitionMap::getInstance()->purgePartitionMap(
 							localBestScheme->getElement(i)->getId());

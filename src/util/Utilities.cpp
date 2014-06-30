@@ -35,7 +35,7 @@ unsigned long int Utilities::binaryPow(unsigned long int x) {
 
 // Brian Kernighan’s Algorithm
 int Utilities::setbitsCount(bitMask n) {
-	unsigned int count = 0;
+	size_t count = 0;
 	while (n) {
 		n &= (n - 1);
 		count++;
@@ -114,8 +114,8 @@ void Utilities::mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
 }
 
 bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
-	for (unsigned int i = 0; i < e1.size(); i++) {
-		for (unsigned int j = 0; j < e2.size(); j++) {
+	for (size_t i = 0; i < e1.size(); i++) {
+		for (size_t j = 0; j < e2.size(); j++) {
 			if (e1.at(i) == e2.at(j))
 				return true;
 		}

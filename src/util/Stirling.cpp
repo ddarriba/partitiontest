@@ -107,7 +107,7 @@ Stirling::iterator::operator--() {
     }
 
     it_size = 0;
-    for ( unsigned int i = 0; i <= psize; i++ ) {
+    for ( size_t i = 0; i <= psize; i++ ) {
       it_size += pow(-1, psize - i) * Utilities::combinatorial(psize, i) * pow(i, n);
     }
     it_size /= Utilities::factorial(psize);
@@ -190,17 +190,17 @@ Stirling::iterator::operator--() {
     }
     if ( schemeVector->size() > 0 ) {
       //build t_partition_elements
-      for ( unsigned int i = 0; i < schemeVector->size(); i++ ) {
-        unsigned int p_index = 0;
-        for ( unsigned int j = 0; j < (schemeVector->at(i)).size(); j++ ) {
+      for ( size_t i = 0; i < schemeVector->size(); i++ ) {
+        size_t p_index = 0;
+        for ( size_t j = 0; j < (schemeVector->at(i)).size(); j++ ) {
           p_index += (schemeVector->at(i))[j];
         }
         elements->push_back(p_index);
       }
       it = new Stirling::iterator_k(schemeVector->size(), k);
     } else {
-      unsigned int p_index = 1;
-      for ( unsigned int i = 0; i < k; i++ ) {
+      size_t p_index = 1;
+      for ( size_t i = 0; i < k; i++ ) {
         elements->push_back(p_index);
         p_index *= 2;
       }

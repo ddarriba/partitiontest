@@ -120,7 +120,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 			istringstream iss(value);
 			string curMatrix;
 			while (iss) {
-				unsigned int curValue = 0;
+				size_t curValue = 0;
 				iss >> curMatrix;
 				if (!strcmp(curMatrix.c_str(), "dayhoff")) {
 					curValue = PROT_MATRIX_DAYHOFF;
@@ -213,7 +213,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 			pllQueueInit(&pllPartsQueue);
 
-			for (unsigned int i = 0; i < number_of_genes; i++) {
+			for (size_t i = 0; i < number_of_genes; i++) {
 				partitions->at(i).partitionId.push_back(i);
 				pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 				pllQueueInit(&(pinfo->regionList));
@@ -347,7 +347,7 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 		t_partitionElementId nextPart;
 		while (parsedPart != NULL) {
 			Utilities::toLower(parsedPart);
-			unsigned int nextSingleElement = number_of_genes;
+			size_t nextSingleElement = number_of_genes;
 			for (size_t i=0; i<partitions->size(); i++) {
 				partitionInfo pInfo = partitions->at(i);
 				if (!pInfo.name.compare(parsedPart)) {
@@ -488,7 +488,7 @@ vector<partitionInfo> * ConfigParser::getPartitions() {
 	return partitions;
 }
 
-struct partitionInfo ConfigParser::getPartition(unsigned int index) {
+struct partitionInfo ConfigParser::getPartition(size_t index) {
 	if (!partitions) {
 		cerr << "ERROR: No partitions were defined" << endl;
 		exit_partest(EX_SOFTWARE);

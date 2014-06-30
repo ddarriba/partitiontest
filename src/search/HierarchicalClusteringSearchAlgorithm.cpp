@@ -48,7 +48,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			/* building first scheme */
 			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
 					number_of_genes);
-			for (unsigned int gene = 0; gene < number_of_genes; gene++) {
+			for (size_t gene = 0; gene < number_of_genes; gene++) {
 				t_partitionElementId geneId(1);
 				geneId.at(0) = gene;
 				firstSchemeId->at(gene) = geneId;
@@ -82,7 +82,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 				delete bestScheme;
 				bestScheme = localBestScheme;
 				PartitionMap::getInstance()->keep(bestScheme->getId());
-				for (unsigned int i = 0;
+				for (size_t i = 0;
 						i < localBestScheme->getNumberOfElements(); i++) {
 					PartitionMap::getInstance()->purgePartitionMap(
 							localBestScheme->getElement(i)->getId());
@@ -118,7 +118,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 					Utilities::mergeIds(nextId, eps->at(i)->e1->getId(),
 							eps->at(i)->e2->getId());
 					nextScheme.push_back(nextId);
-					for (unsigned int j = 0;
+					for (size_t j = 0;
 							j < localBestScheme->getNumberOfElements(); j++) {
 
 						PartitionElement * element =

@@ -34,10 +34,10 @@ public:
 	int getNumberOfSites(void) const;
 	int getNumberOfPatterns(void) const;
 	int getNumberOfSections(void) const;
-	PEsection getSection(unsigned int i);
+	PEsection getSection(size_t i);
 
 	int getNumberOfModels(void) const;
-	Model * getModel(unsigned int index);
+	Model * getModel(size_t index);
 	vector<Model *> getModels(void) const;
 
 	double getLnL(void) const;
@@ -65,10 +65,10 @@ private:
 	bool ready;
 
 	t_partitionElementId id;
-	unsigned int numberOfSections;
+	size_t numberOfSections;
 
-	unsigned int numberOfSites;
-	unsigned int numberOfPatterns;
+	size_t numberOfSites;
+	size_t numberOfPatterns;
 
 	vector<Model *> models;
 	SelectionModel * bestModel;

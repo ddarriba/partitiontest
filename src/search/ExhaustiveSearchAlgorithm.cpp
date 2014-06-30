@@ -56,7 +56,7 @@ PartitioningScheme * ExhaustiveSearchAlgorithm::start(
 			vector<PartitioningScheme *> candidateSchemes(number_of_schemes);
 			//double bestScore;
 
-			for (unsigned int currentStep = 0; currentStep < number_of_schemes;
+			for (size_t currentStep = 0; currentStep < number_of_schemes;
 					currentStep++) {
 				t_partitioningScheme scheme = schemes->at(currentStep);
 				candidateSchemes.at(currentStep) = new PartitioningScheme(

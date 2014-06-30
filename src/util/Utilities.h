@@ -23,7 +23,7 @@ public:
 	 * @return 2 to the x
 	 */
 	static unsigned long int binaryPow(unsigned long int x);
-	static inline unsigned int iBinaryLog(unsigned int x) {
+	static inline size_t iBinaryLog(size_t x) {
 		return ceil(log(x) / log(2));
 	}
 	static inline double dBinaryLog(double x) {

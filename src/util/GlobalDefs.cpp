@@ -56,17 +56,17 @@ namespace partest {
 	pllAlignmentData * phylip = 0;
 	pllInstance * tree = 0;
 
-	unsigned int num_taxa = 0;
-	unsigned int seq_len = 0;
-	unsigned int num_patterns = 0;
-	unsigned int number_of_models = 0;
-	unsigned int number_of_genes = 0;
-	unsigned int number_of_schemes = 0;
+	size_t num_taxa = 0;
+	size_t seq_len = 0;
+	size_t num_patterns = 0;
+	size_t number_of_models = 0;
+	size_t number_of_genes = 0;
+	size_t number_of_schemes = 0;
 	std::vector<t_partitioningScheme> * schemes = 0;
 
 	void exit_partest(int status) {
 		/* free global variables */
-		for (unsigned int i=0; i<number_of_genes; i++) {
+		for (size_t i=0; i<number_of_genes; i++) {
 			delete singleGeneNames[i];
 		}
 		free(singleGeneNames);

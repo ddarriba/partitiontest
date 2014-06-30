@@ -58,7 +58,7 @@ public:
 	 * @brief Gets the number of partitions of this scheme.
 	 * @return The number of partitions of this scheme.
 	 */
-	unsigned int getNumberOfElements() {
+	size_t getNumberOfElements() {
 		return numberOfElements;
 	}
 
@@ -68,7 +68,7 @@ public:
 	 * @param[in] id The local id of the partition (i.e., in range [0,numberOfElements-1]
 	 * @return The partition.
 	 */
-	PartitionElement * getElement(unsigned int index);
+	PartitionElement * getElement(size_t index);
 
 	t_partitioningScheme getId(void) { return id; }
 
@@ -127,13 +127,13 @@ public:
 private:
 	t_partitioningScheme id;
 	vector<PartitionElement*> partitions; /** Array of reference to the partitions of this scheme */
-	unsigned int currentElement; /** Current element index for the step-by-step construction of the scheme */
-	unsigned int numberOfElements; /** The number of partitions */
+	size_t currentElement; /** Current element index for the step-by-step construction of the scheme */
+	size_t numberOfElements; /** The number of partitions */
 	vector<elementPair *> * eps;
 	char * tree;
 
 	/** Number of lines of the scheme code */
-	unsigned int codeLines;
+	size_t codeLines;
 
 	/**
 	 * @brief String identifier of this scheme.

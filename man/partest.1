@@ -1,8 +1,8 @@
-.TH PARTEST-PLL "1" "1 Jul 2014" "User Commands"
+.TH PartitionTest "1" "1 Jul 2014" "User Commands"
 .SH NAME
-partest-pll \- Fast selection of best-fit models for genomic data
+PartitionTest \- Fast selection of best-fit models for genomic data
 .SH SYNOPSIS
-.B partest-pll
+.B partest
 \-i INPUTFILE [\fIOPTION\fR]...
 .SH DESCRIPTION
 .\" Add any additional description here
@@ -68,6 +68,9 @@ Conduct final ML tree optimization
 .TP
 \fB\-u\fR, \fB\-\-user\-tree\fR \fITREE_FILE\fR
 Sets a user-defined topology. This option ignores all starting topologies different from "user-defined". The tree must be in Newick format
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Output version information and exit
 .PP
 .SS "Exit status:"
 .TP

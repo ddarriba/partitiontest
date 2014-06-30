@@ -1,5 +1,5 @@
 bin_PROGRAMS = partest
-partest_CPPFLAGS = -I/usr/local/include/pll
+partest_CPPFLAGS = -I/usr/local/include/pll -Wall
 partest_LDFLAGS = -I/usr/local/include/pll
 partest_SOURCES = \
 	exe/ModelOptimize.cpp \
