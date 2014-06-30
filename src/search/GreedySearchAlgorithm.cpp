@@ -117,14 +117,14 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 	double bestScore, score;
 	int numberOfPartitions = number_of_genes;
 	vector<PartitioningScheme *> nextSchemes;
-	int step = 1;
+	int currentStep = 0;
 	int maxSteps = number_of_genes;
 
 	bool continueExec = (numberOfPartitions > 1);
 	if (I_AM_ROOT) {
 
 		/* building first scheme */
-		cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
+		cout << timestamp() << " [GRE] Step " << ++currentStep << "/" << maxSteps
 				<< endl;
 		if (startingPoint) {
 			nextSchemes.push_back(startingPoint);
@@ -158,7 +158,7 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 		bestScore = score = ps.getBestScheme()->getIcValue();
 
 		while (continueExec) {
-			cout << timestamp() << " [GRE] Step " << step++ << "/" << maxSteps
+			cout << timestamp() << " [GRE] Step " << ++currentStep << "/" << maxSteps
 					<< endl;
 			nextSchemeFunctor nextScheme(localBestScheme);
 			nextSchemes.reserve(nextScheme.size());
@@ -181,8 +181,10 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 				delete bestScheme;
 				bestScheme = localBestScheme;
 				PartitionMap::getInstance()->keep(bestScheme->getId());
-				cout << timestamp() << " [GRE] Improving " << bestScore - score
+				if (currentStep > 1) {
+					cout << timestamp() << " [GRE] Improving " << bestScore - score
 						<< " score units." << endl;
+				}
 				bestScore = score;
 			} else {
 				cout << timestamp() << " [GRE] Scheme is " << score - bestScore
