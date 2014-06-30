@@ -390,7 +390,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_NUM_PROCS:
 			/* set the number of threads */
-#ifdef PTHREADS
+#ifdef HAVE_PTHREADS
 			number_of_threads = atoi(value);
 #else
 			cerr
