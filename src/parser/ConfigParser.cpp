@@ -200,6 +200,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 				char lineBuffer[iter->second.length() + 1];
 				strcpy(lineBuffer, iter->second.c_str());
+
 				parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
 				partitionId++;
 			}
@@ -248,7 +249,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 			schemes = new vector<t_partitioningScheme>(number_of_schemes);
 
 			int schemeId = 0;
-			for (size_t i=0; i<defSchemes->size(); i++) {
+			for (size_t i = 0; i < defSchemes->size(); i++) {
 				string scheme = defSchemes->at(i);
 				char lineBuffer[scheme.length() + 1];
 				strcpy(lineBuffer, scheme.c_str());
@@ -318,18 +319,28 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 int ConfigParser::parsePartitionDetails(char * line,
 		struct partitionInfo * pInfo) {
-	int numberOfSections = 0;
-	char * parsed = strtok(line, "-");
 
-	while (parsed != NULL) {
-		int start = atoi(parsed);
-		parsed = strtok(NULL, ",");
-		int end = atoi(parsed);
-		pInfo->start[numberOfSections] = start;
-		pInfo->end[numberOfSections] = end;
-		pInfo->stride[numberOfSections] = 1;
+	pllQueue * partitionLine;
+	pllPartitionInfo * pi;
+	char the_line[strlen(line) + 10];
+	strcpy(the_line, "DNA, P=");
+	strcat(the_line, line);
+	the_line[strlen(the_line)] = '\0';
+	partitionLine = pllPartitionParseString(the_line);
+	if (!partitionLine) {
+		cerr << "ERROR: Could not read partition:" << endl;
+		cerr << "-> " << line << endl;
+		exit_partest(EX_IOERR);
+	}
+	pi = (pllPartitionInfo *) partitionLine->head->item;
+	int numberOfSections = 0;
+	for (pllQueueItem * qItem = pi->regionList->head; qItem; qItem =
+			qItem->next) {
+		pllPartitionRegion * region = (pllPartitionRegion *) qItem->item;
+		pInfo->start[numberOfSections] = region->start;
+		pInfo->end[numberOfSections] = region->end;
+		pInfo->stride[numberOfSections] = region->stride;
 		numberOfSections++;
-		parsed = strtok(NULL, "-");
 	}
 	pInfo->numberOfSections = numberOfSections;
 
@@ -348,7 +359,7 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 		while (parsedPart != NULL) {
 			Utilities::toLower(parsedPart);
 			size_t nextSingleElement = number_of_genes;
-			for (size_t i=0; i<partitions->size(); i++) {
+			for (size_t i = 0; i < partitions->size(); i++) {
 				partitionInfo pInfo = partitions->at(i);
 				if (!pInfo.name.compare(parsedPart)) {
 					nextSingleElement = pInfo.partitionId.at(0);
@@ -452,15 +463,15 @@ void ConfigParser::printFormat() {
 	cout << "               e.g.,  " << MODELS_INCLUDE_TAG
 			<< "=dayhoff dcmut jtt" << endl;
 	cout << SCHEMES_TAG << endl;
-		cout
-				<< "      Define a set of schemes to evaluate instead of searching."
-				<< endl;
-		cout << "               e.g., " << "S1=(GENE1,GENE2)(GENE3,GENE5,GENE6)(GENE4)" << endl;
+	cout << "      Define a set of schemes to evaluate instead of searching."
+			<< endl;
+	cout << "               e.g., "
+			<< "S1=(GENE1,GENE2)(GENE3,GENE5,GENE6)(GENE4)" << endl;
 	cout << OUTPUT_TAG << endl;
-		cout
-				<< "      Define urls for the output files. set to N/A for avoid output"
-				<< endl;
-		cout << "               e.g., " << OUTPUT_MODELS_TAG << "=N/A" << endl;
+	cout
+			<< "      Define urls for the output files. set to N/A for avoid output"
+			<< endl;
+	cout << "               e.g., " << OUTPUT_MODELS_TAG << "=N/A" << endl;
 }
 
 void ConfigParser::createTemplate() {

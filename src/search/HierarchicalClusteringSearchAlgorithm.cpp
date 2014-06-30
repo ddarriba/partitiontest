@@ -59,11 +59,11 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 		}
 		bestScore = DOUBLE_INF;
 
-		int currentStep = 1;
+		int currentStep = 0;
 
 		while (continueExec) {
 
-			cout << timestamp() << " [HCL] Step " << currentStep++ << "/"
+			cout << timestamp() << " [HCL] Step " << ++currentStep << "/"
 					<< maxSteps << endl;
 
 			for (size_t i=0; i<nextSchemes.size(); i++) {
