@@ -24,7 +24,8 @@ using namespace std;
 namespace partest {
 
 PartitionElement::PartitionElement(t_partitionElementId id) :
-		id(id) {
+		id(id), ready(false), sampleSize(0.0), _alignData(0), _tree(0),
+		_partitions(0), ckpLoaded(false), tag(false) {
 
 	this->bestModel = 0;
 	models.reserve(number_of_models);
@@ -291,7 +292,8 @@ PartitionElement::~PartitionElement() {
 
 	free(sections);
 
-	for (Model * model : models) {
+	for (size_t i = 0; i < models.size(); i++) {
+		Model * model = models.at(i);
 		delete model;
 	}
 	delete bestModel;
@@ -494,7 +496,7 @@ int PartitionElement::loadData(void) {
 					finalModel->setAlpha(model->getAlpha());
 #ifdef _IG_MODELS
 				if (model->isPInv())
-					finalModel->setpInv(model->getpInv());
+				finalModel->setpInv(model->getpInv());
 #endif
 				finalModel->setLnL(model->getLnL());
 				finalModel->setTree(ctree);
@@ -508,7 +510,7 @@ int PartitionElement::loadData(void) {
 					finalModel->setAlpha(model->getAlpha());
 #ifdef _IG_MODELS
 				if (model->isPInv())
-					finalModel->setpInv(model->getpInv());
+				finalModel->setpInv(model->getpInv());
 #endif
 				finalModel->setLnL(model->getLnL());
 				finalModel->setTree(ctree);

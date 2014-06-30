@@ -10,7 +10,6 @@
 #include "indata/PartitionMap.h"
 #include <iostream>
 #include <pthread.h>
-#include <thread>
 #include <memory>
 #include <unistd.h>
 
@@ -44,7 +43,7 @@ void * distribute(void * arg) {
 	if (numProcs > 1) {
 		int buf;
 		MPI_Status targetStatus;
-		for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+		for (size_t i = 0; i < nextSchemes->size(); i++) {
 			PartitioningScheme * scheme = nextSchemes->at(i);
 			for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
 				PartitionElement * element = scheme->getElement(j);

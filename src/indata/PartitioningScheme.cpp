@@ -64,7 +64,8 @@ PartitioningScheme::~PartitioningScheme() {
 	if (tree)
 		free(tree);
 	if (eps) {
-		for (elementPair *ep : *eps) {
+		for (size_t i=0; i<eps->size(); i++) {
+			elementPair *ep = eps->at(i);
 			free(ep);
 		}
 		delete eps;
@@ -81,7 +82,8 @@ PartitionElement * PartitioningScheme::getElement(unsigned int id) {
 
 bool PartitioningScheme::isOptimized(void) {
 	bool optimized = true;
-	for (PartitionElement * pe : partitions) {
+	for (size_t i=0; i<partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
 		optimized &= pe->isOptimized();
 	}
 	return optimized;
@@ -164,7 +166,8 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 
 string PartitioningScheme::getName() {
 	stringstream ss;
-	for (PartitionElement * pe : partitions) {
+	for (size_t i=0; i<partitions.size(); i++) {
+	PartitionElement * pe = partitions.at(i);
 		ss << pe->getName() << " ";
 	}
 	return ss.str();
@@ -229,7 +232,8 @@ double PartitioningScheme::getLnL() {
 	if (!isOptimized())
 		return 0.0;
 	double lk = 0.0;
-	for (PartitionElement * pe : partitions) {
+	for (size_t i=0; i<partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
 		lk += pe->getLnL();
 	}
 	return lk;
@@ -239,7 +243,8 @@ double PartitioningScheme::getIcValue() {
 	if (!isOptimized())
 		return 0.0;
 	double score = 0.0;
-	for (PartitionElement * pe : partitions) {
+	for (size_t i=0; i<partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
 		score += pe->getBestModel()->getValue();
 	}
 	return score;

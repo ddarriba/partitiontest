@@ -10,6 +10,7 @@
 #include "exe/ModelSelector.h"
 #include "util/Utilities.h"
 
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>

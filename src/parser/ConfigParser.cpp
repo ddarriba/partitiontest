@@ -32,7 +32,9 @@ struct comparePartitionInfos {
 };
 
 void ConfigParser::createSinglePartition() {
-	cout << "INPUT :" << *input_file << endl;
+	if (!input_file) {
+		exit_partest(EX_USAGE);
+	}
 
 	number_of_genes = 1;
 	partitions = new vector<partitionInfo>(number_of_genes);
@@ -246,7 +248,8 @@ ConfigParser::ConfigParser(const char * configFile) {
 			schemes = new vector<t_partitioningScheme>(number_of_schemes);
 
 			int schemeId = 0;
-			for (string scheme : (*defSchemes)) {
+			for (size_t i=0; i<defSchemes->size(); i++) {
+				string scheme = defSchemes->at(i);
 				char lineBuffer[scheme.length() + 1];
 				strcpy(lineBuffer, scheme.c_str());
 				parseScheme(lineBuffer, &(schemes->at(schemeId)));
@@ -345,7 +348,8 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 		while (parsedPart != NULL) {
 			Utilities::toLower(parsedPart);
 			unsigned int nextSingleElement = number_of_genes;
-			for (partitionInfo pInfo : (*partitions)) {
+			for (size_t i=0; i<partitions->size(); i++) {
+				partitionInfo pInfo = partitions->at(i);
 				if (!pInfo.name.compare(parsedPart)) {
 					nextSingleElement = pInfo.partitionId.at(0);
 					break;
