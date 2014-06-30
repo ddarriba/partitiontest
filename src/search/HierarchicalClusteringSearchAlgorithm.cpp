@@ -66,7 +66,8 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			cout << timestamp() << " [HCL] Step " << currentStep++ << "/"
 					<< maxSteps << endl;
 
-			for (PartitioningScheme * scheme : nextSchemes) {
+			for (size_t i=0; i<nextSchemes.size(); i++) {
+				PartitioningScheme * scheme = nextSchemes.at(i);
 				if (!scheme->isOptimized())
 					schemeManager.addScheme(scheme);
 			}
@@ -101,7 +102,8 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 #ifdef _MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
-			for (PartitioningScheme * scheme : nextSchemes) {
+			for (size_t i=0; i<nextSchemes.size(); i++) {
+				PartitioningScheme * scheme = nextSchemes.at(i);
 				if (scheme != localBestScheme)
 					delete scheme;
 			}

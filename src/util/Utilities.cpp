@@ -124,7 +124,8 @@ bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
 }
 
 bool Utilities::contains(t_partitionElementId vec, int num) {
-	for (int n : vec) {
+	for (size_t i=0; i < vec.size(); i++) {
+		int n = vec.at(i);
 		if (n == num)
 			return true;
 	}
@@ -132,7 +133,8 @@ bool Utilities::contains(t_partitionElementId vec, int num) {
 }
 
 bool Utilities::contains(t_partitioningScheme vec, t_partitionElementId id) {
-	for (t_partitionElementId eId : vec) {
+	for (size_t i=0; i<vec.size(); i++) {
+		t_partitionElementId eId = vec.at(i);
 		if (eId == id)
 			return true;
 	}

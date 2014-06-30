@@ -19,7 +19,7 @@ namespace partest {
 
 struct nextSchemeFunctor {
 	nextSchemeFunctor(PartitioningScheme * scheme) :
-			scheme(scheme) {
+			scheme(scheme), i(1), j(0) {
 		numberOfElements = scheme->getNumberOfElements();
 		numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
 		currentScheme = 0;
@@ -64,7 +64,7 @@ struct nextSchemeFunctor {
 		return ((numberOfElements * (numberOfElements - 1)) / 2);
 	}
 private:
-	unsigned int i = 1, j = 0;
+	unsigned int i, j;
 	unsigned int numberOfElements, numberOfSchemes, currentScheme;
 	PartitioningScheme * scheme;
 };
@@ -195,7 +195,8 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 #ifdef _MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
-			for (PartitioningScheme * scheme : nextSchemes) {
+			for (size_t i=0; i<nextSchemes.size(); i++) {
+				PartitioningScheme * scheme = nextSchemes.at(i);
 				if (scheme != localBestScheme) {
 					delete scheme;
 				}

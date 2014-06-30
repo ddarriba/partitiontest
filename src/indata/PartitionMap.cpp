@@ -100,13 +100,15 @@ void PartitionMap::purgePartitionMap(t_partitionElementId id) {
 
 void PartitionMap::keep(t_partitioningScheme id) {
 	_keep.clear();
-	for (t_partitionElementId eId : id) {
+	for (size_t i=0; i<id.size(); i++) {
+		t_partitionElementId eId = id.at(i);
 		_keep.push_back(eId);
 	}
 }
 
 void PartitionMap::keep_add(t_partitioningScheme id) {
-	for (t_partitionElementId eId : id) {
+	for (size_t i=0; i<id.size(); i++) {
+		t_partitionElementId eId = id.at(i);
 		if (!Utilities::contains(_keep, eId)) {
 			_keep.push_back(eId);
 		}
@@ -115,7 +117,8 @@ void PartitionMap::keep_add(t_partitioningScheme id) {
 
 void PartitionMap::keep_remove(t_partitioningScheme id) {
 	int position = 0;
-	for (t_partitionElementId eId : id) {
+	for (size_t i=0; i<id.size(); i++) {
+		t_partitionElementId eId = id.at(i);
 		if (Utilities::contains(_keep, eId)) {
 			_keep.erase(_keep.begin() + position);
 		}

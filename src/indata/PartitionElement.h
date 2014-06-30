@@ -62,7 +62,7 @@ public:
 	void print(ostream & out);
 private:
 
-	bool ready = false;
+	bool ready;
 
 	t_partitionElementId id;
 	unsigned int numberOfSections;
@@ -74,16 +74,16 @@ private:
 	SelectionModel * bestModel;
 
 	string name, ckpname, ckphash;
-	double sampleSize = 0.0;
+	double sampleSize;
 
-	pllAlignmentData * _alignData = 0;
-	pllInstance * _tree = 0;
-	partitionList * _partitions = 0;
+	pllAlignmentData * _alignData;
+	pllInstance * _tree;
+	partitionList * _partitions;
 
 	PEsection * sections;
 
-	bool ckpLoaded = false;
-	bool tag = false;
+	bool ckpLoaded;
+	bool tag;
 };
 
 }

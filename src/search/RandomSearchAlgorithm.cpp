@@ -84,7 +84,8 @@ PartitioningScheme * RandomSearchAlgorithm::start(
 			cout << timestamp() << " [RND] Step " << currentStep++ << "/"
 					<< maxSteps << endl;
 
-			for (PartitioningScheme * scheme : nextSchemes) {
+			for (size_t i = 0; i < nextSchemes.size(); i++) {
+				PartitioningScheme * scheme = nextSchemes.at(i);
 				if (!scheme->isOptimized())
 					schemeManager.addScheme(scheme);
 			}
@@ -118,7 +119,8 @@ PartitioningScheme * RandomSearchAlgorithm::start(
 #ifdef _MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
-			for (PartitioningScheme * scheme : nextSchemes) {
+			for (size_t i = 0; i < nextSchemes.size(); i++) {
+				PartitioningScheme * scheme = nextSchemes.at(i);
 				if (scheme != localBestScheme)
 					delete scheme;
 			}
@@ -157,7 +159,8 @@ int RandomSearchAlgorithm::getRandomPartitioningScheme(
 
 		int numberOfClasses = 1;
 		// first element to the first
-		for (int singleP : p0.at(0)) {
+		for (size_t k=0; k<p0.at(0).size(); k++) {
+			int singleP = p0.at(0).at(k);
 			classes[0].push_back(singleP);
 		}
 		for (int i = 1; i < maxClasses; i++) {
@@ -168,12 +171,14 @@ int RandomSearchAlgorithm::getRandomPartitioningScheme(
 			double RND_THRESHOLD = 1.0 / (numberOfClasses + 1);
 			currentClass = rndNumber / RND_THRESHOLD;
 			if (currentClass < numberOfClasses) {
-				for (int singleP : p0.at(i)) {
+				for (size_t k=0; k<p0.at(i).size(); k++) {
+					int singleP = p0.at(i).at(k);
 					classes[currentClass].push_back(singleP);
 				}
 			} else {
 				currentClass = numberOfClasses;
-				for (int singleP : p0.at(i)) {
+				for (size_t k=0; k<p0.at(i).size(); k++) {
+					int singleP = p0.at(i).at(k);
 					classes[currentClass].push_back(singleP);
 				}
 				numberOfClasses++;

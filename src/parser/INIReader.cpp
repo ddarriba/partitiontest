@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <vector>
 #if !INI_USE_STACK
 #include <stdlib.h>
 #endif
