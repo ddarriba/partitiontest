@@ -1,6 +1,5 @@
 bin_PROGRAMS = partest
-partest_CPPFLAGS = -I/usr/local/include/pll -Wall
-partest_LDFLAGS = -I/usr/local/include/pll
+
 partest_SOURCES = \
 	exe/ModelOptimize.cpp \
 	exe/ModelSelector.cpp \
@@ -24,3 +23,21 @@ partest_SOURCES = \
 	util/GlobalDefs.cpp \
 	util/PrintMeta.cpp \
 	PartitionTest.cpp
+
+partest_CPPFLAGS = -I/usr/local/include/pll -Wall
+partest_LDFLAGS = -I/usr/local/include/pll
+
+if HAVE_PTHREADS
+  partest_CPPFLAGS += -DHAVE_PTHREADS
+  partest_LDFLAGS += -DHAVE_PTHREADS
+endif
+
+if HAVE_AVX
+  partest_CPPFLAGS += -DHAVE_AVX
+  partest_LDFLAGS += -DHAVE_AVX
+endif
+
+if HAVE_SSE
+  partest_CPPFLAGS += -DHAVE_SSE
+  partest_LDFLAGS += -DHAVE_SSE
+endif
