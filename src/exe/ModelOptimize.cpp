@@ -156,7 +156,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
 	tree->start = tree->nodep[1];
 
-	for (unsigned int i = 0; i < finalScheme->getNumberOfElements(); i++) {
+	for (size_t i = 0; i < finalScheme->getNumberOfElements(); i++) {
 		PartitionElement * pe = finalScheme->getElement(i);
 		switch (data_type) {
 		case DT_PROTEIC:
@@ -260,7 +260,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		pllPartitionInfo * pinfo;
 
 		pllQueueInit(&parts);
-		for (unsigned int i = 0; i < finalScheme->getNumberOfElements(); i++) {
+		for (size_t i = 0; i < finalScheme->getNumberOfElements(); i++) {
 			PartitionElement * pe = finalScheme->getElement(i);
 			pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
 			pllQueueInit(&(pinfo->regionList));
@@ -456,7 +456,7 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 	/* check number of elements to optimize */
 	int elementsToOptimize = 0;
-	for (unsigned int cur_element = 0;
+	for (size_t cur_element = 0;
 			cur_element < scheme->getNumberOfElements(); cur_element++) {
 		if (!scheme->getElement(cur_element)->isOptimized()) {
 			elementsToOptimize++;
@@ -464,7 +464,7 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 	}
 
 	int currentElementToOptimize = 0;
-	for (unsigned int cur_element = 0;
+	for (size_t cur_element = 0;
 			cur_element < scheme->getNumberOfElements(); cur_element++) {
 		PartitionElement * element = scheme->getElement(cur_element);
 		if (!element->isOptimized()) {
@@ -571,7 +571,7 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 }
 
 void ModelOptimize::optimizeModel(PartitionElement * element,
-		unsigned int modelIndex, int limit) {
+		size_t modelIndex, int limit) {
 
 	pllInstance * _tree = element->getTree();
 	partitionList * _partitions = element->getPartitions();

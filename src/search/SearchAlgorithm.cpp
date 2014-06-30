@@ -45,7 +45,7 @@ void * distribute(void * arg) {
 		MPI_Status targetStatus;
 		for (size_t i = 0; i < nextSchemes->size(); i++) {
 			PartitioningScheme * scheme = nextSchemes->at(i);
-			for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+			for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
 				PartitionElement * element = scheme->getElement(j);
 				if (!(element->isOptimized() || element->isTagged())) {
 					// wait for request
@@ -85,9 +85,9 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 		int nextItem = 1;
 		while (nextItem) {
 			nextItem = 0;
-			for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+			for (size_t i = 0; i < nextSchemes->size(); i++) {
 				PartitioningScheme * scheme = nextSchemes->at(i);
-				for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+				for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
 					PartitionElement * element = scheme->getElement(j);
 					if (!(element->isOptimized() || element->isTagged())) {
 						element->setTagged(true);
@@ -115,9 +115,9 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	if (I_AM_ROOT) {
-		for (unsigned int i = 0; i < nextSchemes->size(); i++) {
+		for (size_t i = 0; i < nextSchemes->size(); i++) {
 			PartitioningScheme * scheme = nextSchemes->at(i);
-			for (unsigned int j = 0; j < scheme->getNumberOfElements(); j++) {
+			for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
 				PartitionElement * element = scheme->getElement(j);
 				if (element->isTagged() && !element->isOptimized()) {
 					if (element->loadData()) {

@@ -37,14 +37,14 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 			schemesArray.size());
 
 // #pragma omp parallel for schedule(dynamic)
-	for (unsigned int part_id = 0; part_id < schemesArray.size(); part_id++) {
+	for (size_t part_id = 0; part_id < schemesArray.size(); part_id++) {
 
 		PartitioningScheme * scheme = schemesArray[part_id];
 
 		double lk = 0;
 		int parms = 0;
 		double value = 0.0;
-		for (unsigned int id = 0; id < scheme->getNumberOfElements(); id++) {
+		for (size_t id = 0; id < scheme->getNumberOfElements(); id++) {
 			PartitionElement * pe = scheme->getElement(id);
 			SelectionModel * bestModel;
 			if (!pe->getBestModel()) {
@@ -86,7 +86,7 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 }
 
 PartitionSelector::~PartitionSelector() {
-	for (unsigned int i = 0; i < schemesVector->size(); i++) {
+	for (size_t i = 0; i < schemesVector->size(); i++) {
 		delete schemesVector->at(i);
 	}
 	delete schemesVector;
@@ -144,7 +144,7 @@ void SelectionPartitioningScheme::print(ostream & out) {
 			<< "lnL" << setw(15) << "Value" << setw(15) << "Delta" << setw(15)
 			<< "Weight" << setw(15) << "CumWeight" << endl;
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	for (unsigned int i = 0; i < scheme->getNumberOfElements(); i++) {
+	for (size_t i = 0; i < scheme->getNumberOfElements(); i++) {
 		PartitionElement * pe = scheme->getElement(i);
 		SelectionModel * selectionModel = pe->getBestModel();
 
@@ -159,7 +159,7 @@ void SelectionPartitioningScheme::print(ostream & out) {
 				<< selectionModel->getCumWeight() << endl;
 	}
 	out << setw(100) << setfill('-') << "" << setfill(' ') << endl;
-	for (unsigned int i = 0; i < scheme->getNumberOfElements(); i++) {
+	for (size_t i = 0; i < scheme->getNumberOfElements(); i++) {
 		out << setw(5) << i + 1 << ": " << scheme->getElement(i)->getName()
 				<< endl;
 	}

@@ -41,7 +41,7 @@ struct comparePartitionElements {
 };
 
 PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector) :
-		partitions(schemeVector->size()), id(schemeVector->size()) {
+		id(schemeVector->size()), partitions(schemeVector->size()) {
 
 	eps = 0;
 	tree = 0;
@@ -51,7 +51,7 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector) :
 	numberOfElements = schemeVector->size();
 	codeLines = Utilities::iDecLog(numberOfElements - 1) + 1;
 
-	for (unsigned int i = 0; i < schemeVector->size(); i++) {
+	for (size_t i = 0; i < schemeVector->size(); i++) {
 		id.at(i) = schemeVector->at(i);
 		partitions.at(i) = PartitionMap::getInstance()->getPartitionElement(
 				schemeVector->at(i));
@@ -72,7 +72,7 @@ PartitioningScheme::~PartitioningScheme() {
 	}
 }
 
-PartitionElement * PartitioningScheme::getElement(unsigned int id) {
+PartitionElement * PartitioningScheme::getElement(size_t id) {
 	if ((id >= 0) & (id < numberOfElements)) {
 		return partitions.at(id);
 	} else {
@@ -119,8 +119,8 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 		vector<double> distances(numberOfElements * (numberOfElements + 1) / 2);
 		double sumAlpha = 0.0;
 		double maxAlpha = 0.0;
-		for (unsigned int i = 1; i < numberOfElements; i++) {
-			for (unsigned int j = 0; j < i; j++) {
+		for (size_t i = 1; i < numberOfElements; i++) {
+			for (size_t j = 0; j < i; j++) {
 				Model * mi = getElement(i)->getBestModel()->getModel();
 				Model * mj = getElement(j)->getBestModel()->getModel();
 				int index = (i * (i - 1) / 2) + j;
@@ -136,8 +136,8 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 			}
 		}
 		double minDistance = DOUBLE_INF;
-		for (unsigned int i = 1; i < numberOfElements; i++) {
-			for (unsigned int j = 0; j < i; j++) {
+		for (size_t i = 1; i < numberOfElements; i++) {
+			for (size_t j = 0; j < i; j++) {
 				int index = (i * (i - 1) / 2) + j;
 				//alphaValues.at(index) /= maxAlpha;
 				distances.at(index) += alphaValues[index];
@@ -185,23 +185,23 @@ string PartitioningScheme::getCode(int codeLine) {
 		int hashmap[numberOfElements];
 		int intcode[number_of_genes];
 		char charcode[codeLines * number_of_genes + 1];
-		for (unsigned int i = 0; i < numberOfElements; i++) {
+		for (size_t i = 0; i < numberOfElements; i++) {
 			t_partitionElementId id = getElement(i)->getId();
 			hashmap[i] = UNDEFINED;
-			for (unsigned int j = 0; j < id.size(); j++) {
+			for (size_t j = 0; j < id.size(); j++) {
 				intcode[id.at(j)] = i;
 			}
 		}
 		hashmap[intcode[0]] = 0;
 		int nextCode = 0;
-		for (unsigned int i = 0; i < codeLines; i++) {
+		for (size_t i = 0; i < codeLines; i++) {
 			charcode[i * number_of_genes + 0] = '0';
 		}
-		for (unsigned int i = 1; i < number_of_genes; i++) {
+		for (size_t i = 1; i < number_of_genes; i++) {
 			if (hashmap[intcode[i]] == UNDEFINED) {
 				hashmap[intcode[i]] = ++nextCode;
 			}
-			for (unsigned int j = 0; j < codeLines; j++) {
+			for (size_t j = 0; j < codeLines; j++) {
 				charcode[j * number_of_genes + i] = ((int) floor(
 						hashmap[intcode[i]] / pow(10, j)) % 10) + '0';
 			}
@@ -269,7 +269,7 @@ void PartitioningScheme::print(ostream & out) {
 							<< setw(5) << " --K-"
 							<< setw(21) << " ---------LnL--------"
 							<< setw(21) << " ---------BIC--------" << endl;
-		for (unsigned int i=0; i<numberOfElements; i++) {
+		for (size_t i=0; i<numberOfElements; i++) {
 			out << setw(6) << left << i + 1
 					<< setw(11) << left << getElement(i)->getBestModel()->getModel()->getName()
 					<< setw(5) << right << getElement(i)->getBestModel()->getModel()->getNumberOfFreeParameters()

@@ -24,7 +24,7 @@ using namespace std;
 namespace partest {
 
 PartitionElement::PartitionElement(t_partitionElementId id) :
-		id(id), ready(false), sampleSize(0.0), _alignData(0), _tree(0),
+		ready(false), id(id), sampleSize(0.0), _alignData(0), _tree(0),
 		_partitions(0), ckpLoaded(false), tag(false) {
 
 	this->bestModel = 0;
@@ -34,8 +34,8 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	numberOfPatterns = 0;
 	sections = (PEsection *) malloc(numberOfSections * sizeof(PEsection));
 	name.append("(");
-	for (unsigned int i = 0; i < numberOfSections; i++) {
-		unsigned int part = id.at(i);
+	for (size_t i = 0; i < numberOfSections; i++) {
+		size_t part = id.at(i);
 
 		sections[i].start = pllPartitions->partitionData[part]->lower + 1;
 		sections[i].end = pllPartitions->partitionData[part]->upper;
@@ -51,14 +51,14 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	stringstream ss;
 	/* prefix */
 	ss << "pt_";
-	unsigned int maxId = id.at(id.size() - 1);
+	size_t maxId = id.at(id.size() - 1);
 	int numchars = ceil((maxId + 1) / 6.0);
 	int curPos = 0;
 	for (int currentChar = numchars - 1; currentChar >= 0; currentChar--) {
-		unsigned int charRangeStart = 6 * (numchars - currentChar - 1);
-		unsigned int charRangeEnd = 6 * (numchars - currentChar);
+		size_t charRangeStart = 6 * (numchars - currentChar - 1);
+		size_t charRangeEnd = 6 * (numchars - currentChar);
 		int value = 0;
-		for (unsigned int k = charRangeStart; k < charRangeEnd; k++) {
+		for (size_t k = charRangeStart; k < charRangeEnd; k++) {
 			if (id[curPos] == k) {
 				value += Utilities::binaryPow(k - charRangeStart);
 				curPos++;
@@ -100,8 +100,8 @@ int PartitionElement::setupStructures(void) {
 			strcpy(_alignData->sequenceLabels[seq],
 					phylip->sequenceLabels[seq]);
 			int nextSite = 0;
-			for (unsigned int i = 0; i < numberOfSections; i++) {
-				unsigned int part = id.at(i);
+			for (size_t i = 0; i < numberOfSections; i++) {
+				size_t part = id.at(i);
 				int lower = pllPartitions->partitionData[part]->lower;
 				int width = pllPartitions->partitionData[part]->width;
 				memcpy(&(_alignData->sequenceData[seq][nextSite]),
@@ -110,7 +110,7 @@ int PartitionElement::setupStructures(void) {
 				nextSite += width;
 			}
 		}
-		for (unsigned int site = 0; site < numberOfSites; site++) {
+		for (size_t site = 0; site < numberOfSites; site++) {
 			_alignData->siteWeights[site] = 1;
 		}
 		pllQueue * partsQueue;
@@ -353,7 +353,7 @@ int PartitionElement::getNumberOfSections(void) const {
 	return numberOfSections;
 }
 
-PEsection PartitionElement::getSection(unsigned int i) {
+PEsection PartitionElement::getSection(size_t i) {
 	if (i >= numberOfSections) {
 		exit_partest(EX_SOFTWARE);
 	}
@@ -364,7 +364,7 @@ int PartitionElement::getNumberOfPatterns(void) const {
 	return numberOfPatterns;
 }
 
-Model * PartitionElement::getModel(unsigned int index) {
+Model * PartitionElement::getModel(size_t index) {
 	if (index >= models.size()) {
 		cerr << "[ERROR] Model " << index << " is above the number of models ("
 				<< models.size() << ")" << endl;
@@ -456,7 +456,7 @@ int PartitionElement::loadData(void) {
 		size_t modelSize =
 				data_type == DT_NUCLEIC ?
 						sizeof(NucleicModel) : sizeof(ProteicModel);
-		for (unsigned int i = 0; i < number_of_models; i++) {
+		for (size_t i = 0; i < number_of_models; i++) {
 			Model * model = 0;
 			switch (data_type) {
 			case DT_NUCLEIC:
@@ -576,7 +576,7 @@ int PartitionElement::storeData(void) {
 	ofs.write((char *) &numberOfSites, sizeof(int));
 	ofs.write((char *) &numberOfPatterns, sizeof(int));
 	int bestModelIndex = 0;
-	for (unsigned int i = 0; i < models.size(); i++) {
+	for (size_t i = 0; i < models.size(); i++) {
 		Model * model = models.at(i);
 		if (model == getBestModel()->getModel()) {
 			bestModelIndex = i;

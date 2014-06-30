@@ -106,7 +106,7 @@ public:
 	 *
 	 * @return The partition at index
 	 */
-	struct partitionInfo getPartition(unsigned int index);
+	struct partitionInfo getPartition(size_t index);
 
 	/**
 	 * @brief Gets the number of partitions.

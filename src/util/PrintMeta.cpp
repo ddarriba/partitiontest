@@ -297,6 +297,10 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< endl;
 	out << endl;
 
+	out << setw(MAX_OPT_LENGTH) << left << "  -v, --version"
+			<< "Output version information and exit" << endl;
+	out << endl;
+
 }
 
 void PrintMeta::print_results_xml(ostream & ofs,
@@ -317,7 +321,7 @@ void PrintMeta::print_results_xml(ostream & ofs,
 		ofs << "    " << bestScheme->getTree() << endl;
 		ofs << "  </tree>" << endl;
 	}
-	for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+	for (size_t i = 0; i < bestScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = bestScheme->getElement(i);
 		ofs << "  <partition id=\"" << i + 1 << "\" num_elements=\""
 				<< element->getNumberOfSections() << "\" num_sites=\""
@@ -338,7 +342,7 @@ void PrintMeta::print_results_xml(ostream & ofs,
 		ofs << "  </partition>" << endl;
 	}
 	ofs << "  <raxml_control>" << endl;
-	for (unsigned int i = 0; i < bestScheme->getNumberOfElements(); i++) {
+	for (size_t i = 0; i < bestScheme->getNumberOfElements(); i++) {
 		PartitionElement * element = bestScheme->getElement(i);
 		switch (data_type) {
 		case DT_NUCLEIC:

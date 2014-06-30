@@ -78,6 +78,7 @@ enum ArgIndex {
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */
 	ARG_NON_STOP, /** Search until the end */
+	ARG_VERSION, /** Show version */
 	ARG_END
 };
 

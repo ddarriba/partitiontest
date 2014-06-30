@@ -8,6 +8,8 @@
 #ifndef GLOBALDEFS_H_
 #define GLOBALDEFS_H_
 
+#define PROGRAM_VERSION "1.0"
+
 #include <pll.h>
 
 #include <vector>
@@ -28,14 +30,14 @@ namespace partest {
 
 typedef unsigned long int bitMask;
 #define MAX_PARTITIONS LONG_MAX
-typedef std::vector<unsigned int> t_partitionElementId;
+typedef std::vector<size_t> t_partitionElementId;
 typedef std::vector<t_partitionElementId> t_partitioningScheme;
 typedef std::vector<t_partitioningScheme> t_schemesVector;
 
 typedef struct {
-	unsigned int start;
-	unsigned int end;
-	unsigned int id;
+	size_t start;
+	size_t end;
+	size_t id;
 } PEsection;
 
 #define DOUBLE_INF 1e140
@@ -187,8 +189,8 @@ extern bool non_stop;
 extern bool compute_final_tree;
 extern OptimizeMode optimize_mode;
 extern InformationCriterion ic_type;
-extern unsigned int number_of_models;
-extern unsigned int number_of_schemes;
+extern size_t number_of_models;
+extern size_t number_of_schemes;
 extern bitMask protModels; /** Models to evaluate */
 
 /* output */
@@ -206,10 +208,10 @@ extern std::string * results_logfile;
 #endif
 
 /* data description */
-extern unsigned int num_taxa;
-extern unsigned int seq_len;
-extern unsigned int num_patterns;
-extern unsigned int number_of_genes;
+extern size_t num_taxa;
+extern size_t seq_len;
+extern size_t num_patterns;
+extern size_t number_of_genes;
 extern std::string ** singleGeneNames;
 extern char * starting_tree;
 extern std::vector<t_partitioningScheme> * schemes;

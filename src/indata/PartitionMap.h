@@ -79,7 +79,7 @@ public:
 	 *
 	 * @return The number of elements already created in the map.
 	 */
-	unsigned int getNumberOfElements() {
+	size_t getNumberOfElements() {
 		return numberOfElements;
 	}
 
@@ -88,7 +88,7 @@ public:
 	 *
 	 * @return The number of single-gene partitions.
 	 */
-	unsigned int getNumberOfPartitions() {
+	size_t getNumberOfPartitions() {
 		return numberOfPartitions;
 	}
 
@@ -115,8 +115,8 @@ private:
 	virtual ~PartitionMap();
 
 
-	unsigned int numberOfElements; /** Number of partitions already created in the map. */
-	unsigned int numberOfPartitions; /** Number of single-gene partitions */
+	size_t numberOfElements; /** Number of partitions already created in the map. */
+	size_t numberOfPartitions; /** Number of single-gene partitions */
 	vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
 	t_partitioningScheme _keep; /** Set of elements to keep in purge operations*/
 
