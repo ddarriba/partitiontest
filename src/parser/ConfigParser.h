@@ -24,7 +24,7 @@
 #ifndef CONFIGPARSER_H_
 #define CONFIGPARSER_H_
 
-#define MAX_SECTIONS 10
+#define MAX_SECTIONS 20
 #include "util/GlobalDefs.h"
 #include <vector>
 

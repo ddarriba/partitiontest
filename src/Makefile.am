@@ -1,4 +1,4 @@
-bin_PROGRAMS = partest
+bin_PROGRAMS = partest partest-parser
 
 partest_SOURCES = \
 	exe/ModelOptimize.cpp \
@@ -41,3 +41,11 @@ if HAVE_SSE
   partest_CPPFLAGS += -DHAVE_SSE
   partest_LDFLAGS += -DHAVE_SSE
 endif
+
+partest_parser_SOURCES = \
+	parser/INIReader.cpp \
+	partestParserUtils/PartestParserUtils.cpp \
+	PartitionTestParser.cpp
+
+partest_parser_CPPFLAGS = -Wall
+partest_parser_LDFLAGS = 
