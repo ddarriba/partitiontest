@@ -23,8 +23,17 @@ Generates a configuration file template
 \fB\-d\fR, \fB\-\-data\-type\fR \fIDATA_TYPE\fR
 Sets the type of the input data. DATA_TYPE: \fBnt\fR (nucleotide), \fBaa\fR (amino-acid)
 .TP
+\fB\-\-disable\-ckp\fR
+Disables the checkpointing
+.TP
+\fB\-\-disable\-output\fR
+Disables any file-based output. This option also disables the chackpointing
+.TP
 \fB\-F\fR, \fB\-\-empirical\-frequencies\fR
 Includes models with empirical frequencies (+F)
+.TP
+\fB\-\-force\-override\fR
+Existent output files will be overwritten
 .TP
 \fB\-h\fR, \fB\-\-help\-\fR
 Displays a help message

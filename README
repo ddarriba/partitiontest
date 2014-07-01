@@ -1,5 +1,14 @@
-DEVELOPMENT NOTES:
+To install PartitionTest, type the following commands:
+./configure [--prefix=INSTALL_DIR]
+make
+make install
 
-- 25/03/13 - Added partition selector. Should add a value (ML) for each Partition and select the best one (also display a sorted list of partitions)
-- 19/03/13 - Unstable commit. Partition manager selects combination from a set of partitionElements, but not subsets.
-             It's necessary to use the whole Partition set iterator.
+Set a custom install directory if you don't have root access or you prefer a
+different location.
+
+This will compile non-mpi version, and also mpi if available.
+Run 'man partest' or 'partest -h' for help.
+
+To compile a Windows executable, install MinGW and run:
+ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes mingw64-configure;
+make;

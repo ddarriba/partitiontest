@@ -23,16 +23,19 @@ namespace partest {
 	int numProcs = 0;
 #endif
 
-	int number_of_threads = 1;
-	bool ckpAvailable = false;
+	/* checkpointing */
+	bool ckpAvailable = true;
 	string ckpPath;
 	string ckpStartingTree = "starting_tree";
 	string ckpFinalTree = "final_tree";
+
 	string ** singleGeneNames;
 	char * starting_tree = 0;
 
-	DataType data_type;
-	bitMask do_rate;
+	/* configuration */
+	int number_of_threads = 1;
+	DataType data_type = DT_DEFAULT;
+	bitMask do_rate = 0;
 	StartTopo starting_topology;
 	SearchAlgo search_algo;
 	int max_samples;
@@ -40,7 +43,9 @@ namespace partest {
 	OptimizeMode optimize_mode;
 	bool non_stop = false;
 	bool compute_final_tree = false;
+	bitMask protModels = Utilities::binaryPow(max(NUC_MATRIX_SIZE,PROT_MATRIX_SIZE)) - 1;
 
+	/* input/output */
 	string * input_file = 0;
 	string * config_file = 0;
 	string * user_tree = 0;
@@ -48,14 +53,10 @@ namespace partest {
 	string * models_logfile = 0;
 	string * schemes_logfile = 0;
 	string * results_logfile = 0;
+	bool force_overriding = false;
+	bool outputAvailable = true;
 
-	bitMask protModels = Utilities::binaryPow(max(NUC_MATRIX_SIZE,PROT_MATRIX_SIZE)) - 1;
-
-	pllQueue * pllPartsQueue = 0;
-	partitionList * pllPartitions = 0;
-	pllAlignmentData * phylip = 0;
-	pllInstance * tree = 0;
-
+	/* data description */
 	size_t num_taxa = 0;
 	size_t seq_len = 0;
 	size_t num_patterns = 0;
@@ -63,6 +64,12 @@ namespace partest {
 	size_t number_of_genes = 0;
 	size_t number_of_schemes = 0;
 	std::vector<t_partitioningScheme> * schemes = 0;
+
+	/* data structures */
+	pllQueue * pllPartsQueue = 0;
+	partitionList * pllPartitions = 0;
+	pllAlignmentData * phylip = 0;
+	pllInstance * tree = 0;
 
 	void exit_partest(int status) {
 		/* free global variables */
@@ -87,15 +94,27 @@ namespace partest {
 			delete (results_logfile);
 
 		/* exit */
-		if (status == EX_USAGE) {
+		switch(status) {
+		case EX_USAGE:
 			PrintMeta::print_usage(cout);
-		}
-		if (status == EX_SOFTWARE) {
+			break;
+		case EX_SOFTWARE:
 			cerr << " ... internal error that should NEVER raise ..." << endl;
-		}
-		if (status == EX_UNAVAILABLE) {
+			break;
+		case EX_UNAVAILABLE:
 			cerr << " ... attempting to use an unavailable feature ..." << endl;
+			break;
+		case EX_CONFIG:
+			cerr << "Run with --help for more information." << endl;
+			break;
+		case EX_OK:
+			/* print nothing */
+			break;
+		default:
+			cerr << "... finishing with error status." << endl;
+			break;
 		}
+
 		exit(status);
 	}
 

@@ -9,6 +9,7 @@
 #define GLOBALDEFS_H_
 
 #define PROGRAM_VERSION "1.0"
+#define PROGRAM_DATE "15 Jul 2014"
 
 #include <pll.h>
 
@@ -193,7 +194,8 @@ extern size_t number_of_models;
 extern size_t number_of_schemes;
 extern bitMask protModels; /** Models to evaluate */
 
-/* output */
+
+/* input/output */
 extern std::string * input_file;
 extern std::string * config_file;
 extern std::string * user_tree;
@@ -201,6 +203,8 @@ extern std::string * output_dir;
 extern std::string * models_logfile;
 extern std::string * schemes_logfile;
 extern std::string * results_logfile;
+extern bool outputAvailable;
+extern bool force_overriding;
 
 #ifdef _MPI
 	extern int myRank;

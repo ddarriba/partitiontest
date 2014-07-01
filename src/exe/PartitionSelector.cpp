@@ -78,7 +78,7 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 
 	int limit = min(MAX_SCHEMES_SHOWN, (int) schemesVector->size());
 
-	if (ckpAvailable && schemes_logfile) {
+	if (outputAvailable && schemes_logfile) {
 		ofstream ofs(schemes_logfile->c_str(), ios::in | ios::out | ios::app);
 		print(ofs, limit);
 		ofs.close();

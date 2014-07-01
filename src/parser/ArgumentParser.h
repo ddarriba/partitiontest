@@ -57,27 +57,31 @@
 #define ARG_OPTIMIZE_GTR       "gtr"       /** Argument for optimizing GTR among partitions */
 
 enum ArgIndex {
-	ARG_NULL, ARG_INPUT_FILE, /** Argument for input data file */
-	ARG_INPUT_FORMAT, /** Argument for input data format */
-	ARG_USER_TREE, /** Argument for input user tree file */
-	ARG_DATA_TYPE, /** Argument for data type (aa/nt) */
-	ARG_IC_TYPE, /** Argument for selection criterion */
-	ARG_FREQUENCIES, /** Argument for including +F models */
-	ARG_INV, /** Argument for including +I models */
-	ARG_GAMMA, /** Argument for including +G models */
-	ARG_TOPOLOGY, /** Argument for starting topology type */
-	ARG_FINAL_TREE, /** Argument for computing final tree */
+	ARG_NULL,
 	ARG_CONFIG_FILE, /** Argument for configuration file name */
-	ARG_NUM_PROCS, /** Argument for number of processors */
-	ARG_SAMPLE_SIZE, /** Argument for sample size type */
-	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
-	ARG_HCLUSTER_REPS, /** Number of hcluster replicates */
-	ARG_OPTIMIZE, /** Argument for search algorithm */
-	ARG_OUTPUT, /** Argument for setting the output directory */
-	ARG_HELP, /** Argument for show help */
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */
+	ARG_DATA_TYPE, /** Argument for data type (aa/nt) */
+	ARG_DISABLE_CHECKPOINT, /** Argument for disabling the checkpointing */
+	ARG_DISABLE_OUTPUT, /** Argument for disable writing output files */
+	ARG_FINAL_TREE, /** Argument for computing final tree */
+	ARG_FORCE_OVERRIDE, /** Argument for forcing the override of existent output files */
+	ARG_FREQUENCIES, /** Argument for including +F models */
+	ARG_GAMMA, /** Argument for including +G models */
+	ARG_HCLUSTER_REPS, /** Number of hcluster replicates */
+	ARG_HELP, /** Argument for show help */
+	ARG_IC_TYPE, /** Argument for selection criterion */
+	ARG_INPUT_FILE, /** Argument for input data file */
+	ARG_INPUT_FORMAT, /** Argument for input data format */
+	ARG_INV, /** Argument for including +I models */
 	ARG_NON_STOP, /** Search until the end */
+	ARG_NUM_PROCS, /** Argument for number of processors */
+	ARG_OPTIMIZE, /** Argument for search algorithm */
+	ARG_OUTPUT, /** Argument for setting the output directory */
+	ARG_SAMPLE_SIZE, /** Argument for sample size type */
+	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
+	ARG_TOPOLOGY, /** Argument for starting topology type */
+	ARG_USER_TREE, /** Argument for input user tree file */
 	ARG_VERSION, /** Show version */
 	ARG_END
 };
