@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <vector>
 #if !INI_USE_STACK
 #include <stdlib.h>
 #endif
@@ -67,8 +66,8 @@ map<string, string> * INIReader::getGenes(string section) {
 
 	map<string, string>::iterator iter;
 	for (iter = _values.begin(); iter != _values.end(); iter++) {
-		if (!(iter->first.substr(0, 11).compare("partitions."))) {
-			(*geneMap)[iter->first.substr(11, iter->first.length() - 11)] =
+		if (!(iter->first.substr(0, section.length()+1).compare(section+"."))) {
+			(*geneMap)[iter->first.substr((section.length() + 1), iter->first.length() - (section.length() + 1) )] =
 					iter->second;
 		}
 	}
@@ -82,7 +81,7 @@ vector<string> * INIReader::getSchemes(string section) {
 
 	map<string, string>::iterator iter;
 	for (iter = _values.begin(); iter != _values.end(); iter++) {
-		if (!(iter->first.substr(0, 8).compare("schemes."))) {
+		if (!(iter->first.substr(0, (section.length() + 1)).compare(section + "."))) {
 			schemeLines->push_back(iter->second);
 		}
 	}

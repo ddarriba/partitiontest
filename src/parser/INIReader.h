@@ -10,6 +10,7 @@
 #define __INIREADER_H__
 
 #include <map>
+#include <vector>
 #include <string>
 
 #define MAX_SECTION 50
