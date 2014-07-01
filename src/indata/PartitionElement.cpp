@@ -453,7 +453,7 @@ int PartitionElement::loadData(void) {
 		ofs.read((char *) &(numberOfSections), sizeof(size_t));
 		ofs.read((char *) &(numberOfSites), sizeof(size_t));
 		ofs.read((char *) &(numberOfPatterns), sizeof(size_t));
-		int ckpNumberOfModels;
+		size_t ckpNumberOfModels;
 		ofs.read((char *) &(ckpNumberOfModels), sizeof(size_t));
 
 		if (ckpNumberOfModels != number_of_models) {
