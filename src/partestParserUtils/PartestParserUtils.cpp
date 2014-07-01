@@ -37,7 +37,6 @@ int PartestParserUtils::parsePartitionFinderFile(
 	int partitionId = 0;
 	std::map<std::string, std::string>::iterator iter;
 	for (iter = keys->begin(); iter != keys->end(); iter++) {
-		char lineBuffer[iter->second.length() + 1];
 		string partitionLine(iter->first);
 		replace( iter->second.begin(), iter->second.end(), '\\', '/');
 		replace( iter->second.begin(), iter->second.end(), ';', '\0');
