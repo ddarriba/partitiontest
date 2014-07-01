@@ -190,8 +190,24 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "--data-type aa" << "Amino-acid sequences" << endl;
 	out << endl;
 
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--disable-ckp" << "Disables the checkpointing"
+			<< endl;
+	out << endl;
+
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--disable-output" << "Disables any file-based output." << endl;
+	out << setw(MAX_OPT_LENGTH) << " "
+				<< "This automatically disables also checkpointing"
+				<< endl;
+	out << endl;
+
 	out << setw(MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
 			<< "Includes models with empirical frequencies (+F)" << endl;
+	out << endl;
+
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--force-override" << "Existent output files will be overwritten." << endl;
 	out << endl;
 
 	out << setw(MAX_OPT_LENGTH) << left << "  -h, --help"

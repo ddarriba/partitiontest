@@ -93,38 +93,68 @@ bool PartitionTest::configure(void) {
 		input_file = new string(parser.getInputFile());
 	}
 
-	if (parser.getOutputBasePath().length() > 0) {
-		output_dir = new string(parser.getOutputBasePath());
-	} else {
-		const char *baseName = basename(input_file->c_str());
-		output_dir = new string("partest_");
-		output_dir->append(baseName);
-		output_dir->append(os_separator);
-	}
-	models_logfile = new string(*output_dir + "models");
-	schemes_logfile = new string(*output_dir + "schemes");
-	results_logfile = new string(*output_dir + "results");
-
-	ckpPath = (*output_dir) + CKP_DIR;
-	if (I_AM_ROOT) {
-		int resMkdir = mkdir(output_dir->c_str(), 0777);
-		if (resMkdir) {
-			if (errno == EEXIST) {
-				cerr << "[WARNING] Output directory " << (*output_dir)
-						<< " already exists. Output files might be overwritten."
-						<< endl;
-			} else {
-				cerr << "[WARNING] ***** WARNING *****" << endl;
-				cerr << "[WARNING] Output directory " << (*output_dir)
-						<< " cannot be created. No output files will be stored."
-						<< endl;
-				cerr << "[WARNING] ***** WARNING *****" << endl;
-			}
+	if (outputAvailable) {
+		if (parser.getOutputBasePath().length() > 0) {
+			output_dir = new string(parser.getOutputBasePath());
+		} else {
+			const char *baseName = basename(input_file->c_str());
+			output_dir = new string("partest_");
+			output_dir->append(baseName);
+			output_dir->append(os_separator);
 		}
+		models_logfile = new string(*output_dir + "models");
+		schemes_logfile = new string(*output_dir + "schemes");
+		results_logfile = new string(*output_dir + "results");
 
-		if (!resMkdir || errno == EEXIST) {
-			mkdir(ckpPath.c_str(), 0777);
-			ckpAvailable = true;
+		ckpPath = (*output_dir) + CKP_DIR;
+	}
+
+	if (I_AM_ROOT) {
+		if (outputAvailable) {
+			int resMkdir = mkdir(output_dir->c_str(), 0777);
+			if (resMkdir) {
+				if (errno == EEXIST) {
+					if (force_overriding) {
+						cerr << "[WARNING] Output directory " << (*output_dir)
+								<< " already exists. Output files might be overwritten."
+								<< endl;
+					} else {
+						if (Utilities::existsFile(*models_logfile)
+								|| Utilities::existsFile(*schemes_logfile)
+								|| Utilities::existsFile(*results_logfile)) {
+							cerr << "[ERROR] Output files already exist:"
+									<< endl;
+							if (Utilities::existsFile(*models_logfile)) {
+								cerr << "        " << *models_logfile << endl;
+							}
+							if (Utilities::existsFile(*schemes_logfile)) {
+								cerr << "        " << *schemes_logfile << endl;
+							}
+							if (Utilities::existsFile(*results_logfile)) {
+								cerr << "        " << *results_logfile << endl;
+							}
+							cerr << endl
+									<< "If you really want to proceed, remove result files or re-run with --force-override or --disable-output arguments."
+									<< endl << endl;
+							exit_partest(EX_IOERR);
+						}
+					}
+				} else {
+					cerr << "[WARNING] ***** WARNING *****" << endl;
+					cerr << "[WARNING] Output directory " << (*output_dir)
+							<< " cannot be created. No output files will be stored."
+							<< endl;
+					cerr << "[WARNING] ***** WARNING *****" << endl;
+				}
+			}
+
+			if (!resMkdir || errno == EEXIST) {
+				mkdir(ckpPath.c_str(), 0777);
+				/* checkpointing is set to true unless user specified the oposite */
+				ckpAvailable &= true;
+			} else {
+				ckpAvailable = false;
+			}
 		}
 	}
 
@@ -148,7 +178,7 @@ bool PartitionTest::configure(void) {
 			data_type = DEFAULT_DATA_TYPE;
 		}
 	}
-
+	cout << "HERE3" << endl;
 	switch (optimize_mode) {
 	case OPT_SEARCH:
 		number_of_models = data_type == DT_NUCLEIC ?
@@ -174,8 +204,15 @@ bool PartitionTest::configure(void) {
 	tree = pllCreateInstance(&attr);
 
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
+	if (!phylip) {
+		cerr << "[ERROR] There was an error parsing input data." << endl;
+		exit_partest(EX_IOERR);
+	}
 	pllPartitions = pllPartitionsCommit(pllPartsQueue, phylip);
-
+	if (!pllPartitions) {
+		cerr << "[ERROR] There was an error parsing partitions data." << endl;
+		exit_partest(EX_IOERR);
+	}
 	num_taxa = phylip->sequenceCount;
 	seq_len = phylip->sequenceLength;
 
@@ -264,7 +301,7 @@ int main(int argc, char * argv[]) {
 
 	ptest->configure();
 	if (!config_file && !ptest->checkParameters()) {
-		cerr << "ERROR: Configuration parameters are missing" << endl;
+		cerr << "[ERROR] Configuration parameters are missing" << endl;
 		exit_partest(EX_CONFIG);
 	}
 
@@ -329,7 +366,7 @@ int main(int argc, char * argv[]) {
 			ModelOptimize mo;
 			mo.buildFinalTree(bestScheme, false);
 
-			if (ckpAvailable && results_logfile) {
+			if (outputAvailable && results_logfile) {
 				ofstream ofs(results_logfile->c_str(), ios::out);
 				PrintMeta::print_results_xml(ofs, bestScheme);
 				ofs.close();

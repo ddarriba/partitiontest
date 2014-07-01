@@ -44,7 +44,7 @@ ModelSelector::ModelSelector(PartitionElement * partitionElement,
 	doSelection(partitionElement->getModels(), ic, sampleSize);
 	partitionElement->setBestModel(getBestModel());
 
-	if (ckpAvailable && models_logfile) {
+	if (outputAvailable && models_logfile) {
 		ofstream ofs(models_logfile->c_str(), ios::in | ios::out | ios::app);
 		print(ofs);
 		ofs.close();
@@ -75,13 +75,13 @@ double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 		break;
 	case DT:
 		value = 0.0;
-		cerr << "ERROR: Decision Theory is not implemented yet" << endl;
+		cerr << "[ERROR] Decision Theory is not implemented yet" << endl;
 		exit_partest(EX_UNAVAILABLE);
 		break;
 	case IC_DEFAULT:
 	default:
 		value = 0.0;
-		cerr << "ERROR: Undefined Criterion" << endl;
+		cerr << "[ERROR] Undefined Criterion" << endl;
 		exit_partest(EX_UNAVAILABLE);
 		break;
 	}
@@ -249,7 +249,7 @@ void ModelSelector::print(ostream& out) {
 		break;
 	case IC_DEFAULT:
 	default:
-		cerr << "ERROR: Undefined Criterion" << endl;
+		cerr << "[ERROR] Undefined Criterion" << endl;
 		exit_partest(EX_SOFTWARE);
 		break;
 	}

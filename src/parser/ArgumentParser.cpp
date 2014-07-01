@@ -32,9 +32,9 @@ using namespace std;
 namespace partest {
 
 #ifdef _IG_MODELS
-#define NUM_ARGUMENTS 22
+#define NUM_ARGUMENTS 25
 #else
-#define NUM_ARGUMENTS 20
+#define NUM_ARGUMENTS 23
 #endif
 
 void ArgumentParser::init() {
@@ -50,7 +50,10 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_CONFIG_HELP, 0, "config-help", false }, {
 			ARG_CONFIG_TEMPLATE, 0, "config-template", false }, {
 			ARG_DATA_TYPE, 'd', "data-type", true }, {
+			ARG_DISABLE_CHECKPOINT, 0, "disable-ckp", false }, {
+			ARG_DISABLE_OUTPUT, 0, "disable-output", false }, {
 			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
+			ARG_FORCE_OVERRIDE, 0, "force-override", false }, {
 			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
 #ifdef _IG_MODELS
 			ARG_GAMMA, 'G', "gamma-rates", false }, {
@@ -141,8 +144,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 				if (arg_index == ARG_NULL) {
 					cerr << "[ERROR] \"" << argument
 							<< "\" option not recognized." << endl;
-					cerr << "Run with --help for more information." << endl;
-					exit_partest(EX_DATAERR);
+					exit_partest(EX_CONFIG);
 				}
 			}
 		} else {
@@ -151,8 +153,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 					<< endl;
 			cerr << "Arguments must start with '-' (short) or '--' (long)"
 					<< endl;
-			cerr << "Run with --help for more information." << endl;
-			exit_partest(EX_DATAERR);
+			exit_partest(EX_CONFIG);
 		}
 
 		return arg_index;
@@ -215,6 +216,19 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 						<< "DNA sequence alignment (DEFAULT)" << endl;
 				exit_partest(EX_CONFIG);
 			}
+			break;
+		case ARG_DISABLE_CHECKPOINT:
+			/* disable checkpointing files */
+			ckpAvailable = false;
+			break;
+		case ARG_DISABLE_OUTPUT:
+			/* disable writing output files */
+			outputAvailable = false;
+			ckpAvailable = false;
+			break;
+		case ARG_FORCE_OVERRIDE:
+			/* disable writing output files */
+			force_overriding = true;
 			break;
 		case ARG_TOPOLOGY:
 			/* starting topology (Fixed, Parsimony or User-defined) */
@@ -401,7 +415,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_VERSION:
 			/* display application version */
-			cout << "PartitionTest v" << PROGRAM_VERSION << endl;
+			cout << "PartitionTest v" << PROGRAM_VERSION << " - " << PROGRAM_DATE << endl;
 			cout << "Copyright (C) 2014 D.Darriba, G.L.Taboada, R.Doallo and David Posada" << endl;
 			cout << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
 			cout << "This is free software: you are free to change and redistribute it." << endl;
@@ -411,7 +425,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		default:
 			cerr << "[ERROR] \"" << argument
-					<< "\" option not recognized.\n Run with --help for more information."
+					<< "\" option not recognized."
 					<< endl;
 			exit_partest(EX_CONFIG);
 			break;

@@ -209,7 +209,7 @@ int INIReader::ini_parse_file(FILE* file,
 				if (!handler(user, section, prev_name, start) && !error)
 					error = lineno;
 #else
-				cerr << "ERROR: Line " << lineno
+				cerr << "[ERROR] Line " << lineno
 						<< "in the configuration file is too large for the current buffer" << endl;
 				exit_partest(EX_IOERR);
 #endif

@@ -415,7 +415,8 @@ int PartitionElement::loadData(void) {
 	if (!ckpAvailable)
 		return CHECKPOINT_UNAVAILABLE;
 
-	fstream ofs((ckpPath + os_separator + ckpname).c_str(), ios::in);
+	const char * ckpFilename = (ckpPath + os_separator + ckpname).c_str();
+	fstream ofs(ckpFilename, ios::in);
 	ofs.seekg(0, ios_base::beg);
 
 	if (!ofs)
@@ -424,11 +425,11 @@ int PartitionElement::loadData(void) {
 	streampos curpos = 0;
 	while (!ofs.eof() && !ckpLoaded) {
 		ofs.seekg(curpos, ios_base::cur);
-		int ckpSize;
-		ofs.read((char *) &(ckpSize), sizeof(int));
+		size_t ckpSize;
+		ofs.read((char *) &(ckpSize), sizeof(size_t));
 
-		int hashlen;
-		ofs.read((char *) &hashlen, sizeof(int));
+		size_t hashlen;
+		ofs.read((char *) &hashlen, sizeof(size_t));
 		if (hashlen > 0) {
 			char * charhash = (char *) malloc(hashlen + 1);
 			ofs.read((char *) charhash, hashlen);
@@ -445,13 +446,40 @@ int PartitionElement::loadData(void) {
 				cerr << "ERROR LOADING CHECKPOINTS" << endl;
 				exit_partest(EX_SOFTWARE);
 			}
-			curpos = ckpSize - hashlen - sizeof(int);
+			curpos = ckpSize - hashlen - sizeof(size_t);
 		}
 	}
 	if (ckpLoaded) {
-		ofs.read((char *) &(numberOfSections), sizeof(int));
-		ofs.read((char *) &(numberOfSites), sizeof(int));
-		ofs.read((char *) &(numberOfPatterns), sizeof(int));
+		ofs.read((char *) &(numberOfSections), sizeof(size_t));
+		ofs.read((char *) &(numberOfSites), sizeof(size_t));
+		ofs.read((char *) &(numberOfPatterns), sizeof(size_t));
+		int ckpNumberOfModels;
+		ofs.read((char *) &(ckpNumberOfModels), sizeof(size_t));
+
+		if (ckpNumberOfModels != number_of_models) {
+			if (!force_overriding) {
+				cerr << "[ERROR]   ";
+			} else {
+				cerr << "[WARNING] ";
+			}
+			cerr << "Number of models in checkpoint files does not match the expected number" << endl;
+			cerr << "          of models. Configuration might changed. Checkpoint loading for this " << endl;
+			cerr << "          element was aborted." << endl;
+			if (force_overriding) {
+				ckpLoaded = false;
+				ofs.close();
+				/* deleting checkpoint file */
+				if (remove(ckpFilename)) {
+					cerr << "[ERROR] There was an error removing checkointing file " << ckpFilename
+							<< ". Please remove it manually and try again." << endl;
+					exit_partest(EX_IOERR);
+				}
+			} else {
+				cerr << endl << "If you really want to proceed, remove checkpointing files or re-run with --force-override, --disable-output or --disable-ckp arguments." << endl << endl;
+				exit_partest(EX_IOERR);
+			}
+			return CHECKPOINT_UNEXISTENT;
+		}
 
 		size_t modelSize =
 				data_type == DT_NUCLEIC ?
@@ -560,21 +588,22 @@ int PartitionElement::storeData(void) {
 	int numberOfRates = data_type == DT_NUCLEIC ?
 	NUM_DNA_RATES :
 													0;
-	int hashlen = ckphash.length();
-	int ckpSize = 4 * sizeof(int) + hashlen
+	size_t hashlen = ckphash.length();
+	size_t ckpSize = 5 * sizeof(size_t) + hashlen
 			+ models.size()
 					* (modelSize + sizeof(size_t) + tree->treeStringLength
 							+ (numberOfFrequencies + numberOfRates)
 									* sizeof(double)) + sizeof(int)
 			+ sizeof(SelectionModel);
-	ofs.write((char *) &ckpSize, sizeof(int));
-	ofs.write((char *) &hashlen, sizeof(int));
+	ofs.write((char *) &ckpSize, sizeof(size_t));
+	ofs.write((char *) &hashlen, sizeof(size_t));
 	if (hashlen > 0) {
 		ofs.write((char *) ckphash.c_str(), hashlen);
 	}
-	ofs.write((char *) &numberOfSections, sizeof(int));
-	ofs.write((char *) &numberOfSites, sizeof(int));
-	ofs.write((char *) &numberOfPatterns, sizeof(int));
+	ofs.write((char *) &numberOfSections, sizeof(size_t));
+	ofs.write((char *) &numberOfSites, sizeof(size_t));
+	ofs.write((char *) &numberOfPatterns, sizeof(size_t));
+	ofs.write((char *) &number_of_models, sizeof(size_t));
 	int bestModelIndex = 0;
 	for (size_t i = 0; i < models.size(); i++) {
 		Model * model = models.at(i);

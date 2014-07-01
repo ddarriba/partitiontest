@@ -33,7 +33,8 @@ struct comparePartitionInfos {
 
 void ConfigParser::createSinglePartition() {
 	if (!input_file) {
-		exit_partest(EX_USAGE);
+		cerr << "[ERROR] Input file has not been set" << endl;
+		exit_partest(EX_CONFIG);
 	}
 
 	number_of_genes = 1;
@@ -42,6 +43,10 @@ void ConfigParser::createSinglePartition() {
 	singleGeneNames[0] = new string("SinglePartition");
 
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
+	if (!phylip) {
+		cerr << "[ERROR] There was an error parsing input data." << endl;
+		exit_partest(EX_IOERR);
+	}
 	num_taxa = phylip->sequenceCount;
 	seq_len = phylip->sequenceLength;
 
@@ -176,7 +181,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 				searchAlgorithm = SearchAuto;
 			} else {
 				cerr << "Invalid search algorithm : " << value << endl;
-				exit_partest(EX_SOFTWARE);
+				exit_partest(EX_CONFIG);
 			}
 		}
 
@@ -298,14 +303,14 @@ ConfigParser::ConfigParser(const char * configFile) {
 					<< "[ERROR] Custom model set is not available for nucleic data."
 					<< endl;
 			cerr << "        Please use \"gtr\" or \"all\" option." << endl;
-			exit_partest(EX_USAGE);
+			exit_partest(EX_CONFIG);
 		} else if ((optimizeMode == OPT_GTR) & (dataType == DT_PROTEIC)) {
 			cerr << "[ERROR] GTR option is not available for proteic data."
 					<< endl;
 			cerr
 					<< "        Please use \"all\" option or define the set of models."
 					<< endl;
-			exit_partest(EX_USAGE);
+			exit_partest(EX_CONFIG);
 		}
 	} else {
 		// no configuration file provided. A single partition will be used
@@ -328,7 +333,7 @@ int ConfigParser::parsePartitionDetails(char * line,
 	the_line[strlen(the_line)] = '\0';
 	partitionLine = pllPartitionParseString(the_line);
 	if (!partitionLine) {
-		cerr << "ERROR: Could not read partition:" << endl;
+		cerr << "[ERROR] Could not read partition:" << endl;
 		cerr << "-> " << line << endl;
 		exit_partest(EX_IOERR);
 	}
@@ -367,7 +372,7 @@ int ConfigParser::parseScheme(char * line, t_partitioningScheme * scheme) {
 				}
 			}
 			if (nextSingleElement >= number_of_genes) {
-				cerr << "ERROR: Partition " << parsedPart << " not found"
+				cerr << "[ERROR] Partition " << parsedPart << " not found"
 						<< endl;
 				exit_partest(EX_IOERR);
 			}
@@ -501,11 +506,11 @@ vector<partitionInfo> * ConfigParser::getPartitions() {
 
 struct partitionInfo ConfigParser::getPartition(size_t index) {
 	if (!partitions) {
-		cerr << "ERROR: No partitions were defined" << endl;
+		cerr << "[ERROR] No partitions were defined" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
 	if (index >= number_of_genes) {
-		cerr << "ERROR: Requested partition does not exist" << endl;
+		cerr << "[ERROR] Requested partition does not exist" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
 	return partitions->at(index);
