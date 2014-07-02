@@ -17,6 +17,14 @@
 
 namespace partest_parser {
 
+enum pfSearch {
+	searchAll,
+	searchHCluster,
+	searchRCluster,
+	searchGreedy,
+	searchUNDEFINED
+};
+
 /**
  * @brief Structure with information about a single-gene partition
  */
@@ -30,11 +38,19 @@ struct partitionInfo {
 	}
 };
 
+
+struct executionInfo {
+	std::string alignment;
+	std::string models;
+	std::string modelSelection;
+	pfSearch searchAlgorithm;
+};
+
 class PartestParserUtils {
 public:
 	PartestParserUtils(char * inputFile, char * outputFile);
 	virtual ~PartestParserUtils();
-	int parseRaxmlFile(std::vector<partitionInfo> ** partitions);
+	int parseRaxmlFile(std::vector<std::string> ** partitions);
 	int parsePartitionFinderFile(std::vector<std::string> ** partitions);
 	static inline int isNum(char c) {
 		return !(c < '0' || c > '9');

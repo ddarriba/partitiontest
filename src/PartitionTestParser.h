@@ -31,7 +31,6 @@ private:
 	void printHelp(std::ostream & out);
 	int getFormat(char * str, ConfigFormat * result);
 
-	std::vector<partitionInfo> * partitions; /** Vector of partitions */
 	std::vector<std::string> * partitionStrings; /** Vector of partitions */
 	char inputFile[256];
 	char outputFile[256];

@@ -284,14 +284,17 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
 			<< "Sets the starting topology for optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology mp"
+			<< "--topology " << ARG_TOPO_MP
 			<< "(DEFAULT) Creates a maximum parsimony topology for each model optimization"
 			<< endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology fixed"
+			<< "--topology " << ARG_TOPO_ML
+			<< "Creates a maximum likelihood topology for every model optimization" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--topology "<< ARG_TOPO_FIXED
 			<< "Uses a fixed ML topology for every model optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology user"
+			<< "--topology "<< ARG_TOPO_USER
 			<< "Uses a user-defined topology. Requires the \"-u\" argument"
 			<< endl;
 	out << setw(MAX_OPT_LENGTH) << " "

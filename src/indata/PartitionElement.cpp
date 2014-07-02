@@ -24,8 +24,8 @@ using namespace std;
 namespace partest {
 
 PartitionElement::PartitionElement(t_partitionElementId id) :
-		ready(false), id(id), sampleSize(0.0), _alignData(0), _tree(0),
-		_partitions(0), ckpLoaded(false), tag(false) {
+		ready(false), id(id), sampleSize(0.0), _alignData(0), _tree(0), _partitions(
+				0), ckpLoaded(false), tag(false) {
 
 	this->bestModel = 0;
 	models.reserve(number_of_models);
@@ -180,6 +180,18 @@ int PartitionElement::setupStructures(void) {
 
 		pllNewickTree * nt;
 		switch (starting_topology) {
+		case StartTopoML:
+			/* set ML optimization parameters */
+			_tree->doCutoff = ML_PARAM_CUTOFF;
+			_tree->likelihoodEpsilon = ML_PARAM_EPSILON;
+			_tree->stepwidth = ML_PARAM_STEPWIDTH;
+			_tree->max_rearrange = ML_PARAM_MAXREARRANGE;
+			_tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
+			_tree->initialSet = ML_PARAM_INITIALSET;
+			pllComputeRandomizedStepwiseAdditionParsimonyTree(_tree,
+					_partitions);
+			_tree->start = _tree->nodep[1];
+			break;
 		case StartTopoMP:
 			pllComputeRandomizedStepwiseAdditionParsimonyTree(_tree,
 					_partitions);
@@ -462,20 +474,29 @@ int PartitionElement::loadData(void) {
 			} else {
 				cerr << "[WARNING] ";
 			}
-			cerr << "Number of models in checkpoint files does not match the expected number" << endl;
-			cerr << "          of models. Configuration might changed. Checkpoint loading for this " << endl;
+			cerr
+					<< "Number of models in checkpoint files does not match the expected number"
+					<< endl;
+			cerr
+					<< "          of models. Configuration might changed. Checkpoint loading for this "
+					<< endl;
 			cerr << "          element was aborted." << endl;
 			if (force_overriding) {
 				ckpLoaded = false;
 				ofs.close();
 				/* deleting checkpoint file */
 				if (remove(ckpFilename)) {
-					cerr << "[ERROR] There was an error removing checkointing file " << ckpFilename
-							<< ". Please remove it manually and try again." << endl;
+					cerr
+							<< "[ERROR] There was an error removing checkointing file "
+							<< ckpFilename
+							<< ". Please remove it manually and try again."
+							<< endl;
 					exit_partest(EX_IOERR);
 				}
 			} else {
-				cerr << endl << "If you really want to proceed, remove checkpointing files or re-run with --force-override, --disable-output or --disable-ckp arguments." << endl << endl;
+				cerr << endl
+						<< "If you really want to proceed, remove checkpointing files or re-run with --force-override, --disable-output or --disable-ckp arguments."
+						<< endl << endl;
 				exit_partest(EX_IOERR);
 			}
 			return CHECKPOINT_UNEXISTENT;

@@ -234,6 +234,8 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			/* starting topology (Fixed, Parsimony or User-defined) */
 			if (!strcmp(value, ARG_TOPO_MP)) {
 				startingTopology = StartTopoMP;
+			} else if (!strcmp(value, ARG_TOPO_ML)) {
+				startingTopology = StartTopoML;
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
 				startingTopology = StartTopoFIXED;
 			} else if (!strcmp(value, ARG_TOPO_USER)) {
@@ -243,9 +245,11 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 						<< "\" is not a valid input topology. Use one of the following:"
 						<< endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_MP
-						<< "MP topology" << endl;
+						<< "Maximum Parsimony topology" << endl;
+				cerr << "  -t " << setw(8) << left << ARG_TOPO_ML
+						<< "Maximum Likelihood topology" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_FIXED
-						<< "Fixed ML topology for every model" << endl;
+						<< "Fixed Maximum Likelihood topology for every model" << endl;
 				cerr << "  -t " << setw(8) << left << ARG_TOPO_USER
 						<< "User-defined topology" << endl;
 				exit_partest(EX_CONFIG);

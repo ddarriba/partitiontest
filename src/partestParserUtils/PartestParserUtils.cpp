@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string.h>
+#include <sstream>
 #include <cstdio>
 
 namespace partest_parser {
@@ -26,13 +27,13 @@ PartestParserUtils::~PartestParserUtils() {
 }
 
 int PartestParserUtils::parsePartitionFinderFile(
-		vector<string> ** partitionInfos) {
+		vector<string> ** partitions) {
 
 	INIReader ini(inputFile);
 
 	/** PARTITIONS **/
 	std::map<std::string, string> * keys = ini.getGenes("data_blocks");
-	(*partitionInfos) = new vector<string>();
+	(*partitions) = new vector<string>();
 
 	int partitionId = 0;
 	std::map<std::string, std::string>::iterator iter;
@@ -42,7 +43,7 @@ int PartestParserUtils::parsePartitionFinderFile(
 		replace( iter->second.begin(), iter->second.end(), ';', '\0');
 		partitionLine.append(" = ");
 		partitionLine.append(iter->second.begin(), iter->second.end());
-		(*partitionInfos)->push_back(partitionLine);
+		(*partitions)->push_back(partitionLine);
 		partitionId++;
 	}
 	delete keys;
@@ -50,8 +51,7 @@ int PartestParserUtils::parsePartitionFinderFile(
 	return 0;
 }
 
-int PartestParserUtils::parseRaxmlFile(
-		vector<partitionInfo> ** partitionInfos) {
+int PartestParserUtils::parseRaxmlFile(vector<string> ** partitions) {
 	FILE *f;
 	int numberOfModels = 0;
 	int nbytes = 0;
@@ -77,7 +77,8 @@ int PartestParserUtils::parseRaxmlFile(
 	rewind(f);
 
 	p_names = (char **) malloc(sizeof(char *) * numberOfModels);
-	(*partitionInfos) = new vector<partitionInfo>(numberOfModels);
+
+	(*partitions) = new vector<string>(numberOfModels);
 
 	i = 0;
 	while (myGetline(&cc, &nbytes, f) > -1) {
@@ -105,12 +106,13 @@ int PartestParserUtils::parseRaxmlFile(
 
 		char * partitionName;
 		analyzeIdentifier(&ch, i, &partitionName);
-		(*partitionInfos)->at(i).name = string(partitionName);
+		partitionInfo pInfo;
+		pInfo.name = string(partitionName);
 		ch++;
 
 		numberPairs: pairsCount++;
 
-		(*partitionInfos)->at(i).numberOfSections = pairsCount;
+		pInfo.numberOfSections = pairsCount;
 
 		skipWhites(&ch);
 
@@ -128,7 +130,7 @@ int PartestParserUtils::parseRaxmlFile(
 		}
 		buf[l] = '\0';
 		lower = atoi(buf);
-		(*partitionInfos)->at(i).start[pairsCount - 1] = lower;
+		pInfo.start[pairsCount - 1] = lower;
 
 		skipWhites(&ch);
 
@@ -168,7 +170,7 @@ int PartestParserUtils::parseRaxmlFile(
 		}
 		buf[l] = '\0';
 		upper = atoi(buf);
-		SINGLE_NUMBER: (*partitionInfos)->at(i).end[pairsCount - 1] = upper;
+		SINGLE_NUMBER: pInfo.end[pairsCount - 1] = upper;
 
 		if (upper < lower) {
 			printf(
@@ -206,7 +208,20 @@ int PartestParserUtils::parseRaxmlFile(
 			}
 			buf[l] = '\0';
 			modulo = atoi(buf);
-			(*partitionInfos)->at(i).stride[pairsCount - 1] = modulo;
+			pInfo.stride[pairsCount - 1] = modulo;
+
+			stringstream ss;
+			ss << pInfo.name << " = ";
+			for (int j = 0; j < pInfo.numberOfSections; j++) {
+				if (j)
+					ss << ",";
+				ss << pInfo.start[j] << "-" << pInfo.end[j];
+				if (pInfo.stride[j] > 1) {
+					ss << "\\" << pInfo.stride[j];
+				}
+			}
+			ss << endl;
+			(*partitions)->at(i) = ss.str();
 
 			skipWhites(&ch);
 			if (*ch == '\0' || *ch == '\n' || *ch == '\r') {
