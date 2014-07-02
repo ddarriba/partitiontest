@@ -111,7 +111,13 @@ string ModelOptimize::buildStartingTree() {
 		pllInitModel(tree, compParts, alignData);
 
 		cout << timestamp() << " Building ML topology" << endl;
-		pllRaxmlSearchAlgorithm(tree, compParts, PLL_FALSE);
+		tree->doCutoff = ML_PARAM_CUTOFF;
+		tree->likelihoodEpsilon = ML_PARAM_EPSILON;
+		tree->stepwidth = ML_PARAM_STEPWIDTH;
+		tree->max_rearrange = ML_PARAM_MAXREARRANGE;
+		tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
+		tree->initialSet = ML_PARAM_INITIALSET;
+		pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 
 		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
 		PLL_TRUE,
@@ -296,6 +302,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 		switch (starting_topology) {
 		case StartTopoMP:
+		case StartTopoML:
 			pllComputeRandomizedStepwiseAdditionParsimonyTree(fTree, compParts);
 			fTree->start = fTree->nodep[1];
 			break;
@@ -313,8 +320,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		}
 
 		switch (data_type) {
-		case DT_PROTEIC:
-		{
+		case DT_PROTEIC: {
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
 					cur_part++) {
 				PartitionElement * pe = finalScheme->getElement(cur_part);
@@ -341,8 +347,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			}
 			break;
 		}
-		case DT_NUCLEIC:
-		{
+		case DT_NUCLEIC: {
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
 					cur_part++) {
 				PartitionElement * pe = finalScheme->getElement(cur_part);
@@ -456,16 +461,16 @@ int ModelOptimize::optimizePartitioningScheme(PartitioningScheme * scheme,
 
 	/* check number of elements to optimize */
 	int elementsToOptimize = 0;
-	for (size_t cur_element = 0;
-			cur_element < scheme->getNumberOfElements(); cur_element++) {
+	for (size_t cur_element = 0; cur_element < scheme->getNumberOfElements();
+			cur_element++) {
 		if (!scheme->getElement(cur_element)->isOptimized()) {
 			elementsToOptimize++;
 		}
 	}
 
 	int currentElementToOptimize = 0;
-	for (size_t cur_element = 0;
-			cur_element < scheme->getNumberOfElements(); cur_element++) {
+	for (size_t cur_element = 0; cur_element < scheme->getNumberOfElements();
+			cur_element++) {
 		PartitionElement * element = scheme->getElement(cur_element);
 		if (!element->isOptimized()) {
 			optimizePartitionElement(element, currentElementToOptimize,
@@ -528,7 +533,6 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		current_part->alpha = _model->getAlpha();
 		//current_part->nonGTR = PLL_FALSE;
 		current_part->dataType = PLL_DNA_DATA;
-
 		pllInitReversibleGTR(_tree, _partitions, index);
 		if (setAlphaFreqs) {
 			memcpy(current_part->frequencies, _model->getFrequencies(),
@@ -540,6 +544,7 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 			current_part->optimizeBaseFrequencies = _model->isPF();
 			if (!_model->isPF()) {
 				for (int i = 0; i < 4; i++) {
+					current_part->freqExponents[i] = 1.0;
 					current_part->frequencies[i] = 0.25;
 				}
 			}
@@ -547,7 +552,9 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 				current_part->substRates[i] = 1;
 			}
 
-			current_part->alpha = 100;
+			current_part->alpha = 1.0;
+			pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+					_tree->useMedian);
 
 		}
 		free(symmetryPar);
@@ -570,8 +577,8 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 	free(ef);
 }
 
-void ModelOptimize::optimizeModel(PartitionElement * element,
-		size_t modelIndex, int limit) {
+void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
+		int limit) {
 
 	pllInstance * _tree = element->getTree();
 	partitionList * _partitions = element->getPartitions();
@@ -588,15 +595,20 @@ void ModelOptimize::optimizeModel(PartitionElement * element,
 	pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
 	PLL_FALSE);
 
-	/* main optimization loop */
-	do {
-		lk = _tree->likelihood;
-		pllOptimizeModelParameters(_tree, _partitions, 1);
-		pllOptimizeBranchLengths(_tree, _partitions, 10);
-		pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
-		PLL_FALSE);
-	} while (fabs(lk - _tree->likelihood) > epsilon);
-
+	if (starting_topology == StartTopoML) {
+		pllRaxmlSearchAlgorithm(_tree, _partitions, PLL_TRUE);
+	} else {
+		/* main optimization loop */
+		int smoothIterations = 64;
+		do {
+			lk = _tree->likelihood;
+			pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
+			pllOptimizeModelParameters(_tree, _partitions, 1);
+			pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
+			PLL_FALSE);
+			//smoothIterations *= 2;
+		} while (fabs(lk - _tree->likelihood) > epsilon);
+	}
 	/* construct newick tree for optimized model */
 	pllTreeToNewick(_tree->tree_string, _tree, _partitions, _tree->start->back,
 	PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,

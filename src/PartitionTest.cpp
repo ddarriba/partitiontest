@@ -178,7 +178,7 @@ bool PartitionTest::configure(void) {
 			data_type = DEFAULT_DATA_TYPE;
 		}
 	}
-	cout << "HERE3" << endl;
+
 	switch (optimize_mode) {
 	case OPT_SEARCH:
 		number_of_models = data_type == DT_NUCLEIC ?

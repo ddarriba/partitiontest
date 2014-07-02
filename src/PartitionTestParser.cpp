@@ -19,7 +19,7 @@ namespace partest_parser {
 using namespace std;
 
 PartitionTestParser::PartitionTestParser(int argc, char *argv[]) {
-	partitions = NULL;
+	partitionStrings = NULL;
 
 	strcpy(binName, argv[0]);
 	if (argc < 3 || getFormat(argv[1], &format)) {
@@ -66,7 +66,7 @@ PartitionTestParser::PartitionTestParser(int argc, char *argv[]) {
 }
 
 PartitionTestParser::~PartitionTestParser() {
-	delete partitions;
+	delete partitionStrings;
 }
 
 int PartitionTestParser::getFormat(char * str, ConfigFormat * result) {
@@ -106,7 +106,7 @@ int PartitionTestParser::parseConfigFile() {
 		parserUtils.parsePartitionFinderFile(&partitionStrings);
 		break;
 	case cfRAxML: {
-		parserUtils.parseRaxmlFile(&partitions);
+		parserUtils.parseRaxmlFile(&partitionStrings);
 		break;
 	}
 	}
@@ -130,29 +130,9 @@ int PartitionTestParser::parseConfigFile() {
 	ofs << "[models]" << endl;
 	ofs << "; include = all" << endl << endl;
 	ofs << "[partitions]" << endl;
-	if (format == cfPartitionFinder) {
-		for (size_t i = 0; i < partitionStrings->size(); i++) {
-			cout << partitionStrings->at(i) << endl;
-			ofs << partitionStrings->at(i) << endl;
-		}
-	} else {
-		for (size_t i = 0; i < partitions->size(); i++) {
-			cout << partitions->at(i).name << " : "
-					<< partitions->at(i).start[0] << " to "
-					<< partitions->at(i).end[0] << "/"
-					<< partitions->at(i).stride[0] << endl;
-			ofs << partitions->at(i).name << " = ";
-			for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
-				if (j)
-					ofs << ",";
-				ofs << partitions->at(i).start[j] << "-"
-						<< partitions->at(i).end[j];
-				if (partitions->at(i).stride[j] > 1) {
-					ofs << "\\" << partitions->at(i).stride[j];
-				}
-			}
-			ofs << endl;
-		}
+	for (size_t i = 0; i < partitionStrings->size(); i++) {
+		cout << partitionStrings->at(i) << endl;
+		ofs << partitionStrings->at(i) << endl;
 	}
 	ofs << endl;
 	ofs << "[output]" << endl;

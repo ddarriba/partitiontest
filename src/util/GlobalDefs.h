@@ -27,6 +27,14 @@
 
 #define MAX_FILE_LENGTH 250
 
+/* ML optimization parameters */
+#define ML_PARAM_CUTOFF        PLL_TRUE
+#define ML_PARAM_EPSILON       0.1
+#define ML_PARAM_STEPWIDTH     5
+#define ML_PARAM_MAXREARRANGE  11
+#define ML_PARAM_BESTTRAV      5
+#define ML_PARAM_INITIALSET    PLL_FALSE
+
 namespace partest {
 
 typedef unsigned long int bitMask;
@@ -129,7 +137,7 @@ enum RateVar {
 };
 
 enum StartTopo {
-	StartTopoMP, StartTopoFIXED, StartTopoUSER
+	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
 };
 
 enum SearchAlgo {
