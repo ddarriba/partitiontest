@@ -17,7 +17,7 @@
 #include <climits>
 #include <string>
 
-#ifdef _MPI
+#ifdef HAVE_MPI
   #include <mpi.h>
   #define I_AM_ROOT myRank==0
 #else
@@ -214,7 +214,7 @@ extern std::string * results_logfile;
 extern bool outputAvailable;
 extern bool force_overriding;
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 	extern int myRank;
 	extern int numProcs;
 #endif

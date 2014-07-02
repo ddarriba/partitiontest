@@ -99,7 +99,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 
 			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));
-#ifdef _MPI
+#ifdef HAVE_MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 			for (size_t i=0; i<nextSchemes.size(); i++) {
@@ -135,7 +135,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			}
 		}
 	}
-#ifdef _MPI
+#ifdef HAVE_MPI
 	else {
 		while(continueExec) {
 			schemeManager.optimize(mo);

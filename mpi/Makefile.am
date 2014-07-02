@@ -26,8 +26,8 @@ partest_mpi_SOURCES = \
 	$(top_srcdir)/src/util/GlobalDefs.cpp \
 	$(top_srcdir)/src/util/PrintMeta.cpp \
 	$(top_srcdir)/src/PartitionTest.cpp
-partest_mpi_CPPFLAGS = -I/usr/local/include/pll -I$(top_srcdir)/src -DMPI
-partest_mpi_LDFLAGS = -I/usr/local/include/pll -I$(top_srcdir)/src -DMPI
+partest_mpi_CPPFLAGS = -I/usr/local/include/pll -I$(top_srcdir)/src -DHAVE_MPI
+partest_mpi_LDFLAGS = -I/usr/local/include/pll -I$(top_srcdir)/src -DHAVE_MPI
 if HAVE_PTHREADS
   partest_mpi_CPPFLAGS += -DHAVE_PTHREADS
   partest_mpi_LDFLAGS += -DHAVE_PTHREADS
