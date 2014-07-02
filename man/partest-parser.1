@@ -1,0 +1,39 @@
+.TH "PartitionTest Parser" "1" "1 Jul 2014" "User Commands"
+.SH NAME
+PartitionTest Parser \- Tool for building PartitionTest configuration files out of PartitionFinder or RAxML partition descriptions.
+.SH SYNOPSIS
+.B partest-parser
+ DATAFORMAT INPUTFILE [\fIOUTPUTFILE\fR]...
+.SH DESCRIPTION
+.\" 
+.PP
+This tool automatically parses PartitionFinder configuration file or RAxML control files and generates PartitionTest configuration files, setting missing fields as a template. For example, since RAxML only describes the data initial partitioning, variables such as alignment filename, search algorithm or candidate models are written as a template that the user can easily change, or just ignore them and set that parameters through the command line.
+.TP
+\fBDATAFORMAT\fR
+Selects the format of the inputfile: \fB0\fR (PartitionFinder), \fB1\fR (RAxML)
+.TP
+\fBINPUTFILE\fR
+Input PartitionFinder configuration file or RAxML partitioning description file
+.TP
+\fBOUTPUTFILE\fR
+File where the PartitionTest configuration file will be written. If no output file is set, output filename is the input filename with ".partest.cfg" as suffix. The parser will exit with an error if the file already exists
+.PP
+.SS "Exit status:"
+.TP
+0
+if OK,
+.TP
+1
+otherwise,
+.SH AUTHOR
+Written by Diego Darriba.
+.SH "REPORTING BUGS"
+Report PartitionTest Parser bugs to ddarriba@udc.es
+.br
+PartitionTest home page: <http://code.google.com/p/partitiontest/>
+.SH COPYRIGHT
+Copyright \(co 2014 Diego Darriba, Guillermo L. Taboada, Ramon Doallo and David Posada.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
