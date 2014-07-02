@@ -18,7 +18,7 @@ using namespace std;
 
 namespace partest {
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 	int myRank = 0;
 	int numProcs = 0;
 #endif

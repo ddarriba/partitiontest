@@ -158,7 +158,7 @@ bool PartitionTest::configure(void) {
 		}
 	}
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 	int tmpInt = ckpAvailable;
 	MPI_Bcast(&tmpInt, 1, MPI_INT, 0, MPI_COMM_WORLD );
 	ckpAvailable = tmpInt;
@@ -280,7 +280,7 @@ using namespace std;
 
 int main(int argc, char * argv[]) {
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 	if (MPI_Init( &argc, &argv )) {
 		cerr << "Error initializing MPI!!" << endl;
 		exit_partest(EX_PROTOCOL);
@@ -384,7 +384,7 @@ int main(int argc, char * argv[]) {
 	delete parser;
 	delete ptest;
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 	MPI_Finalize();
 #endif
 

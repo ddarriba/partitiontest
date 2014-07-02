@@ -35,7 +35,7 @@ int SearchAlgorithm::SchemeManager::addScheme(
 	return nextSchemes->size();
 }
 
-#ifdef _MPI
+#ifdef HAVE_MPI
 void * distribute(void * arg) {
 	vector<PartitioningScheme *> * nextSchemes =
 			(vector<PartitioningScheme *> *) arg;
@@ -76,7 +76,7 @@ void * distribute(void * arg) {
 
 int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 	t_partitionElementId id(3);
-#ifdef _MPI
+#ifdef HAVE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Status status;
 	if (I_AM_ROOT) {
