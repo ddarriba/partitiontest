@@ -17,12 +17,12 @@
 
 namespace partest_parser {
 
+enum selection {
+	icAIC, icAICc, icBIC, icUNDEFINED
+};
+
 enum pfSearch {
-	searchAll,
-	searchHCluster,
-	searchRCluster,
-	searchGreedy,
-	searchUNDEFINED
+	searchAll, searchHCluster, searchRCluster, searchGreedy, searchUNDEFINED
 };
 
 /**
@@ -38,7 +38,6 @@ struct partitionInfo {
 	}
 };
 
-
 struct executionInfo {
 	std::string alignment;
 	std::string models;
@@ -51,7 +50,9 @@ public:
 	PartestParserUtils(char * inputFile, char * outputFile);
 	virtual ~PartestParserUtils();
 	int parseRaxmlFile(std::vector<std::string> ** partitions);
-	int parsePartitionFinderFile(std::vector<std::string> ** partitions);
+	int parsePartitionFinderFile(std::vector<std::string> ** partitions,
+			char ** alignment, char ** models, pfSearch * searchAlgo,
+			selection * icSelection);
 	static inline int isNum(char c) {
 		return !(c < '0' || c > '9');
 	}

@@ -26,10 +26,44 @@ PartestParserUtils::PartestParserUtils(char * inputFile, char * outputFile) :
 PartestParserUtils::~PartestParserUtils() {
 }
 
-int PartestParserUtils::parsePartitionFinderFile(
-		vector<string> ** partitions) {
+int PartestParserUtils::parsePartitionFinderFile(vector<string> ** partitions,
+		char ** alignment, char ** models, pfSearch * searchAlgo,
+		selection * icSelection) {
 
 	INIReader ini(inputFile);
+
+	const char * value;
+	value = ini.Get("", "alignment", "").c_str();
+	if (strcmp(value, "")) {
+		(*alignment) = (char *) malloc(strlen(value) + 1);
+		strcpy((*alignment), value);
+	}
+	value = ini.Get("", "models", "").c_str();
+	if (strcmp(value, "")) {
+		(*models) = (char *) malloc(strlen(value) + 1);
+		strcpy((*models), value);
+	}
+	value = ini.Get("", "model_selection", "").c_str();
+	if (!strcmp(value, "BIC")) {
+		*icSelection = icBIC;
+	} else if (!strcmp(value, "AIC")) {
+		*icSelection = icAIC;
+	} else if (!strcmp(value, "AICc")) {
+		*icSelection = icAICc;
+	} else {
+		*icSelection = icUNDEFINED;
+	}
+
+	value = ini.Get("schemes", "search", "").c_str();
+	if (!strcmp(value, "greedy")) {
+		*searchAlgo = searchGreedy;
+	} else if (!strcmp(value, "hcluster")) {
+		*searchAlgo = searchHCluster;
+	} else if (!strcmp(value, "rcluster")) {
+		*searchAlgo = searchRCluster;
+	} else {
+		*searchAlgo = searchUNDEFINED;
+	}
 
 	/** PARTITIONS **/
 	std::map<std::string, string> * keys = ini.getGenes("data_blocks");
@@ -39,8 +73,8 @@ int PartestParserUtils::parsePartitionFinderFile(
 	std::map<std::string, std::string>::iterator iter;
 	for (iter = keys->begin(); iter != keys->end(); iter++) {
 		string partitionLine(iter->first);
-		replace( iter->second.begin(), iter->second.end(), '\\', '/');
-		replace( iter->second.begin(), iter->second.end(), ';', '\0');
+		replace(iter->second.begin(), iter->second.end(), '\\', '/');
+		replace(iter->second.begin(), iter->second.end(), ';', '\0');
 		partitionLine.append(" = ");
 		partitionLine.append(iter->second.begin(), iter->second.end());
 		(*partitions)->push_back(partitionLine);
