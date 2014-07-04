@@ -28,15 +28,13 @@
 #include "exe/PartitionSelector.h"
 #include "indata/PartitioningScheme.h"
 
-#include <algorithm>    // std::adjacent_find
-#include <iostream>     // std::cout
+#include <algorithm>    /* std::adjacent_find */
+#include <iostream>
 #include <vector>
 
 namespace partest {
 
-ExhaustiveSearchAlgorithm::ExhaustiveSearchAlgorithm() :
-		SearchAlgorithm() {
-
+ExhaustiveSearchAlgorithm::ExhaustiveSearchAlgorithm() {
 }
 
 ExhaustiveSearchAlgorithm::~ExhaustiveSearchAlgorithm() {

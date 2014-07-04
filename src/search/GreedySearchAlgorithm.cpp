@@ -70,12 +70,9 @@ private:
 };
 
 GreedySearchAlgorithm::GreedySearchAlgorithm() {
-	// TODO Auto-generated constructor stub
-
 }
 
 GreedySearchAlgorithm::~GreedySearchAlgorithm() {
-	// TODO Auto-generated destructor stub
 }
 
 vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(

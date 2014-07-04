@@ -101,10 +101,17 @@ void PartitionTestParser::printHelp(ostream & out) {
 
 int PartitionTestParser::parseConfigFile() {
 	PartestParserUtils parserUtils(inputFile, outputFile);
+
+	char * alignment = 0;
+	char * models = 0;
+	pfSearch searchAlgo = searchUNDEFINED;
+	selection icSelection = icUNDEFINED;
+
 	switch (format) {
-	case cfPartitionFinder:
-		parserUtils.parsePartitionFinderFile(&partitionStrings);
+	case cfPartitionFinder: {
+		parserUtils.parsePartitionFinderFile(&partitionStrings, &alignment, &models, &searchAlgo, &icSelection);
 		break;
+	}
 	case cfRAxML: {
 		parserUtils.parseRaxmlFile(&partitionStrings);
 		break;
@@ -122,13 +129,33 @@ int PartitionTestParser::parseConfigFile() {
 			<< endl;
 	ofs << endl;
 	ofs << "[input]" << endl;
-	ofs << "; msa = input_file.phy" << endl;
+	if (alignment) {
+		ofs << "msa = " << alignment << endl;
+	} else {
+		ofs << "; msa = input_file.phy" << endl;
+	}
 	ofs << "; datatype = nt" << endl;
 	ofs << "; tree = fixed" << endl << endl;
 	ofs << "[search]" << endl;
-	ofs << "; algorithm = auto" << endl << endl;
+	switch (searchAlgo) {
+	case searchHCluster:
+			ofs << "algorithm = hcluster" << endl << endl;
+			break;
+	case searchRCluster:
+			ofs << "algorithm = hcluster" << endl << endl;
+			ofs << "; *** search algorithm in original control file was RCluster" << endl;
+			ofs << "; *** please select the number of replicates below according to your data" << endl;
+			ofs << "replicates = 100" << endl << endl;
+			break;
+	case searchGreedy:
+			ofs << "algorithm = greedy" << endl << endl;
+			break;
+	case searchUNDEFINED:
+		ofs << "algorithm = auto" << endl << endl;
+		break;
+	}
 	ofs << "[models]" << endl;
-	ofs << "; include = all" << endl << endl;
+	ofs << "include = all" << endl << endl;
 	ofs << "[partitions]" << endl;
 	for (size_t i = 0; i < partitionStrings->size(); i++) {
 		cout << partitionStrings->at(i) << endl;
