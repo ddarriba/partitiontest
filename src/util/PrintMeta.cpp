@@ -17,7 +17,8 @@
  */
 
 /*
- * @file PrintMeta.cc
+ * @file PrintMeta.cpp
+ * @author Diego Darriba
  */
 
 #include "PrintMeta.h"

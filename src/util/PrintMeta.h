@@ -18,6 +18,8 @@
 
 /*
  * @file PrintMeta.hpp
+ * @author Diego Darriba
+ * @brief Set of utilities for printing meta-data and results
  */
 
 #ifndef PRINTMETA_HPP_

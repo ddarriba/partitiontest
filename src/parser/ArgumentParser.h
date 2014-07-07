@@ -18,6 +18,8 @@
 
 /**
  * @file ArgumentParser.h
+ *
+ * @brief Tool class for parsing command line arguments
  */
 
 #pragma once

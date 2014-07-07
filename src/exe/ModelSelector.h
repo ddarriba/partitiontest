@@ -16,8 +16,10 @@
  *  ddarriba@udc.es
  */
 
-/*
+/**
  * @file ModelSelector.h
+ *
+ * @brief Perform selection among a set of models
  */
 
 #ifndef ModelSelector_H_

@@ -1,10 +1,11 @@
-// Read an INI file into easy-to-access name/value pairs.
-// Copyright (c) 2009, Brush Technology
-// All rights reserved.
-// inih and INIReader are released under the New BSD license (see LICENSE.txt).
-// Go to the project home page for more info:
-//
-// http://code.google.com/p/inih/
+/* Read an INI file into easy-to-access name/value pairs.
+ * Copyright (c) 2009, Brush Technology
+ * All rights reserved.
+ * inih and INIReader are released under the New BSD license (see LICENSE.txt).
+ * Go to the project home page for more info:
+ *
+ * http://code.google.com/p/inih/
+ */
 
 #ifndef __INIREADER_H__
 #define __INIREADER_H__

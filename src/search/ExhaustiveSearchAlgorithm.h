@@ -18,6 +18,8 @@
 
 /**
  * @file ExhaustiveSearchAlgorithm.h
+ * @author Diego Darriba
+ * @brief Exhaustive search algorithm
  */
 
 #ifndef EXHAUSTIVESEARCHALGORITHM_H_
