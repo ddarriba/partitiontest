@@ -12,7 +12,7 @@
  *  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  *  for more details.
  *
- *  For any other enquiries send an Email to Diego Darriba
+ *  For any other inquiries send an Email to Diego Darriba
  *  ddarriba@udc.es
  */
 
@@ -21,6 +21,7 @@
  *
  * @brief Definition of a Partitioning Scheme
  */
+
 #ifndef PARTITION_H_
 #define PARTITION_H_
 

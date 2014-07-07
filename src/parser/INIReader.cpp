@@ -1,6 +1,7 @@
-// Read an INI file into easy-to-access name/value pairs.
-// Copyright (c) 2009, Brush Technology
-// All rights reserved.
+/* Read an INI file into easy-to-access name/value pairs.
+ * Copyright (c) 2009, Brush Technology
+ * All rights reserved.
+ */
 
 #include <algorithm>
 #include <iostream>

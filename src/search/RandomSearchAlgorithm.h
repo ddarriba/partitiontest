@@ -18,6 +18,8 @@
 
 /**
  * @file RandomSearchAlgorithm.h
+ * @author Diego Darriba
+ * @brief Algorithm for search among random partitioning schemes
  */
 
 #ifndef RANDOMSEARCHALGORITHM_H_

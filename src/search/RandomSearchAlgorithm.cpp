@@ -18,6 +18,7 @@
 
 /**
  * @file RandomSearchAlgorithm.cpp
+ * @author Diego Darriba
  */
 
 #include "RandomSearchAlgorithm.h"

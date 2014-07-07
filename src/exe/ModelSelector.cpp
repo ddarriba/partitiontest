@@ -16,10 +16,6 @@
  *  ddarriba@udc.es
  */
 
-/*
- * @file ModelSelector.cpp
- */
-
 #include "ModelSelector.h"
 #include <math.h>
 #include <fstream>

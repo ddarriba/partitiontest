@@ -18,9 +18,11 @@
 
 /**
  * @file ConfigParser.h
+ * @author Diego Darriba
  *
  * @brief Utility for parsing configuration files.
  */
+
 #ifndef CONFIGPARSER_H_
 #define CONFIGPARSER_H_
 
