@@ -576,18 +576,19 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		current_part->dataType = PLL_AA_DATA;
 		current_part->protFreqs = pModel->isPF();
 		current_part->optimizeBaseFrequencies = PLL_FALSE;
+		current_part->optimizeSubstitutionRates = PLL_FALSE;
+		current_part->optimizeAlphaParameter = PLL_TRUE;
 		current_part->protModels = pModel->getMatrix();
-		current_part->alpha = pModel->getAlpha();
+		current_part->alpha = 1.0;
+		for (int i = 0; i < 20; i++) {
+							current_part->freqExponents[i] = 1.0;
+						}
+		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+							_tree->useMedian);
+
 	}
 
-	//TODO: This works if partitions has one single partitions
-	assert(_partitions->numberOfPartitions == 1);
-	pllInitReversibleGTR(_tree, _partitions, 0);
-
-	double **ef = pllBaseFrequenciesGTR(_partitions, _alignData);
-	//initModel(_tree, ef, _partitions);
-	free(*ef);
-	free(ef);
+	pllInitReversibleGTR(_tree, _partitions, index);
 }
 
 void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
