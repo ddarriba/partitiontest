@@ -219,6 +219,12 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "Sets the input alignment file (REQUIRED)" << endl;
 	out << endl;
 
+	out << setw(MAX_OPT_LENGTH) << left << "  -k, --keep-branches"
+				<< "Keep branch lengths from the initial topology." << endl;
+		out << setw(MAX_OPT_LENGTH) << " "
+				<< "This argument has no effect for initial topology different than fixed."
+				<< endl;
+
 	out << setw(SHORT_OPT_LENGTH) << "  -N" << setw(COMPL_OPT_LENGTH)
 			<< "--non-stop"
 			<< "Algorithms do not stop if no improvement found at one step"

@@ -59,7 +59,12 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 
 			/* Since we're optimizing branch lengths for each model, we need to count those parameters everytime */
 			/* This means getNumberOfFreeParameters instead of getModelFreeParameters */
-			parms += bestModel->getModel()->getNumberOfFreeParameters();
+			parms += reoptimize_branch_lengths
+					?bestModel->getModel()->getNumberOfFreeParameters()
+					:bestModel->getModel()->getModelFreeParameters();
+		}
+		if (!reoptimize_branch_lengths) {
+			parms += Utilities::numberOfBranches(num_taxa);
 		}
 		(schemesVector->at(part_id)) = new SelectionPartitioningScheme();
 		(schemesVector->at(part_id))->numParameters = parms;

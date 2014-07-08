@@ -34,7 +34,7 @@ Model::Model(bitMask rateVariation, int numberOfTaxa) :
 #endif
 
 	/* The free parameters are initialized with the number of branches */
-	treeFreeParameters = Utilities::numberOfBranches(numberOfTaxa);
+	treeFreeParameters = reoptimize_branch_lengths?Utilities::numberOfBranches(numberOfTaxa):0;
 }
 
 Model::~Model() {

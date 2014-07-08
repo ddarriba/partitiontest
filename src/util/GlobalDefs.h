@@ -205,19 +205,30 @@ extern std::string ckpStartingTree;
 extern std:: string ckpFinalTree;
 
 /* configuration */
+/** Number of threads used for optimization */
 extern int number_of_threads;
+/** Data type (nucleic or amino acid) */
 extern DataType data_type;
-extern bitMask do_rate;
+/** Starting topology for optimizations */
 extern StartTopo starting_topology;
+/** Algorithm for searching in the partition space */
 extern SearchAlgo search_algo;
+/** Number of samples in configurable algorithms */
 extern int max_samples;
+/** Whether to stop or not in local maxima */
 extern bool non_stop;
+/** Whether to thoroughly optimize the final scheme*/
 extern bool compute_final_tree;
+/** Algorithm for candidate model selection */
 extern OptimizeMode optimize_mode;
+/** Information criterion for selecting models/partitions */
 extern InformationCriterion ic_type;
-extern size_t number_of_models;
-extern size_t number_of_schemes;
-extern bitMask protModels; /** Models to evaluate */
+/** Model rates to optimize */
+extern bitMask do_rate;
+/** Models to evaluate (proteins only) */
+extern bitMask protModels;
+/** Determine if branch lengths are optimized for each partition */
+extern bool reoptimize_branch_lengths;
 
 
 /* input/output */
@@ -237,10 +248,21 @@ extern bool force_overriding;
 #endif
 
 /* data description */
+/** Number of taxa in the alignment */
 extern size_t num_taxa;
+/** Sequence length of the alignment */
 extern size_t seq_len;
+/** Number of patterns in the alignment */
 extern size_t num_patterns;
+/** Number of models to evaluate */
+extern size_t number_of_models;
+/** Number of genes in the input data */
 extern size_t number_of_genes;
+/**
+ * Number of schemes to evaluate if a fixed set
+ * of candidate schemes is specified
+ */
+extern size_t number_of_schemes;
 extern std::string ** singleGeneNames;
 extern char * starting_tree;
 extern std::vector<t_partitioningScheme> * schemes;

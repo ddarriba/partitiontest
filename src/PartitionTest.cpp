@@ -128,8 +128,9 @@ bool PartitionTest::configure(void) {
 	if (I_AM_ROOT) {
 		if (outputAvailable) {
 			int resMkdir = mkdir(output_dir->c_str(), 0777);
+			int errorType = errno;
 			if (resMkdir) {
-				if (errno == EEXIST) {
+				if (errorType == EEXIST) {
 					if (force_overriding) {
 						cerr << "[WARNING] Output directory " << (*output_dir)
 								<< " already exists. Output files might be overwritten."
@@ -163,8 +164,7 @@ bool PartitionTest::configure(void) {
 					cerr << "[WARNING] ***** WARNING *****" << endl;
 				}
 			}
-
-			if (!resMkdir || errno == EEXIST) {
+			if (!resMkdir || errorType == EEXIST) {
 				mkdir(ckpPath.c_str(), 0777);
 				/* checkpointing is set to true unless user specified the oposite */
 				ckpAvailable &= true;
@@ -325,9 +325,12 @@ int main(int argc, char * argv[]) {
 		PrintMeta::print_options(cout);
 	}
 
+	/* In case user sets a fixed subset of schemes to optimize,
+	 * we perform an exhaustive optimization */
 	if (number_of_schemes > 0)
 		search_algo = SearchExhaustive;
 
+	/* Instantiate the search algorithm */
 	SearchAlgorithm * searchAlgo = 0;
 	PartitioningScheme * bestScheme;
 	if (search_algo != SearchAuto) {
@@ -354,6 +357,7 @@ int main(int argc, char * argv[]) {
 
 		bestScheme = searchAlgo->start();
 	} else {
+		/* Auto search algorithm selection according to the number of partitions */
 		if (number_of_genes <= 20) {
 			searchAlgo = new GreedySearchAlgorithm();
 			cout << "Searching with greedy algorithm" << endl;
@@ -380,13 +384,13 @@ int main(int argc, char * argv[]) {
 
 		if (compute_final_tree) {
 			ModelOptimize mo;
-			mo.buildFinalTree(bestScheme, false);
+			mo.buildFinalTree(bestScheme, true);
+		}
 
-			if (outputAvailable && results_logfile) {
-				ofstream ofs(results_logfile->c_str(), ios::out);
-				PrintMeta::print_results_xml(ofs, bestScheme);
-				ofs.close();
-			}
+		if (outputAvailable && results_logfile) {
+			ofstream ofs(results_logfile->c_str(), ios::out);
+			PrintMeta::print_results_xml(ofs, bestScheme);
+			ofs.close();
 		}
 	}
 
