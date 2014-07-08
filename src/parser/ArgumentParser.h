@@ -77,6 +77,7 @@ enum ArgIndex {
 	ARG_INPUT_FILE, /** Argument for input data file */
 	ARG_INPUT_FORMAT, /** Argument for input data format */
 	ARG_INV, /** Argument for including +I models */
+	ARG_KEEP_BRANCH_LENGTHS, /** Argument for keeping branch lengths from the initial topology */
 	ARG_NON_STOP, /** Search until the end */
 	ARG_NUM_PROCS, /** Argument for number of processors */
 	ARG_OPTIMIZE, /** Argument for search algorithm */

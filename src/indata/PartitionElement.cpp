@@ -170,7 +170,7 @@ int PartitionElement::setupStructures(void) {
 				current_part->states = 20;
 				current_part->protFreqs = PLL_FALSE;
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
-				current_part->protModels = PLL_DAYHOFF;
+				current_part->protModels = PLL_AUTO;
 				current_part->alpha = 0.0;
 			}
 			break;

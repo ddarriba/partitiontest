@@ -32,9 +32,9 @@ using namespace std;
 namespace partest {
 
 #ifdef _IG_MODELS
-#define NUM_ARGUMENTS 25
+#define NUM_ARGUMENTS 26
 #else
-#define NUM_ARGUMENTS 23
+#define NUM_ARGUMENTS 24
 #endif
 
 void ArgumentParser::init() {
@@ -60,6 +60,7 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_INV, 'I', "invariant-sites", false }, {
 #endif
 			ARG_INPUT_FILE, 'i', "input-file", true }, {
+			ARG_KEEP_BRANCH_LENGTHS, 'k', "keep-branches", false }, {
 			ARG_SAMPLE_SIZE, 'n', "sample-size", true }, {
 			ARG_NON_STOP, 'N', "non-stop", false }, {
 			ARG_OUTPUT, 'o', "output", true }, {
@@ -297,6 +298,10 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 					exit_partest(EX_CONFIG);
 				}
 			maxSamples = atoi(value);
+			break;
+		case ARG_KEEP_BRANCH_LENGTHS:
+			/* keep branch lengths from the initial topology */
+			reoptimize_branch_lengths = false;
 			break;
 		case ARG_NON_STOP:
 			/* continue until the end / non stop on local maxima */

@@ -51,7 +51,6 @@ namespace partest {
 	/* configuration */
 	int number_of_threads = 1;
 	DataType data_type = DT_DEFAULT;
-	bitMask do_rate = 0;
 	StartTopo starting_topology;
 	SearchAlgo search_algo;
 	int max_samples;
@@ -59,7 +58,9 @@ namespace partest {
 	OptimizeMode optimize_mode;
 	bool non_stop = false;
 	bool compute_final_tree = false;
+	bitMask do_rate = 0;
 	bitMask protModels = Utilities::binaryPow(max(NUC_MATRIX_SIZE,PROT_MATRIX_SIZE)) - 1;
+	bool reoptimize_branch_lengths = true;
 
 	/* input/output */
 	string * input_file = 0;

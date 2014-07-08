@@ -141,8 +141,11 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 
 	for (size_t i = 0; i < modelset.size(); i++) {
 		Model * model = modelset.at(i);
+		int freeParameters = reoptimize_branch_lengths
+				?model->getNumberOfFreeParameters()
+				:model->getModelFreeParameters();
 		double value = computeIc(ic, model->getLnL(),
-				model->getNumberOfFreeParameters(), sampleSize);
+				freeParameters, sampleSize);
 #ifdef DEBUG
 		cout << "[DEBUG_SEL] " << model->getName() << " " << model->getLnL() << " " << model->getNumberOfFreeParameters() << " "
 		<< sampleSize << " " << value << endl;

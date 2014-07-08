@@ -77,11 +77,22 @@ void ConfigParser::createSinglePartition() {
 	pinfo->partitionName = (char *) malloc(2);
 	strcpy(pinfo->partitionName, "S");
 	pinfo->partitionModel = (char *) malloc(1);
-	pinfo->protModels = -1;
-	pinfo->protFreqs = -1;
-	pinfo->dataType = PLL_DNA_DATA;
-	pinfo->optimizeBaseFrequencies = PLL_TRUE;
-
+	if (data_type == DT_DEFAULT) {
+		data_type = dataType == DT_DEFAULT ? DEFAULT_DATA_TYPE : dataType;
+	}
+	switch (data_type) {
+	case DT_NUCLEIC:
+		pinfo->protModels = -1;
+		pinfo->protFreqs = -1;
+		pinfo->dataType = PLL_DNA_DATA;
+		pinfo->optimizeBaseFrequencies = PLL_TRUE;
+		break;
+	case DT_PROTEIC:
+		pinfo->protModels = PLL_AUTO;
+		pinfo->protFreqs = PLL_FALSE;
+		pinfo->dataType = PLL_AA_DATA;
+		pinfo->optimizeBaseFrequencies = PLL_TRUE;
+	}
 	pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
 	pregion->start = 1;
 	pregion->end = seq_len;
@@ -126,6 +137,11 @@ ConfigParser::ConfigParser(const char * configFile) {
 			dataType = DT_NUCLEIC;
 		} else {
 			dataType = DT_NUCLEIC;
+		}
+
+		value = ini.Get(INPUT_TAG, INPUT_KEEPBRANCHES_TAG, "false").c_str();
+		if (!strcmp(value, "true") && reoptimize_branch_lengths == true) {
+			reoptimize_branch_lengths = false;
 		}
 
 		/** CANDIDATE MODELS **/
@@ -235,6 +251,12 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 			pllQueueInit(&pllPartsQueue);
 
+			if (data_type == DT_DEFAULT) {
+				data_type = dataType == DT_DEFAULT
+					? DEFAULT_DATA_TYPE
+					: dataType;
+			}
+
 			for (size_t i = 0; i < number_of_genes; i++) {
 				partitions->at(i).partitionId.push_back(i);
 				pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
@@ -246,10 +268,20 @@ ConfigParser::ConfigParser(const char * configFile) {
 				strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
 				pinfo->partitionModel = (char *) malloc(1);
 
-				pinfo->protModels = -1;
-				pinfo->protFreqs = -1;
-				pinfo->dataType = PLL_DNA_DATA;
-				pinfo->optimizeBaseFrequencies = PLL_TRUE;
+				switch (data_type) {
+				case DT_NUCLEIC:
+					pinfo->protModels = -1;
+					pinfo->protFreqs = -1;
+					pinfo->dataType = PLL_DNA_DATA;
+					pinfo->optimizeBaseFrequencies = PLL_TRUE;
+					break;
+				case DT_PROTEIC:
+					pinfo->protModels = PLL_AUTO;
+					pinfo->protFreqs = PLL_FALSE;
+					pinfo->dataType = PLL_AA_DATA;
+					pinfo->optimizeBaseFrequencies = PLL_TRUE;
+				}
+
 				for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
 					pregion = (pllPartitionRegion *) malloc(
 							sizeof(pllPartitionRegion));
@@ -419,6 +451,7 @@ void ConfigParser::printFormat() {
 	cout << "   " << INPUT_MSA_TAG << "=INPUT_ALIGNMENT_FILE" << endl;
 	cout << "   " << INPUT_TREE_TAG << "=INPUT_TREE_FILE" << endl;
 	cout << "   " << INPUT_DATATYPE_TAG << "={nt|aa} (default: nt)" << endl;
+	cout << "   " << INPUT_KEEPBRANCHES_TAG << "={true|false} (default: false)" << endl;
 	cout << endl << "   ; Start of searching options" << endl;
 	cout << "   [" << SEARCH_TAG << "]" << endl;
 	cout << "   " << SEARCH_ALGORITHM_TAG
@@ -499,21 +532,22 @@ void ConfigParser::createTemplate() {
 	cout << ";THIS IS A COMMENT" << endl;
 	cout << "; Start of input data" << endl;
 	cout << "[" << INPUT_TAG << "]" << endl;
-	cout << INPUT_MSA_TAG << "=input.phy" << endl;
-	cout << INPUT_TREE_TAG << "=input.tree" << endl;
-	cout << INPUT_DATATYPE_TAG << "=nt" << endl << endl;
+	cout << INPUT_MSA_TAG << "= input.phy" << endl;
+	cout << INPUT_TREE_TAG << "= input.tree" << endl;
+	cout << INPUT_DATATYPE_TAG << "= nt" << endl;
+	cout << INPUT_KEEPBRANCHES_TAG << "= false" << endl << endl;
 	cout << "; Start of candidate models description" << endl;
 	cout << "[" << MODELS_TAG << "]" << endl;
-	cout << MODELS_INCLUDE_TAG << "=all" << endl << endl;
+	cout << MODELS_INCLUDE_TAG << "= all" << endl << endl;
 	cout << "; Start of searching options" << endl;
 	cout << "[" << SEARCH_TAG << "]" << endl;
-	cout << SEARCH_ALGORITHM_TAG << "=auto" << endl;
-	cout << SEARCH_ALGORITHM_REPS << "=1" << endl;
+	cout << SEARCH_ALGORITHM_TAG << "= auto" << endl;
+	cout << SEARCH_ALGORITHM_REPS << "= 1" << endl;
 	cout << "[" << PARTITIONS_TAG << "]" << endl;
-	cout << "PART1=INI1-END1" << endl;
-	cout << "PART2=INI2-END2" << endl;
+	cout << "PART1 = INI1-END1" << endl;
+	cout << "PART2 = INI2-END2" << endl;
 	cout << "..." << endl;
-	cout << "PARTn=INIn-ENDn" << endl;
+	cout << "PARTn = INIn-ENDn" << endl;
 }
 
 vector<partitionInfo> * ConfigParser::getPartitions() {

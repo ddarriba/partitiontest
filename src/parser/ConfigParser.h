@@ -43,6 +43,7 @@
 #define INPUT_TAG 			"input"
 #define INPUT_MSA_TAG 		"msa"
 #define INPUT_TREE_TAG		"tree"
+#define INPUT_KEEPBRANCHES_TAG "keep-branches"
 #define INPUT_DATATYPE_TAG	"datatype"
 
 #define OUTPUT_TAG 			"output"
