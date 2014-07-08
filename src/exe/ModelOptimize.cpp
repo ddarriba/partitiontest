@@ -99,8 +99,8 @@ string ModelOptimize::buildStartingTree() {
 				current_part->optimizeSubstitutionRates = PLL_FALSE;
 				current_part->protModels = PLL_AUTO;
 				current_part->alpha = 0.0;
-				cout << timestamp() << " Loading AUTO models" << endl;
 			}
+			cout << timestamp() << " Loading AUTO models" << endl;
 			break;
 		case DT_NUCLEIC:
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
@@ -121,13 +121,15 @@ string ModelOptimize::buildStartingTree() {
 
 		pllInitModel(tree, compParts, alignData);
 
-		cout << timestamp() << " Building ML topology" << endl;
+
 		tree->doCutoff = ML_PARAM_CUTOFF;
 		tree->likelihoodEpsilon = ML_PARAM_EPSILON;
 		tree->stepwidth = ML_PARAM_STEPWIDTH;
 		tree->max_rearrange = ML_PARAM_MAXREARRANGE;
 		tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
 		tree->initialSet = ML_PARAM_INITIALSET;
+
+		cout << timestamp() << " Building ML topology" << endl;
 		pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 
 		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
@@ -635,6 +637,8 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 
 	if (data_type == DT_PROTEIC && optimize_mode == OPT_GTR) {
 		/* set chosen model */
+		ProteicModel * pModel = static_cast<ProteicModel *>(model);
+		pModel->setMatrix(static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels));
 		model->setName(
 				Utilities::getProtMatrixName(
 						static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels)));
