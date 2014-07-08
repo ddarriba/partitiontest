@@ -87,6 +87,10 @@ ProtMatrix ProteicModel::getMatrix(void) {
 	return matrix;
 }
 
+void ProteicModel::setMatrix(ProtMatrix  matrix) {
+	this->matrix = matrix;
+}
+
 void ProteicModel::setFrequencies(const double * frequencies) {
 	for (int i = 0; i < NUM_PROT_FREQS; i++) {
 		this->frequencies[i] = frequencies[i];

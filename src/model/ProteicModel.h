@@ -49,6 +49,7 @@ public:
   virtual void allocateRates(void) { /* do nothing */ }
   void setRates(const double * rates);
   ProtMatrix getMatrix(void);
+  void setMatrix(ProtMatrix  matrix);
   double distanceTo(Model * other);
   virtual void print(ostream& out, const char * prefix = "");
   virtual ~ProteicModel();
