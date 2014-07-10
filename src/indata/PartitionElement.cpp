@@ -132,7 +132,7 @@ int PartitionElement::setupStructures(void) {
 		pllQueueInit(&(pinfo->regionList));
 		pinfo->partitionModel = (char *) malloc(1);
 		pinfo->protModels = -1;
-		pinfo->protFreqs = -1;
+		pinfo->protUseEmpiricalFreqs = -1;
 		pinfo->dataType = PLL_DNA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 		pinfo->partitionName = (char *) malloc(8 * sizeof(char));
@@ -168,7 +168,7 @@ int PartitionElement::setupStructures(void) {
 				pInfo * current_part = _partitions->partitionData[cur_part];
 				current_part->dataType = PLL_AA_DATA;
 				current_part->states = 20;
-				current_part->protFreqs = PLL_FALSE;
+				current_part->protUseEmpiricalFreqs = PLL_FALSE;
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
 				current_part->protModels = PLL_AUTO;
 				current_part->alpha = 0.0;

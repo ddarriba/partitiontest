@@ -18,6 +18,7 @@
 
 #include "PartitioningScheme.h"
 #include "util/Utilities.h"
+#include "exe/ModelSelector.h"
 #include "indata/PartitionMap.h"
 
 #include <math.h>
@@ -250,6 +251,21 @@ double PartitioningScheme::getLnL() {
 	return lk;
 }
 
+unsigned int PartitioningScheme::getNumberOfFreeParameters() {
+	if (!isOptimized())
+		return 0;
+	unsigned int k = reoptimize_branch_lengths?0:Utilities::numberOfBranches(num_taxa);
+	for (size_t i=0; i<partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
+		if (reoptimize_branch_lengths) {
+			k += pe->getBestModel()->getModel()->getNumberOfFreeParameters();
+		} else {
+			k += pe->getBestModel()->getModel()->getModelFreeParameters();
+		}
+	}
+	return k;
+}
+
 double PartitioningScheme::getIcValue() {
 	if (!isOptimized())
 		return 0.0;
@@ -259,6 +275,13 @@ double PartitioningScheme::getIcValue() {
 		score += pe->getBestModel()->getValue();
 	}
 	return score;
+}
+
+double PartitioningScheme::getLinkedBicValue() {
+	if (!isOptimized())
+		return 0.0;
+	return ModelSelector::computeBic(getLnL(), getNumberOfFreeParameters(),
+			seq_len);
 }
 
 void PartitioningScheme::print(ostream & out) {

@@ -123,6 +123,8 @@ public:
 
 	double getLnL();
 	double getIcValue();
+	double getLinkedBicValue();
+	unsigned int getNumberOfFreeParameters();
 
 	void print(ostream & out);
 private:

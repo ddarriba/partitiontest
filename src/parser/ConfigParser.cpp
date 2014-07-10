@@ -83,13 +83,13 @@ void ConfigParser::createSinglePartition() {
 	switch (data_type) {
 	case DT_NUCLEIC:
 		pinfo->protModels = -1;
-		pinfo->protFreqs = -1;
+		pinfo->protUseEmpiricalFreqs = -1;
 		pinfo->dataType = PLL_DNA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 		break;
 	case DT_PROTEIC:
 		pinfo->protModels = PLL_AUTO;
-		pinfo->protFreqs = PLL_FALSE;
+		pinfo->protUseEmpiricalFreqs = PLL_FALSE;
 		pinfo->dataType = PLL_AA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 	}
@@ -271,13 +271,13 @@ ConfigParser::ConfigParser(const char * configFile) {
 				switch (data_type) {
 				case DT_NUCLEIC:
 					pinfo->protModels = -1;
-					pinfo->protFreqs = -1;
+					pinfo->protUseEmpiricalFreqs = -1;
 					pinfo->dataType = PLL_DNA_DATA;
 					pinfo->optimizeBaseFrequencies = PLL_TRUE;
 					break;
 				case DT_PROTEIC:
 					pinfo->protModels = PLL_AUTO;
-					pinfo->protFreqs = PLL_FALSE;
+					pinfo->protUseEmpiricalFreqs = PLL_FALSE;
 					pinfo->dataType = PLL_AA_DATA;
 					pinfo->optimizeBaseFrequencies = PLL_TRUE;
 				}

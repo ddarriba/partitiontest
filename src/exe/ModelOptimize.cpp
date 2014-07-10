@@ -93,7 +93,7 @@ string ModelOptimize::buildStartingTree() {
 				pInfo * current_part = compParts->partitionData[cur_part];
 				current_part->dataType = PLL_AA_DATA;
 				current_part->states = 20;
-				current_part->protFreqs = PLL_FALSE;
+				current_part->protUseEmpiricalFreqs = PLL_FALSE;
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
 				current_part->optimizeAlphaParameter = PLL_TRUE;
 				current_part->optimizeSubstitutionRates = PLL_FALSE;
@@ -188,7 +188,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 				pInfo * current_part = compParts->partitionData[cur_part];
 				current_part->dataType = PLL_AA_DATA;
 				current_part->states = 20;
-				current_part->protFreqs = pModel->isPF();
+				current_part->protUseEmpiricalFreqs = pModel->isPF();
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
 				current_part->optimizeAlphaParameter =
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
@@ -289,7 +289,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			strcpy(pinfo->partitionName, "PART");
 			pinfo->partitionModel = (char *) malloc(1);
 			pinfo->protModels = -1;
-			pinfo->protFreqs = -1;
+			pinfo->protUseEmpiricalFreqs = -1;
 			pinfo->dataType =
 					(data_type == DT_NUCLEIC) ? PLL_DNA_DATA : PLL_AA_DATA;
 			pinfo->optimizeBaseFrequencies = PLL_TRUE;
@@ -343,7 +343,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 				pInfo * current_part = compParts->partitionData[cur_part];
 				current_part->dataType = PLL_AA_DATA;
 				current_part->states = 20;
-				current_part->protFreqs = pModel->isPF();
+				current_part->protUseEmpiricalFreqs = pModel->isPF();
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
 				current_part->optimizeAlphaParameter =
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
@@ -574,7 +574,7 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 	} else {
 		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
 		current_part->dataType = PLL_AA_DATA;
-		current_part->protFreqs = pModel->isPF();
+		current_part->protUseEmpiricalFreqs = pModel->isPF();
 		current_part->optimizeBaseFrequencies = PLL_FALSE;
 		current_part->optimizeSubstitutionRates = PLL_FALSE;
 		current_part->optimizeAlphaParameter = PLL_TRUE;
