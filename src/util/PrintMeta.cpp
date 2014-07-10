@@ -332,8 +332,11 @@ void PrintMeta::print_usage(std::ostream& out) {
 void PrintMeta::print_results_xml(ostream & ofs,
 		PartitioningScheme * bestScheme) {
 	ofs << "<best_scheme num_elements=\"" << bestScheme->getNumberOfElements()
-			<< "\" lnL=\"" << bestScheme->getLnL() << "\" BIC_score=\""
-			<< bestScheme->getIcValue() << "\">" << endl;
+			<< "\" k=\"" << bestScheme->getNumberOfFreeParameters()
+			<< "\" lnL=\"" << bestScheme->getLnL()
+			<< "\" BIC_score=\"" << bestScheme->getIcValue()
+			<< "\" linked_BIC_score=\"" << bestScheme->getLinkedBicValue()
+			<< "\">" << endl;
 	ofs << "  <name>" << endl << "    " << bestScheme->getName() << endl
 			<< "  </name>" << endl;
 	int numCodeLines = bestScheme->getCodeLines();
@@ -355,9 +358,9 @@ void PrintMeta::print_results_xml(ostream & ofs,
 				<< element->getNumberOfPatterns() << "\">" << endl;
 		ofs << "    <name>" << endl << "      " << element->getName() << endl
 				<< "    </name>" << endl;
-		ofs << "    <bestModel name=\""
-				<< element->getBestModel()->getModel()->getName() << "\" lnL=\""
-				<< element->getBestModel()->getModel()->getLnL()
+		ofs << "    <bestModel name=\""	<< element->getBestModel()->getModel()->getName()
+				<< "\" lnL=\"" << element->getBestModel()->getModel()->getLnL()
+				<< "\" k=\"" << element->getBestModel()->getModel()->getNumberOfFreeParameters()
 				<< "\" BIC_score=\"" << element->getBestModel()->getValue()
 				<< "\">" << endl;
 		ofs << "    </bestModel>" << endl;
