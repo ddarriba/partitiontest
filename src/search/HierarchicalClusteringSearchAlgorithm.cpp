@@ -93,6 +93,8 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			localBestScheme = ps.getBestScheme();
 			score = ps.getBestScheme()->getIcValue();
 
+			printStep(currentStep, localBestScheme);
+
 			if (score < bestScore) {
 				//bestScheme->print(cout);
 				delete bestScheme;

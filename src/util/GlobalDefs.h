@@ -239,6 +239,7 @@ extern std::string * output_dir;
 extern std::string * models_logfile;
 extern std::string * schemes_logfile;
 extern std::string * results_logfile;
+extern std::string * log_logfile;
 extern bool outputAvailable;
 extern bool force_overriding;
 

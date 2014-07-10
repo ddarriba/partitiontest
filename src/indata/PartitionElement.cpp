@@ -587,6 +587,9 @@ int PartitionElement::loadData(void) {
 		selectionmodel->setWeight(sm->getWeight());
 		selectionmodel->setCumWeight(sm->getCumWeight());
 		selectionmodel->setDelta(sm->getDelta());
+		selectionmodel->setBicScore(sm->getBicScore());
+		selectionmodel->setAicScore(sm->getAicScore());
+		selectionmodel->setAiccScore(sm->getAiccScore());
 		selectionmodel->setIndex(bestModelIndex);
 		setBestModel(selectionmodel);
 		delete selectionmodel;
