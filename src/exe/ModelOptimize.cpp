@@ -552,32 +552,35 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		}
 
 		current_part->alpha = _model->getAlpha();
-		//current_part->nonGTR = PLL_FALSE;
 		current_part->dataType = PLL_DNA_DATA;
 		pllInitReversibleGTR(_tree, _partitions, index);
 		if (setAlphaFreqs) {
+			current_part->optimizeBaseFrequencies = _model->isPF();
 			memcpy(current_part->frequencies, _model->getFrequencies(),
 					4 * sizeof(double));
+			for (int i = 0; i < NUM_NUC_FREQS; i++) {
+					current_part->freqExponents[i] = 1.0;
+			}
 			memcpy(current_part->substRates, _model->getRates(),
-					6 * sizeof(double));
+					NUM_DNA_RATES * sizeof(double));
+
 			current_part->alpha = _model->getAlpha();
 		} else {
 			current_part->optimizeBaseFrequencies = _model->isPF();
 			if (!_model->isPF()) {
-				for (int i = 0; i < 4; i++) {
+				for (int i = 0; i < NUM_NUC_FREQS; i++) {
 					current_part->freqExponents[i] = 1.0;
 					current_part->frequencies[i] = 0.25;
 				}
 			}
-			for (int i = 0; i < 6; i++) {
+			for (int i = 0; i < NUM_DNA_RATES; i++) {
 				current_part->substRates[i] = 1;
 			}
 
 			current_part->alpha = 1.0;
-			pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-					_tree->useMedian);
-
 		}
+		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+							_tree->useMedian);
 		free(symmetryPar);
 	} else {
 		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
@@ -588,7 +591,7 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		current_part->optimizeAlphaParameter = PLL_TRUE;
 		current_part->protModels = pModel->getMatrix();
 		current_part->alpha = 1.0;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < NUM_PROT_FREQS; i++) {
 			current_part->freqExponents[i] = 1.0;
 		}
 		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,

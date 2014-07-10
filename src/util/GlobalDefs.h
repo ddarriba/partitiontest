@@ -78,8 +78,8 @@ const std::string os_separator("/");
 #define char_separator '/'
 #endif
 
-#define NUM_DNA_RATES 4
-#define NUM_AA_RATES 20
+#define NUM_DNA_RATES 6
+#define NUM_AA_RATES 190
 
 #define PROT_MATRIX_SIZE 18 // excluding auto & GTR
 enum ProtMatrix {
