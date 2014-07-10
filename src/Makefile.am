@@ -24,8 +24,8 @@ partest_SOURCES = \
 	util/PrintMeta.cpp \
 	PartitionTest.cpp
 
-partest_CPPFLAGS = -I/usr/local/include/pll -Wall
-partest_LDFLAGS = -I/usr/local/include/pll
+partest_CPPFLAGS = -I../libpll/include -Wall
+partest_LDFLAGS = -I../libpll/include -L../libpll/lib -Wall
 
 if HAVE_PTHREADS
   partest_CPPFLAGS += -DHAVE_PTHREADS
@@ -49,3 +49,30 @@ partest_parser_SOURCES = \
 
 partest_parser_CPPFLAGS = -Wall
 partest_parser_LDFLAGS = 
+
+pkgincludedir=${includedir}/partest
+pkginclude_HEADERS= \
+	exe/ModelOptimize.h \
+	exe/ModelSelector.h \
+	exe/PartitionSelector.h \
+	indata/PartitionMap.h \
+	indata/PartitionElement.h \
+	indata/PartitioningScheme.h \
+	model/Model.h \
+	model/NucleicModel.h \
+	model/ProteicModel.h \
+	model/SelectionModel.h \
+	parser/ArgumentParser.h \
+	parser/ConfigParser.h \
+	parser/INIReader.h \
+	search/SearchAlgorithm.h \
+	search/ExhaustiveSearchAlgorithm.h \
+	search/HierarchicalClusteringSearchAlgorithm.h \
+	search/GreedySearchAlgorithm.h \
+	search/RandomSearchAlgorithm.h \
+	util/Utilities.h \
+	util/GlobalDefs.h \
+	util/PrintMeta.h \
+	partestParserUtils/PartestParserUtils.h \
+	PartitionTestParser.h \
+	PartitionTest.h
