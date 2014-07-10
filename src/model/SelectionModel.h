@@ -32,6 +32,7 @@ namespace partest {
 class SelectionModel {
 public:
 	SelectionModel(Model * model, double value);
+	virtual ~SelectionModel();
 	int getIndex(void);
 	Model * getModel(void);
 	double getValue(void);
@@ -43,7 +44,16 @@ public:
 	void setValue(double value);
 	void setWeight(double weight);
 	void setCumWeight(double cumWeight);
-	virtual ~SelectionModel();
+
+	double getBicScore(void);
+	double getAicScore(void);
+	double getAiccScore(void);
+	double getDTScore(void);
+	void setBicScore(double value);
+	void setAicScore(double value);
+	void setAiccScore(double value);
+	void setDTScore(double value);
+
 	bool operator<( const SelectionModel& other ) const;
 	bool operator>( const SelectionModel& other ) const;
 	SelectionModel * clone(void);
@@ -52,14 +62,23 @@ private:
 	int index;
 	/** Inner substitution model */
 	Model * model;
-	/** Absolute criterion value */
+	/** Absolute criterion value, according to the IC used for selection */
 	double value;
-	/** Absolute criterion weight */
+	/** Absolute criterion weight, according to the IC used for selection  */
 	double weight;
-	/** Difference with the weight of the best-fit model */
+	/** Difference with the weight of the best-fit model, according to the IC used for selection  */
 	double delta;
-	/** Cumulative weight of the models better than this */
+	/** Cumulative weight of the models better than this, according to the IC used for selection  */
 	double cumWeight;
+
+	/** BIC value*/
+	double bicScore;
+	/** AIC value*/
+	double aicScore;
+	/** AICc value*/
+	double aiccScore;
+	/** DT value*/
+	double dtScore;
 };
 
 } /* namespace partest */

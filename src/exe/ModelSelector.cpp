@@ -146,12 +146,22 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 				:model->getModelFreeParameters();
 		double value = computeIc(ic, model->getLnL(),
 				freeParameters, sampleSize);
+		double bicScore = computeIc(BIC, model->getLnL(),
+				freeParameters, sampleSize);
+		double aicScore = computeIc(AIC, model->getLnL(),
+				freeParameters, sampleSize);
+		double aiccScore = computeIc(AICC, model->getLnL(),
+				freeParameters, sampleSize);
+
 #ifdef DEBUG
 		cout << "[DEBUG_SEL] " << model->getName() << " " << model->getLnL() << " " << model->getNumberOfFreeParameters() << " "
 		<< sampleSize << " " << value << endl;
 #endif
 
 		selectionModels->at(i) = new SelectionModel(model, value);
+		selectionModels->at(i)->setBicScore(bicScore);
+		selectionModels->at(i)->setAicScore(aicScore);
+		selectionModels->at(i)->setAiccScore(aiccScore);
 	}
 
 	std::sort(selectionModels->begin(), selectionModels->end(),
@@ -258,21 +268,34 @@ void ModelSelector::print(ostream& out) {
 			<< setw(20) << "lnL" << setw(20) << "Value" << setw(15) << "Delta"
 			<< setw(15) << setprecision(4) << "Weight" << setw(15)
 			<< "CumWeight" << endl;
-	out << setw(110) << setfill('-') << "" << setfill(' ') << endl;
+	out << setw(115 ) << setfill('-') << "" << setfill(' ') << endl;
 	for (size_t i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
 
 		out << setw(5) << i + 1 << setw(15)
 				<< selectionModel->getModel()->getName() << setw(10)
 				<< selectionModel->getModel()->getNumberOfFreeParameters()
-				<< setw(20) << setprecision(4)
+				<< setw(20) << fixed << setprecision(4)
 				<< selectionModel->getModel()->getLnL() << setw(20)
 				<< selectionModel->getValue() << setw(15)
 				<< selectionModel->getDelta() << setw(15) << setprecision(4)
 				<< selectionModel->getWeight() << setw(15)
 				<< selectionModel->getCumWeight() << endl;
 	}
-	out << setw(115) << setfill('-') << "" << setfill(' ') << endl << endl;
+	out << setw(115) << setfill('-') << "" << setfill(' ') << endl;
+
+	out << setw(5) << "###" << setw(20) << "BIC" << setw(20) << "AIC"
+			<< setw(20) << "AICc" << endl;
+	out << setw(66 ) << setfill('-') << "" << setfill(' ') << endl;
+	for (size_t i = 0; i < selectionModels->size(); i++) {
+		SelectionModel * selectionModel = selectionModels->at(i);
+
+		out << setw(5) << i + 1
+				<< setw(20) << fixed << setprecision(4) << selectionModel->getBicScore()
+				<< setw(20) << fixed << setprecision(4) << selectionModel->getAicScore()
+				<< setw(20) << fixed << setprecision(4) << selectionModel->getAiccScore() << endl;
+	}
+	out << setw(66) << setfill('-') << "" << setfill(' ') << endl << endl;
 
 	if (selectionModels->size() > 1) {
 		out << "PARAMETER IMPORTANCE" << endl;

@@ -61,14 +61,14 @@ void PrintMeta::print_options(ostream& output) {
 		output << endl << setw(H_RULE_LENGTH - input_file->length()) << " ";
 	}
 	output << *input_file << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Number of taxa:"
-			<< setw(10) << right << num_taxa << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left
-			<< "     Number of sites (total):" << setw(10) << right << seq_len
+	output << setw(OPT_DESCR_LENGTH) << left << "     Number of taxa:"
+			<< left << num_taxa << endl;
+	output << setw(OPT_DESCR_LENGTH) << left
+			<< "     Number of sites (total):" << left << seq_len
 			<< endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left
-			<< "     Number of unique patterns:" << setw(10) << right
-			<< num_patterns << endl;
+//	output << setw(OPT_DESCR_LENGTH - 5) << left
+//			<< "     Number of unique patterns:" << left
+//			<< num_patterns << endl;
 
 	if (user_tree) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
@@ -88,8 +88,8 @@ void PrintMeta::print_options(ostream& output) {
 		output << endl << setw(H_RULE_LENGTH - config_file->length()) << " ";
 	}
 	output << *config_file << endl;
-	output << setw(OPT_DESCR_LENGTH - 5) << left << "     Number of partitions:"
-			<< setw(10) << right << number_of_genes << endl;
+	output << setw(OPT_DESCR_LENGTH) << left << "     Number of partitions:"
+			<< left << number_of_genes << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:
@@ -123,7 +123,6 @@ void PrintMeta::print_options(ostream& output) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
 		switch (search_algo) {
 		case SearchGreedy:
-		case SearchDefault:
 			output << left << "Greedy" << endl;
 			break;
 		case SearchGreedyExtended:
@@ -139,10 +138,26 @@ void PrintMeta::print_options(ostream& output) {
 		case SearchExhaustive:
 			output << left << "Exahustive" << endl;
 			break;
+		case SearchDefault:
 		case SearchAuto:
 			output << left << "Auto" << endl;
 			break;
 		}
+	}
+	output << setw(OPT_DESCR_LENGTH) << left << "  Selection criterion:";
+	switch (ic_type) {
+	case BIC:
+		output << left << "BIC" << endl;
+		break;
+	case AIC:
+		output << left << "AIC" << endl;
+		break;
+	case AICC:
+		output << left << "AICc" << endl;
+		break;
+	case DT:
+		output << left << "DT" << endl;
+		break;
 	}
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
 			<< endl;
@@ -334,8 +349,12 @@ void PrintMeta::print_results_xml(ostream & ofs,
 	ofs << "<best_scheme num_elements=\"" << bestScheme->getNumberOfElements()
 			<< "\" k=\"" << bestScheme->getNumberOfFreeParameters()
 			<< "\" lnL=\"" << bestScheme->getLnL()
-			<< "\" BIC_score=\"" << bestScheme->getIcValue()
+			<< "\" BIC_score=\"" << bestScheme->getBicValue()
+			<< "\" AIC_score=\"" << bestScheme->getAicValue()
+			<< "\" AICC_score=\"" << bestScheme->getAiccValue()
 			<< "\" linked_BIC_score=\"" << bestScheme->getLinkedBicValue()
+			<< "\" linked_AIC_score=\"" << bestScheme->getLinkedAicValue()
+			<< "\" linked_AICC_score=\"" << bestScheme->getLinkedAiccValue()
 			<< "\">" << endl;
 	ofs << "  <name>" << endl << "    " << bestScheme->getName() << endl
 			<< "  </name>" << endl;
@@ -403,6 +422,7 @@ void PrintMeta::print_results_xml(ostream & ofs,
 }
 
 void PrintMeta::print_results(ostream & ofs, PartitioningScheme * bestScheme) {
+	print_options(ofs);
 	ofs << endl << ":: Selection results ::" << endl;
 	ofs << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
 	bestScheme->print(ofs);

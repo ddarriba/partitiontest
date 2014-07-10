@@ -164,6 +164,8 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 		MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 
+		printStep(currentStep, localBestScheme);
+
 		//mo.optimizePartitioningScheme(bestScheme);
 		PartitionSelector ps(nextSchemes);
 		nextSchemes.clear();
@@ -189,6 +191,8 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 			//ps.print(cout);
 			localBestScheme = ps.getBestScheme();
 			score = localBestScheme->getIcValue();
+
+			printStep(currentStep, localBestScheme);
 
 			if (score < bestScore) {
 				delete bestScheme;

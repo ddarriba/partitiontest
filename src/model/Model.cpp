@@ -25,7 +25,7 @@
 namespace partest {
 
 Model::Model(bitMask rateVariation, int numberOfTaxa) :
-		rateVariation(rateVariation), lnL(0.0), alpha(100.0),
+		rateVariation(rateVariation), lnL(0.0), alpha(1.0),
 		rates(0), frequencies(0), numberOfFrequencies(0),
 		name(), modelFreeParameters(0) {
 

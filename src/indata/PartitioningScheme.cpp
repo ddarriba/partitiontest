@@ -277,10 +277,82 @@ double PartitioningScheme::getIcValue() {
 	return score;
 }
 
+double PartitioningScheme::getBicValue() {
+	if (!isOptimized())
+		return 0.0;
+	double score = 0.0;
+	for (size_t i = 0; i < partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
+		score += pe->getBestModel()->getBicScore();
+	}
+	return score;
+}
+
+double PartitioningScheme::getAicValue() {
+	if (!isOptimized())
+		return 0.0;
+	double score = 0.0;
+	for (size_t i = 0; i < partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
+		score += pe->getBestModel()->getAicScore();
+	}
+	return score;
+}
+
+double PartitioningScheme::getAiccValue() {
+	if (!isOptimized())
+		return 0.0;
+	double score = 0.0;
+	for (size_t i = 0; i < partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
+		score += pe->getBestModel()->getAiccScore();
+	}
+	return score;
+}
+
+double PartitioningScheme::getDTValue() {
+	if (!isOptimized())
+		return 0.0;
+	double score = 0.0;
+	for (size_t i = 0; i < partitions.size(); i++) {
+		PartitionElement * pe = partitions.at(i);
+		score += pe->getBestModel()->getDTScore();
+	}
+	return score;
+}
+
+double PartitioningScheme::getLinkedIcValue() {
+	if (!isOptimized())
+		return 0.0;
+	return ModelSelector::computeIc(ic_type, getLnL(), getNumberOfFreeParameters(),
+			seq_len);
+}
+
 double PartitioningScheme::getLinkedBicValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeBic(getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(BIC, getLnL(), getNumberOfFreeParameters(),
+			seq_len);
+}
+
+double PartitioningScheme::getLinkedAicValue() {
+	if (!isOptimized())
+		return 0.0;
+	return ModelSelector::computeIc(AIC, getLnL(), getNumberOfFreeParameters(),
+			seq_len);
+}
+
+double PartitioningScheme::getLinkedAiccValue() {
+	if (!isOptimized())
+		return 0.0;
+	return ModelSelector::computeIc(AICC, getLnL(), getNumberOfFreeParameters(),
+			seq_len);
+}
+
+double PartitioningScheme::getLinkedDTValue() {
+	if (!isOptimized())
+		return 0.0;
+	return ModelSelector::computeIc(DT, getLnL(), getNumberOfFreeParameters(),
 			seq_len);
 }
 
@@ -290,25 +362,37 @@ void PartitioningScheme::print(ostream & out) {
 	for (int i = codeLines-1; i >= 0; i--) {
 		out << "  " << getCode(i) << endl;
 	}
-	out << "Num.Elements: " << numberOfElements << endl;
+	out << setw(23) <<  "Num.Elements:" << numberOfElements << endl;
 	if (isOptimized()) {
-		out << "LnL:          " << getLnL() << endl;
-		out << "BIC_score:    " << getIcValue() << endl;
+		out << setw(23) << "LnL:" << fixed << setprecision(4) << getLnL() << endl;
+		out << setw(23) << "Num.Parameters:" << getNumberOfFreeParameters() << endl;
+		out << setw(23) << "Selection score:" << fixed << setprecision(4) << getIcValue() << endl;
+		out << setw(23) << "BIC score:" << fixed << setprecision(4) << getBicValue() << endl;
+		out << setw(23) << "AIC score:" << fixed << setprecision(4) << getAicValue() << endl;
+		out << setw(23) << "AICC score:" << fixed << setprecision(4) << getAiccValue() << endl;
+		out << setw(23) << "Linked score:" << fixed << setprecision(4) << getLinkedIcValue() << endl;
+		out << setw(23) << "Linked BIC_score:" << fixed << setprecision(4) << getLinkedBicValue() << endl;
+		out << setw(23) << "Linked AIC_score:" << fixed << setprecision(4) << getLinkedAicValue() << endl;
+		out << setw(23) << "Linked AICC_score:" << fixed << setprecision(4) << getLinkedAiccValue() << endl;
 		if (tree > 0) {
 			out << "Tree:         " << getTree() << endl;
 		}
 		out << endl;
-		out << setw(6) << "--ID-"
-			<< setw(11) << "---Model-- "
+		out << setw(6) << "--ID--"
+			<< setw(11) << " --Model-- "
 							<< setw(5) << " --K-"
-							<< setw(21) << " ---------LnL--------"
-							<< setw(21) << " ---------BIC--------" << endl;
+							<< setw(15) << " -----LnL------"
+							<< setw(15) << " -----BIC------"
+							<< setw(15) << " -----AIC------"
+							<< setw(15) << " -----AICc-----" << endl;
 		for (size_t i=0; i<numberOfElements; i++) {
 			out << setw(6) << left << i + 1
 					<< setw(11) << left << getElement(i)->getBestModel()->getModel()->getName()
 					<< setw(5) << right << getElement(i)->getBestModel()->getModel()->getNumberOfFreeParameters()
-					<< setw(21) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getModel()->getLnL()
-					<< setw(21) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getValue() << endl;
+					<< setw(15) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getModel()->getLnL()
+					<< setw(15) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getBicScore()
+					<< setw(15) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getAicScore()
+					<< setw(15) << right << fixed << setprecision(4) << getElement(i)->getBestModel()->getAiccScore() << endl;
 		}
 	}
 }

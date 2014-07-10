@@ -29,8 +29,12 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 		Model(rateVariation, numberOfTaxa), matrix(matrix) {
 	/* treeFreeParameters is already initialized to the number of branches */
 	this->numberOfFrequencies = NUM_NUC_FREQS;
-	this->frequencies = (double *) malloc(NUM_NUC_FREQS * sizeof(double));
+	this->frequencies = (double *) malloc(numberOfFrequencies * sizeof(double));
+	for (int i=0; i<numberOfFrequencies; i++) this->frequencies[i] = 1.0/numberOfFrequencies;
+
 	this->rates = (double *) malloc(NUM_RATES * sizeof(double));
+	for (int i=0; i<NUM_DNA_RATES; i++) this->rates[i] = 1.0;
+
 	switch (matrix) {
 	case NUC_MATRIX_JC:
 		name.append("JC");
@@ -203,11 +207,11 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //
 //	double invDistance = pInv - other->pInv;
 	double shapeDistance = fabs(alpha - other->alpha);
-	double rDistance = 0.0;
-	for (int i = 0; i < 6; i++) {
-		rDistance += (rates[i] - other->rates[i])
-				* (rates[i] - other->rates[i]);
-	}
+//	double rDistance = 0.0;
+//	for (int i = 0; i < 6; i++) {
+//		rDistance += (rates[i] - other->rates[i])
+//				* (rates[i] - other->rates[i]);
+//	}
 //	double freqsDistance = 0.0;
 //	for (int i = 0; i < numberOfFrequencies; i++) {
 //		freqsDistance += (frequencies[i] - other->frequencies[i])
@@ -218,8 +222,8 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
 //  double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-//  double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
-//  double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
+  double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
+//    double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
 	double fDistance = Utilities::euclideanDistance(frequencies,
 			other->frequencies, 4);
 	double distance = rDistance + fDistance + shapeDistance;

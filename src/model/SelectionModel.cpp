@@ -27,6 +27,11 @@ SelectionModel::SelectionModel(Model * model, double value) :
 	delta = -1.0;
 	weight = -1.0;
 	cumWeight = -1.0;
+
+	bicScore = -1.0;
+	aicScore = -1.0;
+	aiccScore = -1.0;
+	dtScore = -1.0;
 }
 
 SelectionModel::~SelectionModel() {
@@ -83,6 +88,38 @@ double SelectionModel::getCumWeight() {
 
 double SelectionModel::getDelta() {
 	return delta;
+}
+
+double SelectionModel::getBicScore(void) {
+	return bicScore;
+}
+
+double SelectionModel::getAicScore(void) {
+	return aicScore;
+}
+
+double SelectionModel::getAiccScore(void) {
+	return aiccScore;
+}
+
+double SelectionModel::getDTScore(void) {
+	return dtScore;
+}
+
+void SelectionModel::setBicScore(double value) {
+	bicScore = value;
+}
+
+void SelectionModel::setAicScore(double value) {
+	aicScore = value;
+}
+
+void SelectionModel::setAiccScore(double value) {
+	aiccScore = value;
+}
+
+void SelectionModel::setDTScore(double value) {
+	dtScore = value;
 }
 
 SelectionModel * SelectionModel::clone(void) {

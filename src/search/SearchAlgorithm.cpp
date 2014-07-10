@@ -25,6 +25,7 @@
 
 #include "indata/PartitionMap.h"
 #include <iostream>
+#include <iomanip>
 #include <pthread.h>
 #include <memory>
 #include <unistd.h>
@@ -49,6 +50,17 @@ int SearchAlgorithm::SchemeManager::addScheme(
 		PartitioningScheme * schemeToAdd) {
 	nextSchemes->push_back(schemeToAdd);
 	return nextSchemes->size();
+}
+
+void SearchAlgorithm::printStep(int id, PartitioningScheme *bestScheme) {
+	(*ofs) << id << "\t" << fixed << setprecision(4) << bestScheme->getLnL() << "\t"
+			<< bestScheme->getNumberOfFreeParameters() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getBicValue() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getAicValue() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getAiccValue() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getLinkedBicValue() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getLinkedAicValue() << "\t"
+			<< fixed << setprecision(4) << bestScheme->getLinkedAiccValue() << endl;
 }
 
 #ifdef HAVE_MPI
@@ -157,10 +169,18 @@ SearchAlgorithm::SearchAlgorithm() {
 	if (starting_topology == StartTopoFIXED) {
 		mo.buildStartingTree();
 	}
+	if (outputAvailable && log_logfile) {
+		ofs = new ofstream(log_logfile->c_str(), ios::in | ios::out | ios::app);
+	} else {
+		ofs = 0;
+	}
 }
 
 SearchAlgorithm::~SearchAlgorithm() {
-
+	if (ofs) {
+		ofs->close();
+		delete ofs;
+	}
 }
 
 }

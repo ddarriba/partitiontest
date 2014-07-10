@@ -70,6 +70,7 @@ namespace partest {
 	string * models_logfile = 0;
 	string * schemes_logfile = 0;
 	string * results_logfile = 0;
+	string * log_logfile = 0;
 	bool force_overriding = false;
 	bool outputAvailable = true;
 
@@ -105,6 +106,8 @@ namespace partest {
 			delete (output_dir);
 		if (models_logfile)
 			delete (models_logfile);
+		if (log_logfile)
+			delete (log_logfile);
 		if (schemes_logfile)
 			delete (schemes_logfile);
 		if (results_logfile)

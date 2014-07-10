@@ -121,6 +121,7 @@ bool PartitionTest::configure(void) {
 		models_logfile = new string(*output_dir + "models");
 		schemes_logfile = new string(*output_dir + "schemes");
 		results_logfile = new string(*output_dir + "results");
+		log_logfile = new string(*output_dir + "log");
 
 		ckpPath = (*output_dir) + CKP_DIR;
 	}
@@ -135,10 +136,19 @@ bool PartitionTest::configure(void) {
 						cerr << "[WARNING] Output directory " << (*output_dir)
 								<< " already exists. Output files might be overwritten."
 								<< endl;
+						if (remove(log_logfile->c_str()) && errno != ENOENT) {
+							cerr
+									<< "[ERROR] There was an error removing log file "
+									<< *log_logfile
+									<< ". Please remove it manually and try again."
+									<< endl;
+							exit_partest(EX_IOERR);
+						}
 					} else {
 						if (Utilities::existsFile(*models_logfile)
 								|| Utilities::existsFile(*schemes_logfile)
-								|| Utilities::existsFile(*results_logfile)) {
+								|| Utilities::existsFile(*results_logfile)
+								|| Utilities::existsFile(*log_logfile)) {
 							cerr << "[ERROR] Output files already exist:"
 									<< endl;
 							if (Utilities::existsFile(*models_logfile)) {
@@ -149,6 +159,9 @@ bool PartitionTest::configure(void) {
 							}
 							if (Utilities::existsFile(*results_logfile)) {
 								cerr << "        " << *results_logfile << endl;
+							}
+							if (Utilities::existsFile(*log_logfile)) {
+								cerr << "        " << *log_logfile << endl;
 							}
 							cerr << endl
 									<< "If you really want to proceed, remove result files or re-run with --force-override or --disable-output arguments."

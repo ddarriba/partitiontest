@@ -27,6 +27,7 @@
 
 #include "indata/PartitioningScheme.h"
 #include "exe/ModelOptimize.h"
+#include <fstream>
 
 namespace partest {
 
@@ -37,6 +38,8 @@ public:
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0) = 0;
 protected:
 	ModelOptimize mo;
+	void printStep(int id, PartitioningScheme * bestScheme);
+
 	class SchemeManager {
 	public:
 		SchemeManager();
@@ -48,6 +51,8 @@ protected:
 	private:
 		vector<PartitioningScheme *> * nextSchemes;
 	};
+private:
+	ofstream * ofs;
 };
 
 } /* namespace partest */

@@ -31,6 +31,8 @@
 #include <assert.h>
 #include <parsePartition.h>
 
+#define ML_STARTING_TREE 0
+
 using namespace std;
 
 namespace partest {
@@ -84,53 +86,58 @@ string ModelOptimize::buildStartingTree() {
 		pllLoadAlignment(tree, alignData, compParts, PLL_DEEP_COPY);
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
-		tree->start = tree->nodep[1];
 
-		switch (data_type) {
-		case DT_PROTEIC:
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-					cur_part++) {
-				pInfo * current_part = compParts->partitionData[cur_part];
-				current_part->dataType = PLL_AA_DATA;
-				current_part->states = 20;
-				current_part->protUseEmpiricalFreqs = PLL_FALSE;
-				current_part->optimizeBaseFrequencies = PLL_FALSE;
-				current_part->optimizeAlphaParameter = PLL_TRUE;
-				current_part->optimizeSubstitutionRates = PLL_FALSE;
-				current_part->protModels = PLL_AUTO;
-				current_part->alpha = 0.0;
+		if (ML_STARTING_TREE) {
+
+			tree->start = tree->nodep[1];
+
+			switch (data_type) {
+			case DT_PROTEIC:
+				for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+						cur_part++) {
+					pInfo * current_part = compParts->partitionData[cur_part];
+					current_part->dataType = PLL_AA_DATA;
+					current_part->states = 20;
+					current_part->protUseEmpiricalFreqs = PLL_FALSE;
+					current_part->optimizeBaseFrequencies = PLL_FALSE;
+					current_part->optimizeAlphaParameter = PLL_TRUE;
+					current_part->optimizeSubstitutionRates = PLL_FALSE;
+					current_part->protModels = PLL_AUTO;
+					current_part->alpha = 0.0;
+				}
+				cout << timestamp() << " Loading AUTO models" << endl;
+				break;
+			case DT_NUCLEIC:
+				for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+						cur_part++) {
+					pInfo * current_part = compParts->partitionData[cur_part];
+					current_part->dataType = PLL_DNA_DATA;
+					current_part->states = 4;
+					current_part->optimizeBaseFrequencies = PLL_TRUE;
+					current_part->optimizeAlphaParameter = PLL_TRUE;
+					current_part->optimizeSubstitutionRates = PLL_TRUE;
+				}
+				cout << timestamp() << " Loading GTR models" << endl;
+				break;
+			default:
+				cerr << "Unknown datatype " << data_type << endl;
+				exit_partest(EX_SOFTWARE);
 			}
-			cout << timestamp() << " Loading AUTO models" << endl;
-			break;
-		case DT_NUCLEIC:
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-					cur_part++) {
-				pInfo * current_part = compParts->partitionData[cur_part];
-				current_part->dataType = PLL_DNA_DATA;
-				current_part->states = 4;
-				current_part->optimizeBaseFrequencies = PLL_TRUE;
-				current_part->optimizeAlphaParameter = PLL_TRUE;
-				current_part->optimizeSubstitutionRates = PLL_TRUE;
-			}
-			cout << timestamp() << " Loading GTR models" << endl;
-			break;
-		default:
-			cerr << "Unknown datatype " << data_type << endl;
-			exit_partest(EX_SOFTWARE);
+
+			pllInitModel(tree, compParts, alignData);
+
+			tree->doCutoff = ML_PARAM_CUTOFF;
+			tree->likelihoodEpsilon = ML_PARAM_EPSILON;
+			tree->stepwidth = ML_PARAM_STEPWIDTH;
+			tree->max_rearrange = ML_PARAM_MAXREARRANGE;
+			tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
+			tree->initialSet = ML_PARAM_INITIALSET;
+
+			cout << timestamp() << " Building ML topology" << endl;
+			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
+		} else {
+			pllInitModel(tree, compParts, alignData);
 		}
-
-		pllInitModel(tree, compParts, alignData);
-
-
-		tree->doCutoff = ML_PARAM_CUTOFF;
-		tree->likelihoodEpsilon = ML_PARAM_EPSILON;
-		tree->stepwidth = ML_PARAM_STEPWIDTH;
-		tree->max_rearrange = ML_PARAM_MAXREARRANGE;
-		tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
-		tree->initialSet = ML_PARAM_INITIALSET;
-
-		cout << timestamp() << " Building ML topology" << endl;
-		pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 
 		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
 		PLL_TRUE,
@@ -512,7 +519,7 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 		optimizeModel(element, modelIndex, element->getNumberOfModels());
 	}
 
-	ModelSelector ms(element, BIC, element->getSampleSize());
+	ModelSelector ms(element, ic_type, element->getSampleSize());
 	//ms.print(cout);
 
 	element->destroyStructures();
@@ -543,6 +550,7 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 				current_part->frequencies[i] = 0.25;
 			}
 		}
+
 		current_part->alpha = _model->getAlpha();
 		//current_part->nonGTR = PLL_FALSE;
 		current_part->dataType = PLL_DNA_DATA;
@@ -581,10 +589,10 @@ void ModelOptimize::setModelParameters(Model * _model, pllInstance * _tree,
 		current_part->protModels = pModel->getMatrix();
 		current_part->alpha = 1.0;
 		for (int i = 0; i < 20; i++) {
-							current_part->freqExponents[i] = 1.0;
-						}
+			current_part->freqExponents[i] = 1.0;
+		}
 		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-							_tree->useMedian);
+				_tree->useMedian);
 
 	}
 
@@ -600,9 +608,9 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 	Model * model = element->getModel(modelIndex);
 
 	/* set parameters for single partition element */
-	setModelParameters(model, _tree, _partitions, _alignData, 0, false);\
+	setModelParameters(model, _tree, _partitions, _alignData, 0, true);
 	double lk;
-	double epsilon = 0.1;
+	double epsilon = 1;
 
 	_tree->thoroughInsertion = PLL_FALSE;
 
@@ -639,7 +647,8 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 	if (data_type == DT_PROTEIC && optimize_mode == OPT_GTR) {
 		/* set chosen model */
 		ProteicModel * pModel = static_cast<ProteicModel *>(model);
-		pModel->setMatrix(static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels));
+		pModel->setMatrix(
+				static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels));
 		model->setName(
 				Utilities::getProtMatrixName(
 						static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels)));
