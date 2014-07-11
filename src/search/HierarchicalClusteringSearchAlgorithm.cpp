@@ -93,7 +93,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			localBestScheme = ps.getBestScheme();
 			score = ps.getBestScheme()->getIcValue();
 
-			printStep(currentStep, localBestScheme);
+			printStepLog(currentStep, localBestScheme);
 
 			if (score < bestScore) {
 				//bestScheme->print(cout);
@@ -105,15 +105,9 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 					PartitionMap::getInstance()->purgePartitionMap(
 							localBestScheme->getElement(i)->getId());
 				}
-				if (currentStep > 1) {
-					cout << timestamp() << " [HCL] Improving "
-							<< bestScore - score << " score units." << endl;
-				}
 				bestScore = score;
-			} else {
-				cout << timestamp() << " [HCL] Scheme is " << score - bestScore
-						<< " score units ahead the best score." << endl;
 			}
+			printStep(SearchHCluster, score);
 
 			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));

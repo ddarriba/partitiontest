@@ -92,6 +92,10 @@ void ConfigParser::createSinglePartition() {
 		pinfo->protUseEmpiricalFreqs = PLL_FALSE;
 		pinfo->dataType = PLL_AA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
+		break;
+	case DT_DEFAULT:
+		exit_partest(EX_SOFTWARE);
+		break;
 	}
 	pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
 	pregion->start = 1;
@@ -280,6 +284,10 @@ ConfigParser::ConfigParser(const char * configFile) {
 					pinfo->protUseEmpiricalFreqs = PLL_FALSE;
 					pinfo->dataType = PLL_AA_DATA;
 					pinfo->optimizeBaseFrequencies = PLL_TRUE;
+					break;
+				case DT_DEFAULT:
+					exit_partest(EX_SOFTWARE);
+					break;
 				}
 
 				for (int j = 0; j < partitions->at(i).numberOfSections; j++) {

@@ -164,7 +164,7 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 		MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
 #endif
 
-		printStep(currentStep, localBestScheme);
+		printStepLog(currentStep, localBestScheme);
 
 		//mo.optimizePartitioningScheme(bestScheme);
 		PartitionSelector ps(nextSchemes);
@@ -192,21 +192,15 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 			localBestScheme = ps.getBestScheme();
 			score = localBestScheme->getIcValue();
 
-			printStep(currentStep, localBestScheme);
+			printStepLog(currentStep, localBestScheme);
 
 			if (score < bestScore) {
 				delete bestScheme;
 				bestScheme = localBestScheme;
 				PartitionMap::getInstance()->keep(bestScheme->getId());
-				if (currentStep > 1) {
-					cout << timestamp() << " [GRE] Improving " << bestScore - score
-						<< " score units." << endl;
-				}
 				bestScore = score;
-			} else {
-				cout << timestamp() << " [GRE] Scheme is " << score - bestScore
-						<< " score units ahead the best score." << endl;
 			}
+			printStep(SearchGreedy, score);
 
 			continueExec = ((non_stop || bestScore == score)
 					&& (numberOfPartitions > 1));

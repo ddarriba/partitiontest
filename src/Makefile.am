@@ -24,8 +24,8 @@ partest_SOURCES = \
 	util/PrintMeta.cpp \
 	PartitionTest.cpp
 
-partest_CPPFLAGS = -I../libpll/include -Wall
-partest_LDFLAGS = -I../libpll/include -L../libpll/lib -Wall
+partest_CPPFLAGS = -Wall 
+partest_LDFLAGS = -Wall 
 
 if HAVE_PTHREADS
   partest_CPPFLAGS += -DHAVE_PTHREADS

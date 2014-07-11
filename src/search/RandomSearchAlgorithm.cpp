@@ -105,15 +105,9 @@ PartitioningScheme * RandomSearchAlgorithm::start(
 					PartitionMap::getInstance()->purgePartitionMap(
 							localBestScheme->getElement(i)->getId());
 				}
-				if (currentStep > 1) {
-					cout << timestamp() << " [RND] Improving "
-							<< bestScore - score << " score units." << endl;
-				}
 				bestScore = score;
-			} else {
-				cout << timestamp() << " [RND] Scheme is " << score - bestScore
-						<< " score units ahead the best score." << endl;
 			}
+			printStep(SearchRandom, score);
 
 			continueExec = ((non_stop || bestScore == score)
 					&& (localBestScheme->getNumberOfElements() > 1));
