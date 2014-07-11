@@ -228,6 +228,10 @@ ConfigParser::ConfigParser(const char * configFile) {
 		PARTITIONS_TAG);
 		number_of_genes = keys->size();
 
+		if (data_type == DT_DEFAULT) {
+			data_type = (dataType == DT_DEFAULT) ? DEFAULT_DATA_TYPE : dataType;
+		}
+
 		if (number_of_genes) {
 			partitions = new vector<partitionInfo>(number_of_genes);
 			singleGeneNames = (string **) malloc(
@@ -255,11 +259,6 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 			pllQueueInit(&pllPartsQueue);
 
-			if (data_type == DT_DEFAULT) {
-				data_type = dataType == DT_DEFAULT
-					? DEFAULT_DATA_TYPE
-					: dataType;
-			}
 
 			for (size_t i = 0; i < number_of_genes; i++) {
 				partitions->at(i).partitionId.push_back(i);

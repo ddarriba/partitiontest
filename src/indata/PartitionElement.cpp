@@ -209,10 +209,13 @@ int PartitionElement::setupStructures(void) {
 			_tree->start = _tree->nodep[1];
 			break;
 		case StartTopoFIXED:
+		{
 			nt = pllNewickParseString(starting_tree);
+			_tree->fracchange = 1.0;
 			pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
 			pllNewickParseDestroy(&nt);
 			break;
+		}
 		case StartTopoUSER:
 			cerr << "User Topo Not Available" << endl;
 			exit_partest(EX_UNAVAILABLE);
