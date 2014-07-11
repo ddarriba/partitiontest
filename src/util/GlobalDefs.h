@@ -46,7 +46,7 @@
 
 /* ML optimization parameters */
 #define ML_PARAM_CUTOFF        PLL_TRUE
-#define ML_PARAM_EPSILON       0.1
+#define ML_PARAM_EPSILON       1.0
 #define ML_PARAM_STEPWIDTH     5
 #define ML_PARAM_MAXREARRANGE  11
 #define ML_PARAM_BESTTRAV      5

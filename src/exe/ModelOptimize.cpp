@@ -136,12 +136,23 @@ string ModelOptimize::buildStartingTree() {
 			cout << timestamp() << " Building ML topology" << endl;
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 		} else {
+			cout << timestamp() << " Updating branch lengths..." << endl;
 			pllInitModel(tree, compParts, alignData);
-		}
+			double lk = 0;
+			double epsilon = 10;
+			pllEvaluateLikelihood(tree, compParts, tree->start,
+			PLL_TRUE,
+			PLL_FALSE);
+			while (fabs(lk - tree->likelihood) > 5) {
+				lk = tree->likelihood;
+				pllOptimizeBranchLengths(tree, compParts, 64);
+				pllOptimizeModelParameters(tree, compParts, epsilon);
+			}
+	}
 
-		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
-		PLL_TRUE,
-		PLL_TRUE,
+	pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
+	PLL_TRUE,
+	PLL_TRUE,
 		PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
 		PLL_FALSE);
 		tree->tree_string[tree->treeStringLength - 1] = '\0';
@@ -460,7 +471,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			ofs.close();
 		}
 
-		cout << timestamp() << " Final tree lnL: " << fTree->likelihood << endl;
+		cout << timestamp() << " Final tree lnL: " << fixed << setprecision(4) << fTree->likelihood << endl;
 		pllDestroyInstance(fTree);
 	}
 
@@ -609,11 +620,11 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 	partitionList * _partitions = element->getPartitions();
 	pllAlignmentData * _alignData = element->getAlignData();
 	Model * model = element->getModel(modelIndex);
+	double epsilon = ML_PARAM_EPSILON;
+	double lk;
 
 	/* set parameters for single partition element */
 	setModelParameters(model, _tree, _partitions, _alignData, 0, true);
-	double lk;
-	double epsilon = 1;
 
 	_tree->thoroughInsertion = PLL_FALSE;
 
@@ -624,15 +635,54 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		pllRaxmlSearchAlgorithm(_tree, _partitions, PLL_TRUE);
 	} else {
 		/* main optimization loop */
-		int smoothIterations = 64;
-		do {
-			lk = _tree->likelihood;
-			pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
-			pllOptimizeModelParameters(_tree, _partitions, 1);
-			pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
-			PLL_FALSE);
-			//smoothIterations *= 2;
-		} while (fabs(lk - _tree->likelihood) > epsilon);
+		if (reoptimize_branch_lengths) {
+			int smoothIterations = 64;
+			do {
+				lk = _tree->likelihood;
+				pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
+				pllOptimizeModelParameters(_tree, _partitions, epsilon);
+
+				cout << reoptimize_branch_lengths << _tree->likelihood << endl;
+
+			} while (fabs(lk - _tree->likelihood) > epsilon);
+		} else {
+			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+									PLL_TRUE,
+									PLL_FALSE);
+			pllOptRatesGeneric(_tree, _partitions, 1,
+									_partitions->rateList);
+							pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+									PLL_TRUE,
+									PLL_FALSE);
+							pllOptBaseFreqs(_tree, _partitions, 1,
+									_partitions->freqList);
+							pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+									PLL_TRUE,
+									PLL_FALSE);
+							pllOptAlphasGeneric(_tree, _partitions, 1,
+									_partitions->alphaList);
+							pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+									PLL_TRUE,
+									PLL_FALSE);
+			do {
+				lk = _tree->likelihood;
+				pllOptRatesGeneric(_tree, _partitions, .001,
+						_partitions->rateList);
+				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+						PLL_TRUE,
+						PLL_FALSE);
+				pllOptBaseFreqs(_tree, _partitions, .001,
+						_partitions->freqList);
+				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+						PLL_TRUE,
+						PLL_FALSE);
+				pllOptAlphasGeneric(_tree, _partitions, .001,
+						_partitions->alphaList);
+				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
+						PLL_TRUE,
+						PLL_FALSE);
+			} while (fabs(lk - _tree->likelihood) > epsilon);
+		}
 	}
 	/* construct newick tree for optimized model */
 	pllTreeToNewick(_tree->tree_string, _tree, _partitions, _tree->start->back,
@@ -659,7 +709,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 
 	cout << timestamp() << " - - - - - " << setw(Utilities::iDecLog(limit) + 1)
 			<< setfill('0') << right << modelIndex + 1 << "/" << limit << " "
-			<< model->getName() << " (" << _tree->likelihood << ")"
+			<< model->getName() << " (" << fixed << setprecision(4) << _tree->likelihood << ")"
 			<< setfill(' ') << endl;
 }
 

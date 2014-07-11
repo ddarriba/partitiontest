@@ -86,15 +86,19 @@ void SearchAlgorithm::printStep(SearchAlgo algo, double nextScore) {
 	}
 	if (!bestScore) {
 		bestScore = nextScore;
-		cout << "Initial score is " << nextScore << "." << endl;
+		cout << "Initial score is " << fixed << setprecision(4) << nextScore
+				<< "." << endl;
 	} else {
 		if (nextScore < bestScore) {
-			cout << "Improving " << bestScore - nextScore << " score units (" << nextScore << ")."
-					<< endl;
+			cout << "Improving " << fixed << setprecision(4)
+					<< bestScore - nextScore << " score units (" << fixed
+					<< setprecision(4) << nextScore << ")." << endl;
 			bestScore = nextScore;
 		} else {
-			cout << "Scheme is " << nextScore - bestScore
-					<< " score units ahead the best score (" << nextScore << ")." << endl;
+			cout << "Scheme is " << fixed << setprecision(4)
+					<< nextScore - bestScore
+					<< " score units ahead the best score (" << fixed
+					<< setprecision(4) << nextScore << ")." << endl;
 		}
 	}
 }
