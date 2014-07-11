@@ -5,6 +5,10 @@ AC_PREREQ([2.50])
 AC_INIT(partest, 1.0, ddarriba@udc.es)
 AM_INIT_AUTOMAKE # (partest, 1.0)
 
+CFLAGS="$CFLAGS -I${PWD}/libpll/include"
+CXXFLAGS="$CXXFLAGS -I${PWD}/libpll/include"
+LDFLAGS="$LDFLAGS -L${PWD}/libpll/lib"
+
 AC_CONFIG_SRCDIR([src/PartitionTest.cpp])
 AC_CONFIG_HEADERS([config.h])
 
@@ -16,27 +20,66 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_PROG_CPP
 
+
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([pthread], [pthread_create])
 
-AC_SEARCH_LIBS([pllCreateInstance], [pll-avx-pthreads], [have_pthreads=yes have_avx=yes], [have_pthreads=no])
-if test "x${have_pthreads}" = "xno"; then
-  AC_SEARCH_LIBS([pllCreateInstance], [pll-sse3-pthreads], [have_pthreads=yes have_sse=yes], [have_pthreads=no])
-  if test "x${have_pthreads}" = "xno"; then
-    AC_SEARCH_LIBS([pllCreateInstance], [pll-avx], [have_avx=yes], [have_avx=no])
-    if test "x${have_avx}" = "xno"; then
-      AC_SEARCH_LIBS([pllCreateInstance], [pll-sse3], [have_sse=yes], [have_sse=no])
-    fi
-  fi
+AC_MSG_CHECKING(for SSE in current arch/CFLAGS)
+AC_LINK_IFELSE([
+AC_LANG_PROGRAM([[
+#include <xmmintrin.h>
+__m128 testfunc(float *a, float *b) {
+  return _mm_add_ps(_mm_loadu_ps(a), _mm_loadu_ps(b));
+}
+]])],
+[
+have_sse=yes
+],
+[
+have_sse=no
+]
+)
+AC_MSG_RESULT($have_sse3)
+
+
+AC_ARG_ENABLE(avx, [AC_HELP_STRING([--enable-avx],[enable AVX optimizations])], have_avx=$enableval, have_avx=no)
+if test "$have_avx" = "yes"; then
+        AC_DEFINE(HAVE_AVX,1,[Define to enable AVX optimizations.])
+	if test "$PRECISION" != "d" -a "$PRECISION" != "s"; then
+		AC_MSG_ERROR([AVX requires single or double precision])
+	fi
 fi
+
+AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
-AM_CONDITIONAL(HAVE_AVX, test "x$have_avx" = "xyes")
 AM_CONDITIONAL(HAVE_SSE, test "x$have_sse" = "xyes")
+
+if test "x${have_pthreads}" = "xyes"; then
+    if test "x${have_avx}" = "xyes"; then
+      AC_CHECK_LIB([pll-avx-pthreads], [pllCreateInstance])
+    else
+      if test "x${have_sse}" = "xyes"; then 
+        AC_CHECK_LIB([pll-sse3-pthreads], [pllCreateInstance])
+      else
+        AC_CHECK_LIB([pll-generic], [pllCreateInstance])
+      fi
+    fi
+else
+    if test "x${have_avx}" = "xyes"; then
+      AC_CHECK_LIB([pll-avx], [pllCreateInstance])
+    else
+      if test "x${have_sse}" = "xyes"; then 
+        AC_CHECK_LIB([pll-sse3], [pllCreateInstance])
+      else
+        AC_CHECK_LIB([pll-generic], [pllCreateInstance])
+      fi
+    fi
+fi
 
 # Checks for header files.
 AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h iostream.h fstream.h iomanip math.h assert.h pll.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

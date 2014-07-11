@@ -38,7 +38,8 @@ public:
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0) = 0;
 protected:
 	ModelOptimize mo;
-	void printStep(int id, PartitioningScheme * bestScheme);
+	void printStepLog(int id, PartitioningScheme * bestScheme);
+	void printStep(SearchAlgo algo, double nextScore);
 
 	class SchemeManager {
 	public:
@@ -53,6 +54,7 @@ protected:
 	};
 private:
 	ofstream * ofs;
+	double bestScore;
 };
 
 } /* namespace partest */

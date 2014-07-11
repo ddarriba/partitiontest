@@ -52,7 +52,7 @@ int SearchAlgorithm::SchemeManager::addScheme(
 	return nextSchemes->size();
 }
 
-void SearchAlgorithm::printStep(int id, PartitioningScheme *bestScheme) {
+void SearchAlgorithm::printStepLog(int id, PartitioningScheme *bestScheme) {
 	(*ofs) << id << "\t" << fixed << setprecision(4) << bestScheme->getLnL() << "\t"
 			<< bestScheme->getNumberOfFreeParameters() << "\t"
 			<< fixed << setprecision(4) << bestScheme->getBicValue() << "\t"
@@ -61,6 +61,42 @@ void SearchAlgorithm::printStep(int id, PartitioningScheme *bestScheme) {
 			<< fixed << setprecision(4) << bestScheme->getLinkedBicValue() << "\t"
 			<< fixed << setprecision(4) << bestScheme->getLinkedAicValue() << "\t"
 			<< fixed << setprecision(4) << bestScheme->getLinkedAiccValue() << endl;
+}
+
+void SearchAlgorithm::printStep(SearchAlgo algo, double nextScore) {
+	cout << timestamp();
+	switch (algo) {
+	case SearchHCluster:
+		cout << " [HCL] ";
+		break;
+	case SearchGreedy:
+	case SearchGreedyExtended:
+		cout << " [GRE] ";
+		break;
+	case SearchExhaustive:
+		cout << " [EXH] ";
+		break;
+	case SearchRandom:
+		cout << " [RND] ";
+		break;
+	case SearchAuto:
+	case SearchDefault:
+		cout << " [XXX] ";
+		break;
+	}
+	if (!bestScore) {
+		bestScore = nextScore;
+		cout << "Initial score is " << nextScore << "." << endl;
+	} else {
+		if (nextScore < bestScore) {
+			cout << "Improving " << bestScore - nextScore << " score units (" << nextScore << ")."
+					<< endl;
+			bestScore = nextScore;
+		} else {
+			cout << "Scheme is " << nextScore - bestScore
+					<< " score units ahead the best score (" << nextScore << ")." << endl;
+		}
+	}
 }
 
 #ifdef HAVE_MPI
@@ -174,6 +210,7 @@ SearchAlgorithm::SearchAlgorithm() {
 	} else {
 		ofs = 0;
 	}
+	bestScore = 0;
 }
 
 SearchAlgorithm::~SearchAlgorithm() {
