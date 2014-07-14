@@ -192,20 +192,6 @@ void NucleicModel::setRates(const double * rates) {
 double NucleicModel::distanceTo(Model * otherModel) {
 	NucleicModel * other = static_cast<NucleicModel *>(otherModel);
 
-//	double globalDistance = 0.0; //sqrt((this->lnL - other->lnL)*(this->lnL - other->lnL));
-//	if (this->matrixName.compare(other->matrixName))
-//		globalDistance += 100;
-//	if (this->matrix != other->matrix) {
-//		if (!((this->matrix % 2 && this->matrix == other->matrix + 1)
-//				|| (other->matrix % 2 && this->matrix == other->matrix - 1))) {
-//			globalDistance += 50;
-//		}
-//	}
-//	if (this->rateVariation != other->rateVariation)
-//		globalDistance += 25;
-//	return globalDistance;
-//
-//	double invDistance = pInv - other->pInv;
 	double shapeDistance = fabs(alpha - other->alpha);
 //	double rDistance = 0.0;
 //	for (int i = 0; i < 6; i++) {
@@ -222,11 +208,11 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
 //  double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-  double rDistance = Utilities::normalizedEuclideanDistance(rates, other->rates, 6);
-//    double rDistance = Utilities::euclideanDistance(rates, other->rates, 6);
+	double rDistance = Utilities::normalizedEuclideanDistance(rates,
+			other->rates, 6);
 	double fDistance = Utilities::euclideanDistance(frequencies,
 			other->frequencies, 4);
-	double distance = rDistance + fDistance + shapeDistance;
+	double distance = rDistance + fDistance;// + shapeDistance;
 
 	return distance;
 }

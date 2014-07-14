@@ -56,11 +56,10 @@ string ModelOptimize::buildStartingTree() {
 			cout << timestamp() << " Loading topology from checkpoint..."
 					<< endl;
 			ofs.seekg(0);
-			int treeLen;
-			ofs.read((char *) &(treeLen), sizeof(int));
+			size_t treeLen;
+			ofs.read((char *) &(treeLen), sizeof(size_t));
 			starting_tree = (char *) malloc(treeLen + 1);
 			ofs.read((char *) starting_tree, treeLen);
-			ofs.close();
 
 			pllNewickTree * nt;
 			nt = pllNewickParseString(starting_tree);
@@ -68,6 +67,21 @@ string ModelOptimize::buildStartingTree() {
 			pllNewickParseDestroy(&nt);
 			strcpy(tree->tree_string, starting_tree);
 			free(starting_tree);
+
+			size_t npergenetrees;
+			ofs.read((char *) &(npergenetrees), sizeof(size_t));
+			if (npergenetrees) {
+				pergene_starting_tree = (char **) malloc(
+						(size_t) number_of_genes * sizeof(char *));
+			}
+			for (size_t i = 0; i < npergenetrees; i++) {
+				ofs.read((char *) &(treeLen), sizeof(size_t));
+				pergene_starting_tree[i] = (char *) malloc(
+						treeLen * sizeof(char) + 1);
+				ofs.read((char *) pergene_starting_tree[i], treeLen);
+			}
+
+			ofs.close();
 			loadedTree = true;
 		}
 	}
@@ -79,6 +93,9 @@ string ModelOptimize::buildStartingTree() {
 
 		partitionList * compParts = pllPartitionsCommit(pllPartsQueue,
 				alignData);
+
+		/* TODO: Check why this is not working so well... */
+		//compParts->perGeneBranchLengths = PLL_TRUE;
 
 		pllAlignmentRemoveDups(alignData, compParts);
 
@@ -148,14 +165,29 @@ string ModelOptimize::buildStartingTree() {
 				pllOptimizeBranchLengths(tree, compParts, 64);
 				pllOptimizeModelParameters(tree, compParts, epsilon);
 			}
-	}
+		}
 
-	pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
-	PLL_TRUE,
-	PLL_TRUE,
+		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
+		PLL_TRUE,
+		PLL_TRUE,
 		PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
 		PLL_FALSE);
 		tree->tree_string[tree->treeStringLength - 1] = '\0';
+		pergene_starting_tree = (char **) malloc(
+				(size_t) number_of_genes * sizeof(char *));
+		for (size_t i = 0; i < number_of_genes; i++) {
+			/* TODO: Temporary exclude pergene trees */
+			pergene_starting_tree[i] = tree->tree_string;
+//			pergene_starting_tree[i] = (char *) malloc(
+//					(size_t) tree->treeStringLength * sizeof(char) + 1);
+//			pllTreeToNewick(pergene_starting_tree[i], tree, compParts,
+//					tree->start->back,
+//					PLL_TRUE,
+//					PLL_TRUE,
+//					PLL_FALSE, PLL_FALSE, PLL_FALSE, i,
+//					PLL_FALSE,
+//					PLL_FALSE);
+		}
 
 		pllPartitionsDestroy(tree, &compParts);
 		pllAlignmentDataDestroy(alignData);
@@ -165,14 +197,26 @@ string ModelOptimize::buildStartingTree() {
 			fstream ofs((ckpPath + os_separator + ckpStartingTree).c_str(),
 					ios::out);
 			ofs.seekg(0);
-			int treeLen = strlen(tree->tree_string) + 1;
-			ofs.write((char *) &treeLen, sizeof(int));
+			size_t treeLen = strlen(tree->tree_string) + 1;
+			ofs.write((char *) &treeLen, sizeof(size_t));
 			ofs.write((char *) tree->tree_string, treeLen);
+			if (pergene_starting_tree) {
+				ofs.write((char *) &number_of_genes, sizeof(size_t));
+				for (size_t i = 0; i < number_of_genes; i++) {
+					treeLen = strlen(pergene_starting_tree[i]) + 1;
+					ofs.write((char *) &treeLen, sizeof(size_t));
+					ofs.write((char *) pergene_starting_tree[i], treeLen);
+				}
+			} else {
+				size_t zero = 0;
+				ofs.write((char *) &zero, sizeof(size_t));
+			}
 			ofs.close();
 		}
 	}
 
 	starting_tree = tree->tree_string;
+
 	cout << timestamp() << " Starting tree loaded " << starting_tree << endl;
 	return string(tree->tree_string);
 }
@@ -641,9 +685,6 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 				lk = _tree->likelihood;
 				pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
 				pllOptimizeModelParameters(_tree, _partitions, epsilon);
-
-				cout << reoptimize_branch_lengths << _tree->likelihood << endl;
-
 			} while (fabs(lk - _tree->likelihood) > epsilon);
 		} else {
 			pllEvaluateLikelihood(_tree, _partitions, _tree->start,

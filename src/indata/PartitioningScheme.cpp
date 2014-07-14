@@ -145,13 +145,22 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 					maxAlpha = alphaValues.at(index);
 				}
 				distances.at(index) = mi->distanceTo(mj);
+				if (starting_topology == StartTopoFIXED) {
+					double treeDist = 0.0;
+					double * bl1 = getElement(i)->getBranchLengths();
+					double * bl2 = getElement(j)->getBranchLengths();
+					for (int cBranch=0; cBranch < Utilities::numberOfBranches(num_taxa); cBranch++) {
+						treeDist += pow(bl1[cBranch] - bl2[cBranch], 2);
+					}
+					distances.at(index) += treeDist;
+				}
 			}
 		}
 		double minDistance = DOUBLE_INF;
 		for (size_t i = 1; i < numberOfElements; i++) {
 			for (size_t j = 0; j < i; j++) {
 				int index = (i * (i - 1) / 2) + j;
-				//alphaValues.at(index) /= maxAlpha;
+				alphaValues.at(index) /= maxAlpha;
 				distances.at(index) += alphaValues[index];
 #ifdef _IG_MODELS
 				distances.at(index) += pinvValues[index]

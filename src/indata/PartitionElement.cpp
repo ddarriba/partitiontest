@@ -89,6 +89,8 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	}
 
 	sampleSize = numberOfSites;
+	branchLengths = 0;
+
 	loadData();
 }
 
@@ -189,7 +191,6 @@ int PartitionElement::setupStructures(void) {
 		pllTreeInitTopologyForAlignment(_tree, _alignData);
 		pllLoadAlignment(_tree, _alignData, _partitions, PLL_DEEP_COPY);
 
-		pllNewickTree * nt;
 		switch (starting_topology) {
 		case StartTopoML:
 			/* set ML optimization parameters */
@@ -210,7 +211,12 @@ int PartitionElement::setupStructures(void) {
 			break;
 		case StartTopoFIXED:
 		{
-			nt = pllNewickParseString(starting_tree);
+			pllNewickTree * nt;
+			if (id.size()==1) {
+				nt = pllNewickParseString(pergene_starting_tree[id.at(0)]);
+			} else {
+				nt = pllNewickParseString(starting_tree);
+			}
 			_tree->fracchange = 1.0;
 			pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
 			pllNewickParseDestroy(&nt);
@@ -295,8 +301,18 @@ int PartitionElement::setupStructures(void) {
 }
 
 int PartitionElement::destroyStructures(void) {
-
 	if (_tree) {
+		if (starting_topology == StartTopoFIXED && !branchLengths) {
+				/* if topology is fixed for each element, keep the branch lengths */
+				branchLengths = (double *) malloc((size_t)Utilities::numberOfBranches(num_taxa) * sizeof(double));
+				for (int i=0; i<Utilities::numberOfBranches(num_taxa); i++) {
+					if (isnan(_tree->nodep[i+1]->z[0])) {
+						cout << "ERROR: NAN branch in " << i+1 << endl;
+						exit_partest(EX_SOFTWARE);
+					}
+					branchLengths[i] = _tree->nodep[i+1]->z[0];
+				}
+			}
 		if (_partitions) {
 			pllPartitionsDestroy(_tree, &_partitions);
 			_partitions = 0;
@@ -317,6 +333,9 @@ int PartitionElement::destroyStructures(void) {
 PartitionElement::~PartitionElement() {
 
 	free(sections);
+
+	if (branchLengths)
+		free(branchLengths);
 
 	for (size_t i = 0; i < models.size(); i++) {
 		Model * model = models.at(i);
@@ -349,6 +368,23 @@ pllInstance * PartitionElement::getTree(void) {
 		exit_partest(EX_SOFTWARE);
 	}
 	return _tree;
+}
+
+double * PartitionElement::getBranchLengths(void) {
+	if (starting_topology == StartTopoFIXED && !branchLengths && _tree) {
+		/* if topology is fixed for each element, keep the branch lengths */
+		branchLengths = (double *) malloc(
+				(size_t) Utilities::numberOfBranches(num_taxa)
+						* sizeof(double));
+		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
+			if (isnan(_tree->nodep[i + 1]->z[0])) {
+				cout << "ERROR: NAN branch in " << i + 1 << endl;
+				exit_partest(EX_SOFTWARE);
+			}
+			branchLengths[i] = _tree->nodep[i + 1]->z[0];
+		}
+	}
+	return branchLengths;
 }
 
 partitionList * PartitionElement::getPartitions(void) {
@@ -598,6 +634,16 @@ int PartitionElement::loadData(void) {
 		delete selectionmodel;
 	}
 
+	/* branch lengths */
+	size_t numBranches;
+	ofs.read((char *) &numBranches, sizeof(size_t));
+	if (numBranches) {
+		if (branchLengths) {
+			free(branchLengths);
+		}
+		branchLengths = (double *) malloc (numBranches * sizeof(double));
+		ofs.read((char *) branchLengths, numBranches * sizeof(double));
+	}
 	ofs.close();
 	return ckpLoaded ? CHECKPOINT_LOADED : CHECKPOINT_UNEXISTENT;
 }
@@ -611,6 +657,20 @@ int PartitionElement::storeData(void) {
 				<< "[INTERNAL_ERROR] Attempting to save unoptimized Partition Element"
 				<< endl;
 		exit_partest(EX_SOFTWARE);
+	}
+
+	if (starting_topology == StartTopoFIXED && !branchLengths) {
+		/* if topology is fixed for each element, keep the branch lengths */
+		branchLengths = (double *) malloc(
+				(size_t) Utilities::numberOfBranches(num_taxa)
+						* sizeof(double));
+		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
+			if (isnan(_tree->nodep[i + 1]->z[0])) {
+				cerr << "ERROR: NAN branch in " << i + 1 << endl;
+				exit_partest(EX_SOFTWARE);
+			}
+			branchLengths[i] = _tree->nodep[i + 1]->z[0];
+		}
 	}
 
 	fstream ofs((ckpPath + os_separator + ckpname).c_str(),
@@ -627,12 +687,13 @@ int PartitionElement::storeData(void) {
 	NUM_DNA_RATES :
 													0;
 	size_t hashlen = ckphash.length();
-	size_t ckpSize = 5 * sizeof(size_t) + hashlen
+	size_t ckpSize = 6 * sizeof(size_t) + hashlen
 			+ models.size()
 					* (modelSize + sizeof(size_t) + tree->treeStringLength
 							+ (numberOfFrequencies + numberOfRates)
 									* sizeof(double)) + sizeof(int)
-			+ sizeof(SelectionModel);
+			+ sizeof(SelectionModel) +
+			(branchLengths?Utilities::numberOfBranches(num_taxa)*sizeof(double):0);
 	ofs.write((char *) &ckpSize, sizeof(size_t));
 	ofs.write((char *) &hashlen, sizeof(size_t));
 	if (hashlen > 0) {
@@ -663,7 +724,19 @@ int PartitionElement::storeData(void) {
 	SelectionModel * selectionmodel = getBestModel();
 	ofs.write((char *) &bestModelIndex, sizeof(int));
 	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
+
+	/* branch lengths */
+	if (branchLengths) {
+		size_t numBranches = Utilities::numberOfBranches(num_taxa);
+		ofs.write((char *) &numBranches, sizeof(size_t));
+		ofs.write((char *) branchLengths, numBranches * sizeof(double));
+	} else {
+		size_t zero = 0;
+		ofs.write((char *) &zero, sizeof(size_t));
+	}
+
 	ofs.close();
+
 	return CHECKPOINT_SAVED;
 }
 

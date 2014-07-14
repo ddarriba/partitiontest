@@ -61,6 +61,8 @@ public:
 	SelectionModel * getBestModel(void);
 	void setBestModel(SelectionModel * model);
 
+	double * getBranchLengths(void);
+
 	void setTagged(bool tag_status) { tag = tag_status; }
 	bool isTagged() { return tag; }
 
@@ -101,6 +103,8 @@ private:
 
 	bool ckpLoaded;
 	bool tag;
+
+	double * branchLengths;
 };
 
 }

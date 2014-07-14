@@ -374,7 +374,9 @@ ConfigParser::ConfigParser(const char * configFile) {
 		}
 		createSinglePartition();
 	}
-
+	if (ic_type == IC_DEFAULT) {
+		ic_type = DEFAULT_IC_TYPE;
+	}
 }
 
 int ConfigParser::parsePartitionDetails(char * line,
