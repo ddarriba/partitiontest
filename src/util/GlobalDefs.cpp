@@ -47,6 +47,7 @@ namespace partest {
 
 	string ** singleGeneNames;
 	char * starting_tree = 0;
+	char ** pergene_starting_tree = 0;
 
 	/* configuration */
 	int number_of_threads = 1;

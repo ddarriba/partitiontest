@@ -107,12 +107,14 @@ double Utilities::euclideanDistance(double X[], double Y[], int n) {
 double Utilities::normalizedEuclideanDistance(double X[], double Y[], int n) {
 	double meanX = mean(X, n);
 	double meanY = mean(Y, n);
-	//double sdX = standardDeviation(X, n);
-	//double sdY = standardDeviation(Y, n);
+	double sdX = standardDeviation(X, n);
+	double sdY = standardDeviation(Y, n);
+	sdX = sdX?sdX:1;
+	sdY = sdY?sdY:1;
 	double sum = 0.0;
 	for (int i = 0; i < n; i++) {
-		//sum += pow((X[i] - meanX)/sdX - (Y[i] - meanY)/sdY, 2);
-		sum += pow(X[i] / meanX - Y[i] / meanY, 2);
+		sum += pow((X[i] - meanX)/sdX - (Y[i] - meanY)/sdY, 2);
+		//sum += pow(X[i] / meanX - Y[i] / meanY, 2);
 	}
 	return sqrt(sum);
 }

@@ -266,6 +266,7 @@ extern size_t number_of_genes;
 extern size_t number_of_schemes;
 extern std::string ** singleGeneNames;
 extern char * starting_tree;
+extern char ** pergene_starting_tree;
 extern std::vector<t_partitioningScheme> * schemes;
 
 /* data structures */
