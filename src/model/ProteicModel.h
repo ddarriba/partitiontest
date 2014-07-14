@@ -28,8 +28,6 @@
 #include "Model.h"
 #include "util/GlobalDefs.h"
 
-#define NUM_PROT_FREQS 20 /** Number of states for amino-acid replacement models */
-
 namespace partest {
 
 /**

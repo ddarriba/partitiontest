@@ -22,6 +22,9 @@
  */
 
 #include "Utilities.h"
+#include "indata/PartitionMap.h"
+
+#include <pllInternal.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -273,6 +276,83 @@ void Utilities::printScheme(t_partitioningScheme scheme) {
 		std::cout << ")";
 	}
 	std::cout << std::endl;
+}
+
+int Utilities::averageModelParameters(t_partitionElementId id, partitionList * partitions) {
+	if (partitions->numberOfPartitions != 1)
+		return -1;
+	partitions->partitionData[0]->alpha = 0.0;
+	for (size_t i=0; i<(data_type==DT_NUCLEIC?NUM_NUC_FREQS:NUM_PROT_FREQS); i++) {
+		partitions->partitionData[0]->frequencies[i] = 0.0;
+	}
+	if (data_type == DT_NUCLEIC) {
+		for (size_t i=0; i<NUM_DNA_RATES; i++) {
+			partitions->partitionData[0]->substRates[i] = 0.0;
+		}
+	}
+	for (size_t i=0; i<id.size(); i++) {
+		t_partitionElementId nextElement(1);
+		nextElement.at(0) = id.at(i);
+		pInfo * nextPL = PartitionMap::getInstance()->getPartitionElement(nextElement)->getPartitions()->partitionData[0];
+		partitions->partitionData[0]->alpha += nextPL->alpha;
+		for (size_t j = 0;
+				j < (data_type==DT_NUCLEIC?NUM_NUC_FREQS:NUM_PROT_FREQS);
+				j++) {
+			partitions->partitionData[0]->frequencies[j] +=
+					nextPL->frequencies[j];
+		}
+		if (data_type == DT_NUCLEIC) {
+			for (size_t j = 0; j < NUM_DNA_RATES; j++) {
+				partitions->partitionData[0]->substRates[j] +=
+						nextPL->substRates[j];
+			}
+		}
+	}
+	partitions->partitionData[0]->alpha /= id.size();
+	for (size_t i=0; i<(data_type==DT_NUCLEIC?NUM_NUC_FREQS:NUM_PROT_FREQS); i++) {
+		partitions->partitionData[0]->frequencies[i] /= id.size();
+		partitions->partitionData[0]->freqExponents[i] = 1.0;
+	}
+	if (data_type == DT_NUCLEIC) {
+		for (size_t i=0; i<NUM_DNA_RATES; i++) {
+			partitions->partitionData[0]->substRates[i] /= id.size();
+		}
+	}
+	return 0;
+}
+
+pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
+
+	if (!pergene_branch_lengths || !pergene_starting_tree)
+		return 0;
+
+	pllNewickTree * nts[id.size()];
+	pllStack * infoStack[id.size()];
+	pllNewickNodeInfo * ninfo, *updateInfo;
+	for (size_t i=0; i<id.size(); i++) {
+		nts[i] = pllNewickParseString(pergene_starting_tree[id.at(0)]);
+		infoStack[i] = nts[i]->tree;
+	}
+	pllNewickTree * nt = nts[0];
+
+	while(infoStack[0]) {
+		/* sequentially update branch lengths on target structure */
+		double sumBranches = 0.0;
+		updateInfo = (pllNewickNodeInfo *) infoStack[0]->item;
+		for (size_t i=0; i<id.size(); i++) {
+			ninfo = (pllNewickNodeInfo *) infoStack[i]->item;
+			sumBranches += atof(ninfo->branch);
+			infoStack[i] = infoStack[i]->next;
+		}
+		sprintf(updateInfo->branch, "%lf", sumBranches/id.size());
+	}
+
+	ninfo = (pllNewickNodeInfo *) nt->tree->item;
+	for (size_t i=1; i<id.size(); i++) {
+		/* remove newick structures but the one to return */
+		pllNewickParseDestroy(&nts[i]);
+	}
+	return nt;
 }
 
 } /* namespace partest */

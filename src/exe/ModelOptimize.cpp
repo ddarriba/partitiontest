@@ -94,8 +94,9 @@ string ModelOptimize::buildStartingTree() {
 		partitionList * compParts = pllPartitionsCommit(pllPartsQueue,
 				alignData);
 
-		/* TODO: Check why this is not working so well... */
-		//compParts->perGeneBranchLengths = PLL_TRUE;
+		if (pergene_branch_lengths) {
+			compParts->perGeneBranchLengths = PLL_TRUE;
+		}
 
 		pllAlignmentRemoveDups(alignData, compParts);
 
@@ -173,20 +174,23 @@ string ModelOptimize::buildStartingTree() {
 		PLL_FALSE, PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
 		PLL_FALSE);
 		tree->tree_string[tree->treeStringLength - 1] = '\0';
-		pergene_starting_tree = (char **) malloc(
-				(size_t) number_of_genes * sizeof(char *));
-		for (size_t i = 0; i < number_of_genes; i++) {
-			/* TODO: Temporary exclude pergene trees */
-			pergene_starting_tree[i] = tree->tree_string;
-//			pergene_starting_tree[i] = (char *) malloc(
-//					(size_t) tree->treeStringLength * sizeof(char) + 1);
-//			pllTreeToNewick(pergene_starting_tree[i], tree, compParts,
-//					tree->start->back,
-//					PLL_TRUE,
-//					PLL_TRUE,
-//					PLL_FALSE, PLL_FALSE, PLL_FALSE, i,
-//					PLL_FALSE,
-//					PLL_FALSE);
+		if (pergene_branch_lengths) {
+			pergene_starting_tree = (char **) malloc(
+					(size_t) number_of_genes * sizeof(char *));
+			for (size_t i = 0; i < number_of_genes; i++) {
+				/* create one set of branch lengths for each gene */
+				pergene_starting_tree[i] = (char *) malloc(
+						(size_t) tree->treeStringLength * sizeof(char) + 1);
+				pllTreeToNewick(pergene_starting_tree[i], tree, compParts,
+						tree->start->back,
+						PLL_TRUE,
+						PLL_TRUE,
+						PLL_FALSE, PLL_FALSE, PLL_FALSE, i,
+						PLL_FALSE,
+						PLL_FALSE);
+			}
+		} else {
+			pergene_starting_tree = 0;
 		}
 
 		pllPartitionsDestroy(tree, &compParts);

@@ -28,9 +28,6 @@
 #include "Model.h"
 #include "util/GlobalDefs.h"
 
-#define NUM_NUC_FREQS 4 /** Number of states for nucleotide substitution models */
-#define NUM_RATES 6 /** Number of substitution rates */
-
 namespace partest {
 
 /**

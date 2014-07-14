@@ -222,6 +222,10 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< "Includes models with empirical frequencies (+F)" << endl;
 	out << endl;
 
+	out << setw(MAX_OPT_LENGTH) << left << "  -g, --pergene-bl"
+			<< "Estimate per-gene branch lengths" << endl;
+	out << endl;
+
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--force-override" << "Existent output files will be overwritten." << endl;
 	out << endl;

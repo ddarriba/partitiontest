@@ -32,9 +32,9 @@ using namespace std;
 namespace partest {
 
 #ifdef _IG_MODELS
-#define NUM_ARGUMENTS 26
+#define NUM_ARGUMENTS 27
 #else
-#define NUM_ARGUMENTS 24
+#define NUM_ARGUMENTS 25
 #endif
 
 void ArgumentParser::init() {
@@ -55,6 +55,7 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
 			ARG_FORCE_OVERRIDE, 0, "force-override", false }, {
 			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
+			ARG_PERGENE_BL, 'g', "pergene-bl", false }, {
 #ifdef _IG_MODELS
 			ARG_GAMMA, 'G', "gamma-rates", false }, {
 			ARG_INV, 'I', "invariant-sites", false }, {
@@ -358,6 +359,9 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			}
 			break;
 #endif
+		case ARG_PERGENE_BL:
+			pergene_branch_lengths = true;
+			 break;
 		case ARG_FREQUENCIES:
 			/* include empirical / unequal frequencies */
 			do_f = true;

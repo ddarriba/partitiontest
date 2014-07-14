@@ -32,7 +32,7 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 	this->frequencies = (double *) malloc(numberOfFrequencies * sizeof(double));
 	for (int i=0; i<numberOfFrequencies; i++) this->frequencies[i] = 1.0/numberOfFrequencies;
 
-	this->rates = (double *) malloc(NUM_RATES * sizeof(double));
+	this->rates = (double *) malloc(NUM_DNA_RATES * sizeof(double));
 	for (int i=0; i<NUM_DNA_RATES; i++) this->rates[i] = 1.0;
 
 	switch (matrix) {
@@ -181,11 +181,11 @@ NucMatrix NucleicModel::getMatrix(void) {
 }
 
 void NucleicModel::allocateRates(void) {
-	this->rates = (double *) malloc(NUM_RATES * sizeof(double));
+	this->rates = (double *) malloc(NUM_DNA_RATES * sizeof(double));
 }
 
 void NucleicModel::setRates(const double * rates) {
-	for (int i = 0; i < NUM_RATES; i++)
+	for (int i = 0; i < NUM_DNA_RATES; i++)
 		this->rates[i] = rates[i];
 }
 

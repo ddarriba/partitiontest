@@ -41,38 +41,17 @@ PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) 
 
 		PartitioningScheme * scheme = schemesArray[part_id];
 
-		double lk = 0;
-		int parms = 0;
-		double value = 0.0;
-		for (size_t id = 0; id < scheme->getNumberOfElements(); id++) {
-			PartitionElement * pe = scheme->getElement(id);
-			SelectionModel * bestModel;
-			if (!pe->getBestModel()) {
-				ModelSelector selector = ModelSelector(pe, ic_type,
-						pe->getSampleSize());
-				bestModel = selector.getBestModel()->clone();
-			} else {
-				bestModel = pe->getBestModel();
-			}
-			value += bestModel->getValue();
-			lk += bestModel->getModel()->getLnL();
-
-			/* Since we're optimizing branch lengths for each model, we need to count those parameters everytime */
-			/* This means getNumberOfFreeParameters instead of getModelFreeParameters */
-			parms += reoptimize_branch_lengths
-					?bestModel->getModel()->getNumberOfFreeParameters()
-					:bestModel->getModel()->getModelFreeParameters();
-		}
-		if (!reoptimize_branch_lengths) {
-			parms += Utilities::numberOfBranches(num_taxa);
-		}
 		(schemesVector->at(part_id)) = new SelectionPartitioningScheme();
-		(schemesVector->at(part_id))->numParameters = parms;
-		(schemesVector->at(part_id))->lnL = lk;
+		(schemesVector->at(part_id))->numParameters = scheme->getNumberOfFreeParameters();
+		(schemesVector->at(part_id))->lnL = scheme->getLnL();
 		(schemesVector->at(part_id))->scheme = scheme;
-		(schemesVector->at(part_id))->value = value;
+		if (!reoptimize_branch_lengths) {
+			(schemesVector->at(part_id))->value = scheme->getLinkedIcValue();
+		} else {
+			(schemesVector->at(part_id))->value = scheme->getIcValue();
+		}
 #ifdef DEBUG
-		cout << "[DEBUG_SEL] BIC of " << scheme->getName() << " : " << value << endl;
+		cout << "[DEBUG_SEL] IC score of " << scheme->getName() << " : " << value << endl;
 #endif
 	}
 
