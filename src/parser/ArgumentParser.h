@@ -82,6 +82,7 @@ enum ArgIndex {
 	ARG_NUM_PROCS, /** Argument for number of processors */
 	ARG_OPTIMIZE, /** Argument for search algorithm */
 	ARG_OUTPUT, /** Argument for setting the output directory */
+	ARG_PERGENE_BL, /** Argument for estimating per-gene branch lengths */
 	ARG_SAMPLE_SIZE, /** Argument for sample size type */
 	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
 	ARG_TOPOLOGY, /** Argument for starting topology type */

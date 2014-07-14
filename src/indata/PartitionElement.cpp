@@ -212,8 +212,12 @@ int PartitionElement::setupStructures(void) {
 		case StartTopoFIXED:
 		{
 			pllNewickTree * nt;
-			if (id.size()==1) {
-				nt = pllNewickParseString(pergene_starting_tree[id.at(0)]);
+			if (pergene_branch_lengths) {
+				if (pergene_branch_lengths && id.size() == 1) {
+					nt = pllNewickParseString(pergene_starting_tree[id.at(0)]);
+				} else {
+					nt = Utilities::averageBranchLengths(id);
+				}
 			} else {
 				nt = pllNewickParseString(starting_tree);
 			}
@@ -577,8 +581,8 @@ int PartitionElement::loadData(void) {
 
 			double * rates = 0;
 			if (data_type == DT_NUCLEIC) {
-				rates = (double *) alloca(NUM_RATES * sizeof(double));
-				ofs.read((char *) rates, NUM_RATES * sizeof(double));
+				rates = (double *) alloca(NUM_DNA_RATES * sizeof(double));
+				ofs.read((char *) rates, NUM_DNA_RATES * sizeof(double));
 				//model->setRates(rates);
 			}
 			int len_tree;
@@ -714,7 +718,7 @@ int PartitionElement::storeData(void) {
 		ofs.write((char *) model->getFrequencies(),
 				model->getNumberOfFrequencies() * sizeof(double));
 		if (data_type == DT_NUCLEIC) {
-			ofs.write((char *) model->getRates(), NUM_RATES * sizeof(double));
+			ofs.write((char *) model->getRates(), NUM_DNA_RATES * sizeof(double));
 		}
 		size_t tree_len = strlen(model->getTree().c_str()) + 1;
 		ofs.write((char *) &tree_len, sizeof(size_t));

@@ -338,7 +338,7 @@ void ModelSelector::print(ostream& out) {
 				out << setw(10) << setprecision(4)
 						<< model->getFrequencies()[j];
 			}
-			for (int j = 0; j < NUM_RATES; j++) {
+			for (int j = 0; j < NUM_DNA_RATES; j++) {
 				out << setw(10) << setprecision(4)
 						<< min(model->getRates()[j], 999.9999);
 			}

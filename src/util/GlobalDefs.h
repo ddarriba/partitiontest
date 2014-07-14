@@ -80,6 +80,10 @@ const std::string os_separator("/");
 
 #define NUM_DNA_RATES 6
 #define NUM_AA_RATES 190
+/** Number of states for nucleotide substitution models */
+#define NUM_NUC_FREQS 4
+/** Number of states for amino-acid replacement models */
+#define NUM_PROT_FREQS 20
 
 #define PROT_MATRIX_SIZE 18 // excluding auto & GTR
 enum ProtMatrix {
@@ -229,6 +233,8 @@ extern bitMask do_rate;
 extern bitMask protModels;
 /** Determine if branch lengths are optimized for each partition */
 extern bool reoptimize_branch_lengths;
+/** Determine whether to estimate per-gene branch lengths */
+extern bool pergene_branch_lengths;
 
 
 /* input/output */

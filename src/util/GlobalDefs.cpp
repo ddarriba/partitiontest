@@ -62,6 +62,7 @@ namespace partest {
 	bitMask do_rate = 0;
 	bitMask protModels = Utilities::binaryPow(max(NUC_MATRIX_SIZE,PROT_MATRIX_SIZE)) - 1;
 	bool reoptimize_branch_lengths = true;
+	bool pergene_branch_lengths = false;
 
 	/* input/output */
 	string * input_file = 0;

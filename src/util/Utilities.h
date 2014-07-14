@@ -93,6 +93,9 @@ public:
 	static int toLower(char * str);
 
 	static void printScheme(t_partitioningScheme scheme);
+
+	static int averageModelParameters(t_partitionElementId id, partitionList * partitions);
+	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
 private:
 	static char encoding_table[];
 };
