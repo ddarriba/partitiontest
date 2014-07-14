@@ -47,7 +47,7 @@ public:
 	int optimizePartitionElement(PartitionElement * scheme, int index=0, int limit=1);
 private:
 	void optimizeModel(PartitionElement * element, size_t modelIndex, int limit);
-	void setModelParameters(Model * _model, pllInstance * _tree,
+	void setModelParameters(t_partitionElementId id, Model * _model, pllInstance * _tree,
 			partitionList * _partitions, pllAlignmentData * _alignData, int index, bool setAlphaFreqs);
 };
 
