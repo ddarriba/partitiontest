@@ -135,7 +135,7 @@ int PartitionElement::setupStructures(void) {
 		pinfo->partitionModel = (char *) malloc(1);
 		pinfo->protModels = -1;
 		pinfo->protUseEmpiricalFreqs = -1;
-		pinfo->dataType = PLL_DNA_DATA;
+		pinfo->dataType = data_type==DT_NUCLEIC?PLL_DNA_DATA:PLL_AA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 		pinfo->partitionName = (char *) malloc(8 * sizeof(char));
 		strcpy(pinfo->partitionName, "NewGene");
@@ -163,29 +163,15 @@ int PartitionElement::setupStructures(void) {
 		pllAlignmentRemoveDups(_alignData, _partitions);
 		numberOfPatterns = _alignData->sequenceLength;
 
-		switch (data_type) {
-		case DT_PROTEIC:
+		if (data_type == DT_PROTEIC) {
 			for (int cur_part = 0; cur_part < _partitions->numberOfPartitions;
 					cur_part++) {
 				pInfo * current_part = _partitions->partitionData[cur_part];
-				current_part->dataType = PLL_AA_DATA;
-				current_part->states = 20;
 				current_part->protUseEmpiricalFreqs = PLL_FALSE;
 				current_part->optimizeBaseFrequencies = PLL_FALSE;
 				current_part->protModels = PLL_AUTO;
 				current_part->alpha = 0.0;
 			}
-			break;
-		case DT_NUCLEIC:
-			for (int cur_part = 0; cur_part < _partitions->numberOfPartitions;
-					cur_part++) {
-				pInfo * current_part = _partitions->partitionData[cur_part];
-				current_part->dataType = PLL_DNA_DATA;
-				current_part->states = 4;
-			}
-			break;
-		default:
-			exit_partest(EX_UNAVAILABLE);
 		}
 
 		pllTreeInitTopologyForAlignment(_tree, _alignData);
