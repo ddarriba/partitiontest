@@ -278,8 +278,11 @@ unsigned int PartitioningScheme::getNumberOfFreeParameters() {
 double PartitioningScheme::getIcValue() {
 	if (!isOptimized())
 		return 0.0;
+	if (!reoptimize_branch_lengths) {
+		return getLinkedIcValue();
+	}
 	double score = 0.0;
-	for (size_t i=0; i<partitions.size(); i++) {
+	for (size_t i = 0; i < partitions.size(); i++) {
 		PartitionElement * pe = partitions.at(i);
 		score += pe->getBestModel()->getValue();
 	}
@@ -289,6 +292,9 @@ double PartitioningScheme::getIcValue() {
 double PartitioningScheme::getBicValue() {
 	if (!isOptimized())
 		return 0.0;
+	if (!reoptimize_branch_lengths) {
+		return getLinkedBicValue();
+	}
 	double score = 0.0;
 	for (size_t i = 0; i < partitions.size(); i++) {
 		PartitionElement * pe = partitions.at(i);
@@ -300,6 +306,9 @@ double PartitioningScheme::getBicValue() {
 double PartitioningScheme::getAicValue() {
 	if (!isOptimized())
 		return 0.0;
+	if (!reoptimize_branch_lengths) {
+		return getLinkedAicValue();
+	}
 	double score = 0.0;
 	for (size_t i = 0; i < partitions.size(); i++) {
 		PartitionElement * pe = partitions.at(i);
@@ -311,6 +320,9 @@ double PartitioningScheme::getAicValue() {
 double PartitioningScheme::getAiccValue() {
 	if (!isOptimized())
 		return 0.0;
+	if (!reoptimize_branch_lengths) {
+		return getLinkedAiccValue();
+	}
 	double score = 0.0;
 	for (size_t i = 0; i < partitions.size(); i++) {
 		PartitionElement * pe = partitions.at(i);
