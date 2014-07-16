@@ -787,6 +787,11 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 			} while (fabs(lk - _tree->likelihood) > epsilon);
 		}
 	}
+
+	if (!isfinite(_tree->likelihood)) {
+		cerr << "[ERROR] Likelihood score for partition " << element->getName() << " is " << _tree->likelihood << endl;
+		exit_partest(EX_DATAERR);
+	}
 	/* construct newick tree for optimized model */
 	pllTreeToNewick(_tree->tree_string, _tree, _partitions, _tree->start->back,
 	PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
