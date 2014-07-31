@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <sstream>
+#include <iomanip>
 #if !INI_USE_STACK
 #include <stdlib.h>
 #endif
@@ -19,7 +21,15 @@
 using namespace std;
 
 INIReader::INIReader(string filename) {
+	curgene = 0;
+	_genes = 0;
 	_error = ini_parse(filename.c_str(), ValueHandler, this);
+}
+
+INIReader::~INIReader() {
+//	if (_genes) {
+//		delete _genes;
+//	}
 }
 
 int INIReader::ParseError() {
@@ -61,19 +71,30 @@ bool INIReader::GetBoolean(string section, string name, bool default_value) {
 		return default_value;
 }
 
-map<string, string> * INIReader::getGenes(string section) {
+vector<string> * INIReader::getGenes(string section) {
 
-	map<string, string> * geneMap = new map<string, string>();
-
-	map<string, string>::iterator iter;
-	for (iter = _values.begin(); iter != _values.end(); iter++) {
-		if (!(iter->first.substr(0, section.length()+1).compare(section+"."))) {
-			(*geneMap)[iter->first.substr((section.length() + 1), iter->first.length() - (section.length() + 1) )] =
-					iter->second;
+	if (!_genes) {
+		map<string, string>::iterator iter;
+		int ngenes = 0;
+		for (iter = _values.begin(); iter != _values.end(); iter++) {
+			if (!(iter->first.substr(0, section.length() + 1).compare(
+					section + "."))) {
+				ngenes++;
+			}
+		}
+		_genes = new vector<string>(ngenes * 2);
+		int curgene = 0;
+		for (iter = _values.begin(); iter != _values.end(); iter++) {
+			if (!(iter->first.substr(0, section.length() + 1).compare(
+					section + "."))) {
+				_genes->at(curgene) = iter->first.substr((section.length() + 6),
+						iter->first.length() - (section.length() + 6));
+				_genes->at(curgene + 1) = iter->second;
+				curgene += 2;
+			}
 		}
 	}
-
-	return geneMap;
+	return _genes;
 }
 
 vector<string> * INIReader::getSchemes(string section) {
@@ -101,7 +122,26 @@ int INIReader::ValueHandler(void* user, const char* section, const char* name,
 		const char* value) {
 	INIReader* reader = (INIReader*) user;
 	string key = MakeKey(section, name);
-	reader->_values[key] += value;
+	if (!(key.substr(0, 11).compare("partitions."))) {
+		/* PartitionTest gene definition */
+		/* A numerical value is added as prefix to the gene name for keeping the original order */
+		stringstream ss;
+		ss << "partitions.";
+		ss << setw(5) << setfill('0') << reader->curgene++ << setfill(' ');
+		ss << key.substr(11, key.length() - 11);
+		reader->_values[ss.str()] += value;
+	} else if (!(key.substr(0, 12).compare("data_blocks."))) {
+		/* PartitionFinder gene definition */
+		/* A numerical value is added as prefix to the gene name for keeping the original order */
+		stringstream ss;
+		ss << "data_blocks.";
+		ss << setw(5) << setfill('0') << reader->curgene++ << setfill(' ');
+		ss << key.substr(12, key.length() - 12);
+		reader->_values[ss.str()] += value;
+	} else {
+		reader->_values[key] += value;
+	}
+
 	return 1;
 }
 

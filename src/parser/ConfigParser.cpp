@@ -224,9 +224,9 @@ ConfigParser::ConfigParser(const char * configFile) {
 		maxSamples = ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
 
 		/** PARTITIONS **/
-		std::map<std::string, std::string> * keys = ini.getGenes(
+		std::vector<std::string> * keys = ini.getGenes(
 		PARTITIONS_TAG);
-		number_of_genes = keys->size();
+		number_of_genes = keys->size()/2;
 
 		if (data_type == DT_DEFAULT) {
 			data_type = (dataType == DT_DEFAULT) ? DEFAULT_DATA_TYPE : dataType;
@@ -237,17 +237,14 @@ ConfigParser::ConfigParser(const char * configFile) {
 			singleGeneNames = (string **) malloc(
 					number_of_genes * sizeof(string*));
 
-			std::map<std::string, std::string>::iterator iter;
-			int partitionId = 0;
-			for (iter = keys->begin(); iter != keys->end(); iter++) {
-				partitions->at(partitionId).name = iter->first;
-				singleGeneNames[partitionId] = new string(iter->first);
+			for (int partitionId = 0; partitionId < number_of_genes; partitionId++) {
+				partitions->at(partitionId).name = keys->at(partitionId*2);
+				singleGeneNames[partitionId] = new string(keys->at(partitionId*2));
 
-				char lineBuffer[iter->second.length() + 1];
-				strcpy(lineBuffer, iter->second.c_str());
+				char lineBuffer[keys->at(partitionId * 2 + 1).length() + 1];
+				strcpy(lineBuffer, keys->at(partitionId * 2 + 1).c_str());
 
 				parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
-				partitionId++;
 			}
 			delete keys;
 
