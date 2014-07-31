@@ -55,6 +55,8 @@ public:
 	// about the parsing.
 	INIReader(string filename);
 
+	~INIReader();
+
 	// Return the result of ini_parse(), i.e., 0 on success, line number of
 	// first error on parse error, or -1 on file open error.
 	int ParseError();
@@ -76,11 +78,13 @@ public:
 	// and valid false values are "false", "no", "off", "0" (not case sensitive).
 	bool GetBoolean(string section, string name, bool default_value);
 
-	map<string, string> * getGenes(string section);
+	vector<string> * getGenes(string section);
 	vector<string> * getSchemes(string section);
 
 private:
+	int curgene;
 	int _error;
+	vector<string> * _genes;
 	map<string, string> _values;
 	static string MakeKey(string section, string name);
 	static int ValueHandler(void* user, const char* section, const char* name,

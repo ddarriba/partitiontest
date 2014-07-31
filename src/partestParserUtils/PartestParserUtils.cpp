@@ -83,19 +83,18 @@ int PartestParserUtils::parsePartitionFinderFile(vector<string> ** partitions,
 	}
 
 	/** PARTITIONS **/
-	std::map<std::string, string> * keys = ini.getGenes("data_blocks");
-	(*partitions) = new vector<string>();
+	vector<string> * keys = ini.getGenes("data_blocks");
+	int num_genes = keys->size()*2;
+	(*partitions) = new vector<string>(num_genes);
 
 	int partitionId = 0;
-	std::map<std::string, std::string>::iterator iter;
-	for (iter = keys->begin(); iter != keys->end(); iter++) {
-		string partitionLine(iter->first);
-		replace(iter->second.begin(), iter->second.end(), '\\', '/');
-		replace(iter->second.begin(), iter->second.end(), ';', '\0');
+	for (int partitionId = 0; partitionId < num_genes; partitionId++) {
+		string partitionLine(keys->at(partitionId * 2));
+		replace(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end(), '\\', '/');
+		replace(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end(), ';', '\0');
 		partitionLine.append(" = ");
-		partitionLine.append(iter->second.begin(), iter->second.end());
+		partitionLine.append(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end());
 		(*partitions)->push_back(partitionLine);
-		partitionId++;
 	}
 	delete keys;
 

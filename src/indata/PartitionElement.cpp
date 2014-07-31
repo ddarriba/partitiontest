@@ -138,6 +138,7 @@ int PartitionElement::setupStructures(void) {
 		pinfo->dataType = data_type==DT_NUCLEIC?PLL_DNA_DATA:PLL_AA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 		pinfo->partitionName = (char *) malloc(8 * sizeof(char));
+		pinfo->ascBias = PLL_FALSE;
 		strcpy(pinfo->partitionName, "NewGene");
 
 		int nextStart = 1;
