@@ -175,7 +175,7 @@ int PartitionElement::setupStructures(void) {
 		}
 
 		pllTreeInitTopologyForAlignment(_tree, _alignData);
-		pllLoadAlignment(_tree, _alignData, _partitions, PLL_DEEP_COPY);
+		pllLoadAlignment(_tree, _alignData, _partitions);
 
 		switch (starting_topology) {
 		case StartTopoML:
@@ -218,7 +218,7 @@ int PartitionElement::setupStructures(void) {
 			break;
 		}
 
-		pllInitModel(_tree, _partitions, _alignData);
+		pllInitModel(_tree, _partitions);
 
 		if (models.size() == 0) {
 			/* build model set */
