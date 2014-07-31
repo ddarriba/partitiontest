@@ -103,7 +103,7 @@ string ModelOptimize::buildStartingTree() {
 		pllAlignmentRemoveDups(alignData, compParts);
 
 		pllTreeInitTopologyForAlignment(tree, alignData);
-		pllLoadAlignment(tree, alignData, compParts, PLL_DEEP_COPY);
+		pllLoadAlignment(tree, alignData, compParts);
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
 
@@ -144,7 +144,7 @@ string ModelOptimize::buildStartingTree() {
 				exit_partest(EX_SOFTWARE);
 			}
 
-			pllInitModel(tree, compParts, alignData);
+			pllInitModel(tree, compParts);
 
 			tree->doCutoff = ML_PARAM_CUTOFF;
 			tree->likelihoodEpsilon = ML_PARAM_EPSILON;
@@ -157,7 +157,7 @@ string ModelOptimize::buildStartingTree() {
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 		} else {
 			cout << timestamp() << " Updating branch lengths..." << endl;
-			pllInitModel(tree, compParts, alignData);
+			pllInitModel(tree, compParts);
 			double lk = 0;
 			double epsilon = 10;
 			pllEvaluateLikelihood(tree, compParts, tree->start,
@@ -238,7 +238,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 	pllAlignmentRemoveDups(alignData, compParts);
 
 	pllTreeInitTopologyForAlignment(tree, alignData);
-	pllLoadAlignment(tree, alignData, compParts, PLL_DEEP_COPY);
+	pllLoadAlignment(tree, alignData, compParts);
 
 	pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
 	tree->start = tree->nodep[1];
@@ -288,7 +288,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 		}
 	}
 
-	pllInitModel(tree, compParts, alignData);
+	pllInitModel(tree, compParts);
 
 	pllRaxmlSearchAlgorithm(tree, compParts, PLL_FALSE);
 
@@ -379,7 +379,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		pllAlignmentRemoveDups(phylip, compParts);
 
 		pllTreeInitTopologyForAlignment(fTree, phylip);
-		pllLoadAlignment(fTree, phylip, compParts, PLL_SHALLOW_COPY);
+		pllLoadAlignment(fTree, phylip, compParts);
 
 		switch (starting_topology) {
 		case StartTopoMP:
@@ -449,7 +449,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			exit_partest(EX_UNAVAILABLE);
 		}
 
-		pllInitModel(fTree, compParts, phylip);
+		pllInitModel(fTree, compParts);
 
 		if (!reoptimizeParameters) {
 			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
