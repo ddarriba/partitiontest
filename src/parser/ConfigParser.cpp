@@ -72,6 +72,7 @@ void ConfigParser::createSinglePartition() {
 
 	partitions->at(0).partitionId.push_back(0);
 	pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+	pinfo->ascBias = PLL_FALSE;
 	pllQueueInit(&(pinfo->regionList));
 	pllQueueAppend(pllPartsQueue, (void *) pinfo);
 	pinfo->partitionName = (char *) malloc(2);
@@ -256,10 +257,10 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 			pllQueueInit(&pllPartsQueue);
 
-
 			for (size_t i = 0; i < number_of_genes; i++) {
 				partitions->at(i).partitionId.push_back(i);
 				pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+				pinfo->ascBias = PLL_FALSE;
 				pllQueueInit(&(pinfo->regionList));
 				pllQueueAppend(pllPartsQueue, (void *) pinfo);
 
@@ -382,7 +383,11 @@ int ConfigParser::parsePartitionDetails(char * line,
 	pllQueue * partitionLine;
 	pllPartitionInfo * pi;
 	char the_line[strlen(line) + 10];
-	strcpy(the_line, "DNA, P=");
+	if (data_type == DT_NUCLEIC) {
+		strcpy(the_line, "DNA, P=");
+	} else {
+		strcpy(the_line, "AUTO, P=");
+	}
 	strcat(the_line, line);
 	the_line[strlen(the_line)] = '\0';
 	partitionLine = pllPartitionParseString(the_line);
