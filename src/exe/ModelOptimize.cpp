@@ -124,7 +124,6 @@ string ModelOptimize::buildStartingTree() {
 					current_part->optimizeSubstitutionRates = PLL_FALSE;
 					current_part->protModels = PLL_AUTO;
 					current_part->alpha = 0.0;
-					current_part->ascBias = PLL_FALSE;
 				}
 				cout << timestamp() << " Loading AUTO models" << endl;
 				break;
@@ -137,7 +136,6 @@ string ModelOptimize::buildStartingTree() {
 					current_part->optimizeBaseFrequencies = PLL_TRUE;
 					current_part->optimizeAlphaParameter = PLL_TRUE;
 					current_part->optimizeSubstitutionRates = PLL_TRUE;
-					current_part->ascBias = PLL_FALSE;
 				}
 				cout << timestamp() << " Loading GTR models" << endl;
 				break;
@@ -159,10 +157,6 @@ string ModelOptimize::buildStartingTree() {
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 		} else {
 			cout << timestamp() << " Updating branch lengths..." << endl;
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-									cur_part++) {
-				compParts->partitionData[cur_part]->ascBias = PLL_FALSE;
-			}
 			pllInitModel(tree, compParts);
 			double lk = 0;
 			double epsilon = 10;
@@ -269,7 +263,6 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 				current_part->optimizeSubstitutionRates = PLL_FALSE;
 				current_part->protModels = matrix;
 				current_part->alpha = pModel->getAlpha();
-				current_part->ascBias = PLL_FALSE;
 			}
 			break;
 		case DT_NUCLEIC: {
@@ -287,7 +280,6 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
 				current_part->optimizeSubstitutionRates =
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
-				current_part->ascBias = PLL_FALSE;
 			}
 			break;
 		}
@@ -358,6 +350,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		for (size_t i = 0; i < finalScheme->getNumberOfElements(); i++) {
 			PartitionElement * pe = finalScheme->getElement(i);
 			pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+			pinfo->ascBias = PLL_FALSE;
 			pllQueueInit(&(pinfo->regionList));
 			pllQueueAppend(parts, (void *) pinfo);
 
@@ -433,7 +426,6 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 					memcpy(current_part->substRates, pModel->getRates(),
 					NUM_AA_RATES);
 				}
-				current_part->ascBias = PLL_FALSE;
 			}
 			break;
 		}
@@ -451,7 +443,6 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
 				current_part->optimizeSubstitutionRates =
 						reoptimizeParameters ? PLL_TRUE : PLL_FALSE;
-				current_part->ascBias = PLL_FALSE;
 			}
 			break;
 		}
