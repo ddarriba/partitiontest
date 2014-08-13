@@ -54,6 +54,7 @@ namespace partest {
 	DataType data_type = DT_DEFAULT;
 	StartTopo starting_topology;
 	SearchAlgo search_algo;
+	double epsilon = 1.0;
 	int max_samples;
 	InformationCriterion ic_type;
 	OptimizeMode optimize_mode;

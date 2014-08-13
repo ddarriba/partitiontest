@@ -182,7 +182,11 @@ int PartitionElement::setupStructures(void) {
 		case StartTopoML:
 			/* set ML optimization parameters */
 			_tree->doCutoff = ML_PARAM_CUTOFF;
-			_tree->likelihoodEpsilon = ML_PARAM_EPSILON;
+			if (epsilon == AUTO_EPSILON) {
+				_tree->likelihoodEpsilon = 0.1;
+			} else {
+				_tree->likelihoodEpsilon = epsilon;
+			}
 			_tree->stepwidth = ML_PARAM_STEPWIDTH;
 			_tree->max_rearrange = ML_PARAM_MAXREARRANGE;
 			_tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;

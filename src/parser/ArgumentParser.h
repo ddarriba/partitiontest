@@ -65,6 +65,7 @@ enum ArgIndex {
 	ARG_CONFIG_HELP, /** Argument for show help about configuration */
 	ARG_CONFIG_TEMPLATE, /** Argument for show a configuration template */
 	ARG_DATA_TYPE, /** Argument for data type (aa/nt) */
+	ARG_EPSILON, /** Argument for setting the optimization epsilon */
 	ARG_DISABLE_CHECKPOINT, /** Argument for disabling the checkpointing */
 	ARG_DISABLE_OUTPUT, /** Argument for disable writing output files */
 	ARG_FINAL_TREE, /** Argument for computing final tree */

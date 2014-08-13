@@ -40,6 +40,29 @@ char Utilities::encoding_table[] = {
 		'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3',
 		'4', '5', '6', '7', '8', '9', '-', '_' };
 
+bool Utilities::isNumeric(char * value) {
+	int len = strlen(value);
+	bool decimalFound = false;
+	for (int i = 0; len != 0; i++)
+		if (!isdigit(value[i])) {
+			if (value[i] == '.' && !decimalFound) {
+				decimalFound = true;
+			} else {
+				return false;
+			}
+		}
+	return true;
+}
+
+bool Utilities::isInteger(char * value) {
+	int len = strlen(value);
+	for (int i = 0; len != 0; i++)
+		if (!isdigit(value[i])) {
+			return false;
+		}
+	return true;
+}
+
 char Utilities::toBase64(int value) {
 	if (value > 63)
 		exit_partest(EX_SOFTWARE);
