@@ -45,8 +45,8 @@
 #define MAX_FILE_LENGTH 250
 
 /* ML optimization parameters */
+#define AUTO_EPSILON           0.0f
 #define ML_PARAM_CUTOFF        PLL_TRUE
-#define ML_PARAM_EPSILON       1.0
 #define ML_PARAM_STEPWIDTH     5
 #define ML_PARAM_MAXREARRANGE  11
 #define ML_PARAM_BESTTRAV      5
@@ -217,6 +217,8 @@ extern DataType data_type;
 extern StartTopo starting_topology;
 /** Algorithm for searching in the partition space */
 extern SearchAlgo search_algo;
+/** Epsilon for optimization algorithm */
+extern double epsilon;
 /** Number of samples in configurable algorithms */
 extern int max_samples;
 /** Whether to stop or not in local maxima */

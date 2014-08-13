@@ -147,7 +147,11 @@ string ModelOptimize::buildStartingTree() {
 			pllInitModel(tree, compParts);
 
 			tree->doCutoff = ML_PARAM_CUTOFF;
-			tree->likelihoodEpsilon = ML_PARAM_EPSILON;
+			if (epsilon == AUTO_EPSILON) {
+				tree->likelihoodEpsilon = 0.1;
+			} else {
+				tree->likelihoodEpsilon = epsilon;
+			}
 			tree->stepwidth = ML_PARAM_STEPWIDTH;
 			tree->max_rearrange = ML_PARAM_MAXREARRANGE;
 			tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
@@ -155,6 +159,7 @@ string ModelOptimize::buildStartingTree() {
 
 			cout << timestamp() << " Building ML topology" << endl;
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
+
 		} else {
 			cout << timestamp() << " Updating branch lengths..." << endl;
 			pllInitModel(tree, compParts);
@@ -730,7 +735,6 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 	partitionList * _partitions = element->getPartitions();
 	pllAlignmentData * _alignData = element->getAlignData();
 	Model * model = element->getModel(modelIndex);
-	double epsilon = ML_PARAM_EPSILON;
 	double lk;
 
 	/* set parameters for single partition element */
@@ -746,13 +750,17 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		pllRaxmlSearchAlgorithm(_tree, _partitions, PLL_TRUE);
 	} else {
 		/* main optimization loop */
+		double cur_epsilon = epsilon;
+		if (epsilon == AUTO_EPSILON) {
+			cur_epsilon = -0.1 * _tree->likelihood;
+		}
 		if (reoptimize_branch_lengths) {
 			int smoothIterations = 64;
 			do {
 				lk = _tree->likelihood;
 				pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
-				pllOptimizeModelParameters(_tree, _partitions, epsilon);
-			} while (fabs(lk - _tree->likelihood) > epsilon);
+				pllOptimizeModelParameters(_tree, _partitions, cur_epsilon);
+			} while (fabs(lk - _tree->likelihood) > cur_epsilon);
 		} else {
 			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
 			PLL_TRUE,
@@ -786,7 +794,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-			} while (fabs(lk - _tree->likelihood) > epsilon);
+			} while (fabs(lk - _tree->likelihood) > cur_epsilon);
 		}
 	}
 

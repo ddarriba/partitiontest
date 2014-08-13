@@ -64,6 +64,10 @@ public:
 	static inline int iDecLog(int x) {
 		return x > 0 ? floor(log(x) / log(10)) : 0;
 	}
+
+	static bool isNumeric(char * value);
+	static bool isInteger(char * value);
+
 	static char toBase64(int value);
 	static int setbitsCount(bitMask value);
 

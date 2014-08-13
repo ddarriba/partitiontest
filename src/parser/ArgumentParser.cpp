@@ -32,9 +32,9 @@ using namespace std;
 namespace partest {
 
 #ifdef _IG_MODELS
-#define NUM_ARGUMENTS 27
+#define NUM_ARGUMENTS 28
 #else
-#define NUM_ARGUMENTS 25
+#define NUM_ARGUMENTS 26
 #endif
 
 void ArgumentParser::init() {
@@ -52,6 +52,7 @@ ArgumentParser::ArgumentParser(PartitionTest * ptest) :
 			ARG_DATA_TYPE, 'd', "data-type", true }, {
 			ARG_DISABLE_CHECKPOINT, 0, "disable-ckp", false }, {
 			ARG_DISABLE_OUTPUT, 0, "disable-output", false }, {
+			ARG_EPSILON, 'e', "epsilon", true }, {
 			ARG_INPUT_FORMAT, 'f', "input-format", true }, {
 			ARG_FORCE_OVERRIDE, 0, "force-override", false }, {
 			ARG_FREQUENCIES, 'F', "empirical-frequencies", false }, {
@@ -228,6 +229,27 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			outputAvailable = false;
 			ckpAvailable = false;
 			break;
+		case ARG_EPSILON:
+			/* epsilon used for optimization algorithm */
+			if(Utilities::isNumeric(value)) {
+			epsilon = atof(value);
+			if (epsilon <= 0.0f) {
+				cerr << "[ERROR] \"-e " << value
+						<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
+			} else {
+				if (!strcasecmp(value, "auto")) {
+					epsilon = AUTO_EPSILON;
+				} else {
+					cerr << "[ERROR] \"-e " << value
+							<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
+			}
+					break;
 		case ARG_FORCE_OVERRIDE:
 			/* disable writing output files */
 			force_overriding = true;
@@ -292,8 +314,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_HCLUSTER_REPS:
 			/* number of replicates for HCluster and Random */
-			for (int i = 0; value[i] != 0; i++)
-				if (!isdigit(value[i])) {
+				if (!Utilities::isInteger(value)) {
 					cerr << "[ERROR] \"-r " << value << "\" must be an integer."
 							<< endl;
 					exit_partest(EX_CONFIG);
