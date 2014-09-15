@@ -232,11 +232,11 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_EPSILON:
 			/* epsilon used for optimization algorithm */
 			if(Utilities::isNumeric(value)) {
-			epsilon = atof(value);
-			if (epsilon <= 0.0f) {
-				cerr << "[ERROR] \"-e " << value
-						<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
-							<< endl;
+				epsilon = atof(value);
+				if (epsilon <= 0.0f) {
+					cerr << "[ERROR] \"-e " << value
+					<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
+					<< endl;
 					exit_partest(EX_CONFIG);
 				}
 			} else {
