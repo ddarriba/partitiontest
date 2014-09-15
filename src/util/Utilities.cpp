@@ -43,7 +43,7 @@ char Utilities::encoding_table[] = {
 bool Utilities::isNumeric(char * value) {
 	int len = strlen(value);
 	bool decimalFound = false;
-	for (int i = 0; len != 0; i++)
+	for (int i = 0; i<len; i++) {
 		if (!isdigit(value[i])) {
 			if (value[i] == '.' && !decimalFound) {
 				decimalFound = true;
@@ -51,12 +51,13 @@ bool Utilities::isNumeric(char * value) {
 				return false;
 			}
 		}
+	}
 	return true;
 }
 
 bool Utilities::isInteger(char * value) {
 	int len = strlen(value);
-	for (int i = 0; len != 0; i++)
+	for (int i = 0; i<len; i++)
 		if (!isdigit(value[i])) {
 			return false;
 		}
