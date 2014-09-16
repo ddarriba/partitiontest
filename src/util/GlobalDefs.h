@@ -158,7 +158,7 @@ enum RateVar {
 };
 
 enum StartTopo {
-	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
+	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER, StartTopoDEFAULT
 };
 
 enum SearchAlgo {

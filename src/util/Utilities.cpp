@@ -122,11 +122,11 @@ double Utilities::covariance(double X[], double Y[], int n) {
 
 }
 
-double Utilities::euclideanDistance(double X[], double Y[], int n) {
+double Utilities::euclideanDistance(double X[], double Y[], int n, double multiplier) {
 
 	double sum = 0.0;
 	for (int i = 0; i < n; i++) {
-		sum += (X[i] - Y[i]) * (X[i] - Y[i]);
+		sum += (X[i]*multiplier - Y[i]) * (X[i]*multiplier - Y[i]);
 	}
 	return sqrt(sum);
 

@@ -148,7 +148,7 @@ string ModelOptimize::buildStartingTree() {
 
 			tree->doCutoff = ML_PARAM_CUTOFF;
 			if (epsilon == AUTO_EPSILON) {
-				tree->likelihoodEpsilon = 0.1;
+				tree->likelihoodEpsilon = -0.001 * tree->likelihood;
 			} else {
 				tree->likelihoodEpsilon = epsilon;
 			}
@@ -168,10 +168,12 @@ string ModelOptimize::buildStartingTree() {
 			pllEvaluateLikelihood(tree, compParts, tree->start,
 			PLL_TRUE,
 			PLL_FALSE);
+			if (!reoptimize_branch_lengths) {
 			while (fabs(lk - tree->likelihood) > 5) {
 				lk = tree->likelihood;
 				pllOptimizeBranchLengths(tree, compParts, 64);
 				pllOptimizeModelParameters(tree, compParts, epsilon);
+			}
 			}
 		}
 
@@ -403,6 +405,10 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		case StartTopoUSER:
 			cerr << "User Topo Not Available" << endl;
 			exit_partest(EX_UNAVAILABLE);
+			break;
+		default:
+			cerr << "ERROR: Undefined starting topology" << endl;
+			exit_partest(EX_SOFTWARE);
 			break;
 		}
 
@@ -752,7 +758,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		/* main optimization loop */
 		double cur_epsilon = epsilon;
 		if (epsilon == AUTO_EPSILON) {
-			cur_epsilon = -0.1 * _tree->likelihood;
+			cur_epsilon = -0.001 * _tree->likelihood;
 		}
 		if (reoptimize_branch_lengths) {
 			int smoothIterations = 64;
@@ -779,17 +785,17 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 			PLL_FALSE);
 			do {
 				lk = _tree->likelihood;
-				pllOptRatesGeneric(_tree, _partitions, .001,
+				pllOptRatesGeneric(_tree, _partitions, .1,
 						_partitions->rateList);
 				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-				pllOptBaseFreqs(_tree, _partitions, .001,
+				pllOptBaseFreqs(_tree, _partitions, .1,
 						_partitions->freqList);
 				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-				pllOptAlphasGeneric(_tree, _partitions, .001,
+				pllOptAlphasGeneric(_tree, _partitions, .1,
 						_partitions->alphaList);
 				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
 				PLL_TRUE,

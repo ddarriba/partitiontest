@@ -76,7 +76,7 @@ public:
 	static double standardDeviation(double series[], int n);
 	static double covariance(double X[], double Y[], int n);
 	static double correlation(double X[], double Y[], int n);
-	static double euclideanDistance(double X[], double Y[], int n);
+	static double euclideanDistance(double X[], double Y[], int n, double multiplier = 1.0);
 	static double normalizedEuclideanDistance(double X[], double Y[], int n);
 
 	/** Number of branches according to the number of taxa. */

@@ -2,13 +2,13 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 
-prefix=simkgenes
+prefix=epsilontest
 datatype=dna
-NUM_SIMS=200
+NUM_SIMS=100
 mintaxa=6
-maxtaxa=40
-mingenes=1000
-maxgenes=1000
+maxtaxa=140
+mingenes=5
+maxgenes=50
 minlen=500
 maxlen=1000
 
@@ -193,7 +193,6 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	echo "TRACE    build raxml kn file and partest"
 	next_start=1
 	for ((gene_index=1; gene_index<=${num_genes}; gene_index++)); do
-echo B $part_header_line
 		partmodel=`sed "$((part_header_line + gene_index))q;d" ${INPUT_GEN2PARTFILE}`
 		gene_length=`echo ${partmodel} | cut -d' ' -f4`
 		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partest_filename}
