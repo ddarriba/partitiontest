@@ -78,6 +78,9 @@ void ConfigParser::createSinglePartition() {
 	pinfo->partitionName = (char *) malloc(2);
 	strcpy(pinfo->partitionName, "S");
 	pinfo->partitionModel = (char *) malloc(1);
+	if (starting_topology == StartTopoDEFAULT) {
+		starting_topology = DEFAULT_STARTING_TOPOLOGY;
+	}
 	if (data_type == DT_DEFAULT) {
 		data_type = dataType == DT_DEFAULT ? DEFAULT_DATA_TYPE : dataType;
 	}
@@ -131,10 +134,26 @@ ConfigParser::ConfigParser(const char * configFile) {
 			}
 			strcpy(inputFile + prefixLen, value);
 		}
+
+		if (starting_topology == StartTopoDEFAULT)
+		value = ini.Get(INPUT_TAG, INPUT_STARTTOPO_TAG, "").c_str();
+			if (!strcmp(value, "fixed")) {
+				starting_topology = StartTopoFIXED;
+			} else if (!strcmp(value, "ml")) {
+				starting_topology = StartTopoML;
+			} else if (!strcmp(value, "mp")) {
+				starting_topology = StartTopoMP;
+			} else if (!strcmp(value, "user")) {
+				starting_topology = StartTopoUSER;
+			} else {
+				starting_topology = DEFAULT_STARTING_TOPOLOGY;
+			}
+
 		value = ini.Get(INPUT_TAG, INPUT_TREE_TAG, "").c_str();
 		if (strcmp(value, "")) {
 			strcpy(userTree, value);
 		}
+
 		value = ini.Get(INPUT_TAG, INPUT_DATATYPE_TAG, "nt").c_str();
 		if (!strcmp(value, "aa")) {
 			dataType = DT_PROTEIC;
@@ -238,7 +257,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 			singleGeneNames = (string **) malloc(
 					number_of_genes * sizeof(string*));
 
-			for (int partitionId = 0; partitionId < number_of_genes; partitionId++) {
+			for (size_t partitionId = 0; partitionId < number_of_genes; partitionId++) {
 				partitions->at(partitionId).name = keys->at(partitionId*2);
 				singleGeneNames[partitionId] = new string(keys->at(partitionId*2));
 

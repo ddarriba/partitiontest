@@ -208,8 +208,19 @@ double NucleicModel::distanceTo(Model * otherModel) {
 //	double distance = matrixDistance + invDistance + shapeDistance
 //			+ freqsDistance;
 //  double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-	double rDistance = Utilities::normalizedEuclideanDistance(rates,
-			other->rates, 6);
+
+	/* we calculate a factor K such that mse(Ra*K, Rb) is minimized */
+	double numFactor = 0.0, denFactor=0.0;
+	for (int i=0; i<6; i++){
+		numFactor += rates[i] * other->rates[i];
+		denFactor += rates[i] * rates[i];
+	}
+	double kFactor = numFactor/denFactor;
+
+//	double rDistance = Utilities::normalizedEuclideanDistance(rates,
+//			other->rates, 6);
+	double rDistance = Utilities::euclideanDistance(rates,
+			other->rates, 6, kFactor);
 	double fDistance = Utilities::euclideanDistance(frequencies,
 			other->frequencies, 4);
 	double distance = rDistance + fDistance;// + shapeDistance;

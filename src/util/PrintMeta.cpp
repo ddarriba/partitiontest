@@ -70,6 +70,26 @@ void PrintMeta::print_options(ostream& output) {
 //			<< "     Number of unique patterns:" << left
 //			<< num_patterns << endl;
 
+	output << setw(OPT_DESCR_LENGTH) << left << "  Starting tree:";
+	switch (starting_topology) {
+	case StartTopoFIXED:
+		output << "Fixed" << endl;
+		break;
+	case StartTopoML:
+		output << "Maximum-Likelihood" << endl;
+		break;
+	case StartTopoMP:
+		output << "Maximum-Parsimony" << endl;
+		break;
+	case StartTopoUSER:
+		output << "User Defined" << endl;
+		break;
+	default:
+		cerr << "ERROR: Undefined starting topology" << endl;
+		exit_partest(EX_SOFTWARE);
+		break;
+	}
+
 	if (user_tree) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
 		if (user_tree->length() > 0) {
@@ -90,32 +110,69 @@ void PrintMeta::print_options(ostream& output) {
 	output << *config_file << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "     Number of partitions:"
 			<< left << number_of_genes << endl;
+
+	output << setw(OPT_DESCR_LENGTH) << left << "  Optimize mode:";
+	switch (optimize_mode) {
+	case OPT_GTR:
+		if (data_type == DT_NUCLEIC) {
+			output << "GTR+G" << endl;
+		} else {
+			output << "AUTO only" << endl;
+		}
+		break;
+	case OPT_CUSTOM:
+		output << "Custom set" << endl;
+		break;
+	case OPT_SEARCH:
+		output << "Whole set" << endl;
+		break;
+	default:
+		cerr << "ERROR: Undefined optimization mode" << endl;
+		exit_partest(EX_SOFTWARE);
+		break;
+	}
+
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:
 	case DT_DEFAULT:
 		output << "Nucleic" << endl;
-		output << setw(OPT_DESCR_LENGTH) << left
-				<< "  Include models with unequal frequencies:";
+		if (optimize_mode != OPT_GTR) {
+			output << setw(OPT_DESCR_LENGTH) << left
+					<< "  Include models with unequal frequencies:";
+		}
 		break;
 	case DT_PROTEIC:
 		output << "Proteic" << endl;
-		output << setw(OPT_DESCR_LENGTH) << left
-				<< "  Include models with empirical frequencies:";
+		if (optimize_mode != OPT_GTR) {
+			output << setw(OPT_DESCR_LENGTH) << left
+					<< "  Include models with empirical frequencies:";
+		}
 		break;
 	}
-	if (do_rate & RateVarF)
-		output << "True " << endl;
-	else
-		output << "False" << endl;
-	output << setw(OPT_DESCR_LENGTH) << left
-			<< "  Include models with rate variation:";
-	if (do_rate & RateVarG)
-		output << "True" << endl;
-	else
-		output << "False" << endl;
+	if (optimize_mode != OPT_GTR) {
+		if (do_rate & RateVarF)
+			output << "True " << endl;
+		else
+			output << "False" << endl;
+		output << setw(OPT_DESCR_LENGTH) << left
+				<< "  Include models with rate variation:";
+		if (do_rate & RateVarG)
+			output << "True" << endl;
+		else
+			output << "False" << endl;
+	}
 	output << setw(OPT_DESCR_LENGTH) << left << "  Number of candidate models:"
 			<< number_of_models << endl;
+
+	output << setw(OPT_DESCR_LENGTH) << left
+				<< "  Optimization epsilon:";
+	if (epsilon == AUTO_EPSILON) {
+		output << "Auto" << endl;
+	} else {
+		output << epsilon << endl;
+	}
+
 	if (number_of_schemes > 0) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Schemes to evaluate:";
 		output << left << number_of_schemes << endl;
@@ -158,6 +215,8 @@ void PrintMeta::print_options(ostream& output) {
 	case DT:
 		output << left << "DT" << endl;
 		break;
+	case IC_DEFAULT:
+		exit_partest(EX_SOFTWARE);
 	}
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
 			<< endl;

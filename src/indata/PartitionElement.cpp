@@ -221,6 +221,10 @@ int PartitionElement::setupStructures(void) {
 			cerr << "User Topo Not Available" << endl;
 			exit_partest(EX_UNAVAILABLE);
 			break;
+		default:
+			cerr << "ERROR: Undefined starting topology" << endl;
+			exit_partest(EX_SOFTWARE);
+			break;
 		}
 
 		pllInitModel(_tree, _partitions);

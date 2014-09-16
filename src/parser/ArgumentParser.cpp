@@ -180,7 +180,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	double sampleSizeValue = 0.0;
 #endif
 	DataType data_type = DT_DEFAULT;
-	StartTopo startingTopology = DEFAULT_STARTING_TOPOLOGY;
+	StartTopo startingTopology = StartTopoDEFAULT;
 	InformationCriterion ic_type = IC_DEFAULT;
 #ifdef _SELECT_SAMPLE_SIZE
 	SampleSize sampleSize = SS_DEFAULT;
