@@ -270,26 +270,34 @@ void PartitionTest::setStartingTopology(StartTopo startingTopology) {
 }
 
 void PartitionTest::setConfigFile(const char * configFile) {
-	if (config_file)
+	if (config_file) {
+		cerr << "[ERROR] Config file was already set before." << endl;
 		exit_partest(EX_IOERR);
+	}
 	config_file = new string(configFile);
 }
 
 void PartitionTest::setInputFile(const char * inputFile) {
-	if (input_file)
+	if (input_file) {
+		cerr << "[ERROR] Input file was already set before. " << input_file << " " << inputFile << endl;
 		exit_partest(EX_IOERR);
+	}
 	input_file = new string(inputFile);
 }
 
 void PartitionTest::setOutputDir(const char * outputDir) {
-	if (output_dir)
+	if (output_dir) {
+		cerr << "[ERROR] Output directory was already set before." << endl;
 		exit_partest(EX_IOERR);
+	}
 	output_dir = new string(outputDir);
 }
 
 void PartitionTest::setUserTree(const char * userTree) {
-	if (user_tree)
+	if (user_tree) {
+		cerr << "[ERROR] User tree was already set before." << endl;
 		exit_partest(EX_IOERR);
+	}
 	user_tree = new string(userTree);
 }
 

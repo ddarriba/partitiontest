@@ -395,23 +395,65 @@ int Utilities::path_is_directory (const char* path) {
     return S_ISDIR(s_buf.st_mode);
 }
 
-void Utilities::delete_folder_tree (const char* directory_name) {
-    DIR*            dp;
-    struct dirent*  ep;
-    char            p_buf[512] = {0};
+int Utilities::delete_folder_tree (const char* directory_name) {
+	   DIR *d = opendir(directory_name);
+	   size_t path_len = strlen(directory_name);
+	   int r = -1;
 
-    dp = opendir(directory_name);
+	   if (d)
+	   {
+	      struct dirent *p;
 
-    while ((ep = readdir(dp)) != NULL) {
-        sprintf(p_buf, "%s/%s", directory_name, ep->d_name);
-        if (path_is_directory(p_buf))
-            delete_folder_tree(p_buf);
-        else
-            unlink(p_buf);
-    }
+	      r = 0;
 
-    closedir(dp);
-    rmdir(directory_name);
+	      while (!r && (p=readdir(d)))
+	      {
+	          int r2 = -1;
+	          char *buf;
+	          size_t len;
+
+	          /* Skip the names "." and ".." as we don't want to recurse on them. */
+	          if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+	          {
+	             continue;
+	          }
+
+	          len = path_len + strlen(p->d_name) + 2;
+	          buf = (char *) malloc(len);
+
+	          if (buf)
+	          {
+	             struct stat statbuf;
+
+	             snprintf(buf, len, "%s/%s", directory_name, p->d_name);
+
+	             if (!stat(buf, &statbuf))
+	             {
+	                if (S_ISDIR(statbuf.st_mode))
+	                {
+	                   r2 = delete_folder_tree(buf);
+	                }
+	                else
+	                {
+	                   r2 = unlink(buf);
+	                }
+	             }
+
+	             free(buf);
+	          }
+
+	          r = r2;
+	      }
+
+	      closedir(d);
+	   }
+
+	   if (!r)
+	   {
+	      r = rmdir(directory_name);
+	   }
+
+	   return r;
 }
 
 } /* namespace partest */
