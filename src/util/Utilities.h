@@ -65,8 +65,8 @@ public:
 		return x > 0 ? floor(log(x) / log(10)) : 0;
 	}
 
-	static bool isNumeric(char * value);
-	static bool isInteger(char * value);
+	static bool isNumeric(const char * value);
+	static bool isInteger(const char * value);
 
 	static char toBase64(int value);
 	static int setbitsCount(bitMask value);
@@ -100,6 +100,9 @@ public:
 
 	static int averageModelParameters(t_partitionElementId id, partitionList * partitions);
 	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
+
+	static int path_is_directory (const char* path);
+	static void delete_folder_tree (const char* directory_name);
 private:
 	static char encoding_table[];
 };

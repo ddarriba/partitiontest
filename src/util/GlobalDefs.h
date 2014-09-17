@@ -158,7 +158,7 @@ enum RateVar {
 };
 
 enum StartTopo {
-	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER, StartTopoDEFAULT
+	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
 };
 
 enum SearchAlgo {
@@ -167,24 +167,23 @@ enum SearchAlgo {
 	SearchGreedy,
 	SearchGreedyExtended,
 	SearchHCluster,
-	SearchAuto,
-	SearchDefault
+	SearchAuto
 };
 
 enum DataType {
-	DT_NUCLEIC = 1, DT_PROTEIC = 2, DT_DEFAULT = 0
+	DT_NUCLEIC = 1, DT_PROTEIC = 2
 };
 
 enum InformationCriterion {
-	AIC, AICC, BIC, DT, IC_DEFAULT
+	AIC, AICC, BIC, DT
 };
 
 enum SampleSize {
-	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM, SS_DEFAULT
+	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM
 };
 
 enum OptimizeMode {
-	OPT_SEARCH, OPT_GTR, OPT_CUSTOM, OPT_DEFAULT
+	OPT_SEARCH, OPT_GTR, OPT_CUSTOM
 };
 
 #define CHECKPOINT_LOADED      0

@@ -39,6 +39,7 @@
 
 #define MODELS_TAG			"models"
 #define MODELS_INCLUDE_TAG	"include"
+#define MODELS_EPSILON_TAG	"epsilon"
 
 #define INPUT_TAG 			"input"
 #define INPUT_MSA_TAG 		"msa"
@@ -173,28 +174,16 @@ public:
 		return outputTmpPath;
 	}
 
-	/**
-	 * @brief Gets the number of replicates for hcluster.
-	 */
-	const int getMaxSamples() const {
-		return maxSamples;
-	}
-
-	DataType getDataType(void) {
-		return dataType;
-	}
-
-	const char * getInputFile(void) {
+	const char * getInputFile(void) const {
 		return inputFile;
 	}
 
-	const char * getUserTree(void) {
+	const char * getUserTree(void) const {
 		return userTree;
 	}
 
-	OptimizeMode getOptimizeMode(void) {
-		return optimizeMode;
-	}
+
+	void createPartitions();
 
 private:
 
@@ -223,14 +212,9 @@ private:
 	const char * configFile; /** Configuration file name */
 	char inputFile[256]; /** User input alignment */
 	char userTree[256]; /** User input tree */
-	OptimizeMode optimizeMode; /** Mode of optimization */
 	vector<partitionInfo> * partitions; /** Vector of partitions */
 
 	/** search algorithm **/
-	bool searchData; /** TODO: Not sure what is this doing here */
-	SearchAlgo searchAlgorithm; /** Search algorithm */
-	DataType dataType;
-	int maxSamples; /** Maximum number of samples in HCluster */
 	string outputFileResults; /** File name for results output */
 	string outputFileModels; /** File name for model selections output */
 	string outputFilePartitions; /** File name for partition selections output */

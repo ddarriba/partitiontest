@@ -30,6 +30,7 @@
 #include <iostream>
 #include <sstream>
 #include <parsePartition.h>
+#include <assert.h>
 
 namespace partest {
 
@@ -78,12 +79,8 @@ void ConfigParser::createSinglePartition() {
 	pinfo->partitionName = (char *) malloc(2);
 	strcpy(pinfo->partitionName, "S");
 	pinfo->partitionModel = (char *) malloc(1);
-	if (starting_topology == StartTopoDEFAULT) {
-		starting_topology = DEFAULT_STARTING_TOPOLOGY;
-	}
-	if (data_type == DT_DEFAULT) {
-		data_type = dataType == DT_DEFAULT ? DEFAULT_DATA_TYPE : dataType;
-	}
+	starting_topology = DEFAULT_STARTING_TOPOLOGY;
+
 	switch (data_type) {
 	case DT_NUCLEIC:
 		pinfo->protModels = -1;
@@ -97,8 +94,8 @@ void ConfigParser::createSinglePartition() {
 		pinfo->dataType = PLL_AA_DATA;
 		pinfo->optimizeBaseFrequencies = PLL_TRUE;
 		break;
-	case DT_DEFAULT:
-		exit_partest(EX_SOFTWARE);
+	default:
+		assert(0);
 		break;
 	}
 	pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
@@ -108,11 +105,59 @@ void ConfigParser::createSinglePartition() {
 	pllQueueAppend(pinfo->regionList, (void *) pregion);
 }
 
-ConfigParser::ConfigParser(const char * configFile) {
-	maxSamples = 1;
+void ConfigParser::createPartitions() {
+	if (partitions) {
+		pllPartitionRegion * pregion;
+		pllPartitionInfo * pinfo;
 
-	dataType = DT_DEFAULT;
-	optimizeMode = OPT_SEARCH;
+		pllQueueInit(&pllPartsQueue);
+
+		for (size_t i = 0; i < number_of_genes; i++) {
+			partitions->at(i).partitionId.push_back(i);
+			pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
+			pinfo->ascBias = PLL_FALSE;
+			pllQueueInit(&(pinfo->regionList));
+			pllQueueAppend(pllPartsQueue, (void *) pinfo);
+
+			pinfo->partitionName = (char *) malloc(
+					(partitions->at(i).name.size() + 1) * sizeof(char));
+			strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
+			pinfo->partitionModel = (char *) malloc(1);
+
+			switch (data_type) {
+			case DT_NUCLEIC:
+				pinfo->protModels = -1;
+				pinfo->protUseEmpiricalFreqs = -1;
+				pinfo->dataType = PLL_DNA_DATA;
+				pinfo->optimizeBaseFrequencies = PLL_TRUE;
+				break;
+			case DT_PROTEIC:
+				pinfo->protModels = PLL_AUTO;
+				pinfo->protUseEmpiricalFreqs = PLL_FALSE;
+				pinfo->dataType = PLL_AA_DATA;
+				pinfo->optimizeBaseFrequencies = PLL_TRUE;
+				break;
+			default:
+				assert(0);
+				break;
+			}
+
+			for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
+				pregion = (pllPartitionRegion *) malloc(
+						sizeof(pllPartitionRegion));
+				pregion->start = partitions->at(i).start[j];
+				pregion->end = partitions->at(i).end[j];
+				pregion->stride = partitions->at(i).stride[j];
+				pllQueueAppend(pinfo->regionList, (void *) pregion);
+			}
+		}
+	} else {
+		createSinglePartition();
+	}
+}
+
+ConfigParser::ConfigParser(const char * configFile) :
+		configFile(configFile), partitions(0) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 
@@ -120,6 +165,7 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 		//IniParser ini(configFile);
 		INIReader ini(configFile);
+
 		/** INPUT **/
 		value = ini.Get(INPUT_TAG, INPUT_MSA_TAG, "").c_str();
 		if (strcmp(value, "")) {
@@ -135,19 +181,18 @@ ConfigParser::ConfigParser(const char * configFile) {
 			strcpy(inputFile + prefixLen, value);
 		}
 
-		if (starting_topology == StartTopoDEFAULT)
 		value = ini.Get(INPUT_TAG, INPUT_STARTTOPO_TAG, "").c_str();
-			if (!strcmp(value, "fixed")) {
-				starting_topology = StartTopoFIXED;
-			} else if (!strcmp(value, "ml")) {
-				starting_topology = StartTopoML;
-			} else if (!strcmp(value, "mp")) {
-				starting_topology = StartTopoMP;
-			} else if (!strcmp(value, "user")) {
-				starting_topology = StartTopoUSER;
-			} else {
-				starting_topology = DEFAULT_STARTING_TOPOLOGY;
-			}
+		if (!strcmp(value, "fixed")) {
+			starting_topology = StartTopoFIXED;
+		} else if (!strcmp(value, "ml")) {
+			starting_topology = StartTopoML;
+		} else if (!strcmp(value, "mp")) {
+			starting_topology = StartTopoMP;
+		} else if (!strcmp(value, "user")) {
+			starting_topology = StartTopoUSER;
+		} else {
+			starting_topology = DEFAULT_STARTING_TOPOLOGY;
+		}
 
 		value = ini.Get(INPUT_TAG, INPUT_TREE_TAG, "").c_str();
 		if (strcmp(value, "")) {
@@ -156,11 +201,14 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 		value = ini.Get(INPUT_TAG, INPUT_DATATYPE_TAG, "nt").c_str();
 		if (!strcmp(value, "aa")) {
-			dataType = DT_PROTEIC;
+			data_type = DT_PROTEIC;
 		} else if (!strcmp(value, "nt")) {
-			dataType = DT_NUCLEIC;
+			data_type = DT_NUCLEIC;
 		} else {
-			dataType = DT_NUCLEIC;
+			cerr << "[ERROR] \"" << INPUT_DATATYPE_TAG << " = " << value
+					<< "\" is not a valid value. Data type should be \"nt\" or \"aa\"."
+					<< endl;
+			exit_partest(EX_CONFIG);
 		}
 
 		value = ini.Get(INPUT_TAG, INPUT_KEEPBRANCHES_TAG, "false").c_str();
@@ -171,13 +219,12 @@ ConfigParser::ConfigParser(const char * configFile) {
 		/** CANDIDATE MODELS **/
 		value = ini.Get(MODELS_TAG, MODELS_INCLUDE_TAG, "all").c_str();
 		if (!strcmp(value, "all")) {
-			optimizeMode = OPT_SEARCH;
+			optimize_mode = OPT_SEARCH;
 		} else if (!strcmp(value, "gtr")) {
-			optimizeMode = OPT_GTR;
+			optimize_mode = OPT_GTR;
 		} else {
 			// parse protein matrices
 			protModels = 0;
-			optimizeMode = OPT_CUSTOM;
 			istringstream iss(value);
 			string curMatrix;
 			while (iss) {
@@ -220,46 +267,66 @@ ConfigParser::ConfigParser(const char * configFile) {
 				}
 				protModels |= Utilities::binaryPow(curValue);
 			}
+			optimize_mode = OPT_CUSTOM;
 		}
 
-		/** SEARCH ALGORITHM **/
-		if (search_algo == SearchDefault) {
-			value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "auto").c_str();
-			if (!strcmp(value, "greedy")) {
-				searchAlgorithm = SearchGreedy;
-			} else if (!strcmp(value, "exhaustive")) {
-				searchAlgorithm = SearchExhaustive;
-			} else if (!strcmp(value, "random")) {
-				searchAlgorithm = SearchRandom;
-			} else if (!strcmp(value, "hcluster")) {
-				searchAlgorithm = SearchHCluster;
-			} else if (!strcmp(value, "auto")) {
-				searchAlgorithm = SearchAuto;
+		/** OPTIMIZATION EPSILON THRESHOLD **/
+		value = ini.Get(MODELS_TAG, MODELS_EPSILON_TAG, "n/a").c_str();
+		if (strcasecmp(value, "n/a")) {
+			if (Utilities::isNumeric(value)) {
+				epsilon = atof(value);
+				if (epsilon <= 0.0f) {
+					cerr << "[ERROR] \"" << MODELS_EPSILON_TAG << " = " << value
+							<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
 			} else {
-				cerr << "Invalid search algorithm : " << value << endl;
-				exit_partest(EX_CONFIG);
+				if (!strcasecmp(value, "auto")) {
+					epsilon = AUTO_EPSILON;
+				} else {
+					cerr << "[ERROR] \"" << MODELS_EPSILON_TAG << " = " << value
+							<< "\" is not a valid value. Epsilon should be \"auto\", or a numeric value greater or equal than 0."
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
 			}
 		}
 
-		maxSamples = ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
+		/** SEARCH ALGORITHM **/
+		value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "auto").c_str();
+		if (!strcmp(value, "greedy")) {
+			search_algo = SearchGreedy;
+		} else if (!strcmp(value, "exhaustive")) {
+			search_algo = SearchExhaustive;
+		} else if (!strcmp(value, "random")) {
+			search_algo = SearchRandom;
+		} else if (!strcmp(value, "hcluster")) {
+			search_algo = SearchHCluster;
+		} else if (!strcmp(value, "auto")) {
+			search_algo = SearchAuto;
+		} else {
+			cerr << "Invalid search algorithm : " << value << endl;
+			exit_partest(EX_CONFIG);
+		}
+
+		max_samples = ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
 
 		/** PARTITIONS **/
 		std::vector<std::string> * keys = ini.getGenes(
 		PARTITIONS_TAG);
-		number_of_genes = keys->size()/2;
-
-		if (data_type == DT_DEFAULT) {
-			data_type = (dataType == DT_DEFAULT) ? DEFAULT_DATA_TYPE : dataType;
-		}
+		number_of_genes = keys->size() / 2;
 
 		if (number_of_genes) {
 			partitions = new vector<partitionInfo>(number_of_genes);
 			singleGeneNames = (string **) malloc(
 					number_of_genes * sizeof(string*));
 
-			for (size_t partitionId = 0; partitionId < number_of_genes; partitionId++) {
-				partitions->at(partitionId).name = keys->at(partitionId*2);
-				singleGeneNames[partitionId] = new string(keys->at(partitionId*2));
+			for (size_t partitionId = 0; partitionId < number_of_genes;
+					partitionId++) {
+				partitions->at(partitionId).name = keys->at(partitionId * 2);
+				singleGeneNames[partitionId] = new string(
+						keys->at(partitionId * 2));
 
 				char lineBuffer[keys->at(partitionId * 2 + 1).length() + 1];
 				strcpy(lineBuffer, keys->at(partitionId * 2 + 1).c_str());
@@ -270,53 +337,6 @@ ConfigParser::ConfigParser(const char * configFile) {
 
 			std::sort(partitions->begin(), partitions->end(),
 					comparePartitionInfos());
-
-			pllPartitionRegion * pregion;
-			pllPartitionInfo * pinfo;
-
-			pllQueueInit(&pllPartsQueue);
-
-			for (size_t i = 0; i < number_of_genes; i++) {
-				partitions->at(i).partitionId.push_back(i);
-				pinfo = (pllPartitionInfo *) malloc(sizeof(pllPartitionInfo));
-				pinfo->ascBias = PLL_FALSE;
-				pllQueueInit(&(pinfo->regionList));
-				pllQueueAppend(pllPartsQueue, (void *) pinfo);
-
-				pinfo->partitionName = (char *) malloc(
-						(partitions->at(i).name.size() + 1) * sizeof(char));
-				strcpy(pinfo->partitionName, partitions->at(i).name.c_str());
-				pinfo->partitionModel = (char *) malloc(1);
-
-				switch (data_type) {
-				case DT_NUCLEIC:
-					pinfo->protModels = -1;
-					pinfo->protUseEmpiricalFreqs = -1;
-					pinfo->dataType = PLL_DNA_DATA;
-					pinfo->optimizeBaseFrequencies = PLL_TRUE;
-					break;
-				case DT_PROTEIC:
-					pinfo->protModels = PLL_AUTO;
-					pinfo->protUseEmpiricalFreqs = PLL_FALSE;
-					pinfo->dataType = PLL_AA_DATA;
-					pinfo->optimizeBaseFrequencies = PLL_TRUE;
-					break;
-				case DT_DEFAULT:
-					exit_partest(EX_SOFTWARE);
-					break;
-				}
-
-				for (int j = 0; j < partitions->at(i).numberOfSections; j++) {
-					pregion = (pllPartitionRegion *) malloc(
-							sizeof(pllPartitionRegion));
-					pregion->start = partitions->at(i).start[j];
-					pregion->end = partitions->at(i).end[j];
-					pregion->stride = partitions->at(i).stride[j];
-					pllQueueAppend(pinfo->regionList, (void *) pregion);
-				}
-			}
-		} else {
-			createSinglePartition();
 		}
 
 		/** SCHEMES **/
@@ -370,13 +390,13 @@ ConfigParser::ConfigParser(const char * configFile) {
 			outputFileSchemes = outputBasePath + string(value);
 		}
 
-		if ((optimizeMode == OPT_CUSTOM) & (dataType == DT_NUCLEIC)) {
+		if ((optimize_mode == OPT_CUSTOM) & (data_type == DT_NUCLEIC)) {
 			cerr
 					<< "[ERROR] Custom model set is not available for nucleic data."
 					<< endl;
 			cerr << "        Please use \"gtr\" or \"all\" option." << endl;
 			exit_partest(EX_CONFIG);
-		} else if ((optimizeMode == OPT_GTR) & (dataType == DT_PROTEIC)) {
+		} else if ((optimize_mode == OPT_GTR) & (data_type == DT_PROTEIC)) {
 			cerr << "[ERROR] GTR option is not available for proteic data."
 					<< endl;
 			cerr
@@ -384,15 +404,11 @@ ConfigParser::ConfigParser(const char * configFile) {
 					<< endl;
 			exit_partest(EX_CONFIG);
 		}
-	} else {
-		// no configuration file provided. A single partition will be used
-		if (search_algo == SearchDefault) {
-			search_algo = SearchAuto;
-		}
-		createSinglePartition();
-	}
-	if (ic_type == IC_DEFAULT) {
-		ic_type = DEFAULT_IC_TYPE;
+
+		if (strcmp(inputFile, ""))
+			input_file = new string(inputFile);
+		if (strcmp(userTree, ""))
+			user_tree = new string(userTree);
 	}
 }
 
@@ -481,7 +497,8 @@ void ConfigParser::printFormat() {
 	cout << "   " << INPUT_MSA_TAG << "=INPUT_ALIGNMENT_FILE" << endl;
 	cout << "   " << INPUT_TREE_TAG << "=INPUT_TREE_FILE" << endl;
 	cout << "   " << INPUT_DATATYPE_TAG << "={nt|aa} (default: nt)" << endl;
-	cout << "   " << INPUT_KEEPBRANCHES_TAG << "={true|false} (default: false)" << endl;
+	cout << "   " << INPUT_KEEPBRANCHES_TAG << "={true|false} (default: false)"
+			<< endl;
 	cout << endl << "   ; Start of searching options" << endl;
 	cout << "   [" << SEARCH_TAG << "]" << endl;
 	cout << "   " << SEARCH_ALGORITHM_TAG
@@ -587,11 +604,11 @@ vector<partitionInfo> * ConfigParser::getPartitions() {
 struct partitionInfo ConfigParser::getPartition(size_t index) {
 	if (!partitions) {
 		cerr << "[ERROR] No partitions were defined" << endl;
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 	}
 	if (index >= number_of_genes) {
 		cerr << "[ERROR] Requested partition does not exist" << endl;
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 	}
 	return partitions->at(index);
 }

@@ -55,7 +55,7 @@ public:
 	void setUserTree(const char * userTree);
 
 	bool checkParameters(void);
-	bool configure(void);
+	bool configure(PartitionTest * ptest, int argc, char * argv[]);
 private:
 	string buildStartingTree(void);
 };

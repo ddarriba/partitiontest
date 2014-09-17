@@ -80,7 +80,6 @@ void SearchAlgorithm::printStep(SearchAlgo algo, double nextScore) {
 		cout << " [RND] ";
 		break;
 	case SearchAuto:
-	case SearchDefault:
 		cout << " [XXX] ";
 		break;
 	}

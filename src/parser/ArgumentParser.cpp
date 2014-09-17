@@ -163,9 +163,35 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 	}
 }
 
-void ArgumentParser::parse(int argc, char *argv[]) {
+bool ArgumentParser::parseConfigFile(int argc, char *argv[]) {
+	int argument_index;
+	char value[256];
+	char argument[256];
+	bool configSet = false;
 
 	init();
+	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
+		if (argument_index == ARG_CONFIG_FILE) {
+			/* input configuration file */
+			configSet = true;
+			ptest->setConfigFile(value);
+		} else if (argument_index == ARG_DISABLE_CHECKPOINT) {
+			/* disable checkpointing files */
+			ckpAvailable = false;
+		} else if (argument_index == ARG_DISABLE_OUTPUT) {
+			/* disable writing output files */
+			outputAvailable = false;
+			ckpAvailable = false;
+		} else if (argument_index == ARG_FORCE_OVERRIDE) {
+			/* disable writing output files */
+			force_overriding = true;
+		}
+	}
+	return configSet;
+}
+
+void ArgumentParser::parse(int argc, char *argv[]) {
+
 	int argument_index;
 	char value[256];
 	char argument[256];
@@ -173,22 +199,14 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	char user_tree[256] = "";
 	char config_file[256] = "";
 	char output_dir[256] = "";
-	bool do_f = DEFAULT_DO_F;
-	bool do_i = DEFAULT_DO_I;
-	bool do_g = DEFAULT_DO_G;
+	bitMask do_rate = RateVarM;
+
 #ifdef _SELECT_SAMPLE_SIZE
 	double sampleSizeValue = 0.0;
-#endif
-	DataType data_type = DT_DEFAULT;
-	StartTopo startingTopology = StartTopoDEFAULT;
-	InformationCriterion ic_type = IC_DEFAULT;
-#ifdef _SELECT_SAMPLE_SIZE
 	SampleSize sampleSize = SS_DEFAULT;
 #endif
-	SearchAlgo searchAlgo = SearchDefault;
-	int maxSamples = 1;
-	OptimizeMode optimize = OPT_DEFAULT;
 
+	init();
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
 		switch (argument_index) {
 		case ARG_HELP:
@@ -206,9 +224,9 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_DATA_TYPE:
 			/* data type (nucleotide or amino-acid) */
 			if (!strcmp(value, ARG_DT_PROTEIC)) {
-				data_type = DT_PROTEIC;
+				ptest->setDataType(DT_PROTEIC);
 			} else if (!strcmp(value, ARG_DT_NUCLEIC)) {
-				data_type = DT_NUCLEIC;
+				ptest->setDataType(DT_NUCLEIC);
 			} else {
 				cerr << "[ERROR] \"-d " << value
 						<< "\" is not a valid data type. Use one of the following:"
@@ -257,13 +275,13 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_TOPOLOGY:
 			/* starting topology (Fixed, Parsimony or User-defined) */
 			if (!strcmp(value, ARG_TOPO_MP)) {
-				startingTopology = StartTopoMP;
+				ptest->setStartingTopology(StartTopoMP);
 			} else if (!strcmp(value, ARG_TOPO_ML)) {
-				startingTopology = StartTopoML;
+				ptest->setStartingTopology(StartTopoML);
 			} else if (!strcmp(value, ARG_TOPO_FIXED)) {
-				startingTopology = StartTopoFIXED;
+				ptest->setStartingTopology(StartTopoFIXED);
 			} else if (!strcmp(value, ARG_TOPO_USER)) {
-				startingTopology = StartTopoUSER;
+				ptest->setStartingTopology(StartTopoUSER);
 			} else {
 				cerr << "[ERROR] \"-t " << value
 						<< "\" is not a valid input topology. Use one of the following:"
@@ -282,17 +300,17 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_SEARCH_ALGORITHM:
 			/* search algorithm (HCluster, Greedy, Random or Exhaustive) */
 			if (!strcmp(value, ARG_SEARCH_EXHAUSTIVE)) {
-				searchAlgo = SearchExhaustive;
+				ptest->setSearchAlgo(SearchExhaustive);
 			} else if (!strcmp(value, ARG_SEARCH_RANDOM)) {
-				searchAlgo = SearchRandom;
+				ptest->setSearchAlgo(SearchRandom);
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY)) {
-				searchAlgo = SearchGreedy;
+				ptest->setSearchAlgo(SearchGreedy);
 			} else if (!strcmp(value, ARG_SEARCH_GREEDY_EXT)) {
-				searchAlgo = SearchGreedyExtended;
+				ptest->setSearchAlgo(SearchGreedyExtended);
 			} else if (!strcmp(value, ARG_SEARCH_HIERARCHICAL)) {
-				searchAlgo = SearchHCluster;
+				ptest->setSearchAlgo(SearchHCluster);
 			} else if (!strcmp(value, ARG_SEARCH_AUTO)) {
-				searchAlgo = SearchAuto;
+				ptest->setSearchAlgo(SearchAuto);
 			} else {
 				cerr << "[ERROR] \"-S " << value
 						<< "\" is not a valid search algorithm. Use one of the following:"
@@ -319,7 +337,7 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 							<< endl;
 					exit_partest(EX_CONFIG);
 				}
-			maxSamples = atoi(value);
+				ptest->setMaxSamples(atoi(value));
 			break;
 		case ARG_KEEP_BRANCH_LENGTHS:
 			/* keep branch lengths from the initial topology */
@@ -332,13 +350,13 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_IC_TYPE:
 			/* information criterion (aic, bic, aicc, dt) */
 			if (!strcmp(value, ARG_IC_AIC)) {
-				ic_type = AIC;
+				ptest->setIcType(AIC);
 			} else if (!strcmp(value, ARG_IC_BIC)) {
-				ic_type = BIC;
+				ptest->setIcType(BIC);
 			} else if (!strcmp(value, ARG_IC_AICC)) {
-				ic_type = AICC;
+				ptest->setIcType(AICC);
 			} else if (!strcmp(value, ARG_IC_DT)) {
-				ic_type = DT;
+				ptest->setIcType(DT);
 			} else {
 				cerr << "[ERROR] \"-s " << value
 						<< "\" is not a valid criterion. Use one of the following:"
@@ -385,22 +403,22 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			 break;
 		case ARG_FREQUENCIES:
 			/* include empirical / unequal frequencies */
-			do_f = true;
+			do_rate |= (RateVarF);
 			break;
 		case ARG_INV:
 			/* include models with a proportion of invariant sites */
-			do_i = true;
+			do_rate |= (RateVarI);
 			break;
 		case ARG_GAMMA:
 			/* include models with gamma-distributed rate heterogeneity */
-			do_g = true;
+			do_rate |= (RateVarG);
 			break;
 		case ARG_OPTIMIZE:
 			/* modelset to optimize */
 			if (!strcmp(value, ARG_OPTIMIZE_BESTMODEL)) {
-				optimize = OPT_SEARCH;
+				ptest->setOptimize(OPT_SEARCH);
 			} else if (!strcmp(value, ARG_OPTIMIZE_GTR)) {
-				optimize = OPT_GTR;
+				ptest->setOptimize(OPT_GTR);
 			} else {
 				cerr << "[ERROR] \"-n " << value
 						<< "\" is not a valid optimize mode. Use one of the following:"
@@ -465,31 +483,12 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		}
 	}
-
-	bitMask do_rate = RateVarM;
-	if (do_f)
-		do_rate |= (RateVarF);
-	if (do_i)
-		do_rate |= (RateVarI);
-	if (do_g)
-		do_rate |= (RateVarG);
-
 	if (strcmp(input_file, ""))
 		ptest->setInputFile(input_file);
-	if (strcmp(config_file, ""))
-		ptest->setConfigFile(config_file);
 	if (strcmp(user_tree, ""))
 		ptest->setUserTree(user_tree);
 	if (strcmp(output_dir, ""))
 		ptest->setOutputDir(output_dir);
-	ptest->setDataType(data_type);
-	ptest->setDoRate(do_rate);
-	ptest->setStartingTopology(startingTopology);
-	ptest->setMaxSamples(maxSamples);
-	ptest->setOptimize(optimize);
-	ptest->setSearchAlgo(searchAlgo);
-	ptest->setIcType(ic_type);
-
 }
 
 } /* namespace partest */
