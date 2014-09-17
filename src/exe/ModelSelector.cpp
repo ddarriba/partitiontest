@@ -74,7 +74,6 @@ double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 		cerr << "[ERROR] Decision Theory is not implemented yet" << endl;
 		exit_partest(EX_UNAVAILABLE);
 		break;
-	case IC_DEFAULT:
 	default:
 		value = 0.0;
 		cerr << "[ERROR] Undefined Criterion" << endl;
@@ -256,7 +255,6 @@ void ModelSelector::print(ostream& out) {
 	case DT:
 		out << "Decision Theory" << endl;
 		break;
-	case IC_DEFAULT:
 	default:
 		cerr << "[ERROR] Undefined Criterion" << endl;
 		exit_partest(EX_SOFTWARE);

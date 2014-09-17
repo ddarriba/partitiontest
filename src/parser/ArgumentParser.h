@@ -119,6 +119,22 @@ public:
 	 */
 	ArgIndex get_opt(int argc, char *argv[], char *argument, char *value);
 
+	/**
+	 * @brief Parse the configuration file
+	 *
+	 * @param argc Arguments array.
+	 * @param argv Number of arguments.
+	 *
+	 * @return true, if configFile was set
+	 */
+	bool parseConfigFile(int argc, char *argv[]);
+
+	/**
+	 * @brief Parse the command line arguments
+	 *
+	 * @param argc Arguments array.
+	 * @param argv Number of arguments.
+	 */
 	void parse(int argc, char *argv[]);
 
 private:

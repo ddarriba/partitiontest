@@ -26,6 +26,12 @@
 
 #include <pllInternal.h>
 
+/* includes for working with files/directories (Linux) */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
@@ -40,7 +46,7 @@ char Utilities::encoding_table[] = {
 		'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3',
 		'4', '5', '6', '7', '8', '9', '-', '_' };
 
-bool Utilities::isNumeric(char * value) {
+bool Utilities::isNumeric(const char * value) {
 	int len = strlen(value);
 	bool decimalFound = false;
 	for (int i = 0; i<len; i++) {
@@ -55,7 +61,7 @@ bool Utilities::isNumeric(char * value) {
 	return true;
 }
 
-bool Utilities::isInteger(char * value) {
+bool Utilities::isInteger(const char * value) {
 	int len = strlen(value);
 	for (int i = 0; i<len; i++)
 		if (!isdigit(value[i])) {
@@ -377,6 +383,35 @@ pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
 		pllNewickParseDestroy(&nts[i]);
 	}
 	return nt;
+}
+
+
+int Utilities::path_is_directory (const char* path) {
+    struct stat s_buf;
+
+    if (stat(path, &s_buf))
+        return 0;
+
+    return S_ISDIR(s_buf.st_mode);
+}
+
+void Utilities::delete_folder_tree (const char* directory_name) {
+    DIR*            dp;
+    struct dirent*  ep;
+    char            p_buf[512] = {0};
+
+    dp = opendir(directory_name);
+
+    while ((ep = readdir(dp)) != NULL) {
+        sprintf(p_buf, "%s/%s", directory_name, ep->d_name);
+        if (path_is_directory(p_buf))
+            delete_folder_tree(p_buf);
+        else
+            unlink(p_buf);
+    }
+
+    closedir(dp);
+    rmdir(directory_name);
 }
 
 } /* namespace partest */

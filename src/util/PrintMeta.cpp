@@ -28,6 +28,7 @@
 
 #include <iomanip>
 #include <string.h>
+#include <assert.h>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
@@ -135,7 +136,6 @@ void PrintMeta::print_options(ostream& output) {
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:
-	case DT_DEFAULT:
 		output << "Nucleic" << endl;
 		if (optimize_mode != OPT_GTR) {
 			output << setw(OPT_DESCR_LENGTH) << left
@@ -195,7 +195,6 @@ void PrintMeta::print_options(ostream& output) {
 		case SearchExhaustive:
 			output << left << "Exahustive" << endl;
 			break;
-		case SearchDefault:
 		case SearchAuto:
 			output << left << "Auto" << endl;
 			break;
@@ -215,8 +214,8 @@ void PrintMeta::print_options(ostream& output) {
 	case DT:
 		output << left << "DT" << endl;
 		break;
-	case IC_DEFAULT:
-		exit_partest(EX_SOFTWARE);
+	default:
+		assert(0);
 	}
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
 			<< endl;
@@ -466,9 +465,9 @@ void PrintMeta::print_results_xml(ostream & ofs,
 					<< ", ";
 
 			break;
-		case DT_DEFAULT:
+		default:
 			cerr << "Uninitialized DataType" << endl;
-			exit_partest(EX_SOFTWARE);
+			assert(0);
 		}
 		ofs << "PART" << i + 1 << " = ";
 		for (int j = 0; j < element->getNumberOfSections(); j++) {

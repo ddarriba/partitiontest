@@ -34,18 +34,19 @@
 #include "parser/ArgumentParser.h"
 #include "parser/ConfigParser.h"
 
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <fstream>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <assert.h>
 
 namespace partest {
 
 bool PartitionTest::checkParameters(void) {
 	/* check all non-default parameters have been set */
-	return (data_type != DT_DEFAULT) & (search_algo != SearchDefault)
-			& (optimize_mode != OPT_DEFAULT) & (ic_type != IC_DEFAULT)
-			& (input_file != 0);
+	assert(input_file && input_file->compare(""));
+	return true;
 }
 
 PartitionTest::PartitionTest() {
@@ -54,13 +55,13 @@ PartitionTest::PartitionTest() {
 	tree = 0;
 	pllPartsQueue = 0;
 
-	data_type = DT_DEFAULT;
+	data_type = DEFAULT_DATA_TYPE;
 	do_rate = 0;
 	starting_topology = DEFAULT_STARTING_TOPOLOGY;
-	search_algo = SearchDefault;
+	search_algo = DEFAULT_SEARCH_ALGO;
 	max_samples = 1;
-	optimize_mode = OPT_DEFAULT;
-	ic_type = IC_DEFAULT;
+	optimize_mode = DEFAULT_OPTIMIZE;
+	ic_type = DEFAULT_IC_TYPE;
 }
 
 PartitionTest::~PartitionTest() {
@@ -82,23 +83,20 @@ PartitionTest::~PartitionTest() {
 
 }
 
-bool PartitionTest::configure(void) {
+bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
+
+	ArgumentParser * argParser = new ArgumentParser(ptest);
+	argParser->parseConfigFile(argc, argv);
 
 	if (!config_file)
 		config_file = new string("");
 
 	ConfigParser parser(config_file->c_str());
 
-	if (optimize_mode == OPT_DEFAULT) {
-		optimize_mode = parser.getOptimizeMode();
-		if (optimize_mode == OPT_DEFAULT) {
-			optimize_mode = DEFAULT_OPTIMIZE;
-		}
-	}
+	argParser->parse(argc, argv);
+	parser.createPartitions();
 
-	if (search_algo == SearchDefault) {
-		search_algo = DEFAULT_SEARCH_ALGO;
-	}
+	delete argParser;
 
 	// check required arguments
 	if (!input_file) {
@@ -201,13 +199,6 @@ bool PartitionTest::configure(void) {
 	attr.useRecom = PLL_FALSE;
 	attr.numberOfThreads = number_of_threads;
 
-	if (data_type == DT_DEFAULT) {
-		data_type = parser.getDataType();
-		if (data_type == DT_DEFAULT) {
-			data_type = DEFAULT_DATA_TYPE;
-		}
-	}
-
 	switch (optimize_mode) {
 	case OPT_SEARCH:
 		number_of_models = data_type == DT_NUCLEIC ?
@@ -226,8 +217,8 @@ bool PartitionTest::configure(void) {
 			number_of_models *= 2;
 		}
 		break;
-	case OPT_DEFAULT:
-		exit_partest(EX_SOFTWARE);
+	default:
+		assert(0);
 	}
 
 	tree = pllCreateInstance(&attr);
@@ -321,14 +312,12 @@ int main(int argc, char * argv[]) {
 
 	PartitionTest * ptest = new PartitionTest();
 
-	ArgumentParser * parser = new ArgumentParser(ptest);
-	parser->parse(argc, argv);
-
 	if (I_AM_ROOT) {
 		PrintMeta::print_header(cout);
 	}
 
-	ptest->configure();
+	ptest->configure(ptest, argc, argv);
+
 	if (!config_file && !ptest->checkParameters()) {
 		cerr << "[ERROR] Configuration parameters are missing" << endl;
 		exit_partest(EX_CONFIG);
@@ -414,12 +403,16 @@ int main(int argc, char * argv[]) {
 
 	PartitionMap::deleteInstance();
 
-	delete parser;
 	delete ptest;
 
 #ifdef HAVE_MPI
 	MPI_Finalize();
 #endif
+
+	/* cleanup */
+	if (ckpAvailable) {
+		Utilities::delete_folder_tree(ckpPath.c_str());
+	}
 
 	exit_partest(EX_OK);
 }

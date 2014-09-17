@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <fstream>
 #include <sstream>
+#include <assert.h>
 
 using namespace std;
 
@@ -256,8 +257,7 @@ int PartitionElement::setupStructures(void) {
 					}
 					break;
 				case OPT_CUSTOM:
-				case OPT_DEFAULT:
-					exit_partest(EX_SOFTWARE);
+					assert(0);
 				}
 				break;
 			case DT_PROTEIC:
@@ -285,12 +285,12 @@ int PartitionElement::setupStructures(void) {
 							new ProteicModel(PROT_MATRIX_AUTO, RateVarG,
 									num_taxa));
 					break;
-				case OPT_DEFAULT:
-					exit_partest(EX_SOFTWARE);
+				default:
+					assert(0);
 				}
 				break;
 			default:
-				exit_partest(EX_SOFTWARE);
+				assert(0);
 			}
 		}
 	}
@@ -563,10 +563,9 @@ int PartitionElement::loadData(void) {
 			case DT_PROTEIC:
 				model = (ProteicModel *) alloca(modelSize);
 				break;
-			case DT_DEFAULT:
 			default:
 				cerr << "[INTERNAL_ERROR] Unrecognized datatype" << endl;
-				exit_partest(EX_SOFTWARE);
+				assert(0);
 			}
 			ofs.read((char *) model, modelSize);
 			double * freqs = (double *) alloca(

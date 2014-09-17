@@ -51,11 +51,11 @@ namespace partest {
 
 	/* configuration */
 	int number_of_threads = 1;
-	DataType data_type = DT_DEFAULT;
+	DataType data_type;
 	StartTopo starting_topology;
 	SearchAlgo search_algo;
 	double epsilon = 1.0;
-	int max_samples;
+	int max_samples = 1;
 	InformationCriterion ic_type;
 	OptimizeMode optimize_mode;
 	bool non_stop = false;
