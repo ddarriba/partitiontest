@@ -162,7 +162,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 	if (configFile != 0 && strcmp(configFile, "")) {
 
 		const char * value;
-
+		strcpy(inputFile, "");
+		strcpy(userTree, "");
 		//IniParser ini(configFile);
 		INIReader ini(configFile);
 
@@ -405,10 +406,12 @@ ConfigParser::ConfigParser(const char * configFile) :
 			exit_partest(EX_CONFIG);
 		}
 
-		if (strcmp(inputFile, ""))
+		if (strcmp(inputFile, "")) {
 			input_file = new string(inputFile);
-		if (strcmp(userTree, ""))
+		}
+		if (strcmp(userTree, "")) {
 			user_tree = new string(userTree);
+		}
 	}
 }
 

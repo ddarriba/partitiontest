@@ -102,7 +102,7 @@ public:
 	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
 
 	static int path_is_directory (const char* path);
-	static void delete_folder_tree (const char* directory_name);
+	static int delete_folder_tree (const char* directory_name);
 private:
 	static char encoding_table[];
 };
