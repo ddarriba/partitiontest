@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.50])
 AC_INIT(partest, 1.0, ddarriba@udc.es)
-AM_INIT_AUTOMAKE # (partest, 1.0)
+AM_INIT_AUTOMAKE([subdir-objects]) # (partest, 1.0)
 
 CFLAGS="$CFLAGS -I${PWD}/libpll/include"
 CXXFLAGS="$CXXFLAGS -I${PWD}/libpll/include"

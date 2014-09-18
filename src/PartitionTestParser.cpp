@@ -166,6 +166,7 @@ int PartitionTestParser::parseConfigFile() {
 	case searchGreedy:
 			ofs << "algorithm = greedy" << endl << endl;
 			break;
+	case searchAll:
 	case searchUNDEFINED:
 		ofs << "algorithm = auto" << endl << endl;
 		break;

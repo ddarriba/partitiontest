@@ -748,7 +748,6 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 			0, false);
 
 	_tree->thoroughInsertion = PLL_FALSE;
-
 	pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
 	PLL_FALSE);
 

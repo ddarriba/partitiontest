@@ -7,6 +7,8 @@ partest_SOURCES = \
 	indata/PartitionMap.cpp \
 	indata/PartitionElement.cpp \
 	indata/PartitioningScheme.cpp \
+	indata/TreeManager.cpp \
+	indata/PllTreeManager.cpp \
 	model/Model.cpp \
 	model/NucleicModel.cpp \
 	model/ProteicModel.cpp \
@@ -19,10 +21,10 @@ partest_SOURCES = \
 	search/HierarchicalClusteringSearchAlgorithm.cpp \
 	search/GreedySearchAlgorithm.cpp \
 	search/RandomSearchAlgorithm.cpp \
-	util/Utilities.cpp \
 	util/FileUtilities.cpp \
 	util/GlobalDefs.cpp \
 	util/PrintMeta.cpp \
+	util/Utilities.cpp \
 	PartitionTest.cpp
 
 partest_CPPFLAGS = -g -O3 -Wall 

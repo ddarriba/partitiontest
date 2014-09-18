@@ -36,15 +36,14 @@ using namespace std;
 namespace partest {
 
 PartitionElement::PartitionElement(t_partitionElementId id) :
-		ready(false), id(id), sampleSize(0.0), _alignData(0), _tree(0), _partitions(
-				0), ckpLoaded(false), tag(false) {
+		ready(false), id(id), sampleSize(0.0), treeManager(0), sections(
+				id.size()), ckpLoaded(false), tag(false), branchLengths(0) {
 
 	this->bestModel = 0;
 	models.reserve(number_of_models);
 	numberOfSections = id.size();
 	numberOfSites = 0;
 	numberOfPatterns = 0;
-	sections = (PEsection *) malloc(numberOfSections * sizeof(PEsection));
 	name.append("(");
 	for (size_t i = 0; i < numberOfSections; i++) {
 		size_t part = id.at(i);
@@ -90,145 +89,14 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	}
 
 	sampleSize = numberOfSites;
-	branchLengths = 0;
 
 	loadData();
 }
 
 int PartitionElement::setupStructures(void) {
 	if (!isOptimized()) {
-		pllInstanceAttr attr;
-		attr.fastScaling = PLL_FALSE;
-		attr.randomNumberSeed = 12345;
-		attr.rateHetModel = PLL_GAMMA;
-		attr.saveMemory = PLL_FALSE;
-		attr.useRecom = PLL_FALSE;
-		attr.numberOfThreads = number_of_threads;
-		_tree = pllCreateInstance(&attr);
-
-		_alignData = pllInitAlignmentData(phylip->sequenceCount, numberOfSites);
-		_alignData->siteWeights = (int *) malloc(numberOfSites * sizeof(int));
-		for (int seq = 1; seq <= _alignData->sequenceCount; seq++) {
-			_alignData->sequenceLabels[seq] = (char *) malloc(
-					strlen(phylip->sequenceLabels[seq]) + 1);
-			strcpy(_alignData->sequenceLabels[seq],
-					phylip->sequenceLabels[seq]);
-			int nextSite = 0;
-			for (size_t i = 0; i < numberOfSections; i++) {
-				size_t part = id.at(i);
-				int lower = pllPartitions->partitionData[part]->lower;
-				int width = pllPartitions->partitionData[part]->width;
-				memcpy(&(_alignData->sequenceData[seq][nextSite]),
-						&(phylip->sequenceData[seq][lower]),
-						width * sizeof(unsigned char));
-				nextSite += width;
-			}
-		}
-		for (size_t site = 0; site < numberOfSites; site++) {
-			_alignData->siteWeights[site] = 1;
-		}
-		pllQueue * partsQueue;
-		pllQueueInit(&partsQueue);
-
-		pllPartitionInfo * pinfo = (pllPartitionInfo *) malloc(
-				sizeof(pllPartitionInfo));
-		pllQueueInit(&(pinfo->regionList));
-		pinfo->partitionModel = (char *) malloc(1);
-		pinfo->protModels = -1;
-		pinfo->protUseEmpiricalFreqs = -1;
-		pinfo->dataType = data_type==DT_NUCLEIC?PLL_DNA_DATA:PLL_AA_DATA;
-		pinfo->optimizeBaseFrequencies = PLL_TRUE;
-		pinfo->partitionName = (char *) malloc(8 * sizeof(char));
-		pinfo->ascBias = PLL_FALSE;
-		strcpy(pinfo->partitionName, "NewGene");
-
-		int nextStart = 1;
-		for (int part = 0; part <= pllPartitions->numberOfPartitions; part++) {
-			if (find(id.begin(), id.end(), part) != id.end()) {
-				pllPartitionRegion * pregion = (pllPartitionRegion *) malloc(
-						sizeof(pllPartitionRegion));
-				pregion->start = nextStart;
-				pregion->end = nextStart
-						+ pllPartitions->partitionData[part]->width - 1;
-				pregion->stride = 1;
-				nextStart = pregion->end + 1;
-				pllQueueAppend(pinfo->regionList, (void *) pregion);
-			}
-		}
-		pllQueueAppend(partsQueue, (void *) pinfo);
-
-		_partitions = pllPartitionsCommit(partsQueue, _alignData);
-
-		pllQueuePartitionsDestroy(&partsQueue);
-
-		assert(_alignData->sequenceLength == (int ) numberOfSites);
-		pllAlignmentRemoveDups(_alignData, _partitions);
-		numberOfPatterns = _alignData->sequenceLength;
-
-		if (data_type == DT_PROTEIC) {
-			for (int cur_part = 0; cur_part < _partitions->numberOfPartitions;
-					cur_part++) {
-				pInfo * current_part = _partitions->partitionData[cur_part];
-				current_part->protUseEmpiricalFreqs = PLL_FALSE;
-				current_part->optimizeBaseFrequencies = PLL_FALSE;
-				current_part->protModels = PLL_AUTO;
-				current_part->alpha = 0.0;
-			}
-		}
-
-		pllTreeInitTopologyForAlignment(_tree, _alignData);
-		pllLoadAlignment(_tree, _alignData, _partitions);
-
-		switch (starting_topology) {
-		case StartTopoML:
-			/* set ML optimization parameters */
-			_tree->doCutoff = ML_PARAM_CUTOFF;
-			if (epsilon == AUTO_EPSILON) {
-				_tree->likelihoodEpsilon = 0.1;
-			} else {
-				_tree->likelihoodEpsilon = epsilon;
-			}
-			_tree->stepwidth = ML_PARAM_STEPWIDTH;
-			_tree->max_rearrange = ML_PARAM_MAXREARRANGE;
-			_tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
-			_tree->initialSet = ML_PARAM_INITIALSET;
-			pllComputeRandomizedStepwiseAdditionParsimonyTree(_tree,
-					_partitions);
-			_tree->start = _tree->nodep[1];
-			break;
-		case StartTopoMP:
-			pllComputeRandomizedStepwiseAdditionParsimonyTree(_tree,
-					_partitions);
-			_tree->start = _tree->nodep[1];
-			break;
-		case StartTopoFIXED:
-		{
-			pllNewickTree * nt;
-			if (pergene_branch_lengths) {
-				if (pergene_branch_lengths && id.size() == 1) {
-					nt = pllNewickParseString(pergene_starting_tree[id.at(0)]);
-				} else {
-					nt = Utilities::averageBranchLengths(id);
-				}
-			} else {
-				nt = pllNewickParseString(starting_tree);
-			}
-			_tree->fracchange = 1.0;
-			pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
-			pllNewickParseDestroy(&nt);
-			break;
-		}
-		case StartTopoUSER:
-			cerr << "User Topo Not Available" << endl;
-			exit_partest(EX_UNAVAILABLE);
-			break;
-		default:
-			cerr << "ERROR: Undefined starting topology" << endl;
-			exit_partest(EX_SOFTWARE);
-			break;
-		}
-
-		pllInitModel(_tree, _partitions);
+		treeManager = new PllTreeManager(phylip, sections, numberOfSites);
+		numberOfPatterns = treeManager->getNumberOfPatterns();
 
 		if (models.size() == 0) {
 			/* build model set */
@@ -300,38 +168,24 @@ int PartitionElement::setupStructures(void) {
 }
 
 int PartitionElement::destroyStructures(void) {
-	if (_tree) {
-		if (starting_topology == StartTopoFIXED && !branchLengths) {
-				/* if topology is fixed for each element, keep the branch lengths */
-				branchLengths = (double *) malloc((size_t)Utilities::numberOfBranches(num_taxa) * sizeof(double));
-				for (int i=0; i<Utilities::numberOfBranches(num_taxa); i++) {
-					if (isnan(_tree->nodep[i+1]->z[0])) {
-						cout << "ERROR: NAN branch in " << i+1 << endl;
-						exit_partest(EX_SOFTWARE);
-					}
-					branchLengths[i] = _tree->nodep[i+1]->z[0];
-				}
-			}
-		if (_partitions) {
-			pllPartitionsDestroy(_tree, &_partitions);
-			_partitions = 0;
-		}
-		pllDestroyInstance(_tree);
-		_tree = 0;
+
+	if (starting_topology == StartTopoFIXED && !branchLengths) {
+		/* keep branch lengths */
+		branchLengths = treeManager->getBranchLengths();
 	}
-	if (_alignData) {
-		pllAlignmentDataDestroy(_alignData);
-		_alignData = 0;
-	}
+	delete treeManager;
+	treeManager = 0;
 
 	ready = false;
 
 	return EX_OK;
+
 }
 
 PartitionElement::~PartitionElement() {
 
-	free(sections);
+	if (treeManager)
+		delete treeManager;
 
 	if (branchLengths)
 		free(branchLengths);
@@ -342,15 +196,6 @@ PartitionElement::~PartitionElement() {
 	}
 	delete bestModel;
 
-	if (_tree) {
-		if (_partitions) {
-			pllPartitionsDestroy(_tree, &_partitions);
-		}
-		pllDestroyInstance(_tree);
-	}
-	if (_alignData) {
-		pllAlignmentDataDestroy(_alignData);
-	}
 }
 
 pllAlignmentData * PartitionElement::getAlignData(void) {
@@ -358,7 +203,7 @@ pllAlignmentData * PartitionElement::getAlignData(void) {
 		cerr << "[ERROR] Alignment data is not ready" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
-	return _alignData;
+	return treeManager->_alignData;
 }
 
 pllInstance * PartitionElement::getTree(void) {
@@ -366,22 +211,13 @@ pllInstance * PartitionElement::getTree(void) {
 		cerr << "[ERROR] Tree is not ready" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
-	return _tree;
+	return treeManager->_tree;
 }
 
 double * PartitionElement::getBranchLengths(void) {
-	if (starting_topology == StartTopoFIXED && !branchLengths && _tree) {
+	if (starting_topology == StartTopoFIXED && !branchLengths && ready) {
 		/* if topology is fixed for each element, keep the branch lengths */
-		branchLengths = (double *) malloc(
-				(size_t) Utilities::numberOfBranches(num_taxa)
-						* sizeof(double));
-		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
-			if (isnan(_tree->nodep[i + 1]->z[0])) {
-				cout << "ERROR: NAN branch in " << i + 1 << endl;
-				exit_partest(EX_SOFTWARE);
-			}
-			branchLengths[i] = _tree->nodep[i + 1]->z[0];
-		}
+		branchLengths = treeManager->getBranchLengths();
 	}
 	return branchLengths;
 }
@@ -391,7 +227,7 @@ partitionList * PartitionElement::getPartitions(void) {
 		cerr << "[ERROR] Partitions structure is not ready" << endl;
 		exit_partest(EX_SOFTWARE);
 	}
-	return _partitions;
+	return treeManager->_partitions;
 }
 
 vector<Model *> PartitionElement::getModels(void) const {
@@ -639,7 +475,7 @@ int PartitionElement::loadData(void) {
 		if (branchLengths) {
 			free(branchLengths);
 		}
-		branchLengths = (double *) malloc (numBranches * sizeof(double));
+		branchLengths = (double *) malloc(numBranches * sizeof(double));
 		ofs.read((char *) branchLengths, numBranches * sizeof(double));
 	}
 	ofs.close();
@@ -659,16 +495,17 @@ int PartitionElement::storeData(void) {
 
 	if (starting_topology == StartTopoFIXED && !branchLengths) {
 		/* if topology is fixed for each element, keep the branch lengths */
-		branchLengths = (double *) malloc(
-				(size_t) Utilities::numberOfBranches(num_taxa)
-						* sizeof(double));
-		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
-			if (isnan(_tree->nodep[i + 1]->z[0])) {
-				cerr << "ERROR: NAN branch in " << i + 1 << endl;
-				exit_partest(EX_SOFTWARE);
-			}
-			branchLengths[i] = _tree->nodep[i + 1]->z[0];
-		}
+		branchLengths = treeManager->getBranchLengths();
+//		branchLengths = (double *) malloc(
+//				(size_t) Utilities::numberOfBranches(num_taxa)
+//						* sizeof(double));
+//		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
+//			if (isnan(treeManager->_tree->nodep[i + 1]->z[0])) {
+//				cerr << "ERROR: NAN branch in " << i + 1 << endl;
+//				exit_partest(EX_SOFTWARE);
+//			}
+//			branchLengths[i] = treeManager->_tree->nodep[i + 1]->z[0];
+//		}
 	}
 
 	fstream ofs((ckpPath + os_separator + ckpname).c_str(),
@@ -690,8 +527,9 @@ int PartitionElement::storeData(void) {
 					* (modelSize + sizeof(size_t) + tree->treeStringLength
 							+ (numberOfFrequencies + numberOfRates)
 									* sizeof(double)) + sizeof(int)
-			+ sizeof(SelectionModel) +
-			(branchLengths?Utilities::numberOfBranches(num_taxa)*sizeof(double):0);
+			+ sizeof(SelectionModel)
+			+ (branchLengths ?
+					Utilities::numberOfBranches(num_taxa) * sizeof(double) : 0);
 	ofs.write((char *) &ckpSize, sizeof(size_t));
 	ofs.write((char *) &hashlen, sizeof(size_t));
 	if (hashlen > 0) {
@@ -712,7 +550,8 @@ int PartitionElement::storeData(void) {
 		ofs.write((char *) model->getFrequencies(),
 				model->getNumberOfFrequencies() * sizeof(double));
 		if (data_type == DT_NUCLEIC) {
-			ofs.write((char *) model->getRates(), NUM_DNA_RATES * sizeof(double));
+			ofs.write((char *) model->getRates(),
+			NUM_DNA_RATES * sizeof(double));
 		}
 		size_t tree_len = strlen(model->getTree().c_str()) + 1;
 		ofs.write((char *) &tree_len, sizeof(size_t));
