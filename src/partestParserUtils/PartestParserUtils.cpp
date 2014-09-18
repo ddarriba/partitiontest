@@ -87,7 +87,6 @@ int PartestParserUtils::parsePartitionFinderFile(vector<string> ** partitions,
 	int num_genes = keys->size()*2;
 	(*partitions) = new vector<string>(num_genes);
 
-	int partitionId = 0;
 	for (int partitionId = 0; partitionId < num_genes; partitionId++) {
 		string partitionLine(keys->at(partitionId * 2));
 		replace(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end(), '\\', '/');
