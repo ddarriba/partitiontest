@@ -26,12 +26,13 @@
 #define PARTITIONELEMENT_H_
 
 #include "util/GlobalDefs.h"
+#include "indata/PllTreeManager.h"
 #include "model/SelectionModel.h"
 #include "model/NucleicModel.h"
 #include "model/ProteicModel.h"
+
 #include <string>
 #include <vector>
-#include <pll.h>
 
 using namespace std;
 
@@ -69,6 +70,7 @@ public:
 	bool isReady(void);
 	bool isOptimized(void);
 
+	//TreeManager * getTreeManager(void);
 	pllInstance * getTree(void);
 	partitionList * getPartitions(void);
 	pllAlignmentData * getAlignData(void);
@@ -95,11 +97,12 @@ private:
 	string name, ckpname, ckphash;
 	double sampleSize;
 
-	pllAlignmentData * _alignData;
-	pllInstance * _tree;
-	partitionList * _partitions;
+	PllTreeManager * treeManager;
+//	pllAlignmentData * _alignData;
+//	pllInstance * _tree;
+//	partitionList * _partitions;
 
-	PEsection * sections;
+	vector<PEsection> sections;
 
 	bool ckpLoaded;
 	bool tag;
