@@ -41,20 +41,6 @@ public:
 	 */
 	static unsigned long int binaryPow(unsigned long int x);
 
-	/**
-	 * Check the existence of a file
-	 *
-	 * @return true, if the file exists
-	 */
-	static inline bool existsFile (const std::string& name) {
-	    if (FILE *file = fopen(name.c_str(), "r")) {
-	        fclose(file);
-	        return true;
-	    } else {
-	        return false;
-	    }
-	}
-
 	static inline size_t iBinaryLog(size_t x) {
 		return ceil(log(x) / log(2));
 	}
@@ -101,8 +87,6 @@ public:
 	static int averageModelParameters(t_partitionElementId id, partitionList * partitions);
 	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
 
-	static int path_is_directory (const char* path);
-	static int delete_folder_tree (const char* directory_name);
 private:
 	static char encoding_table[];
 };

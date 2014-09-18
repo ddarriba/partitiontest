@@ -31,6 +31,7 @@
 #include "indata/PartitionMap.h"
 #include "util/PrintMeta.h"
 #include "util/Utilities.h"
+#include "util/FileUtilities.h"
 #include "parser/ArgumentParser.h"
 #include "parser/ConfigParser.h"
 
@@ -143,24 +144,10 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 							exit_partest(EX_IOERR);
 						}
 					} else {
-						if (Utilities::existsFile(*models_logfile)
-								|| Utilities::existsFile(*schemes_logfile)
-								|| Utilities::existsFile(*results_logfile)
-								|| Utilities::existsFile(*log_logfile)) {
+						if (FileUtilities::existsFile(*results_logfile)) {
 							cerr << "[ERROR] Output files already exist:"
 									<< endl;
-							if (Utilities::existsFile(*models_logfile)) {
-								cerr << "        " << *models_logfile << endl;
-							}
-							if (Utilities::existsFile(*schemes_logfile)) {
-								cerr << "        " << *schemes_logfile << endl;
-							}
-							if (Utilities::existsFile(*results_logfile)) {
 								cerr << "        " << *results_logfile << endl;
-							}
-							if (Utilities::existsFile(*log_logfile)) {
-								cerr << "        " << *log_logfile << endl;
-							}
 							cerr << endl
 									<< "If you really want to proceed, remove result files or re-run with --force-override or --disable-output arguments."
 									<< endl << endl;
@@ -419,7 +406,7 @@ int main(int argc, char * argv[]) {
 
 	/* cleanup */
 	if (ckpAvailable) {
-		Utilities::delete_folder_tree(ckpPath.c_str());
+		FileUtilities::deleteDirectoryRecursive(ckpPath.c_str());
 	}
 
 	exit_partest(EX_OK);
