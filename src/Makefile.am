@@ -20,6 +20,7 @@ partest_SOURCES = \
 	search/GreedySearchAlgorithm.cpp \
 	search/RandomSearchAlgorithm.cpp \
 	util/Utilities.cpp \
+	util/FileUtilities.cpp \
 	util/GlobalDefs.cpp \
 	util/PrintMeta.cpp \
 	PartitionTest.cpp

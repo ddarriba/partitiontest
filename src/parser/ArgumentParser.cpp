@@ -26,6 +26,7 @@
 #include <iostream>
 #include "ConfigParser.h"
 #include "util/Utilities.h"
+#include "util/FileUtilities.h"
 
 using namespace std;
 
@@ -173,18 +174,14 @@ bool ArgumentParser::parseConfigFile(int argc, char *argv[]) {
 	while ((argument_index = get_opt(argc, argv, argument, value)) != ARG_END) {
 		if (argument_index == ARG_CONFIG_FILE) {
 			/* input configuration file */
+			if (!FileUtilities::existsFile(value)) {
+				cerr << "[ERROR] \"Configuration file " << value
+						<< "\" does not exist." << endl;
+				exit_partest(EX_IOERR);
+			}
 			configSet = true;
 			ptest->setConfigFile(value);
-		} else if (argument_index == ARG_DISABLE_CHECKPOINT) {
-			/* disable checkpointing files */
-			ckpAvailable = false;
-		} else if (argument_index == ARG_DISABLE_OUTPUT) {
-			/* disable writing output files */
-			outputAvailable = false;
-			ckpAvailable = false;
-		} else if (argument_index == ARG_FORCE_OVERRIDE) {
-			/* disable writing output files */
-			force_overriding = true;
+			break;
 		}
 	}
 	return configSet;
@@ -216,10 +213,20 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 		case ARG_INPUT_FILE:
 			/* input alignment file */
 			strcpy(input_file, value);
+			if (!FileUtilities::existsFile(input_file)) {
+				cerr << "[ERROR] \"Input file " << value << "\" does not exist."
+						<< endl;
+				exit_partest(EX_IOERR);
+			}
 			break;
 		case ARG_USER_TREE:
 			/* input user defined topology */
 			strcpy(user_tree, value);
+			if (!FileUtilities::existsFile(user_tree)) {
+				cerr << "[ERROR] \"Tree file " << value << "\" does not exist."
+						<< endl;
+				exit_partest(EX_IOERR);
+			}
 			break;
 		case ARG_DATA_TYPE:
 			/* data type (nucleotide or amino-acid) */
