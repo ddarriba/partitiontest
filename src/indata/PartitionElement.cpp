@@ -95,7 +95,7 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 
 int PartitionElement::setupStructures(void) {
 	if (!isOptimized()) {
-		treeManager = new PllTreeManager(phylip, sections, numberOfSites);
+		treeManager = new PllTreeManager(id, phylip, sections, numberOfSites);
 		numberOfPatterns = treeManager->getNumberOfPatterns();
 
 		if (models.size() == 0) {
@@ -198,20 +198,12 @@ PartitionElement::~PartitionElement() {
 
 }
 
-pllAlignmentData * PartitionElement::getAlignData(void) {
+TreeManager * PartitionElement::getTreeManager(void) {
 	if (!ready) {
-		cerr << "[ERROR] Alignment data is not ready" << endl;
-		exit_partest(EX_SOFTWARE);
-	}
-	return treeManager->_alignData;
-}
-
-pllInstance * PartitionElement::getTree(void) {
-	if (!ready) {
-		cerr << "[ERROR] Tree is not ready" << endl;
-		exit_partest(EX_SOFTWARE);
-	}
-	return treeManager->_tree;
+			cerr << "[ERROR] Alignment data is not ready" << endl;
+			exit_partest(EX_SOFTWARE);
+		}
+	return treeManager;
 }
 
 double * PartitionElement::getBranchLengths(void) {
@@ -220,14 +212,6 @@ double * PartitionElement::getBranchLengths(void) {
 		branchLengths = treeManager->getBranchLengths();
 	}
 	return branchLengths;
-}
-
-partitionList * PartitionElement::getPartitions(void) {
-	if (!ready) {
-		cerr << "[ERROR] Partitions structure is not ready" << endl;
-		exit_partest(EX_SOFTWARE);
-	}
-	return treeManager->_partitions;
 }
 
 vector<Model *> PartitionElement::getModels(void) const {

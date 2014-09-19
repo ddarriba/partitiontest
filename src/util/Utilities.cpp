@@ -23,6 +23,7 @@
 
 #include "Utilities.h"
 #include "indata/PartitionMap.h"
+#include "indata/TreeManager.h"
 
 #include <pllInternal.h>
 
@@ -317,19 +318,12 @@ int Utilities::averageModelParameters(t_partitionElementId id, partitionList * p
 	for (size_t i=0; i<id.size(); i++) {
 		t_partitionElementId nextElement(1);
 		nextElement.at(0) = id.at(i);
-		pInfo * nextPL = PartitionMap::getInstance()->getPartitionElement(nextElement)->getPartitions()->partitionData[0];
-		partitions->partitionData[0]->alpha += nextPL->alpha;
-		for (size_t j = 0;
-				j < (data_type==DT_NUCLEIC?NUM_NUC_FREQS:NUM_PROT_FREQS);
-				j++) {
-			partitions->partitionData[0]->frequencies[j] +=
-					nextPL->frequencies[j];
-		}
+		TreeManager * elementTree = PartitionMap::getInstance()->getPartitionElement(nextElement)->getTreeManager();
+		partitions->partitionData[0]->alpha += elementTree->getAlpha();
+		memcpy(partitions->partitionData[0]->frequencies, elementTree->getFrequencies(),
+				(data_type==DT_NUCLEIC?NUM_NUC_FREQS:NUM_PROT_FREQS)*sizeof(double));
 		if (data_type == DT_NUCLEIC) {
-			for (size_t j = 0; j < NUM_DNA_RATES; j++) {
-				partitions->partitionData[0]->substRates[j] +=
-						nextPL->substRates[j];
-			}
+			memcpy(partitions->partitionData[0]->substRates, elementTree->getRates(), NUM_DNA_RATES*sizeof(double));
 		}
 	}
 	partitions->partitionData[0]->alpha /= id.size();

@@ -21,12 +21,12 @@
 #include "exe/ModelSelector.h"
 #include "util/Utilities.h"
 #include "indata/PartitionMap.h"
+#include "indata/TreeManager.h"
 
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <pll.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -169,11 +169,11 @@ string ModelOptimize::buildStartingTree() {
 			PLL_TRUE,
 			PLL_FALSE);
 			if (!reoptimize_branch_lengths) {
-			while (fabs(lk - tree->likelihood) > 5) {
-				lk = tree->likelihood;
-				pllOptimizeBranchLengths(tree, compParts, 64);
-				pllOptimizeModelParameters(tree, compParts, epsilon);
-			}
+				while (fabs(lk - tree->likelihood) > 5) {
+					lk = tree->likelihood;
+					pllOptimizeBranchLengths(tree, compParts, 64);
+					pllOptimizeModelParameters(tree, compParts, epsilon);
+				}
 			}
 		}
 
@@ -599,241 +599,215 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 	return EX_OK;
 }
 
-void ModelOptimize::setModelParameters(t_partitionElementId id, Model * _model,
-		pllInstance * _tree, partitionList * _partitions,
-		pllAlignmentData * _alignData, int index, bool setAlphaFreqs) {
-
-	pInfo * current_part = _partitions->partitionData[index];
-	current_part->ascBias = PLL_FALSE;
-
-	if (data_type == DT_NUCLEIC) {
-		const char * m = _model->getMatrixName().c_str();
-		char * symmetryPar = (char *) malloc(12 * sizeof(char));
-		symmetryPar[0] = m[0];
-		symmetryPar[11] = '\0';
-		for (int j = 1; j < NUM_DNA_RATES; j++) {
-			symmetryPar[(j - 1) * 2 + 1] = ',';
-			symmetryPar[j * 2] = m[j];
-		}
-		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, _partitions, index);
-
-		current_part->optimizeBaseFrequencies = _model->isPF();
-		if (!_model->isPF()) {
-			for (int i = 0; i < 4; i++) {
-				current_part->frequencies[i] = 0.25;
-			}
-		}
-
-		current_part->alpha = _model->getAlpha();
-		current_part->dataType = PLL_DNA_DATA;
-		pllInitReversibleGTR(_tree, _partitions, index);
-		if (setAlphaFreqs || id.size() == 1) {
-			current_part->optimizeBaseFrequencies = _model->isPF();
-			memcpy(current_part->frequencies, _model->getFrequencies(),
-					4 * sizeof(double));
-			for (int i = 0; i < NUM_NUC_FREQS; i++) {
-				current_part->freqExponents[i] = 1.0;
-			}
-			memcpy(current_part->substRates, _model->getRates(),
-			NUM_DNA_RATES * sizeof(double));
-
-			current_part->alpha = _model->getAlpha();
-			pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-					_tree->useMedian);
-		} else {
-			PartitionMap * partitionMap = PartitionMap::getInstance();
-			if (ESTIMATE_PARAMETERS) {
-				double alpha = 0.0;
-				double frequencies[NUM_NUC_FREQS];
-				for (int j = 0; j < NUM_NUC_FREQS; j++) {
-//					frequencies[j] = 0.0;
-					frequencies[j] = 0.25;
-				}
-				double rates[NUM_DNA_RATES];
-				for (int j = 0; j < NUM_DNA_RATES; j++) {
-					rates[j] = 0.0;
-				}
-				for (size_t i = 0; i < id.size(); i++) {
-					t_partitionElementId singleId(1);
-					singleId.at(0) = id.at(i);
-					PartitionElement * element =
-							partitionMap->getPartitionElement(singleId);
-//					double * elementFreqs =
-//							element->getBestModel()->getModel()->getFrequencies();
-//					for (int j = 0; j < NUM_NUC_FREQS; j++) {
-//						frequencies[j] += elementFreqs[j] / id.size();
+//void ModelOptimize::setModelParameters(t_partitionElementId id, Model * _model,
+//		pllInstance * _tree, partitionList * _partitions,
+//		pllAlignmentData * _alignData, int index, bool setAlphaFreqs) {
+//
+//	pInfo * current_part = _partitions->partitionData[index];
+//	current_part->ascBias = PLL_FALSE;
+//
+//	if (data_type == DT_NUCLEIC) {
+//		const char * m = _model->getMatrixName().c_str();
+//		char * symmetryPar = (char *) malloc(12 * sizeof(char));
+//		symmetryPar[0] = m[0];
+//		symmetryPar[11] = '\0';
+//		for (int j = 1; j < NUM_DNA_RATES; j++) {
+//			symmetryPar[(j - 1) * 2 + 1] = ',';
+//			symmetryPar[j * 2] = m[j];
+//		}
+//		pllSetSubstitutionRateMatrixSymmetries(symmetryPar, _partitions, index);
+//
+//		current_part->optimizeBaseFrequencies = _model->isPF();
+//		if (!_model->isPF()) {
+//			for (int i = 0; i < 4; i++) {
+//				current_part->frequencies[i] = 0.25;
+//			}
+//		}
+//
+//		current_part->alpha = _model->getAlpha();
+//		current_part->dataType = PLL_DNA_DATA;
+//		pllInitReversibleGTR(_tree, _partitions, index);
+//		if (setAlphaFreqs || id.size() == 1) {
+//			current_part->optimizeBaseFrequencies = _model->isPF();
+//			memcpy(current_part->frequencies, _model->getFrequencies(),
+//					4 * sizeof(double));
+//			for (int i = 0; i < NUM_NUC_FREQS; i++) {
+//				current_part->freqExponents[i] = 1.0;
+//			}
+//			memcpy(current_part->substRates, _model->getRates(),
+//			NUM_DNA_RATES * sizeof(double));
+//
+//			current_part->alpha = _model->getAlpha();
+//			pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+//					_tree->useMedian);
+//		} else {
+//			PartitionMap * partitionMap = PartitionMap::getInstance();
+//			if (ESTIMATE_PARAMETERS) {
+//				double alpha = 0.0;
+//				double frequencies[NUM_NUC_FREQS];
+//				for (int j = 0; j < NUM_NUC_FREQS; j++) {
+////					frequencies[j] = 0.0;
+//					frequencies[j] = 0.25;
+//				}
+//				double rates[NUM_DNA_RATES];
+//				for (int j = 0; j < NUM_DNA_RATES; j++) {
+//					rates[j] = 0.0;
+//				}
+//				for (size_t i = 0; i < id.size(); i++) {
+//					t_partitionElementId singleId(1);
+//					singleId.at(0) = id.at(i);
+//					PartitionElement * element =
+//							partitionMap->getPartitionElement(singleId);
+////					double * elementFreqs =
+////							element->getBestModel()->getModel()->getFrequencies();
+////					for (int j = 0; j < NUM_NUC_FREQS; j++) {
+////						frequencies[j] += elementFreqs[j] / id.size();
+////					}
+//					double * elementRates =
+//							element->getBestModel()->getModel()->getRates();
+//					for (int j = 0; j < NUM_DNA_RATES; j++) {
+//						rates[j] += elementRates[j] / id.size();
 //					}
-					double * elementRates =
-							element->getBestModel()->getModel()->getRates();
-					for (int j = 0; j < NUM_DNA_RATES; j++) {
-						rates[j] += elementRates[j] / id.size();
-					}
-					alpha += element->getBestModel()->getModel()->getAlpha()
-							/ id.size();
-				}
-
-//				if (!_model->isPF()) {
-//					for (int i = 0; i < NUM_NUC_FREQS; i++) {
-//						frequencies[i] = 0.25;
+//					alpha += element->getBestModel()->getModel()->getAlpha()
+//							/ id.size();
+//				}
+//
+////				if (!_model->isPF()) {
+////					for (int i = 0; i < NUM_NUC_FREQS; i++) {
+////						frequencies[i] = 0.25;
+////					}
+////				}
+//
+//				pllSetFixedBaseFrequencies(frequencies, NUM_NUC_FREQS, index,
+//						_partitions, _tree);
+//				current_part->optimizeBaseFrequencies = _model->isPF();
+//
+//				if (strcmp(_model->getMatrixName().c_str(), "012345")) {
+//					for (int i = 0; i < NUM_DNA_RATES; i++) {
+//						rates[i] = 1;
 //					}
 //				}
-
-				pllSetFixedBaseFrequencies(frequencies, NUM_NUC_FREQS, index,
-						_partitions, _tree);
-				current_part->optimizeBaseFrequencies = _model->isPF();
-
-				if (strcmp(_model->getMatrixName().c_str(), "012345")) {
-					for (int i = 0; i < NUM_DNA_RATES; i++) {
-						rates[i] = 1;
-					}
-				}
-				pllSetFixedSubstitutionMatrix(rates, NUM_DNA_RATES, index,
-						_partitions, _tree);
-				current_part->optimizeSubstitutionRates = PLL_TRUE;
-
-				current_part->alpha = alpha;
-				current_part->optimizeAlphaParameter = PLL_TRUE;
-				pllMakeGammaCats(current_part->alpha, current_part->gammaRates,
-						4, _tree->useMedian);
-
-			} else {
-				if (!_model->isPF()) {
-					for (int i = 0; i < NUM_NUC_FREQS; i++) {
-						current_part->freqExponents[i] = 1.0;
-						current_part->frequencies[i] = 0.25;
-					}
-				}
-				for (int i = 0; i < NUM_DNA_RATES; i++) {
-					current_part->substRates[i] = 1;
-				}
-				current_part->alpha = 1.0;
-				current_part->optimizeBaseFrequencies = _model->isPF();
-				pllMakeGammaCats(current_part->alpha, current_part->gammaRates,
-						4, _tree->useMedian);
-			}
-		}
-
-		free(symmetryPar);
-	} else {
-		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
-		current_part->dataType = PLL_AA_DATA;
-		current_part->protUseEmpiricalFreqs = pModel->isPF();
-		current_part->optimizeBaseFrequencies = PLL_FALSE;
-		current_part->optimizeSubstitutionRates = PLL_FALSE;
-		current_part->optimizeAlphaParameter = PLL_TRUE;
-		current_part->protModels = pModel->getMatrix();
-		current_part->alpha = 1.0;
-		for (int i = 0; i < NUM_PROT_FREQS; i++) {
-			current_part->freqExponents[i] = 1.0;
-		}
-		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
-				_tree->useMedian);
-
-	}
-
-	pllInitReversibleGTR(_tree, _partitions, index);
-}
+//				pllSetFixedSubstitutionMatrix(rates, NUM_DNA_RATES, index,
+//						_partitions, _tree);
+//				current_part->optimizeSubstitutionRates = PLL_TRUE;
+//
+//				current_part->alpha = alpha;
+//				current_part->optimizeAlphaParameter = PLL_TRUE;
+//				pllMakeGammaCats(current_part->alpha, current_part->gammaRates,
+//						4, _tree->useMedian);
+//
+//			} else {
+//				if (!_model->isPF()) {
+//					for (int i = 0; i < NUM_NUC_FREQS; i++) {
+//						current_part->freqExponents[i] = 1.0;
+//						current_part->frequencies[i] = 0.25;
+//					}
+//				}
+//				for (int i = 0; i < NUM_DNA_RATES; i++) {
+//					current_part->substRates[i] = 1;
+//				}
+//				current_part->alpha = 1.0;
+//				current_part->optimizeBaseFrequencies = _model->isPF();
+//				pllMakeGammaCats(current_part->alpha, current_part->gammaRates,
+//						4, _tree->useMedian);
+//			}
+//		}
+//
+//		free(symmetryPar);
+//	} else {
+//		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
+//		current_part->dataType = PLL_AA_DATA;
+//		current_part->protUseEmpiricalFreqs = pModel->isPF();
+//		current_part->optimizeBaseFrequencies = PLL_FALSE;
+//		current_part->optimizeSubstitutionRates = PLL_FALSE;
+//		current_part->optimizeAlphaParameter = PLL_TRUE;
+//		current_part->protModels = pModel->getMatrix();
+//		current_part->alpha = 1.0;
+//		for (int i = 0; i < NUM_PROT_FREQS; i++) {
+//			current_part->freqExponents[i] = 1.0;
+//		}
+//		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
+//				_tree->useMedian);
+//
+//	}
+//
+//	pllInitReversibleGTR(_tree, _partitions, index);
+//}
 
 void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		int limit) {
 
-	pllInstance * _tree = element->getTree();
-	partitionList * _partitions = element->getPartitions();
-	pllAlignmentData * _alignData = element->getAlignData();
+	TreeManager * treeManager = element->getTreeManager();
 	Model * model = element->getModel(modelIndex);
 	double lk;
 
 	/* set parameters for single partition element */
-	setModelParameters(element->getId(), model, _tree, _partitions, _alignData,
-			0, false);
-
-	_tree->thoroughInsertion = PLL_FALSE;
-	pllEvaluateLikelihood(_tree, _partitions, _tree->start, PLL_TRUE,
-	PLL_FALSE);
+	treeManager->setModelParameters(model, 0, false);
 
 	if (starting_topology == StartTopoML) {
-		pllRaxmlSearchAlgorithm(_tree, _partitions, PLL_TRUE);
+		treeManager->searchMlTopology(true);
 	} else {
 		/* main optimization loop */
 		double cur_epsilon = epsilon;
 		if (epsilon == AUTO_EPSILON) {
-			cur_epsilon = -0.001 * _tree->likelihood;
+			cur_epsilon = -0.001 * treeManager->getLikelihood();
 		}
 		if (reoptimize_branch_lengths) {
 			int smoothIterations = 64;
 			do {
-				lk = _tree->likelihood;
-				pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
-				pllOptimizeModelParameters(_tree, _partitions, cur_epsilon);
-			} while (fabs(lk - _tree->likelihood) > cur_epsilon);
+				lk = treeManager->getLikelihood();
+				treeManager->optimizeBranchLengths(smoothIterations);
+				treeManager->optimizeModelParameters(cur_epsilon);
+			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 		} else {
-			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-			PLL_TRUE,
-			PLL_FALSE);
-			pllOptRatesGeneric(_tree, _partitions, 1, _partitions->rateList);
-			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-			PLL_TRUE,
-			PLL_FALSE);
-			pllOptBaseFreqs(_tree, _partitions, 1, _partitions->freqList);
-			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-			PLL_TRUE,
-			PLL_FALSE);
-			pllOptAlphasGeneric(_tree, _partitions, 1, _partitions->alphaList);
-			pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-			PLL_TRUE,
-			PLL_FALSE);
+			treeManager->evaluateLikelihood(true);
+			treeManager->optimizeRates(1);
+			treeManager->evaluateLikelihood(true);
+			treeManager->optimizeBaseFreqs(1);
+			treeManager->evaluateLikelihood(true);
+			treeManager->optimizeAlphas(1);
+			treeManager->evaluateLikelihood(true);
 			do {
-				lk = _tree->likelihood;
-				pllOptRatesGeneric(_tree, _partitions, .1,
-						_partitions->rateList);
-				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-				PLL_TRUE,
-				PLL_FALSE);
-				pllOptBaseFreqs(_tree, _partitions, .1,
-						_partitions->freqList);
-				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-				PLL_TRUE,
-				PLL_FALSE);
-				pllOptAlphasGeneric(_tree, _partitions, .1,
-						_partitions->alphaList);
-				pllEvaluateLikelihood(_tree, _partitions, _tree->start,
-				PLL_TRUE,
-				PLL_FALSE);
-			} while (fabs(lk - _tree->likelihood) > cur_epsilon);
+				lk = treeManager->getLikelihood();
+				treeManager->optimizeRates(.1);
+				treeManager->evaluateLikelihood(true);
+				treeManager->optimizeBaseFreqs(.1);
+				treeManager->evaluateLikelihood(true);
+				treeManager->optimizeAlphas(.1);
+				treeManager->evaluateLikelihood(true);
+			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 		}
 	}
 
-	if (!isfinite(_tree->likelihood)) {
-		cerr << "[ERROR] Likelihood score for partition " << element->getName() << " is " << _tree->likelihood << endl;
+	if (!isfinite(treeManager->getLikelihood())) {
+		cerr << "[ERROR] Likelihood score for partition " << element->getName()
+				<< " is " << treeManager->getLikelihood() << endl;
 		exit_partest(EX_DATAERR);
 	}
-	/* construct newick tree for optimized model */
-	pllTreeToNewick(_tree->tree_string, _tree, _partitions, _tree->start->back,
-	PLL_TRUE, PLL_TRUE, PLL_FALSE, PLL_FALSE, PLL_FALSE,
-	PLL_SUMMARIZE_LH, PLL_FALSE, PLL_FALSE);
-	_tree->tree_string[strlen(_tree->tree_string) - 1] = '\0';
-	model->setLnL(_tree->likelihood);
-	model->setTree(_tree->tree_string);
 
-	model->setFrequencies(_partitions->partitionData[0]->frequencies);
+	/* set newick tree for optimized model */
+	model->setLnL(treeManager->getLikelihood());
+	model->setTree(treeManager->getNewickTree());
+
+	model->setFrequencies(treeManager->getFrequencies());
 	if (model->isGamma())
-		model->setAlpha(_partitions->partitionData[0]->alpha);
-	model->setRates(_partitions->partitionData[0]->substRates);
+		model->setAlpha(treeManager->getAlpha());
+	model->setRates(treeManager->getRates());
 
 	if (data_type == DT_PROTEIC && optimize_mode == OPT_GTR) {
 		/* set chosen model */
 		ProteicModel * pModel = static_cast<ProteicModel *>(model);
 		pModel->setMatrix(
-				static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels));
+				static_cast<ProtMatrix>(treeManager->getAutoProtModel()));
 		model->setName(
 				Utilities::getProtMatrixName(
-						static_cast<ProtMatrix>(_partitions->partitionData[0]->autoProtModels)));
+						static_cast<ProtMatrix>(treeManager->getAutoProtModel())));
 	}
 
 	cout << timestamp() << " - - - - - " << setw(Utilities::iDecLog(limit) + 1)
 			<< setfill('0') << right << modelIndex + 1 << "/" << limit << " "
 			<< model->getName() << " (" << fixed << setprecision(4)
-			<< _tree->likelihood << ")" << setfill(' ') << endl;
+			<< treeManager->getLikelihood() << ")" << setfill(' ') << endl;
 }
 
 } /* namespace partest */
