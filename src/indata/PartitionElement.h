@@ -70,10 +70,7 @@ public:
 	bool isReady(void);
 	bool isOptimized(void);
 
-	//TreeManager * getTreeManager(void);
-	pllInstance * getTree(void);
-	partitionList * getPartitions(void);
-	pllAlignmentData * getAlignData(void);
+	TreeManager * getTreeManager(void);
 
 	double getSampleSize(void);
 
@@ -98,9 +95,6 @@ private:
 	double sampleSize;
 
 	PllTreeManager * treeManager;
-//	pllAlignmentData * _alignData;
-//	pllInstance * _tree;
-//	partitionList * _partitions;
 
 	vector<PEsection> sections;
 
