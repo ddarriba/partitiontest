@@ -761,19 +761,19 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 		} else {
 			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeRates(1);
+			treeManager->optimizeRates(10*cur_epsilon);
 			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeBaseFreqs(1);
+			treeManager->optimizeBaseFreqs(10*cur_epsilon);
 			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeAlphas(1);
+			treeManager->optimizeAlphas(10*cur_epsilon);
 			treeManager->evaluateLikelihood(true);
 			do {
 				lk = treeManager->getLikelihood();
-				treeManager->optimizeRates(.1);
+				treeManager->optimizeRates(cur_epsilon);
 				treeManager->evaluateLikelihood(true);
-				treeManager->optimizeBaseFreqs(.1);
+				treeManager->optimizeBaseFreqs(cur_epsilon);
 				treeManager->evaluateLikelihood(true);
-				treeManager->optimizeAlphas(.1);
+				treeManager->optimizeAlphas(cur_epsilon);
 				treeManager->evaluateLikelihood(true);
 			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 		}
