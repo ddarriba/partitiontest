@@ -126,7 +126,7 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 	case StartTopoFIXED: {
 		pllNewickTree * nt;
 		if (pergene_branch_lengths) {
-			if (pergene_branch_lengths && sections.size() == 1) {
+			if (sections.size() == 1) {
 				nt = pllNewickParseString(
 						pergene_starting_tree[sections[0].id]);
 			} else {
@@ -145,8 +145,23 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 		break;
 	}
 	case StartTopoUSER:
-		cerr << "User Topo Not Available" << endl;
-		exit_partest(EX_UNAVAILABLE);
+		pllNewickTree * nt;
+				if (pergene_branch_lengths) {
+					if (sections.size() == 1) {
+						nt = pllNewickParseFile(user_tree->c_str());
+					} else {
+						t_partitionElementId id(sections.size());
+						for (size_t i = 0; i < sections.size(); i++) {
+							id[i] = sections[i].id;
+						}
+						nt = Utilities::averageBranchLengths(id);
+					}
+				} else {
+					nt = pllNewickParseFile(user_tree->c_str());
+				}
+				_tree->fracchange = 1.0;
+				pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
+				pllNewickParseDestroy(&nt);
 		break;
 	default:
 		cerr << "ERROR: Undefined starting topology" << endl;
