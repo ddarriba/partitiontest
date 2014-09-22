@@ -403,8 +403,10 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			break;
 		}
 		case StartTopoUSER:
-			cerr << "User Topo Not Available" << endl;
-			exit_partest(EX_UNAVAILABLE);
+			pllNewickTree * nt;
+			nt = pllNewickParseFile(user_tree->c_str());
+			pllTreeInitTopologyNewick(fTree, nt, PLL_FALSE);
+			pllNewickParseDestroy(&nt);
 			break;
 		default:
 			cerr << "ERROR: Undefined starting topology" << endl;

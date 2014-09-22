@@ -79,7 +79,6 @@ void ConfigParser::createSinglePartition() {
 	pinfo->partitionName = (char *) malloc(2);
 	strcpy(pinfo->partitionName, "S");
 	pinfo->partitionModel = (char *) malloc(1);
-	starting_topology = DEFAULT_STARTING_TOPOLOGY;
 
 	switch (data_type) {
 	case DT_NUCLEIC:
