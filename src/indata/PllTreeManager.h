@@ -44,14 +44,14 @@ public:
 
 	virtual int getAutoProtModel(size_t partition = 0);
 
-	pllInstance * _tree;
-	pllAlignmentData * _alignData;
-	partitionList * _partitions;
-
 private:
 	void scaleBranchLengthsSymmetric( int smoothIterations );
 	double scaleBranchLengths( double multiplier );
 	vector<double> storedBranchLengths;
+
+	pllInstance * _tree;
+	pllAlignmentData * _alignData;
+	partitionList * _partitions;
 };
 
 }
