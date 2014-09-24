@@ -83,7 +83,7 @@ ProteicModel::~ProteicModel() {
 	// NOTHING
 }
 
-ProtMatrix ProteicModel::getMatrix(void) {
+ProtMatrix ProteicModel::getMatrix(void) const {
 	return matrix;
 }
 
@@ -101,7 +101,7 @@ void ProteicModel::setRates(const double * rates) {
 	// Ignore
 }
 
-double ProteicModel::distanceTo(Model * otherModel) {
+double ProteicModel::distanceTo(Model * otherModel) const {
 	ProteicModel * other = static_cast<ProteicModel *>(otherModel);
 	//double matrixDistance = matrix!=other->matrix?getEuclideanDistance(matrix, other->matrix): 0;
 	double matrixDistance = getEuclideanDistance(matrix, other->matrix);
@@ -123,7 +123,7 @@ double ProteicModel::distanceTo(Model * otherModel) {
 	return distance;
 }
 
-double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) {
+double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) const {
 	if (m1 == m2) {
 		return 0;
 	} else {
@@ -135,7 +135,7 @@ double ProteicModel::getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) {
 	}
 }
 
-void ProteicModel::print(ostream& cout, const char * prefix) {
+void ProteicModel::print(ostream& cout, const char * prefix) const {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;

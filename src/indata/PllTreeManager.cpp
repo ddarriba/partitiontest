@@ -77,7 +77,7 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 	int nextStart = 1;
 	for (int part = 0; part <= pllPartitions->numberOfPartitions; part++) {
 		for (size_t i = 0; i < sections.size(); i++) {
-			if (sections[i].id == part) {
+			if (sections[i].id == (size_t) part) {
 				pllPartitionRegion * pregion = (pllPartitionRegion *) malloc(
 						sizeof(pllPartitionRegion));
 				pregion->start = nextStart;
@@ -146,22 +146,22 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 	}
 	case StartTopoUSER:
 		pllNewickTree * nt;
-				if (pergene_branch_lengths) {
-					if (sections.size() == 1) {
-						nt = pllNewickParseFile(user_tree->c_str());
-					} else {
-						t_partitionElementId id(sections.size());
-						for (size_t i = 0; i < sections.size(); i++) {
-							id[i] = sections[i].id;
-						}
-						nt = Utilities::averageBranchLengths(id);
-					}
-				} else {
-					nt = pllNewickParseFile(user_tree->c_str());
+		if (pergene_branch_lengths) {
+			if (sections.size() == 1) {
+				nt = pllNewickParseFile(user_tree->c_str());
+			} else {
+				t_partitionElementId id(sections.size());
+				for (size_t i = 0; i < sections.size(); i++) {
+					id[i] = sections[i].id;
 				}
-				_tree->fracchange = 1.0;
-				pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
-				pllNewickParseDestroy(&nt);
+				nt = Utilities::averageBranchLengths(id);
+			}
+		} else {
+			nt = pllNewickParseFile(user_tree->c_str());
+		}
+		_tree->fracchange = 1.0;
+		pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
+		pllNewickParseDestroy(&nt);
 		break;
 	default:
 		cerr << "ERROR: Undefined starting topology" << endl;
@@ -200,7 +200,7 @@ double * PllTreeManager::getBranchLengths(void) {
 	return bls;
 }
 
-void PllTreeManager::setModelParameters(Model * _model, int index,
+void PllTreeManager::setModelParameters(const Model * _model, int index,
 		bool setAlphaFreqs) {
 
 	pInfo * current_part = _partitions->partitionData[index];
@@ -314,7 +314,7 @@ void PllTreeManager::setModelParameters(Model * _model, int index,
 
 		free(symmetryPar);
 	} else {
-		ProteicModel * pModel = static_cast<ProteicModel *>(_model);
+		const ProteicModel * pModel = static_cast<const ProteicModel *>(_model);
 		current_part->dataType = PLL_AA_DATA;
 		current_part->protUseEmpiricalFreqs = pModel->isPF();
 		current_part->optimizeBaseFrequencies = PLL_FALSE;
@@ -368,8 +368,38 @@ int PllTreeManager::getAutoProtModel(size_t partition) {
 	return _partitions->partitionData[partition]->autoProtModels;
 }
 
+#define MIN_MULTIPLIER 0.001
+
+void PllTreeManager::scaleBranchLengthsSymmetric( int smoothIterations ) {
+	double blScaler = branchLengthMultiplier;
+	double epsMultiplier = 0.5;
+	double lkUpper,lkLower;
+	double lkIni = getLikelihood();
+	double lkEnd = -DOUBLE_INF;
+	for (int i=0; i<smoothIterations; i++) {
+		lkUpper = scaleBranchLengths(blScaler + epsMultiplier);
+		lkLower = scaleBranchLengths(max(blScaler - epsMultiplier, MIN_MULTIPLIER));
+		if (lkUpper > lkLower) {
+			lkEnd = lkUpper;
+			blScaler = blScaler + epsMultiplier;
+		} else {
+			lkEnd = lkLower;
+			blScaler = blScaler - epsMultiplier;
+		}
+		epsMultiplier /= 2;
+	}
+	if (lkEnd > lkIni) {
+		branchLengthMultiplier = blScaler;
+	}
+	lkEnd = scaleBranchLengths(branchLengthMultiplier);
+}
+
 void PllTreeManager::optimizeBranchLengths(int smoothIterations) {
-	pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
+	if (reoptimize_branch_lengths) {
+		pllOptimizeBranchLengths(_tree, _partitions, smoothIterations);
+	} else {
+		scaleBranchLengthsSymmetric(smoothIterations);
+	}
 }
 
 void PllTreeManager::optimizeBaseFreqs(double epsilon) {
@@ -395,5 +425,71 @@ void PllTreeManager::optimizeModelParameters(double epsilon) {
 	pllOptimizeModelParameters(_tree, _partitions, epsilon);
 }
 
+double fixZ(double z) {
+	if (z > PLL_ZMAX)
+		return PLL_ZMAX;
+
+	if (z < PLL_ZMIN)
+		return PLL_ZMIN;
+
+	return z;
 }
 
+double PllTreeManager::scaleBranchLengths(double multiplier) {
+	int nodes = _tree->mxtips + _tree->mxtips - 2;
+	assert(_partitions->numberOfPartitions == 1);
+	int count;
+
+	evaluateLikelihood(PLL_TRUE);
+
+	if (storedBranchLengths.size() == 0) {
+		/* store original branch lengths */
+		storedBranchLengths.resize(((2 * _tree->mxtips - 3) * 2));
+		count = 0;
+		for (int i = 1; i <= nodes; i++) {
+			storedBranchLengths[count] = -_tree->fracchange
+					* log(_tree->nodep[i]->z[0]);
+			count++;
+			if (i > _tree->mxtips) {
+				storedBranchLengths[count] = -_tree->fracchange
+						* log(_tree->nodep[i]->next->z[0]);
+				count++;
+				storedBranchLengths[count] = -_tree->fracchange
+						* log(_tree->nodep[i]->next->next->z[0]);
+				count++;
+			}
+		}
+		assert(count == (2 * _tree->mxtips - 3) * 2);
+	}
+
+		count = 0;
+		for (int i = 1; i <= nodes; i++) {
+			double z = multiplier * storedBranchLengths[count];
+			z = exp(-z / _tree->fracchange);
+			z = fixZ(z);
+			_tree->nodep[i]->z[0] = z;
+
+			count++;
+
+			if (i > _tree->mxtips) {
+				z = multiplier * storedBranchLengths[count];
+				z = exp(-z / _tree->fracchange);
+				z = fixZ(z);
+				_tree->nodep[i]->next->z[0] = z;
+
+				count++;
+
+				z = multiplier * storedBranchLengths[count];
+				z = exp(-z / _tree->fracchange);
+				z = fixZ(z);
+				_tree->nodep[i]->next->next->z[0] = z;
+
+				count++;
+			}
+		}
+		assert(count == (2 * _tree->mxtips - 3) * 2);
+		evaluateLikelihood(PLL_TRUE);
+		return getLikelihood();
+}
+
+}
