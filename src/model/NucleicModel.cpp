@@ -192,7 +192,7 @@ void NucleicModel::setRates(const double * rates) {
 double NucleicModel::distanceTo(Model * otherModel) const {
 	NucleicModel * other = static_cast<NucleicModel *>(otherModel);
 
-	double shapeDistance = fabs(alpha - other->alpha);
+//	double shapeDistance = fabs(alpha - other->alpha);
 //	double rDistance = 0.0;
 //	for (int i = 0; i < 6; i++) {
 //		rDistance += (rates[i] - other->rates[i])
