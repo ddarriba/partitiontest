@@ -51,7 +51,7 @@ public:
 	 *
 	 * @return The name of the model.
 	 */
-	string getName(void);
+	string getName(void) const;
 
 	/**
 	 * @brief Sets the name of the model.
@@ -65,7 +65,7 @@ public:
 	 *
 	 * @return The name of the substitution scheme.
 	 */
-	string getMatrixName(void);
+	string getMatrixName(void) const;
 
 	/**
 	 * @brief Sets the name of the substitution scheme.
@@ -79,14 +79,14 @@ public:
 	 *
 	 * @return The rate variation and frequencies parameters as a bitmask.
 	 */
-	bitMask getRateVariation(void);
+	bitMask getRateVariation(void) const;
 
 	/**
 	 * @brief Gets the model tree in Newick format.
 	 *
 	 * @return The model tree in Newick format.
 	 */
-	string getTree(void);
+	string getTree(void) const;
 
 #ifdef _IG_MODELS
 	/**
@@ -102,7 +102,7 @@ public:
 	 *
 	 * @return True, if it is a +G model.
 	 */
-	bool isGamma(void);
+	bool isGamma(void) const;
 
 	/**
 	 * @brief Gets whether the model considers model-driven/empirical/equal frequencies.
@@ -114,7 +114,7 @@ public:
 	 *
 	 * @return True, if it is a +F model.
 	 */
-	bool isPF(void);
+	bool isPF(void) const;
 
 	/**
 	 * @brief Gets whether the model was already optimized.
@@ -124,14 +124,14 @@ public:
 	 *
 	 * @return True, if the model was optimized.
 	 */
-	bool isOptimized(void);
+	bool isOptimized(void) const;
 
 	/**
 	 * @brief Gets the positive log likelihood score.
 	 *
 	 * @return -lnL.
 	 */
-	double getLnL(void) {
+	double getLnL(void) const {
 		return lnL;
 	}
 
@@ -142,7 +142,7 @@ public:
 	 *
 	 * @return The alpha parameter for the gamma distribution.
 	 */
-	double getAlpha(void) {
+	double getAlpha(void) const {
 		return alpha;
 	}
 
@@ -152,7 +152,7 @@ public:
 	 *
 	 * @return The proportion of invariable sites.
 	 */
-	double getpInv(void) {
+	double getpInv(void) const {
 		return pInv;
 	}
 #endif
@@ -162,7 +162,7 @@ public:
 	 *
 	 * @return 4 for nucleotide and 20 for amino-acids.
 	 */
-	int getNumberOfFrequencies(void) {
+	int getNumberOfFrequencies(void) const {
 		return numberOfFrequencies;
 	}
 
@@ -171,7 +171,7 @@ public:
 	 *
 	 * @return The number of free parameters.
 	 */
-	int getNumberOfFreeParameters(void) {
+	int getNumberOfFreeParameters(void) const {
 		return (modelFreeParameters + treeFreeParameters);
 	}
 
@@ -180,7 +180,7 @@ public:
 	 *
 	 * @return The number of free parameters of the model (without the tree).
 	 */
-	int getModelFreeParameters(void) {
+	int getModelFreeParameters(void) const {
 		return modelFreeParameters;
 	}
 
@@ -189,7 +189,7 @@ public:
 	 *
 	 * @return The number of free parameters of the tree (branch lengths).
 	 */
-	int getTreeFreeParameters(void) {
+	int getTreeFreeParameters(void) const {
 		return treeFreeParameters;
 	}
 
@@ -259,12 +259,12 @@ public:
 	 *
 	 * @param other The other model.
 	 */
-	virtual double distanceTo(Model * other) = 0;
+	virtual double distanceTo(Model * other) const = 0;
 
 	/**
 	 * @brief Prints the model details and parameters.
 	 */
-	virtual void print(ostream& out, const char * prefix = "");
+	virtual void print(ostream& out, const char * prefix = "") const;
 
 	virtual ~Model();
 protected:

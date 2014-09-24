@@ -26,7 +26,7 @@ public:
 	virtual ~PllTreeManager();
 
 	virtual double * getBranchLengths(void);
-	virtual void setModelParameters(Model * _model, int index,
+	virtual void setModelParameters(const Model * _model, int index,
 			bool setAlphaFreqs);
 	virtual double searchMlTopology(bool estimateModel);
 	virtual double getLikelihood();
@@ -48,6 +48,10 @@ public:
 	pllAlignmentData * _alignData;
 	partitionList * _partitions;
 
+private:
+	void scaleBranchLengthsSymmetric( int smoothIterations );
+	double scaleBranchLengths( double multiplier );
+	vector<double> storedBranchLengths;
 };
 
 }
