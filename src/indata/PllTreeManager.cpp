@@ -169,6 +169,8 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 		break;
 	}
 
+	if (data_type == DT_PROTEIC)
+			_partitions->partitionData[0]->protModels = PLL_AUTO;
 	pllInitModel(_tree, _partitions);
 }
 
@@ -328,8 +330,13 @@ void PllTreeManager::setModelParameters(Model * _model, int index,
 		pllMakeGammaCats(current_part->alpha, current_part->gammaRates, 4,
 				_tree->useMedian);
 
+		if (pModel->isPF()) {
+			double ** freqs = pllBaseFrequenciesInstance(_tree,_partitions);
+			memcpy(current_part->empiricalFrequencies, freqs[index], 20*sizeof(double));
+			//pllSetFixedBaseFrequencies(freqs[index], NUM_PROT_FREQS, index, _partitions, _tree);
+			free(freqs);
+		}
 	}
-
 	pllInitReversibleGTR(_tree, _partitions, index);
 
 	_tree->thoroughInsertion = PLL_FALSE;

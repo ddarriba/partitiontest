@@ -196,7 +196,6 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	char user_tree[256] = "";
 	char config_file[256] = "";
 	char output_dir[256] = "";
-	bitMask do_rate = RateVarM;
 
 #ifdef _SELECT_SAMPLE_SIZE
 	double sampleSizeValue = 0.0;
