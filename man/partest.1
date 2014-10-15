@@ -1,0 +1,124 @@
+.TH PartitionTest "1" "1 Jul 2014" "User Commands"
+.SH NAME
+PartitionTest \- Fast selection of best-fit models for genomic data
+.SH SYNOPSIS
+.B partest
+\-i INPUTFILE [\fIOPTION\fR]...
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+Selects the best-fit model of evolution for many-gene DNA or Protein data
+.PP
+Mandatory arguments to long options are mandatory for short options too
+.TP
+\fB\-c\fR, \fB\-\-config\-file\fR \fICONFIG_FILE\fR
+Sets the input configuration file. Run with \fB\-\-config\-help\fR for more information
+.TP
+\fB\-\-config\-help\fR
+Shows help about configuration files
+.TP
+\fB\-\-config\-template\fR
+Generates a configuration file template
+.TP
+\fB\-d\fR, \fB\-\-data\-type\fR \fIDATA_TYPE\fR
+Sets the type of the input data. DATA_TYPE: \fBnt\fR (nucleotide), \fBaa\fR (amino-acid)
+.TP
+\fB\-\-disable\-ckp\fR
+Disables the checkpointing
+.TP
+\fB\-\-disable\-output\fR
+Disables any file-based output. This option also disables the chackpointing
+.TP
+\fB\-F\fR, \fB\-\-empirical\-frequencies\fR
+Includes models with empirical frequencies (+F)
+.TP
+\fB\-g\fR, \fB\-\-pergene\-bl\fR
+Estimate per-gene branch-lengths
+.TP
+\fB\-\-force\-override\fR
+Existent output files will be overwritten
+.TP
+\fB\-h\fR, \fB\-\-help\-\fR
+Displays a help message
+.TP
+\fB\-i\fR, \fB\-\-input\-file\fR \fIINPUT_FILE\fR
+Sets the input alignment file (REQUIRED)
+.TP
+\fB\-k\fR, \fB\-\-keep\-branches\fR
+Keep branch lengths from the initial topology. This argument has no effect for initial topology different than fixed
+.TP
+\fB\-N\fR, \fB\-\-non\-stop\fR
+Algorithms do not stop if no improvement found at one step, for avoiding local maxima
+.TP
+\fB\-O\fR, \fB\-\-optimize\-mode\fR \fIOPTIMIZE_MODE\fR
+Sets the model optimization for the best-fit partition. OPTIMIZE_MODE: \fBfindmodel\fR (find the best-fit model for each partition), \fBgtr\fR (use only GTR model for each partition (nucleic data) or AUTO for protein data)
+.TP
+\fB\-p\fR, \fB\-\-num\-procs\fR \fINUMBER_OF_THREADS\fR
+Number of threads for model evaluation (DEFAULT: 1)
+.TP
+\fB\-r\fR, \fB\-\-replicates\fR \fINUMBER_OF_REPLICATES\fR
+Sets the number of replicates on Hierarchical Clustering and Random search modes
+.TP
+\fB\-s\fR, \fB\-\-selection\-criterion\fR \fICRITERION\fR
+Sets the criterion for model selection. CRITERION: \fBbic\fR (Bayesian Information Criterion) (DEFAULT), 
+\fBaic\fR (Akaike Information Criterion), \fBaicc\fR (Corrected Akaike Information Criterion),
+\fBdt\fR (Decision Theory). Sample size for bic, aicc and dt criteria is the alignment length
+.TP
+\fB\-S\fR, \fB\-\-search\fR \fISEARCH_ALGORITHM\fR
+Sets the search algorithm SEARCH_ALGORITHM: \fBgreedy\fR (greedy search algorithm),
+\fBgreedyext\fR (extended greedy search algorithm),
+\fBhcluster\fR (hierarchical clustering algorithm),
+\fBrandom\fR (multiple step random sampling),
+\fBauto\fR (auto-select algorithm (DEFAULT)),
+\fBexhaustive\fR (exhaustive search)
+.TP
+\fB\-t\fR, \fB\-\-topology\fR \fISTARTING_TOPOLOGY\fR
+Sets the starting topology for optimization. STARTING_TOPOLOGY:
+\fBmp\fR (creates a maximum parsimony topology for each model optimization (DEFAULT)),
+\fBml\fR (creates a maximum likelihood topology for each model optimization),
+\fBfixed\fR (uses a fixed ML topology for every model optimization),
+\fBuser\fR (uses a user-defined topology. Requires the "-u" argument). However, if "-u" argument is used this option is automatically set
+.TP
+\fB\-T\FR, \fB\-\-get\-final\-tree\fR
+Conduct final ML tree optimization
+.TP
+\fB\-u\fR, \fB\-\-user\-tree\fR \fITREE_FILE\fR
+Sets a user-defined topology. This option ignores all starting topologies different from "user-defined". The tree must be in Newick format
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Output version information and exit
+.PP
+.SS "Exit status:"
+.TP
+0
+if OK,
+.TP
+64
+usage error,
+.TP
+65
+error with data,
+.TP
+69
+unavailable feature,
+.TP
+70
+internal software error (probably a bug),
+.TP
+74
+I/O error,
+.TP
+78
+error in configuration.
+.SH AUTHOR
+Written by Diego Darriba.
+.SH "REPORTING BUGS"
+Report PartitionTest bugs to ddarriba@udc.es
+.br
+PartitionTest home page: <http://code.google.com/p/partitiontest/>
+.SH COPYRIGHT
+Copyright \(co 2014 Diego Darriba, Guillermo L. Taboada, Ramon Doallo and David Posada.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+.br
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
