@@ -43,12 +43,12 @@ public:
 	 * @param numberOfTaxa Number of taxa (required for computing the free parameters.
 	 */
 	NucleicModel(NucMatrix matrix, bitMask rateVariation, int numberOfTaxa);
-	NucMatrix getMatrix(void);
+	NucMatrix getMatrix(void) const;
 	virtual void setFrequencies(const double * frequencies);
 	virtual void allocateRates(void);
 	void setRates(const double * rates);
-	double distanceTo(Model * other);
-	virtual void print(ostream& out, const char * prefix = "");
+	double distanceTo(Model * other) const;
+	virtual void print(ostream& out, const char * prefix = "") const;
 	virtual ~NucleicModel();
 private:
 	NucMatrix matrix; /** Nucleotide substitution scheme */

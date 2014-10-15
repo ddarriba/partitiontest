@@ -46,16 +46,16 @@ public:
   virtual void setFrequencies(const double * frequencies);
   virtual void allocateRates(void) { /* do nothing */ }
   void setRates(const double * rates);
-  ProtMatrix getMatrix(void);
+  ProtMatrix getMatrix(void) const;
   void setMatrix(ProtMatrix  matrix);
-  double distanceTo(Model * other);
-  virtual void print(ostream& out, const char * prefix = "");
+  double distanceTo(Model * other) const;
+  virtual void print(ostream& out, const char * prefix = "") const;
   virtual ~ProteicModel();
 private:
   /**
    * @brief Compute euclidean distances between amino-acid replacement matrices
    */
-  double getEuclideanDistance(ProtMatrix m1, ProtMatrix m2);
+  double getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) const;
   ProtMatrix matrix; /** Amino-acid replacement matrix. */
 };
 

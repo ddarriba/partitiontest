@@ -10,7 +10,7 @@
 namespace partest {
 
 TreeManager::TreeManager(const t_partitionElementId id, size_t numberOfSites, size_t numberOfPatterns) :
-	_id(id), numberOfSites(numberOfSites), numberOfPatterns(numberOfPatterns) {
+	_id(id), numberOfSites(numberOfSites), numberOfPatterns(numberOfPatterns), branchLengthMultiplier(1.0) {
 }
 
 TreeManager::~TreeManager() {
