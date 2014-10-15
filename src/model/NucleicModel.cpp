@@ -176,7 +176,7 @@ void NucleicModel::setFrequencies(const double * frequencies) {
 	}
 }
 
-NucMatrix NucleicModel::getMatrix(void) {
+NucMatrix NucleicModel::getMatrix(void) const {
 	return matrix;
 }
 
@@ -189,10 +189,10 @@ void NucleicModel::setRates(const double * rates) {
 		this->rates[i] = rates[i];
 }
 
-double NucleicModel::distanceTo(Model * otherModel) {
+double NucleicModel::distanceTo(Model * otherModel) const {
 	NucleicModel * other = static_cast<NucleicModel *>(otherModel);
 
-	double shapeDistance = fabs(alpha - other->alpha);
+//	double shapeDistance = fabs(alpha - other->alpha);
 //	double rDistance = 0.0;
 //	for (int i = 0; i < 6; i++) {
 //		rDistance += (rates[i] - other->rates[i])
@@ -228,7 +228,7 @@ double NucleicModel::distanceTo(Model * otherModel) {
 	return distance;
 }
 
-void NucleicModel::print(ostream& cout, const char * prefix) {
+void NucleicModel::print(ostream& cout, const char * prefix) const {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;

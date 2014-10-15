@@ -44,7 +44,7 @@ Model::~Model() {
 		free(rates);
 }
 
-string Model::getName() {
+string Model::getName() const {
 	return name;
 }
 
@@ -52,7 +52,7 @@ void Model::setName(string name) {
 	this->name = name;
 }
 
-string Model::getMatrixName() {
+string Model::getMatrixName() const {
 	return matrixName;
 }
 
@@ -60,10 +60,10 @@ void Model::setMatrixName(string matrixName) {
 	this->matrixName = matrixName;
 }
 
-bitMask Model::getRateVariation() {
+bitMask Model::getRateVariation() const {
 	return rateVariation;
 }
-string Model::getTree() {
+string Model::getTree() const {
 	return tree;
 }
 
@@ -80,24 +80,24 @@ void Model::setpInv(double pInv) {
 #endif
 
 #ifdef _IG_MODELS
-bool Model::isPInv() {
+bool Model::isPInv() const {
 	return !(~rateVariation & RateVarI);
 }
 #endif
 
-bool Model::isGamma() {
+bool Model::isGamma() const {
 	return !(~rateVariation & RateVarG);
 }
 
-bool Model::isPF() {
+bool Model::isPF() const {
 	return !(~rateVariation & RateVarF);
 }
 
-bool Model::isOptimized() {
+bool Model::isOptimized() const {
 	return (lnL < 0.0);
 }
 
-void Model::print(ostream& cout, const char * prefix) {
+void Model::print(ostream& cout, const char * prefix) const {
 	cout << prefix << "Name:  " << name << endl;
 	if (isOptimized()) {
 		cout << prefix << "lnL:   " << lnL << endl;
