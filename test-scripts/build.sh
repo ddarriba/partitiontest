@@ -2,15 +2,15 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 
-prefix=epsilontest
-datatype=dna
-NUM_SIMS=100
+prefix=proteintest
+datatype=aa
+NUM_SIMS=1000
 mintaxa=6
-maxtaxa=140
+maxtaxa=40
 mingenes=5
 maxgenes=50
-minlen=500
-maxlen=1000
+minlen=100
+maxlen=500
 
 simsdir=sims.$prefix
 
@@ -55,7 +55,11 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	touch ${IND_FILE}
 
 	# Write header
-	echo [TYPE] NUCLEOTIDE 2 >> ${IND_FILE}
+	if [ "$datatype" == "dna" ]; then
+		echo [TYPE] NUCLEOTIDE 2 >> ${IND_FILE}
+	else
+		echo [TYPE] AMINOACID 1 >> ${IND_FILE}
+	fi
 	echo " " >> ${IND_FILE}
 
 	# Write tree
@@ -82,22 +86,30 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	for each in ${models}; do
 		model=`sed -n -e ${each}p ${INPUT_MODELFILE}`
 		modelname=`echo $model | cut -d' ' -f1`
-		fA=`echo $model | cut -d' ' -f2`
-		fC=`echo $model | cut -d' ' -f3`
-		fG=`echo $model | cut -d' ' -f4`
-		fT=`echo $model | cut -d' ' -f5`
+		if [ "$datatype" == "dna" ]; then
+			fA=`echo $model | cut -d' ' -f2`
+			fC=`echo $model | cut -d' ' -f3`
+			fG=`echo $model | cut -d' ' -f4`
+			fT=`echo $model | cut -d' ' -f5`
+			freqs=`echo $fT $fC $fA $fG`
+			kappa=`echo $model | cut -d' ' -f6`
 
-		kappa=`echo $model | cut -d' ' -f6`
+			rA=`echo $model | cut -d' ' -f7`
+			rB=`echo $model | cut -d' ' -f8`
+			rC=`echo $model | cut -d' ' -f9`
+			rD=`echo $model | cut -d' ' -f10`
+			rE=`echo $model | cut -d' ' -f11`
+			rF=`echo $model | cut -d' ' -f12`
 
-		rA=`echo $model | cut -d' ' -f7`
-		rB=`echo $model | cut -d' ' -f8`
-		rC=`echo $model | cut -d' ' -f9`
-		rD=`echo $model | cut -d' ' -f10`
-		rE=`echo $model | cut -d' ' -f11`
-		rF=`echo $model | cut -d' ' -f12`
-
-		pInv=0
-		shape=`echo $model | cut -d' ' -f13`
+			pInv=0
+			shape=`echo $model | cut -d' ' -f13`
+		else
+			pF=`echo $model | cut -d' ' -f2`
+			freqs=`echo $model | cut -d' ' -f3-22`
+			pInv=0
+			shape=`echo $model | cut -d' ' -f23`
+			modelName=`echo $model | cut -d' ' -f24`
+		fi
 
 		if [ $shape != 0 ]; then
 			ncat=4
@@ -107,10 +119,14 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 
 		echo [MODEL] model${each} >> ${IND_FILE}
 
-		if [ $rA != NA -a $rA != 0 ]; then
-			echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} ${rB} >> ${IND_FILE}
+		if [ "$datatype" == "dna" ]; then
+			if [ $rA != NA -a $rA != 0 ]; then
+				echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} ${rB} >> ${IND_FILE}
+			else
+				echo [submodel] HKY ${kappa} >> ${IND_FILE}
+			fi
 		else
-			echo [submodel] HKY ${kappa} >> ${IND_FILE}
+				echo [submodel] ${modelName} >> ${IND_FILE}
 		fi
 
 		if [ $shape == 100 ]; then
@@ -118,7 +134,9 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		fi
 
 		echo [rates] ${pInv} ${shape} ${ncat} >> ${IND_FILE}
-		echo [statefreq] $fT $fC $fA $fG >> ${IND_FILE}
+		if [ "$datatype" == "dna" ] || [ "$pF" == "1" ]; then
+			echo [statefreq] $freqs >> ${IND_FILE}
+		fi
 
 		echo " " >> ${IND_FILE}
 	done
@@ -198,9 +216,9 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		echo GENE${gene_index}=${next_start}-$((next_start+gene_length-1)) >> ${partest_filename}
 		echo "GENE${gene_index}=${next_start}-$((next_start+gene_length-1));" >> ${partfinder_filename}
 		if [ "$datatype" == "dna" ]; then
-		echo "DNA, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
+			echo "DNA, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
 		else
-		echo "AUTO, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
+			echo "AUTO, GENE${gene_index}=${next_start}-$((next_start+gene_length-1))" >> ${rkn_filename}
 		fi
 		next_start=$((next_start+gene_length))
 	done
