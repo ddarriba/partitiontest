@@ -461,8 +461,11 @@ void PrintMeta::print_results_xml(ostream & ofs,
 		case DT_PROTEIC:
 			ofs << "    "
 					<< Utilities::getProtRaxmlName(
-							static_cast<ProteicModel *>(element->getBestModel()->getModel())->getMatrix())
-					<< ", ";
+							static_cast<ProteicModel *>(element->getBestModel()->getModel())->getMatrix());
+			if (element->getBestModel()->getModel()->isPF()) {
+				ofs << "F";
+			}
+			ofs << ", ";
 
 			break;
 		default:
