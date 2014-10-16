@@ -104,18 +104,18 @@ for(sample_index in 1:(SAMPLES)) {
 	num_partitions = length(unique(boxes))
 
 	# allocate results matrix
-	models_mat = matrix(nrow=(num_partitions),ncol=15,byrow=TRUE)
 	if (DATA_TYPE == "aa") {
-		colnames(models_mat) = c("ModelName", "+F","","","", "", "","","","","","", "shape", "partition", "id")
+		models_mat = matrix(nrow=(num_partitions),ncol=25,byrow=TRUE)
+		colnames(models_mat) = c("ModelName", "+F",
+			"f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
+			"shape", "partition", "id")
 	} else {
+		models_mat = matrix(nrow=(num_partitions),ncol=15,byrow=TRUE)
 		colnames(models_mat) = c("ModelName", "fA","fC","fG","fT","kappa", "Ra", "Rb", "Rc", "Rd", "Re", "Rf", "shape", "partition", "id")
 	}
 	models_mat = as.table(models_mat)
 
 	# construct one model per partition
-
-cat("Sample:  ",sample_index,"\n")
-cat("Parts:   ",num_partitions,"\n")
 
 	avoid = c()
 	for(i in 1:(num_partitions)) {
@@ -124,19 +124,24 @@ cat("Parts:   ",num_partitions,"\n")
 
 		modelid = sample(1:14,1,replace=T)
 
-		models_mat[i,14] = inp$indelible_model[modelid]
-		models_mat[i,15] = inp$indelible_index[modelid]
+		models_mat[i,24] = inp$indelible_model[modelid]
+		models_mat[i,25] = inp$indelible_index[modelid]
 		completename = inp$indelible_model[modelid]
 		completename = paste(completename, "+G", sep="")
 		if (f_model == 1) {
 		   completename = paste(completename, "+F", sep="")
+		   base_frequencies <- numeric(20)
+		   while (min(base_frequencies) < 0.005) {
+		       base_frequencies <- rdirichlet(1, c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) )
+		   }
+		   models_mat[3:22] <- formatC(base_frequencies,digits=6)
 		}
 		models_mat[i,1] = completename
 		models_mat[i,2] = f_model
 
 		#Gamma shape from an Exponential (1,1) => mean=1
 		gamma_shape = rtrunc(1,"exp", 1, 2, a=0.5,b=5)
-		models_mat[i,13] = formatC(gamma_shape,digits=4)
+		models_mat[i,23] = formatC(gamma_shape,digits=4)
 	    } else {
 		model = buildDNAmodel(inp, avoid)
 		models_mat[i,1:15] = model

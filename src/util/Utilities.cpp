@@ -31,6 +31,7 @@
 #include <string.h>
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 
 namespace partest {
 
@@ -66,8 +67,7 @@ bool Utilities::isInteger(const char * value) {
 }
 
 char Utilities::toBase64(int value) {
-	if (value > 63)
-		exit_partest(EX_SOFTWARE);
+	assert (value < 64);
 	return encoding_table[value];
 }
 
@@ -371,6 +371,43 @@ pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
 		pllNewickParseDestroy(&nts[i]);
 	}
 	return nt;
+}
+
+void Utilities::smoothFrequencies(double *frequencies, int numberOfFrequencies) {
+	int countScale = 0, l, loopCounter = 0;
+
+	for (l = 0; l < numberOfFrequencies; l++)
+		if (frequencies[l] < FREQ_MIN)
+			countScale++;
+
+	if (countScale > 0) {
+		while (countScale > 0) {
+			double correction = 0.0, factor = 1.0;
+
+			for (l = 0; l < numberOfFrequencies; l++) {
+				if (frequencies[l] == 0.0)
+					correction += FREQ_MIN;
+				else if (frequencies[l] < FREQ_MIN) {
+					correction += (FREQ_MIN - frequencies[l]);
+					factor -= (FREQ_MIN - frequencies[l]);
+				}
+			}
+
+			countScale = 0;
+
+			for (l = 0; l < numberOfFrequencies; l++) {
+				if (frequencies[l] >= FREQ_MIN)
+					frequencies[l] = frequencies[l] - (frequencies[l] * correction * factor);
+				else
+					frequencies[l] = FREQ_MIN;
+
+				if (frequencies[l] < FREQ_MIN)
+					countScale++;
+			}
+			assert(loopCounter < 100);
+			loopCounter++;
+		}
+	}
 }
 
 } /* namespace partest */

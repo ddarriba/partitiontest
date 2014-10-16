@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #include <parsePartition.h>
 
@@ -332,8 +333,8 @@ void PllTreeManager::setModelParameters(const Model * _model, int index,
 
 		if (pModel->isPF()) {
 			double ** freqs = pllBaseFrequenciesInstance(_tree,_partitions);
+			Utilities::smoothFrequencies(freqs[index], NUM_PROT_FREQS);
 			memcpy(current_part->empiricalFrequencies, freqs[index], 20*sizeof(double));
-			//pllSetFixedBaseFrequencies(freqs[index], NUM_PROT_FREQS, index, _partitions, _tree);
 			free(freqs);
 		}
 	}

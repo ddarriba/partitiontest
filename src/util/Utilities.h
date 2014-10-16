@@ -30,10 +30,16 @@
 
 #include "util/GlobalDefs.h"
 
+#define FREQ_MIN 0.001
+
 namespace partest {
 
 class Utilities {
 public:
+
+
+	/* ********* NUMERIC UTILITIES ********* */
+
 
 	/**
 	 * Binary power of x.
@@ -41,54 +47,166 @@ public:
 	 */
 	static unsigned long int binaryPow(unsigned long int x);
 
+	/**
+	 * @brief Compute the unsigned integer binary logarithm
+	 */
 	static inline size_t iBinaryLog(size_t x) {
 		return ceil(log(x) / log(2));
 	}
+
+	/**
+	 * @brief Compute the double precission binary logarithm
+	 */
 	static inline double dBinaryLog(double x) {
 		return (log(x) / log(2));
 	}
+
+	/**
+	 * @brief Compute the integer decimal logarithm
+	 */
 	static inline int iDecLog(int x) {
 		return x > 0 ? floor(log(x) / log(10)) : 0;
 	}
 
+	/**
+	 * @brief Check if a string value is numeric
+     */
 	static bool isNumeric(const char * value);
+
+	/**
+	 * @brief Check if a string value is integer
+	 */
 	static bool isInteger(const char * value);
 
+	/**
+	 * @brief Convert an integer value to base 64 char
+	 * \pre { value < 64 }
+	 */
 	static char toBase64(int value);
+
+	/**
+	 * @brief Count the number of 1s in a binary string
+	 */
 	static int setbitsCount(bitMask value);
 
+
+	/* ********* STATISTICS ********* */
+
+
+	/**
+	 * @brief Compute the mean value of a doubles vector
+	 */
 	static double mean(double series[], int n);
+
+	/**
+	 * @brief Compute the variance of a doubles vector
+	 */
 	static double variance(double series[], int n);
+
+	/**
+	 * @brief Compute the standard deviation of a doubles vector
+	 */
 	static double standardDeviation(double series[], int n);
+
+	/**
+	 * @brief Compute the covariance of 2 doubles vectors
+	 */
 	static double covariance(double X[], double Y[], int n);
+
+	/**
+	 * @brief Compute the correlation of 2 doubles vectors
+	 */
 	static double correlation(double X[], double Y[], int n);
+
+	/**
+	 * @brief Compute the euclidean distance between 2 doubles vectors
+	 */
 	static double euclideanDistance(double X[], double Y[], int n, double multiplier = 1.0);
+
+	/**
+	 * @brief Compute the normalized euclidean distance between 2 doubles vectors
+	 */
 	static double normalizedEuclideanDistance(double X[], double Y[], int n);
 
-	/** Number of branches according to the number of taxa. */
-	static int numberOfBranches(int numTaxa);
 
+	/* ********* IDENTIFIERS MANAGEMENT ********* */
+
+
+	/**
+	 * @brief Merge 2 partition element ids into a new one
+	 */
 	static void mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
 			t_partitionElementId id2);
+	/**
+	 * @brief Get the intersection between 2 partition element ids
+	 */
 	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
+
+	/**
+	 * @brief Check if a partition element id contains a certain partition
+	 */
+	static bool contains(t_partitionElementId vec, int num);
+
+	/**
+	 * @brief Check if a partitioning scheme contains a certain partition element
+	 */
+	static bool contains(t_partitioningScheme vec, t_partitionElementId id);
+
+	/**
+	 * @brief Clone PLL alignment data
+	 */
 	static int duplicateAlignmentData(pllAlignmentData ** out,
 			pllAlignmentData * in);
 
-	static bool contains(t_partitionElementId vec, int num);
-	static bool contains(t_partitioningScheme vec, t_partitionElementId id);
-
-	static std::string getProtMatrixName(ProtMatrix matrix);
-	static std::string getProtRaxmlName(ProtMatrix matrix);
-
-	static int toLower(char * str);
-
+	/**
+	 * @brief Print a partitioning scheme identifier
+	 */
 	static void printScheme(t_partitioningScheme scheme);
 
+
+	/* ********* MATRICES NAMING ********* */
+
+
+	/**
+	 * @brief Get the name of the amino acid replacement matrix
+	 */
+	static std::string getProtMatrixName(ProtMatrix matrix);
+	/**
+	 * @brief Get the name of the amino acid replacement matrix as used in RAxML
+	 */
+	static std::string getProtRaxmlName(ProtMatrix matrix);
+
+
+	/* ********* MISCELANEOUS ********* */
+
+
+	/**
+	 * @brief Convert a string to lower case
+	 */
+	static int toLower(char * str);
+
+	/**
+	 * @brief Compute number of branches according to the number of taxa.
+	 */
+	static int numberOfBranches(int numTaxa);
+
+	/**
+	 * @brief Compute the average of the model parameters
+	 */
 	static int averageModelParameters(t_partitionElementId id, partitionList * partitions);
+
+	/**
+	 * @brief Get a newick tree with the average branch lengths
+	 */
 	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
 
+	/**
+	 * @brief Smooth the base frequencies such that there is no frequency below FREQ_MIN
+	 */
+	static void smoothFrequencies(double *frequencies, int numberOfFrequencies);
+
 private:
-	static char encoding_table[];
+	static char encoding_table[];	/** Table for encoding base 64 values */
 };
 
 } /* namespace partest */
