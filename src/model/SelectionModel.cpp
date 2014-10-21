@@ -58,7 +58,7 @@ void SelectionModel::setCumWeight(double cumWeight) {
 	this->cumWeight = cumWeight;
 }
 
-void SelectionModel::setValue(double delta) {
+void SelectionModel::setValue(double value) {
 	this->value = value;
 }
 

@@ -51,7 +51,7 @@ public:
 	 * @brief Compute the unsigned integer binary logarithm
 	 */
 	static inline size_t iBinaryLog(size_t x) {
-		return ceil(log(x) / log(2));
+		return (size_t) ceil(log(x) / log(2));
 	}
 
 	/**
@@ -65,7 +65,7 @@ public:
 	 * @brief Compute the integer decimal logarithm
 	 */
 	static inline int iDecLog(int x) {
-		return x > 0 ? floor(log(x) / log(10)) : 0;
+		return (int) (x > 0 ? floor(log(x) / log(10)) : 0);
 	}
 
 	/**

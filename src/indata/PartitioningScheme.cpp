@@ -85,7 +85,7 @@ PartitioningScheme::~PartitioningScheme() {
 }
 
 PartitionElement * PartitioningScheme::getElement(size_t id) {
-	if ((id >= 0) & (id < numberOfElements)) {
+	if (id < numberOfElements) {
 		return partitions.at(id);
 	} else {
 		return 0;
