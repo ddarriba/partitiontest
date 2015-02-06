@@ -3,11 +3,9 @@
 
 AC_PREREQ([2.50])
 AC_INIT(partest, 1.0, ddarriba@udc.es)
-AM_INIT_AUTOMAKE #([subdir-objects]) # (partest, 1.0)
+AM_INIT_AUTOMAKE([subdir-objects]) # (partest, 1.0)
 
-CFLAGS="$CFLAGS -I${PWD}/libpll/include"
-CXXFLAGS="$CXXFLAGS -I${PWD}/libpll/include"
-LDFLAGS="$LDFLAGS -L${PWD}/libpll/lib"
+CXXFLAGS="-g -O3 -Wall"
 
 AC_CONFIG_SRCDIR([src/PartitionTest.cpp])
 AC_CONFIG_HEADERS([config.h])
@@ -55,27 +53,13 @@ AM_CONDITIONAL(HAVE_AVX, test "$have_avx" = "yes")
 AM_CONDITIONAL(HAVE_PTHREADS, test "x$have_pthreads" = "xyes")
 AM_CONDITIONAL(HAVE_SSE, test "x$have_sse" = "xyes")
 
-if test "x${have_pthreads}" = "xyes"; then
-    if test "x${have_avx}" = "xyes"; then
-      AC_CHECK_LIB([pll-avx-pthreads], [pllCreateInstance])
-    else
-      if test "x${have_sse}" = "xyes"; then 
-        AC_CHECK_LIB([pll-sse3-pthreads], [pllCreateInstance])
-      else
-        AC_CHECK_LIB([pll-generic], [pllCreateInstance])
-      fi
-    fi
-else
-    if test "x${have_avx}" = "xyes"; then
-      AC_CHECK_LIB([pll-avx], [pllCreateInstance])
-    else
-      if test "x${have_sse}" = "xyes"; then 
-        AC_CHECK_LIB([pll-sse3], [pllCreateInstance])
-      else
-        AC_CHECK_LIB([pll-generic], [pllCreateInstance])
-      fi
-    fi
-fi
+# Check for pll
+AC_CHECK_LIB([pll-avx-pthreads], [pllCreateInstance], [], [
+  AC_CHECK_LIB([pll-sse3-pthreads], [pllCreateInstance], [], [
+    AC_CHECK_LIB([pll-avx], [pllCreateInstance], [], [
+      AC_CHECK_LIB([pll-sse3], [pllCreateInstance], [], [
+        AC_MSG_ERROR([Could  not find PLL library])
+])])])])
 
 # Checks for header files.
 AC_FUNC_ALLOCA

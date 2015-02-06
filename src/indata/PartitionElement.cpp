@@ -19,8 +19,8 @@
 #include "PartitionElement.h"
 
 #include "util/Utilities.h"
-#include <parsePartition.h>
 
+#include <pll/parsePartition.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>

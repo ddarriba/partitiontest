@@ -28,7 +28,7 @@
 #define PROGRAM_VERSION "1.0"
 #define PROGRAM_DATE "15 Jul 2014"
 
-#include <pll.h>
+#include <pll/pll.h>
 
 #include <vector>
 #include <climits>

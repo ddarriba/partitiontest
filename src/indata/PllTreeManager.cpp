@@ -11,12 +11,12 @@
 #include "model/NucleicModel.h"
 #include "model/ProteicModel.h"
 
+#include <pll/parsePartition.h>
 #include <cassert>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
 
-#include <parsePartition.h>
 
 #define ESTIMATE_PARAMETERS 0
 
