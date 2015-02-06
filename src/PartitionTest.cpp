@@ -212,7 +212,7 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
 	if (!phylip) {
-		cerr << "[ERROR] There was an error parsing input data." << endl;
+		cerr << "[ERROR] There was an error parsing input data \"" << (*input_file) << "\"" << endl;
 		exit_partest(EX_IOERR);
 	}
 	pllPartitions = pllPartitionsCommit(pllPartsQueue, phylip);
