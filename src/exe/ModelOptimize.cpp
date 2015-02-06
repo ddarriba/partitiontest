@@ -23,6 +23,7 @@
 #include "indata/PartitionMap.h"
 #include "indata/TreeManager.h"
 
+#include <pll/parsePartition.h>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -30,7 +31,6 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#include <parsePartition.h>
 
 #define ML_STARTING_TREE 0
 #define ESTIMATE_PARAMETERS 0

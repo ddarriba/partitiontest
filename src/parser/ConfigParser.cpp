@@ -24,12 +24,13 @@
 #include "ConfigParser.h"
 #include "util/Utilities.h"
 #include "INIReader.h"
+
+#include <pll/parsePartition.h>
 #include <string.h>
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
-#include <parsePartition.h>
 #include <assert.h>
 
 namespace partest {

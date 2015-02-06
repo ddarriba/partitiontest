@@ -8,7 +8,6 @@
 #include "util/GlobalDefs.h"
 #include "indata/TreeManager.h"
 
-#include <pll.h>
 #include <vector>
 
 #ifndef PLLTREEMANAGER_H_

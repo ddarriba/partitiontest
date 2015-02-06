@@ -25,7 +25,6 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
-#include <pll.h>
 #include <math.h>
 
 #include "util/GlobalDefs.h"
