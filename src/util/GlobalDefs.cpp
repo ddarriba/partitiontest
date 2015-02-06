@@ -94,10 +94,13 @@ namespace partest {
 
 	void exit_partest(int status) {
 		/* free global variables */
-		for (size_t i=0; i<number_of_genes; i++) {
-			delete singleGeneNames[i];
+		if (singleGeneNames) {
+			for (size_t i=0; i<number_of_genes; i++) {
+				if (singleGeneNames[i])
+					delete singleGeneNames[i];
+			}
+			free(singleGeneNames);
 		}
-		free(singleGeneNames);
 
 		if (user_tree)
 			delete (user_tree);

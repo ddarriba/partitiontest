@@ -49,6 +49,34 @@ struct comparePartitionInfos {
 	}
 };
 
+static int checkOverlap (vector<partitionInfo> * parts, int maxSite)
+{
+	/* boolean array for marking that a site was assigned a partition */
+	char * used = (char *) calloc ((size_t)maxSite, sizeof (char));
+
+	for (size_t i=0; i<parts->size(); i++) {
+		partitionInfo partInfo = parts->at(i);
+		for (int sec=0; sec < partInfo.numberOfSections; sec++) {
+			for (int site=partInfo.start[sec]; site <= partInfo.end[sec]; site += partInfo.stride[sec]) {
+				if (used[site]) {
+					free(used);
+					cerr << "[ERROR] Detected overlapping partitions: " << endl;
+					cerr << "        " << partInfo.start[sec] << "-" << partInfo.end[sec];
+					if ( partInfo.stride[sec] > 1 ) {
+						cerr << "/" << partInfo.stride[sec];
+					}
+					cerr << endl;
+					exit_partest(EX_IOERR);
+				}
+				used[site] = 1;
+			}
+		}
+	}
+
+	free(used);
+	return 0;
+}
+
 void ConfigParser::createSinglePartition() {
 	if (!input_file) {
 		cerr << "[ERROR] Input file has not been set" << endl;
@@ -62,7 +90,7 @@ void ConfigParser::createSinglePartition() {
 
 	phylip = pllParseAlignmentFile(PLL_FORMAT_PHYLIP, input_file->c_str());
 	if (!phylip) {
-		cerr << "[ERROR] There was an error parsing input data." << endl;
+		cerr << "[ERROR] There was an error parsing input data \"" << (*input_file) << "\"" << endl;
 		exit_partest(EX_IOERR);
 	}
 	num_taxa = phylip->sequenceCount;
@@ -307,7 +335,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 		} else if (!strcmp(value, "auto")) {
 			search_algo = SearchAuto;
 		} else {
-			cerr << "Invalid search algorithm : " << value << endl;
+			cerr << "Invalid search algorithm \"" << value << "\"" << endl;
 			exit_partest(EX_CONFIG);
 		}
 
@@ -320,8 +348,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 
 		if (number_of_genes) {
 			partitions = new vector<partitionInfo>(number_of_genes);
-			singleGeneNames = (string **) malloc(
-					number_of_genes * sizeof(string*));
+			singleGeneNames = (string **) calloc( (size_t) number_of_genes, sizeof(string*));
+			int maxSite = 0;
 
 			for (size_t partitionId = 0; partitionId < number_of_genes;
 					partitionId++) {
@@ -333,7 +361,14 @@ ConfigParser::ConfigParser(const char * configFile) :
 				strcpy(lineBuffer, keys->at(partitionId * 2 + 1).c_str());
 
 				parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
+				for (int sec=0; sec<partitions->at(partitionId).numberOfSections; sec++) {
+					if (partitions->at(partitionId).end[sec] > maxSite) {
+						maxSite = partitions->at(partitionId).end[sec];
+					}
+				}
 			}
+
+			checkOverlap (partitions, maxSite);
 			delete keys;
 
 			std::sort(partitions->begin(), partitions->end(),
@@ -349,10 +384,12 @@ ConfigParser::ConfigParser(const char * configFile) :
 			int schemeId = 0;
 			for (size_t i = 0; i < defSchemes->size(); i++) {
 				string scheme = defSchemes->at(i);
+				cout << "SCHEME " << scheme << endl;
 				char lineBuffer[scheme.length() + 1];
 				strcpy(lineBuffer, scheme.c_str());
 				parseScheme(lineBuffer, &(schemes->at(schemeId)));
 				schemeId++;
+				cout << "DONE " << schemeId << endl;
 			}
 		}
 		delete defSchemes;
@@ -430,8 +467,7 @@ int ConfigParser::parsePartitionDetails(char * line,
 	the_line[strlen(the_line)] = '\0';
 	partitionLine = pllPartitionParseString(the_line);
 	if (!partitionLine) {
-		cerr << "[ERROR] Could not read partition:" << endl;
-		cerr << "-> " << line << endl;
+		cerr << "[ERROR] Could not read partition: \"" << line << "\"" << endl;
 		exit_partest(EX_IOERR);
 	}
 	pi = (pllPartitionInfo *) partitionLine->head->item;
@@ -441,6 +477,10 @@ int ConfigParser::parsePartitionDetails(char * line,
 		pllPartitionRegion * region = (pllPartitionRegion *) qItem->item;
 		pInfo->start[numberOfSections] = region->start;
 		pInfo->end[numberOfSections] = region->end;
+		if ((region->end < region->start) || region->stride <= 0 || region->stride > (region->end - region->start)) {
+			cerr << "[ERROR] Invalid partition: \"" << line << "\"" << endl;
+			exit_partest(EX_IOERR);
+		}
 		pInfo->stride[numberOfSections] = region->stride;
 		numberOfSections++;
 	}
