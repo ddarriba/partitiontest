@@ -33,6 +33,8 @@
 #include <sstream>
 #include <assert.h>
 
+using namespace std;
+
 namespace partest {
 
 struct comparePartitionInfos {
@@ -93,8 +95,8 @@ void ConfigParser::createSinglePartition() {
 		cerr << "[ERROR] There was an error parsing input data \"" << (*input_file) << "\"" << endl;
 		exit_partest(EX_IOERR);
 	}
-	num_taxa = phylip->sequenceCount;
-	seq_len = phylip->sequenceLength;
+	num_taxa = (size_t) phylip->sequenceCount;
+	seq_len  = (size_t) phylip->sequenceLength;
 
 	pllPartitionRegion * pregion;
 	pllPartitionInfo * pinfo;
@@ -128,7 +130,7 @@ void ConfigParser::createSinglePartition() {
 	}
 	pregion = (pllPartitionRegion *) malloc(sizeof(pllPartitionRegion));
 	pregion->start = 1;
-	pregion->end = seq_len;
+	pregion->end = (int) seq_len;
 	pregion->stride = 1;
 	pllQueueAppend(pinfo->regionList, (void *) pregion);
 }
@@ -184,8 +186,8 @@ void ConfigParser::createPartitions() {
 	}
 }
 
-ConfigParser::ConfigParser(const char * configFile) :
-		configFile(configFile), partitions(0) {
+ConfigParser::ConfigParser(const char * _configFile) :
+		configFile(_configFile), partitions(0) {
 
 	if (configFile != 0 && strcmp(configFile, "")) {
 
@@ -198,8 +200,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 		/** INPUT **/
 		value = ini.Get(INPUT_TAG, INPUT_MSA_TAG, "").c_str();
 		if (strcmp(value, "")) {
-			int prefixLen = 0;
-			char basedir[strlen(configFile)];
+			size_t prefixLen = 0;
+			char * basedir = (char *) malloc(strlen(configFile) + 1);
 			strcpy(basedir, configFile);
 			char * lastSlash = strrchr(basedir, char_separator);
 			if (lastSlash) {
@@ -208,6 +210,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 				prefixLen = strlen(basedir);
 			}
 			strcpy(inputFile + prefixLen, value);
+			free( basedir );
 		}
 
 		value = ini.Get(INPUT_TAG, INPUT_STARTTOPO_TAG, "").c_str();
@@ -339,7 +342,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 			exit_partest(EX_CONFIG);
 		}
 
-		max_samples = ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
+		max_samples = (int) ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
 
 		/** PARTITIONS **/
 		std::vector<std::string> * keys = ini.getGenes(
@@ -357,7 +360,7 @@ ConfigParser::ConfigParser(const char * configFile) :
 				singleGeneNames[partitionId] = new string(
 						keys->at(partitionId * 2));
 
-				char lineBuffer[keys->at(partitionId * 2 + 1).length() + 1];
+				char * lineBuffer = (char *) malloc(keys->at(partitionId * 2 + 1).length() + 1);
 				strcpy(lineBuffer, keys->at(partitionId * 2 + 1).c_str());
 
 				parsePartitionDetails(lineBuffer, &partitions->at(partitionId));
@@ -366,6 +369,8 @@ ConfigParser::ConfigParser(const char * configFile) :
 						maxSite = partitions->at(partitionId).end[sec];
 					}
 				}
+
+				free( lineBuffer );
 			}
 
 			checkOverlap (partitions, maxSite);
@@ -381,14 +386,15 @@ ConfigParser::ConfigParser(const char * configFile) :
 		if (number_of_schemes) {
 			schemes = new vector<t_partitioningScheme>(number_of_schemes);
 
-			int schemeId = 0;
+			size_t schemeId = 0;
 			for (size_t i = 0; i < defSchemes->size(); i++) {
 				string scheme = defSchemes->at(i);
 				cout << "SCHEME " << scheme << endl;
-				char lineBuffer[scheme.length() + 1];
+				char * lineBuffer = (char *) malloc (scheme.length() + 1);
 				strcpy(lineBuffer, scheme.c_str());
 				parseScheme(lineBuffer, &(schemes->at(schemeId)));
 				schemeId++;
+				free( lineBuffer );
 				cout << "DONE " << schemeId << endl;
 			}
 		}
@@ -457,7 +463,7 @@ int ConfigParser::parsePartitionDetails(char * line,
 
 	pllQueue * partitionLine;
 	pllPartitionInfo * pi;
-	char the_line[strlen(line) + 10];
+	char * the_line = (char *) malloc(strlen(line) + 10);
 	if (data_type == DT_NUCLEIC) {
 		strcpy(the_line, "DNA, P=");
 	} else {
@@ -485,6 +491,7 @@ int ConfigParser::parsePartitionDetails(char * line,
 		numberOfSections++;
 	}
 	pInfo->numberOfSections = numberOfSections;
+	free( the_line );
 
 	return 0;
 }

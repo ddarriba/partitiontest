@@ -82,7 +82,7 @@ public:
 		}
 	}
 private:
-	static void analyzeIdentifier(char **ch, int modelNumber, char **modelName);
+	static void analyzeIdentifier(char **ch, char **modelName);
 	static int myGetline(char **lineptr, int *n, FILE *stream);
 	static void skipWhites(char **ch);
 	static int lineContainsOnlyWhiteChars(char * str);

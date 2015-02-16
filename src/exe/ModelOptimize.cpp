@@ -24,16 +24,15 @@
 #include "indata/TreeManager.h"
 
 #include <pll/parsePartition.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <math.h>
-#include <string.h>
-#include <assert.h>
+#include <cmath>
+#include <cstring>
+#include <cassert>
 
 #define ML_STARTING_TREE 0
-#define ESTIMATE_PARAMETERS 0
 
 using namespace std;
 
@@ -61,7 +60,7 @@ string ModelOptimize::buildStartingTree() {
 			size_t treeLen;
 			ofs.read((char *) &(treeLen), sizeof(size_t));
 			starting_tree = (char *) malloc(treeLen + 1);
-			ofs.read((char *) starting_tree, treeLen);
+			ofs.read((char *) starting_tree, (long) treeLen);
 
 			pllNewickTree * nt;
 			nt = pllNewickParseString(starting_tree);
@@ -80,7 +79,7 @@ string ModelOptimize::buildStartingTree() {
 				ofs.read((char *) &(treeLen), sizeof(size_t));
 				pergene_starting_tree[i] = (char *) malloc(
 						treeLen * sizeof(char) + 1);
-				ofs.read((char *) pergene_starting_tree[i], treeLen);
+				ofs.read((char *) pergene_starting_tree[i], (long) treeLen);
 			}
 
 			ofs.close();
@@ -107,7 +106,7 @@ string ModelOptimize::buildStartingTree() {
 
 		pllComputeRandomizedStepwiseAdditionParsimonyTree(tree, compParts);
 
-		if (ML_STARTING_TREE) {
+#if(ML_STARTING_TREE)
 
 			tree->start = tree->nodep[1];
 
@@ -140,8 +139,7 @@ string ModelOptimize::buildStartingTree() {
 				cout << timestamp() << " Loading GTR models" << endl;
 				break;
 			default:
-				cerr << "Unknown datatype " << data_type << endl;
-				exit_partest(EX_SOFTWARE);
+				assert(0);
 			}
 
 			pllInitModel(tree, compParts);
@@ -160,11 +158,12 @@ string ModelOptimize::buildStartingTree() {
 			cout << timestamp() << " Building ML topology" << endl;
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 
-		} else {
+#else
+
 			cout << timestamp() << " Updating branch lengths..." << endl;
 			pllInitModel(tree, compParts);
 			double lk = 0;
-			double epsilon = 10;
+			double optEpsilon = 10;
 			pllEvaluateLikelihood(tree, compParts, tree->start,
 			PLL_TRUE,
 			PLL_FALSE);
@@ -172,10 +171,11 @@ string ModelOptimize::buildStartingTree() {
 				while (fabs(lk - tree->likelihood) > 5) {
 					lk = tree->likelihood;
 					pllOptimizeBranchLengths(tree, compParts, 64);
-					pllOptimizeModelParameters(tree, compParts, epsilon);
+					pllOptimizeModelParameters(tree, compParts, optEpsilon);
 				}
 			}
-		}
+
+#endif
 
 		pllTreeToNewick(tree->tree_string, tree, compParts, tree->start->back,
 		PLL_TRUE,
@@ -194,7 +194,7 @@ string ModelOptimize::buildStartingTree() {
 						tree->start->back,
 						PLL_TRUE,
 						PLL_TRUE,
-						PLL_FALSE, PLL_FALSE, PLL_FALSE, i,
+						PLL_FALSE, PLL_FALSE, PLL_FALSE, (int) i,
 						PLL_FALSE,
 						PLL_FALSE);
 			}
@@ -212,13 +212,13 @@ string ModelOptimize::buildStartingTree() {
 			ofs.seekg(0);
 			size_t treeLen = strlen(tree->tree_string) + 1;
 			ofs.write((char *) &treeLen, sizeof(size_t));
-			ofs.write((char *) tree->tree_string, treeLen);
+			ofs.write((char *) tree->tree_string, (long) treeLen);
 			if (pergene_starting_tree) {
 				ofs.write((char *) &number_of_genes, sizeof(size_t));
 				for (size_t i = 0; i < number_of_genes; i++) {
 					treeLen = strlen(pergene_starting_tree[i]) + 1;
 					ofs.write((char *) &treeLen, sizeof(size_t));
-					ofs.write((char *) pergene_starting_tree[i], treeLen);
+					ofs.write((char *) pergene_starting_tree[i], (long) treeLen);
 				}
 			} else {
 				size_t zero = 0;
@@ -254,7 +254,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 		PartitionElement * pe = finalScheme->getElement(i);
 		switch (data_type) {
 		case DT_PROTEIC:
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				pe = finalScheme->getElement(cur_part);
 				ProteicModel * pModel =
@@ -273,7 +273,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 			}
 			break;
 		case DT_NUCLEIC: {
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				pe = finalScheme->getElement(cur_part);
 				NucleicModel * nModel =
@@ -291,7 +291,7 @@ string ModelOptimize::buildFinalTreeLinking(PartitioningScheme * finalScheme,
 			break;
 		}
 		default:
-			exit_partest(EX_UNAVAILABLE);
+			assert(0);
 		}
 	}
 
@@ -329,7 +329,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			ofs.seekg(0);
 			int treeLen;
 			ofs.read((char *) &(treeLen), sizeof(int));
-			final_tree = (char *) malloc(treeLen + 1);
+			final_tree = (char *) malloc((size_t)treeLen + 1);
 			ofs.read((char *) final_tree, treeLen);
 			ofs.close();
 
@@ -369,11 +369,11 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			pinfo->dataType =
 					(data_type == DT_NUCLEIC) ? PLL_DNA_DATA : PLL_AA_DATA;
 			pinfo->optimizeBaseFrequencies = PLL_TRUE;
-			for (int j = 0; j < pe->getNumberOfSections(); j++) {
+			for (size_t j = 0; j < pe->getNumberOfSections(); j++) {
 				pregion = (pllPartitionRegion *) malloc(
 						sizeof(pllPartitionRegion));
-				pregion->start = pe->getSection(j).start;
-				pregion->end = pe->getSection(j).end;
+				pregion->start = (int) pe->getSection(j).start;
+				pregion->end = (int) pe->getSection(j).end;
 				pregion->stride = 1;
 				pllQueueAppend(pinfo->regionList, (void *) pregion);
 			}
@@ -409,14 +409,13 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			pllNewickParseDestroy(&nt);
 			break;
 		default:
-			cerr << "ERROR: Undefined starting topology" << endl;
-			exit_partest(EX_SOFTWARE);
+			assert(0);
 			break;
 		}
 
 		switch (data_type) {
 		case DT_PROTEIC: {
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				PartitionElement * pe = finalScheme->getElement(cur_part);
 				ProteicModel * pModel =
@@ -443,7 +442,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			break;
 		}
 		case DT_NUCLEIC: {
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				PartitionElement * pe = finalScheme->getElement(cur_part);
 				NucleicModel * nModel =
@@ -460,13 +459,13 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 			break;
 		}
 		default:
-			exit_partest(EX_UNAVAILABLE);
+			assert(0);
 		}
 
 		pllInitModel(fTree, compParts);
 
 		if (!reoptimizeParameters) {
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				pInfo * current_part = compParts->partitionData[cur_part];
 				PartitionElement * pe = finalScheme->getElement(cur_part);
@@ -489,7 +488,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 		}
 
 		if (data_type == DT_NUCLEIC) {
-			for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+			for (size_t cur_part = 0; cur_part < (size_t) compParts->numberOfPartitions;
 					cur_part++) {
 				PartitionElement * pe = finalScheme->getElement(cur_part);
 				NucleicModel * nModel =
@@ -503,7 +502,7 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 					symmetryPar[j * 2] = m[j];
 				}
 				pllSetSubstitutionRateMatrixSymmetries(symmetryPar, compParts,
-						cur_part);
+						(int) cur_part);
 				free(symmetryPar);
 			}
 		}
@@ -519,8 +518,8 @@ string ModelOptimize::buildFinalTree(PartitioningScheme * finalScheme,
 
 		pllPartitionsDestroy(fTree, &compParts);
 
-		int treeLen = strlen(fTree->tree_string) + 1;
-		final_tree = (char *) malloc(treeLen);
+		int treeLen = (int) strlen(fTree->tree_string) + 1;
+		final_tree = (char *) malloc((size_t) treeLen);
 		strcpy(final_tree, fTree->tree_string);
 
 		if (ckpAvailable) {
@@ -589,9 +588,9 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 			<< index + 1 << "/" << limit << setfill(' ') << endl;
 	element->setupStructures();
 
-	for (int modelIndex = 0; modelIndex < element->getNumberOfModels();
+	for (size_t modelIndex = 0; modelIndex < element->getNumberOfModels();
 			modelIndex++) {
-		optimizeModel(element, modelIndex, element->getNumberOfModels());
+		optimizeModel(element, modelIndex, (int) element->getNumberOfModels());
 	}
 
 	ModelSelector ms(element, ic_type, element->getSampleSize());

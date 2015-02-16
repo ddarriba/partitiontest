@@ -40,8 +40,8 @@ class PrintMeta {
     static void print_header(std::ostream& output);
     static void print_options(std::ostream& output);
     static void print_usage(std::ostream& output);
-    static void print_results(ostream & ofs, PartitioningScheme * bestScheme);
-    static void print_results_xml(ostream & ofs, PartitioningScheme * bestScheme);
+    static void print_results(std::ostream & ofs, PartitioningScheme * bestScheme);
+    static void print_results_xml(std::ostream & ofs, PartitioningScheme * bestScheme);
 };
 
 } /* namespace partest */

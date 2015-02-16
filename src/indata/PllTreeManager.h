@@ -13,14 +13,12 @@
 #ifndef PLLTREEMANAGER_H_
 #define PLLTREEMANAGER_H_
 
-using namespace std;
-
 namespace partest {
 
 class PllTreeManager: public TreeManager {
 public:
 	PllTreeManager(const t_partitionElementId id,
-			const pllAlignmentData * phylip, const vector<PEsection> & sections,
+			const pllAlignmentData * phylip, const std::vector<PEsection> & sections,
 			size_t numberOfSites);
 	virtual ~PllTreeManager();
 
@@ -46,7 +44,7 @@ public:
 private:
 	void scaleBranchLengthsSymmetric( int smoothIterations );
 	double scaleBranchLengths( double multiplier );
-	vector<double> storedBranchLengths;
+	std::vector<double> storedBranchLengths;
 
 	pllInstance * _tree;
 	pllAlignmentData * _alignData;

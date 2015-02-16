@@ -152,6 +152,7 @@ enum NucMatrix {
 #define EX_PROTOCOL     76      /* remote error in protocol */
 #define EX_NOPERM       77      /* permission denied */
 #define EX_CONFIG       78      /* configuration error */
+#define EX_MEM          79      /* memory error */
 
 enum RateVar {
 	RateVarM = 1, RateVarF = 2, RateVarI = 4, RateVarG = 8
@@ -284,7 +285,7 @@ extern pllInstance * tree;
 
 extern time_t start_time;
 
-void exit_partest(int status);
+void exit_partest(int status) __attribute__ ((noreturn));
 std::string timestamp();
 
 }

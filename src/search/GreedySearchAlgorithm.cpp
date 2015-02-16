@@ -34,8 +34,8 @@ using namespace std;
 namespace partest {
 
 struct nextSchemeFunctor {
-	nextSchemeFunctor(PartitioningScheme * scheme) :
-			elementIndex1(1), elementIndex2(0), scheme(scheme) {
+	nextSchemeFunctor(PartitioningScheme * _scheme) :
+			elementIndex1(1), elementIndex2(0), scheme(_scheme) {
 		numberOfElements = scheme->getNumberOfElements();
 		numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
 		currentScheme = 0;
@@ -76,7 +76,7 @@ struct nextSchemeFunctor {
 
 		return (new PartitioningScheme(&nextSchemeId));
 	}
-	int size() {
+	size_t size() {
 		return ((numberOfElements * (numberOfElements - 1)) / 2);
 	}
 private:
@@ -128,10 +128,10 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 
 	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
 	double bestScore, score;
-	int numberOfPartitions = number_of_genes;
+	size_t numberOfPartitions = number_of_genes;
 	vector<PartitioningScheme *> nextSchemes;
 	int currentStep = 0;
-	int maxSteps = number_of_genes;
+	size_t maxSteps = number_of_genes;
 
 	bool continueExec = (numberOfPartitions > 1);
 	if (I_AM_ROOT) {
@@ -187,9 +187,9 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 
 			numberOfPartitions = localBestScheme->getNumberOfElements() - 1;
 
-			PartitionSelector ps(nextSchemes);
+			PartitionSelector _ps(nextSchemes);
 			//ps.print(cout);
-			localBestScheme = ps.getBestScheme();
+			localBestScheme = _ps.getBestScheme();
 			score = localBestScheme->getIcValue();
 
 			printStepLog(currentStep, localBestScheme);
@@ -202,7 +202,7 @@ PartitioningScheme * GreedySearchAlgorithm::start(
 			}
 			printStep(SearchGreedy, score);
 
-			continueExec = ((non_stop || bestScore == score)
+			continueExec = ((non_stop || fabs(bestScore - score) < 1e-10)
 					&& (numberOfPartitions > 1));
 
 #ifdef HAVE_MPI

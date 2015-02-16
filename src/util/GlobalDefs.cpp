@@ -92,6 +92,8 @@ namespace partest {
 	pllAlignmentData * phylip = 0;
 	pllInstance * tree = 0;
 
+	time_t start_time = time(NULL);
+
 	void exit_partest(int status) {
 		/* free global variables */
 		if (singleGeneNames) {
@@ -136,6 +138,12 @@ namespace partest {
 		case EX_OK:
 			/* print nothing */
 			break;
+		case EX_IOERR:
+			cerr << " ... I/O error ..." << endl;
+			break;
+		case EX_MEM:
+			cerr << " ... out of memory error ..." << endl;
+			break;
 		default:
 			cerr << "... finishing with error status." << endl;
 			break;
@@ -144,13 +152,11 @@ namespace partest {
 		exit(status);
 	}
 
-	time_t start_time = time(NULL);
-
 	string timestamp() {
 		time_t seconds = time(NULL) - start_time;
-		int hours = seconds / 3600;
+		int hours = (int) (seconds / 3600);
 		seconds %= 3600;
-		int minutes = seconds / 60;
+		int minutes = (int) (seconds / 60);
 		seconds %= 60;
 		stringstream ss;
 		ss << setw(2) << setfill('0') << hours << ":" << setw(2) << minutes << ":" << setw(2) << seconds;

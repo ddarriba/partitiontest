@@ -46,7 +46,7 @@ public:
 	virtual ~RandomSearchAlgorithm();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 private:
-	int getRandomPartitioningScheme(vector<PartitioningScheme *> & nextSchemes,
+	int getRandomPartitioningScheme(std::vector<PartitioningScheme *> & nextSchemes,
 			int numberOfSchemes, t_partitioningScheme p0);
 };
 

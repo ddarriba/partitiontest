@@ -22,10 +22,12 @@
 #include <stdlib.h>
 #include <iostream>
 
+using namespace std;
+
 namespace partest {
 
-Model::Model(bitMask rateVariation, int numberOfTaxa) :
-		rateVariation(rateVariation), lnL(0.0), alpha(1.0),
+Model::Model(bitMask _rateVariation, int numberOfTaxa) :
+		rateVariation(_rateVariation), lnL(0.0), alpha(1.0),
 		rates(0), frequencies(0), numberOfFrequencies(0),
 		name(), modelFreeParameters(0) {
 
@@ -48,16 +50,16 @@ string Model::getName() const {
 	return name;
 }
 
-void Model::setName(string name) {
-	this->name = name;
+void Model::setName(string _name) {
+	this->name = _name;
 }
 
 string Model::getMatrixName() const {
 	return matrixName;
 }
 
-void Model::setMatrixName(string matrixName) {
-	this->matrixName = matrixName;
+void Model::setMatrixName(string _matrixName) {
+	this->matrixName = _matrixName;
 }
 
 bitMask Model::getRateVariation() const {
@@ -67,15 +69,15 @@ string Model::getTree() const {
 	return tree;
 }
 
-void Model::setAlpha(double alpha) {
+void Model::setAlpha(double _alpha) {
 	assert(isGamma());
-	this->alpha = alpha;
+	this->alpha = _alpha;
 }
 
 #ifdef _IG_MODELS
-void Model::setpInv(double pInv) {
+void Model::setpInv(double _pInv) {
 	assert(isPInv());
-	this->pInv = pInv;
+	this->pInv = _pInv;
 }
 #endif
 
@@ -115,12 +117,12 @@ void Model::print(ostream& cout, const char * prefix) const {
 	}
 }
 
-void Model::setTree(string tree) {
-	this->tree = tree;
+void Model::setTree(string _tree) {
+	this->tree = _tree;
 }
 
-void Model::setTree(char * tree) {
-	this->tree = string(tree);
+void Model::setTree(char * _tree) {
+	this->tree = string(_tree);
 }
 
 double * Model::getFrequencies(void) const {

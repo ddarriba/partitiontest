@@ -17,11 +17,12 @@
  */
 
 #include "ModelSelector.h"
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <algorithm>
 
 namespace partest {
@@ -33,9 +34,9 @@ struct compareSelectionModels {
 	}
 };
 
-ModelSelector::ModelSelector(PartitionElement * partitionElement,
-		InformationCriterion ic, double sampleSize) :
-		partitionElement(partitionElement), ic(ic), sampleSize(sampleSize) {
+ModelSelector::ModelSelector(PartitionElement * _partitionElement,
+		InformationCriterion _ic, double _sampleSize) :
+		partitionElement(_partitionElement), ic(_ic), sampleSize(_sampleSize) {
 
 	doSelection(partitionElement->getModels(), ic, sampleSize);
 	partitionElement->setBestModel(getBestModel());
@@ -75,9 +76,7 @@ double ModelSelector::computeIc(InformationCriterion ic, double lnL,
 		exit_partest(EX_UNAVAILABLE);
 		break;
 	default:
-		value = 0.0;
-		cerr << "[ERROR] Undefined Criterion" << endl;
-		exit_partest(EX_UNAVAILABLE);
+		assert(0);
 		break;
 	}
 	return value;
@@ -135,7 +134,7 @@ double ModelSelector::getOverallAlphaInv() const {
 #endif
 
 void ModelSelector::doSelection(vector<Model *> modelset,
-		InformationCriterion ic, double sampleSize) {
+		InformationCriterion _ic, double _sampleSize) {
 	selectionModels = new vector<SelectionModel *>(modelset.size());
 
 	for (size_t i = 0; i < modelset.size(); i++) {
@@ -143,18 +142,18 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 		int freeParameters = reoptimize_branch_lengths
 				?model->getNumberOfFreeParameters()
 				:model->getModelFreeParameters();
-		double value = computeIc(ic, model->getLnL(),
-				freeParameters, sampleSize);
+		double value = computeIc(_ic, model->getLnL(),
+				freeParameters, _sampleSize);
 		double bicScore = computeIc(BIC, model->getLnL(),
-				freeParameters, sampleSize);
+				freeParameters, _sampleSize);
 		double aicScore = computeIc(AIC, model->getLnL(),
-				freeParameters, sampleSize);
+				freeParameters, _sampleSize);
 		double aiccScore = computeIc(AICC, model->getLnL(),
-				freeParameters, sampleSize);
+				freeParameters, _sampleSize);
 
 #ifdef DEBUG
 		cout << "[DEBUG_SEL] " << model->getName() << " " << model->getLnL() << " " << model->getNumberOfFreeParameters() << " "
-		<< sampleSize << " " << value << endl;
+		<< _sampleSize << " " << value << endl;
 #endif
 
 		selectionModels->at(i) = new SelectionModel(model, value);
@@ -172,7 +171,7 @@ void ModelSelector::doSelection(vector<Model *> modelset,
 	double sumExp = 0.0;
 	for (size_t i = 0; i < selectionModels->size(); i++) {
 		SelectionModel * selectionModel = selectionModels->at(i);
-		selectionModel->setIndex(i);
+		selectionModel->setIndex((int) i);
 		selectionModel->setDelta(selectionModel->getValue() - minValue);
 		sumExp += exp(-0.5 * selectionModel->getDelta());
 	}
@@ -256,8 +255,7 @@ void ModelSelector::print(ostream& out) {
 		out << "Decision Theory" << endl;
 		break;
 	default:
-		cerr << "[ERROR] Undefined Criterion" << endl;
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 		break;
 	}
 	out << "Sample size: " << sampleSize << endl << endl;

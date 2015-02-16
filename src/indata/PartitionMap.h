@@ -31,8 +31,6 @@
 #include "PartitionElement.h"
 #include "util/GlobalDefs.h"
 
-using namespace std;
-
 namespace partest {
 
 struct partitionMappingInfo {
@@ -67,7 +65,7 @@ public:
 	/**
 	 * @brief Deletes a PartitionElement
 	 *
-	 * @parameter id PartitionElement's id.
+	 * @param[in] id PartitionElement's id.
 	 */
 	void deletePartitionElement(t_partitionElementId id);
 
@@ -104,11 +102,6 @@ private:
 
 	/**
 	 * @brief Constructs a new partition map.
-	 *
-	 * @param[in] alignment The MSA containing all the genes.
-	 * @param[in] numberOfPartitions The number of minimum partitions (i.e, single genes)
-	 * @param[in] rateVariation The rate variations mask to be evaluated.
-	 * @param[in] dataType Whether the data is nucleic or proteic.
 	 */
 	PartitionMap();
 
@@ -117,7 +110,7 @@ private:
 
 	size_t numberOfElements; /** Number of partitions already created in the map. */
 	size_t numberOfPartitions; /** Number of single-gene partitions */
-	vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
+	std::vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
 	t_partitioningScheme _keep; /** Set of elements to keep in purge operations*/
 
 	static PartitionMap * instance;

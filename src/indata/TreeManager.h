@@ -36,7 +36,7 @@ public:
 	 * Applies the parameters contained in a Model instance to the tree
 	 *
 	 * @param model The model to take the parameters
-	 * @param model The partition index
+	 * @param index The partition index
 	 * @param setAlphaFreqs Whether to initialize alpha and frequencies
 	 */
 	virtual void setModelParameters(const Model * model, int index,	bool setAlphaFreqs) = 0;

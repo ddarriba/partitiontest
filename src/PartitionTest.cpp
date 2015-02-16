@@ -36,11 +36,13 @@
 #include "parser/ConfigParser.h"
 
 #include <fstream>
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <assert.h>
+#include <cassert>
+
+using namespace std;
 
 namespace partest {
 
@@ -220,10 +222,10 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 		cerr << "[ERROR] There was an error parsing partitions data." << endl;
 		exit_partest(EX_IOERR);
 	}
-	num_taxa = phylip->sequenceCount;
-	seq_len = phylip->sequenceLength;
+	num_taxa = (size_t) phylip->sequenceCount;
+	seq_len = (size_t) phylip->sequenceLength;
 
-	num_patterns = phylip->sequenceLength;
+	num_patterns = (size_t) phylip->sequenceLength;
 
 	return EX_OK;
 }
@@ -363,7 +365,7 @@ int main(int argc, char * argv[]) {
 			searchAlgo = new HierarchicalClusteringSearchAlgorithm();
 			cout << "Searching with hierarchical clustering" << endl;
 			bestScheme = searchAlgo->start();
-			max_samples = bestScheme->getNumberOfElements();
+			max_samples = (int) bestScheme->getNumberOfElements();
 			cout << "Searching with hierarchical clustering with "
 					<< max_samples << " samples" << endl;
 			bestScheme = searchAlgo->start(bestScheme);
@@ -404,10 +406,12 @@ int main(int argc, char * argv[]) {
 	MPI_Finalize();
 #endif
 
+#ifdef CLEAN_ON_EXIT
 	/* cleanup */
 	if (ckpAvailable) {
 		FileUtilities::deleteDirectoryRecursive(ckpPath.c_str());
 	}
+#endif
 
 	exit_partest(EX_OK);
 }

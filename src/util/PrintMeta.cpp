@@ -59,7 +59,7 @@ void PrintMeta::print_options(ostream& output) {
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "  Input alignment:";
 	if (input_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-		output << endl << setw(H_RULE_LENGTH - input_file->length()) << " ";
+		output << endl << setw(H_RULE_LENGTH - (int)input_file->length()) << " ";
 	}
 	output << *input_file << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "     Number of taxa:"
@@ -95,7 +95,7 @@ void PrintMeta::print_options(ostream& output) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Input tree:";
 		if (user_tree->length() > 0) {
 			if (user_tree->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-				output << endl << setw(H_RULE_LENGTH - user_tree->length())
+				output << endl << setw(H_RULE_LENGTH - (int)user_tree->length())
 						<< " ";
 			}
 			output << *user_tree << endl;
@@ -106,7 +106,7 @@ void PrintMeta::print_options(ostream& output) {
 
 	output << setw(OPT_DESCR_LENGTH) << left << "  Config file:";
 	if (config_file->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
-		output << endl << setw(H_RULE_LENGTH - config_file->length()) << " ";
+		output << endl << setw(H_RULE_LENGTH - (int)config_file->length()) << " ";
 	}
 	output << *config_file << endl;
 	output << setw(OPT_DESCR_LENGTH) << left << "     Number of partitions:"
@@ -128,8 +128,7 @@ void PrintMeta::print_options(ostream& output) {
 		output << "Whole set" << endl;
 		break;
 	default:
-		cerr << "ERROR: Undefined optimization mode" << endl;
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 		break;
 	}
 
@@ -148,6 +147,9 @@ void PrintMeta::print_options(ostream& output) {
 			output << setw(OPT_DESCR_LENGTH) << left
 					<< "  Include models with empirical frequencies:";
 		}
+		break;
+	default:
+		assert(0);
 		break;
 	}
 	if (optimize_mode != OPT_GTR) {
@@ -198,6 +200,8 @@ void PrintMeta::print_options(ostream& output) {
 		case SearchAuto:
 			output << left << "Auto" << endl;
 			break;
+		default:
+			assert(0);
 		}
 	}
 	output << setw(OPT_DESCR_LENGTH) << left << "  Selection criterion:";
@@ -469,11 +473,10 @@ void PrintMeta::print_results_xml(ostream & ofs,
 
 			break;
 		default:
-			cerr << "Uninitialized DataType" << endl;
 			assert(0);
 		}
 		ofs << "PART" << i + 1 << " = ";
-		for (int j = 0; j < element->getNumberOfSections(); j++) {
+		for (size_t j = 0; j < element->getNumberOfSections(); j++) {
 			PEsection section = element->getSection(j);
 			if (j > 0) {
 				ofs << ",";

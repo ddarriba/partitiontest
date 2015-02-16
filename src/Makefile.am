@@ -61,6 +61,8 @@ pkginclude_HEADERS= \
 	exe/ModelSelector.h \
 	exe/PartitionSelector.h \
 	indata/PartitionMap.h \
+	indata/TreeManager.h \
+	indata/PllTreeManager.h \
 	indata/PartitionElement.h \
 	indata/PartitioningScheme.h \
 	model/Model.h \
@@ -78,6 +80,7 @@ pkginclude_HEADERS= \
 	util/Utilities.h \
 	util/GlobalDefs.h \
 	util/PrintMeta.h \
+	util/FileUtilities.h \
 	partestParserUtils/PartestParserUtils.h \
 	PartitionTestParser.h \
 	PartitionTest.h

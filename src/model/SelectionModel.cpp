@@ -20,8 +20,8 @@
 
 namespace partest {
 
-SelectionModel::SelectionModel(Model * model, double value) :
-		model(model), value(value) {
+SelectionModel::SelectionModel(Model * _model, double _value) :
+		model(_model), value(_value) {
 	/* initialize to invalid values */
 	index = -1;
 	delta = -1.0;
@@ -46,24 +46,24 @@ bool SelectionModel::operator>(const SelectionModel& other) const {
 	return weight > other.weight;
 }
 
-void SelectionModel::setIndex(int index) {
-	this->index = index;
+void SelectionModel::setIndex(int _index) {
+	this->index = _index;
 }
 
-void SelectionModel::setWeight(double weight) {
-	this->weight = weight;
+void SelectionModel::setWeight(double _weight) {
+	this->weight = _weight;
 }
 
-void SelectionModel::setCumWeight(double cumWeight) {
-	this->cumWeight = cumWeight;
+void SelectionModel::setCumWeight(double _cumWeight) {
+	this->cumWeight = _cumWeight;
 }
 
-void SelectionModel::setValue(double value) {
-	this->value = value;
+void SelectionModel::setValue(double _value) {
+	this->value = _value;
 }
 
-void SelectionModel::setDelta(double delta) {
-	this->delta = delta;
+void SelectionModel::setDelta(double _delta) {
+	this->delta = _delta;
 }
 
 int SelectionModel::getIndex() {
@@ -106,20 +106,20 @@ double SelectionModel::getDTScore(void) {
 	return dtScore;
 }
 
-void SelectionModel::setBicScore(double value) {
-	bicScore = value;
+void SelectionModel::setBicScore(double _value) {
+	bicScore = _value;
 }
 
-void SelectionModel::setAicScore(double value) {
-	aicScore = value;
+void SelectionModel::setAicScore(double _value) {
+	aicScore = _value;
 }
 
-void SelectionModel::setAiccScore(double value) {
-	aiccScore = value;
+void SelectionModel::setAiccScore(double _value) {
+	aiccScore = _value;
 }
 
-void SelectionModel::setDTScore(double value) {
-	dtScore = value;
+void SelectionModel::setDTScore(double _value) {
+	dtScore = _value;
 }
 
 SelectionModel * SelectionModel::clone(void) {

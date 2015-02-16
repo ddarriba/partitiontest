@@ -17,8 +17,11 @@
 #include <fstream>
 #include <algorithm>
 #include <time.h>
+#include <cassert>
 
 #define MAX_SCHEMES_SHOWN 10
+
+using namespace std;
 
 namespace partest {
 
@@ -30,8 +33,8 @@ struct compareSelectionPartitions {
 	}
 };
 
-PartitionSelector::PartitionSelector(vector<PartitioningScheme *> schemesArray) :
-		schemesArray(schemesArray) {
+PartitionSelector::PartitionSelector(vector<PartitioningScheme *> _schemesArray) :
+		schemesArray(_schemesArray) {
 
 	schemesVector = new vector<SelectionPartitioningScheme *>(
 			schemesArray.size());
@@ -78,14 +81,16 @@ PartitionSelector::~PartitionSelector() {
 
 void PartitionSelector::print(ostream& out, int limit) {
 
-	int maxSchemes = (limit == -1 ? schemesVector->size() : limit);
+	assert (limit >= -1);
+
+	size_t maxSchemes = (limit == -1 ? schemesVector->size() : (size_t) limit);
 	int barLength = 75;
 
 	out << endl;
 	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
 	out << setw(7) << "###" << setw(5) << " " << "Scheme" << endl;
 	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
-	for (int id = 0; id < maxSchemes; id++) {
+	for (size_t id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
 		int numCodeLines = sp->scheme->getCodeLines();
 		out << setw(7) << id + 1 << setw(5) << " " << sp->scheme->getCode(numCodeLines-1) << endl;
@@ -97,7 +102,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 	out << setw(7) << "###" << setw(10) << "N" << setw(10) << "K" << setw(20)
 			<< "lnL     " << setw(20) << "Value     " << endl;
 	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl;
-	for (int id = 0; id < maxSchemes; id++) {
+	for (size_t id = 0; id < maxSchemes; id++) {
 		SelectionPartitioningScheme * sp = schemesVector->at(id);
 		out << setw(7) << id + 1 << setw(10)
 				<< sp->scheme->getNumberOfElements() << setw(10) << fixed
@@ -105,7 +110,7 @@ void PartitionSelector::print(ostream& out, int limit) {
 				<< setprecision(4) << sp->lnL << setw(20) << sp->value << endl;
 	}
 	if (limit > 0 && ((int) schemesVector->size()) > limit) {
-		out << "Not showing " << schemesVector->size() - limit
+		out << "Not showing " << schemesVector->size() - (size_t)limit
 				<< " schemes more..." << endl;
 	}
 	out << setw(barLength) << setfill('-') << "" << setfill(' ') << endl

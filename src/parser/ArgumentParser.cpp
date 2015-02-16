@@ -43,8 +43,8 @@ void ArgumentParser::init() {
 	subindex = 1;
 }
 
-ArgumentParser::ArgumentParser(PartitionTest * ptest) :
-		index(0), subindex(0), ptest(ptest) {
+ArgumentParser::ArgumentParser(PartitionTest * _ptest) :
+		index(0), subindex(0), ptest(_ptest) {
 
 	option options_list[] = { { ARG_HELP, 'h', "help", false }, {
 			ARG_CONFIG_FILE, 'c', "config-file", true }, {
@@ -118,7 +118,7 @@ ArgIndex ArgumentParser::get_opt(int argc, char *argv[], char *argument,
 				index++;
 			} else {
 				/* check short option */
-				int num_arguments = strlen(arg + 1);
+				int num_arguments = (int) strlen(arg + 1);
 				for (int j = 0; j < NUM_ARGUMENTS; j++) {
 					if (arguments[j].char_code == arg[subindex]) {
 						arg_index = arguments[j].index;
@@ -192,10 +192,10 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 	int argument_index;
 	char value[256];
 	char argument[256];
-	char input_file[256] = "";
-	char user_tree[256] = "";
-	char config_file[256] = "";
-	char output_dir[256] = "";
+	char _input_file[256] = "";
+	char _user_tree[256] = "";
+	char _config_file[256] = "";
+	char _output_dir[256] = "";
 
 #ifdef _SELECT_SAMPLE_SIZE
 	double sampleSizeValue = 0.0;
@@ -211,8 +211,8 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_INPUT_FILE:
 			/* input alignment file */
-			strcpy(input_file, value);
-			if (!FileUtilities::existsFile(input_file)) {
+			strcpy(_input_file, value);
+			if (!FileUtilities::existsFile(_input_file)) {
 				cerr << "[ERROR] \"Input file " << value << "\" does not exist."
 						<< endl;
 				exit_partest(EX_IOERR);
@@ -220,8 +220,8 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_USER_TREE:
 			/* input user defined topology */
-			strcpy(user_tree, value);
-			if (!FileUtilities::existsFile(user_tree)) {
+			strcpy(_user_tree, value);
+			if (!FileUtilities::existsFile(_user_tree)) {
 				cerr << "[ERROR] \"Tree file " << value << "\" does not exist."
 						<< endl;
 				exit_partest(EX_IOERR);
@@ -444,11 +444,11 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_OUTPUT:
 			/* output directory */
-			strcpy(output_dir, value);
+			strcpy(_output_dir, value);
 			break;
 		case ARG_CONFIG_FILE:
 			/* input configuration file */
-			strcpy(config_file, value);
+			strcpy(_config_file, value);
 			break;
 		case ARG_CONFIG_HELP:
 			/* display configuration file format */
@@ -489,12 +489,12 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		}
 	}
-	if (strcmp(input_file, ""))
-		ptest->setInputFile(input_file);
-	if (strcmp(user_tree, ""))
-		ptest->setUserTree(user_tree);
-	if (strcmp(output_dir, ""))
-		ptest->setOutputDir(output_dir);
+	if (strcmp(_input_file, ""))
+		ptest->setInputFile(_input_file);
+	if (strcmp(_user_tree, ""))
+		ptest->setUserTree(_user_tree);
+	if (strcmp(_output_dir, ""))
+		ptest->setOutputDir(_output_dir);
 }
 
 } /* namespace partest */

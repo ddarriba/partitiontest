@@ -45,15 +45,13 @@
 #define INI_MAX_LINE 200
 #endif
 
-using namespace std;
-
 // Read an INI file into easy-to-access name/value pairs. (Note that I've gone
 // for simplicity here rather than speed, but it should be pretty decent.)
 class INIReader {
 public:
 	// Construct INIReader and parse given filename. See ini.h for more info
 	// about the parsing.
-	INIReader(string filename);
+	INIReader(std::string filename);
 
 	~INIReader();
 
@@ -62,31 +60,31 @@ public:
 	int ParseError();
 
 	// Get a string value from INI file, returning default_value if not found.
-	string Get(string section, string name, string default_value);
+	std::string Get(std::string section, std::string name, std::string default_value);
 
 	// Get an integer (long) value from INI file, returning default_value if
 	// not found or not a valid integer (decimal "1234", "-1234", or hex "0x4d2").
-	long GetInteger(string section, string name, long default_value);
+	long GetInteger(std::string section, std::string name, long default_value);
 
 	// Get a real (floating point double) value from INI file, returning
 	// default_value if not found or not a valid floating point value
 	// according to strtod().
-	double GetReal(string section, string name, double default_value);
+	double GetReal(std::string section, std::string name, double default_value);
 
 	// Get a boolean value from INI file, returning default_value if not found or if
 	// not a valid true/false value. Valid true values are "true", "yes", "on", "1",
 	// and valid false values are "false", "no", "off", "0" (not case sensitive).
-	bool GetBoolean(string section, string name, bool default_value);
+	bool GetBoolean(std::string section, std::string name, bool default_value);
 
-	vector<string> * getGenes(string section);
-	vector<string> * getSchemes(string section);
+	std::vector<std::string> * getGenes(std::string section);
+	std::vector<std::string> * getSchemes(std::string section);
 
 private:
 	int curgene;
 	int _error;
-	vector<string> * _genes;
-	map<string, string> _values;
-	static string MakeKey(string section, string name);
+	std::vector<std::string> * _genes;
+	std::map<std::string, std::string> _values;
+	static std::string MakeKey(std::string section, std::string name);
 	static int ValueHandler(void* user, const char* section, const char* name,
 			const char* value);
 

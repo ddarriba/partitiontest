@@ -38,7 +38,7 @@ public:
 	virtual ~GreedySearchAlgorithm();
 	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
 private:
-	vector<PartitioningScheme *> getNextSchemes(const t_partitioningScheme * startingScheme);
+	std::vector<PartitioningScheme *> getNextSchemes(const t_partitioningScheme * startingScheme);
 };
 
 } /* namespace partest */
