@@ -31,9 +31,7 @@
 #include "indata/PartitionMap.h"
 
 #include <iostream>
-
-#define NUM_STEPS 3
-#define NUM_PARTITIONS 20
+#include <cmath>
 
 using namespace std;
 
@@ -57,7 +55,7 @@ PartitioningScheme * RandomSearchAlgorithm::start(
 	ModelOptimize * modelOptimize = new ModelOptimize();
 
 	bool continueExec = true;
-	int maxSteps;
+	size_t maxSteps;
 	if (I_AM_ROOT) {
 		if (startingPoint) {
 			nextSchemes.push_back(startingPoint);
@@ -109,7 +107,7 @@ PartitioningScheme * RandomSearchAlgorithm::start(
 			}
 			printStep(SearchRandom, score);
 
-			continueExec = ((non_stop || bestScore == score)
+			continueExec = ((non_stop || fabs(bestScore - score) < 1e-10)
 					&& (localBestScheme->getNumberOfElements() > 1));
 #ifdef HAVE_MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
@@ -147,42 +145,43 @@ int RandomSearchAlgorithm::getRandomPartitioningScheme(
 		vector<PartitioningScheme *> & nextSchemes, int numberOfSchemes,
 		t_partitioningScheme p0) {
 
-	int maxClasses = p0.size();
+	size_t maxClasses = p0.size();
 
 	for (int schemeIndex = 0; schemeIndex < numberOfSchemes; schemeIndex++) {
-		t_partitionElementId classes[maxClasses];
+		t_partitionElementId * classes = (t_partitionElementId *) malloc(maxClasses * sizeof(t_partitionElementId));
 
 		int numberOfClasses = 1;
 		// first element to the first
 		for (size_t k=0; k<p0.at(0).size(); k++) {
-			int singleP = p0.at(0).at(k);
+			size_t singleP = p0.at(0).at(k);
 			classes[0].push_back(singleP);
 		}
-		for (int i = 1; i < maxClasses; i++) {
+		for (size_t i = 1; i < maxClasses; i++) {
 			int currentClass = 0;
 
 			//randomly assign each bit to each class
-			double rndNumber = (double) (rand() % 4000 / 4000.0);
-			double RND_THRESHOLD = 1.0 / (numberOfClasses + 1);
-			currentClass = rndNumber / RND_THRESHOLD;
+			int rndNumber = rand() % numberOfClasses;
+			currentClass = rndNumber;
 			if (currentClass < numberOfClasses) {
 				for (size_t k=0; k<p0.at(i).size(); k++) {
-					int singleP = p0.at(i).at(k);
-					classes[currentClass].push_back(singleP);
+					size_t singleP = p0.at(i).at(k);
+					classes[(size_t)currentClass].push_back(singleP);
 				}
 			} else {
 				currentClass = numberOfClasses;
 				for (size_t k=0; k<p0.at(i).size(); k++) {
-					int singleP = p0.at(i).at(k);
+					size_t singleP = p0.at(i).at(k);
 					classes[currentClass].push_back(singleP);
 				}
 				numberOfClasses++;
 			}
+
+			free(classes);
 		}
 
 		t_partitioningScheme * newSchemeId = new t_partitioningScheme(
-				numberOfClasses);
-		for (int i = 0; i < numberOfClasses; i++) {
+				(size_t) numberOfClasses);
+		for (size_t i = 0; i < (size_t) numberOfClasses; i++) {
 			for (size_t j = 0; j < classes[i].size(); j++) {
 				newSchemeId->at(i).push_back(classes[i].at(j));
 			}

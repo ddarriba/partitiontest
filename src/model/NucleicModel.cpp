@@ -21,15 +21,18 @@
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
+#include <cassert>
+
+using namespace std;
 
 namespace partest {
 
-NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
+NucleicModel::NucleicModel(NucMatrix _matrix, bitMask rateVariation,
 		int numberOfTaxa) :
-		Model(rateVariation, numberOfTaxa), matrix(matrix) {
+		Model(rateVariation, numberOfTaxa), matrix(_matrix) {
 	/* treeFreeParameters is already initialized to the number of branches */
 	this->numberOfFrequencies = NUM_NUC_FREQS;
-	this->frequencies = (double *) malloc(numberOfFrequencies * sizeof(double));
+	this->frequencies = (double *) malloc((size_t) numberOfFrequencies * sizeof(double));
 	for (int i=0; i<numberOfFrequencies; i++) this->frequencies[i] = 1.0/numberOfFrequencies;
 
 	this->rates = (double *) malloc(NUM_DNA_RATES * sizeof(double));
@@ -145,8 +148,7 @@ NucleicModel::NucleicModel(NucMatrix matrix, bitMask rateVariation,
 		modelFreeParameters += 5;
 		break;
 	default:
-		cerr << "[ERROR] Unknown nucleic matrix" << endl;
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 	}
 
 	if (rateVariation & RateVarF) {
@@ -170,9 +172,9 @@ NucleicModel::~NucleicModel() {
 	// NOTHING
 }
 
-void NucleicModel::setFrequencies(const double * frequencies) {
+void NucleicModel::setFrequencies(const double * _frequencies) {
 	for (int i = 0; i < 4; i++) {
-		this->frequencies[i] = frequencies[i];
+		this->frequencies[i] = _frequencies[i];
 	}
 }
 
@@ -184,9 +186,9 @@ void NucleicModel::allocateRates(void) {
 	this->rates = (double *) malloc(NUM_DNA_RATES * sizeof(double));
 }
 
-void NucleicModel::setRates(const double * rates) {
+void NucleicModel::setRates(const double * _rates) {
 	for (int i = 0; i < NUM_DNA_RATES; i++)
-		this->rates[i] = rates[i];
+		this->rates[i] = _rates[i];
 }
 
 double NucleicModel::distanceTo(Model * otherModel) const {

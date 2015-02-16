@@ -22,9 +22,11 @@
 #include <iostream>
 #include <math.h>
 
+using namespace std;
+
 namespace partest {
 
-double distances[153] = { 0.055819, 6.28983, 6.28287, 8.3492, 8.34977, 6.24178,
+static double distances[153] = { 0.055819, 6.28983, 6.28287, 8.3492, 8.34977, 6.24178,
 		5.55446, 5.54012, 5.00539, 7.05072, 8.62161, 8.60373, 7.95537, 9.10421,
 		6.24999, 8.03345, 8.0335, 6.95272, 8.01101, 6.10837, 9.04789, 6.57179,
 		6.55386, 4.20234, 6.7556, 2.81282, 5.6121, 6.42513, 8.95954, 8.94053,
@@ -45,9 +47,9 @@ double distances[153] = { 0.055819, 6.28983, 6.28287, 8.3492, 8.34977, 6.24178,
 		8.44811, 7.32588, 9.22372, 9.81774, 8.08318, 10.56, 9.76868, 8.86959,
 		7.10936, 7.86896, 6.60864 };
 
-ProteicModel::ProteicModel(ProtMatrix matrix, bitMask rateVariation,
+ProteicModel::ProteicModel(ProtMatrix _matrix, bitMask rateVariation,
 		int numberOfTaxa) :
-		Model(rateVariation, numberOfTaxa), matrix(matrix) {
+		Model(rateVariation, numberOfTaxa), matrix(_matrix) {
 	/* treeFreeParameters is already initialized to the number of branches */
 	this->numberOfFrequencies = NUM_PROT_FREQS;
 	this->frequencies = (double *) malloc(NUM_PROT_FREQS * sizeof(double));
@@ -87,17 +89,17 @@ ProtMatrix ProteicModel::getMatrix(void) const {
 	return matrix;
 }
 
-void ProteicModel::setMatrix(ProtMatrix  matrix) {
-	this->matrix = matrix;
+void ProteicModel::setMatrix(ProtMatrix  _matrix) {
+	this->matrix = _matrix;
 }
 
-void ProteicModel::setFrequencies(const double * frequencies) {
+void ProteicModel::setFrequencies(const double * _frequencies) {
 	for (int i = 0; i < NUM_PROT_FREQS; i++) {
-		this->frequencies[i] = frequencies[i];
+		this->frequencies[i] = _frequencies[i];
 	}
 }
 
-void ProteicModel::setRates(const double * rates) {
+void ProteicModel::setRates(const double * _rates) {
 	// Ignore
 }
 

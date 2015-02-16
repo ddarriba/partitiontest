@@ -34,8 +34,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 namespace partest {
 
 class PartitionElement {
@@ -43,20 +41,20 @@ class PartitionElement {
 public:
 	PartitionElement(t_partitionElementId id);
 	t_partitionElementId getId(void) { return id; }
-	string & getName(void) { return name; }
+	std::string & getName(void) { return name; }
 
 	int setupStructures(void);
 	int destroyStructures(void);
 	virtual ~PartitionElement();
 
-	int getNumberOfSites(void) const;
-	int getNumberOfPatterns(void) const;
-	int getNumberOfSections(void) const;
+	size_t getNumberOfSites(void) const;
+	size_t getNumberOfPatterns(void) const;
+	size_t getNumberOfSections(void) const;
 	PEsection getSection(size_t i);
 
-	int getNumberOfModels(void) const;
+	size_t getNumberOfModels(void) const;
 	Model * getModel(size_t index);
-	vector<Model *> getModels(void) const;
+	std::vector<Model *> getModels(void) const;
 
 	double getLnL(void) const;
 	SelectionModel * getBestModel(void);
@@ -77,7 +75,7 @@ public:
 	int loadData(void);
 	int storeData(void);
 
-	void print(ostream & out);
+	void print(std::ostream & out);
 private:
 
 	bool ready;
@@ -88,15 +86,15 @@ private:
 	size_t numberOfSites;
 	size_t numberOfPatterns;
 
-	vector<Model *> models;
+	std::vector<Model *> models;
 	SelectionModel * bestModel;
 
-	string name, ckpname, ckphash;
+	std::string name, ckpname, ckphash;
 	double sampleSize;
 
 	PllTreeManager * treeManager;
 
-	vector<PEsection> sections;
+	std::vector<PEsection> sections;
 
 	bool ckpLoaded;
 	bool tag;

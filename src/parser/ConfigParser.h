@@ -66,7 +66,6 @@
 #define DEFAULT_OUTPUT_PARTS_TAG 	"partitions.out"
 #define DEFAULT_OUTPUT_SCHEMES_TAG 	"schemes.out"
 
-using namespace std;
 namespace partest {
 
 /**
@@ -78,7 +77,7 @@ struct partitionInfo {
 	int end[MAX_SECTIONS]; /** Ending position */
 	int stride[MAX_SECTIONS]; /** Stride for codon position (0 means no codon division) */
 	int numberOfSections;
-	string name; /** Name of the gene/partition */
+	std::string name; /** Name of the gene/partition */
 	~partitionInfo(void) {
 	}
 };
@@ -102,7 +101,7 @@ public:
 	 *
 	 * @return The set of partitions.
 	 */
-	vector<partitionInfo> * getPartitions();
+	std::vector<partitionInfo> * getPartitions();
 
 	/**
 	 * @brief Gets a single partition.
@@ -118,7 +117,7 @@ public:
 	 *
 	 * @return The number of partitions.
 	 */
-	int getNumberOfPartitions() {
+	size_t getNumberOfPartitions() {
 		return number_of_genes;
 	}
 
@@ -135,42 +134,42 @@ public:
 	/**
 	 * @brief Gets the file name for results output.
 	 */
-	const string& getOutputFileResults() const {
+	const std::string& getOutputFileResults() const {
 		return outputFileResults;
 	}
 
 	/**
 	 * @brief Gets the file name for model selections output.
 	 */
-	const string& getOutputFileModels() const {
+	const std::string& getOutputFileModels() const {
 		return outputFileModels;
 	}
 
 	/**
 	 * @brief Gets the file name for partition selections output.
 	 */
-	const string& getOutputFilePartitions() const {
+	const std::string& getOutputFilePartitions() const {
 		return outputFilePartitions;
 	}
 
 	/**
 	 * @brief Gets the file name for scheme selections output.
 	 */
-	const string& getOutputFileSchemes() const {
+	const std::string& getOutputFileSchemes() const {
 		return outputFileSchemes;
 	}
 
 	/**
 	 * @brief Gets the base path for output files.
 	 */
-	const string& getOutputBasePath() const {
+	const std::string& getOutputBasePath() const {
 		return outputBasePath;
 	}
 
 	/**
 	 * @brief Gets the path for temporary files.
 	 */
-	const string& getOutputTmpPath() const {
+	const std::string& getOutputTmpPath() const {
 		return outputTmpPath;
 	}
 
@@ -212,15 +211,15 @@ private:
 	const char * configFile; /** Configuration file name */
 	char inputFile[256]; /** User input alignment */
 	char userTree[256]; /** User input tree */
-	vector<partitionInfo> * partitions; /** Vector of partitions */
+	std::vector<partitionInfo> * partitions; /** Vector of partitions */
 
 	/** search algorithm **/
-	string outputFileResults; /** File name for results output */
-	string outputFileModels; /** File name for model selections output */
-	string outputFilePartitions; /** File name for partition selections output */
-	string outputFileSchemes; /** File name for scheme selections output */
-	string outputBasePath; /** Base path for output files */
-	string outputTmpPath; /** Base path for output files */
+	std::string outputFileResults; /** File name for results output */
+	std::string outputFileModels; /** File name for model selections output */
+	std::string outputFilePartitions; /** File name for partition selections output */
+	std::string outputFileSchemes; /** File name for scheme selections output */
+	std::string outputBasePath; /** Base path for output files */
+	std::string outputTmpPath; /** Base path for output files */
 };
 
 } /* namespace partest */

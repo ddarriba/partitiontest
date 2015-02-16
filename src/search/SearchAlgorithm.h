@@ -46,14 +46,14 @@ protected:
 		SchemeManager();
 		~SchemeManager();
 
-		int addSchemes(vector<PartitioningScheme *> schemesToAdd);
+		int addSchemes(std::vector<PartitioningScheme *> schemesToAdd);
 		int addScheme(PartitioningScheme * schemeToAdd);
 		int optimize(ModelOptimize &mo);
 	private:
-		vector<PartitioningScheme *> * nextSchemes;
+		std::vector<PartitioningScheme *> * nextSchemes;
 	};
 private:
-	ofstream * ofs;
+	std::ofstream * ofs;
 	double bestScore;
 };
 

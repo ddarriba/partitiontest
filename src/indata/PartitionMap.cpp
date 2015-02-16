@@ -36,8 +36,8 @@ namespace partest {
 
 PartitionMap::PartitionMap() {
 		_keep.reserve(number_of_genes);
-		partitions = new vector<partitionMappingInfo>(pllPartitions->numberOfPartitions);
-		numberOfElements = numberOfPartitions = pllPartitions->numberOfPartitions;
+		partitions = new vector<partitionMappingInfo>((size_t) pllPartitions->numberOfPartitions);
+		numberOfElements = numberOfPartitions = (size_t) pllPartitions->numberOfPartitions;
 		for (size_t i = 0; i < numberOfPartitions; i++) {
 			t_partitionElementId nextId;
 			nextId.push_back(i);
@@ -92,7 +92,7 @@ void PartitionMap::deletePartitionElement(t_partitionElementId id) {
 		for (size_t i = numberOfPartitions; i < numberOfElements; i++) {
 			if (partitions->at(i).partitionId == id) {
 				delete partitions->at(i).partitionElement;
-				partitions->erase(partitions->begin() + i);
+				partitions->erase(partitions->begin() + (long) i);
 				numberOfElements--;
 				return;
 			}

@@ -7,14 +7,11 @@
 #include <iostream>
 #include <cctype>
 #include <cstdlib>
-#include <stdio.h>
+#include <cstdio>
 #include <ctype.h>
-#include <string.h>
+#include <cstring>
 #include <sstream>
 #include <iomanip>
-#if !INI_USE_STACK
-#include <stdlib.h>
-#endif
 
 #include "INIReader.h"
 
@@ -82,15 +79,15 @@ vector<string> * INIReader::getGenes(string section) {
 				ngenes++;
 			}
 		}
-		_genes = new vector<string>(ngenes * 2);
-		int curgene = 0;
+		_genes = new vector<string>((size_t) ngenes * 2);
+		size_t _curgene = 0;
 		for (iter = _values.begin(); iter != _values.end(); iter++) {
 			if (!(iter->first.substr(0, section.length() + 1).compare(
 					section + "."))) {
-				_genes->at(curgene) = iter->first.substr((section.length() + 6),
+				_genes->at(_curgene) = iter->first.substr((section.length() + 6),
 						iter->first.length() - (section.length() + 6));
-				_genes->at(curgene + 1) = iter->second;
-				curgene += 2;
+				_genes->at(_curgene + 1) = iter->second;
+				_curgene += 2;
 			}
 		}
 	}

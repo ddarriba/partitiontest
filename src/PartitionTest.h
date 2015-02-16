@@ -28,8 +28,6 @@
 #include "util/GlobalDefs.h"
 #include <string>
 
-using namespace std;
-
 namespace partest {
 
 class PartitionTest {
@@ -45,19 +43,19 @@ public:
 	void setSearchAlgo(SearchAlgo searchAlgo);
 	void setStartingTopology(StartTopo startingTopology);
 
-	string * getConfigFile() const;
+	std::string * getConfigFile() const;
 	void setConfigFile(const char * configFile);
-	string * getInputFile() const;
+	std::string * getInputFile() const;
 	void setInputFile(const char * inputFile);
-	string * getOutputDir() const;
+	std::string * getOutputDir() const;
 	void setOutputDir(const char * outputDir);
-	string * getUserTree() const;
+	std::string * getUserTree() const;
 	void setUserTree(const char * userTree);
 
 	bool checkParameters(void);
 	bool configure(PartitionTest * ptest, int argc, char * argv[]);
 private:
-	string buildStartingTree(void);
+	std::string buildStartingTree(void);
 };
 
 }

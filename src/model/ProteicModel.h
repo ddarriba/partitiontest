@@ -49,7 +49,7 @@ public:
   ProtMatrix getMatrix(void) const;
   void setMatrix(ProtMatrix  matrix);
   double distanceTo(Model * other) const;
-  virtual void print(ostream& out, const char * prefix = "") const;
+  virtual void print(std::ostream& out, const char * prefix = "") const;
   virtual ~ProteicModel();
 private:
   /**

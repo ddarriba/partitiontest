@@ -48,7 +48,7 @@ public:
 	virtual void allocateRates(void);
 	void setRates(const double * rates);
 	double distanceTo(Model * other) const;
-	virtual void print(ostream& out, const char * prefix = "") const;
+	virtual void print(std::ostream& out, const char * prefix = "") const;
 	virtual ~NucleicModel();
 private:
 	NucMatrix matrix; /** Nucleotide substitution scheme */

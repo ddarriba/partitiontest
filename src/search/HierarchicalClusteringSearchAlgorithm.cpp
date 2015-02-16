@@ -31,6 +31,7 @@
 #include "indata/PartitionMap.h"
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -52,10 +53,10 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 	double bestScore, score;
 
 	ModelOptimize * modelOptimize = new ModelOptimize();
-	int numberOfPartitions = number_of_genes;
+	size_t numberOfPartitions = number_of_genes;
 
 	bool continueExec = true;
-	int maxSteps;
+	size_t maxSteps;
 	if (I_AM_ROOT) {
 		if (startingPoint) {
 			nextSchemes.push_back(startingPoint);
@@ -109,7 +110,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			}
 			printStep(SearchHCluster, score);
 
-			continueExec = ((non_stop || bestScore == score)
+			continueExec = ((non_stop || fabs(bestScore - score) < 1e-10)
 					&& (numberOfPartitions > 1));
 #ifdef HAVE_MPI
 			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
@@ -124,7 +125,7 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			if (continueExec) {
 				vector<elementPair *> * eps =
 						localBestScheme->getElementDistances();
-				for (int i = 0; i < min(max_samples, (int) eps->size()); i++) {
+				for (size_t i = 0; i < (size_t)min(max_samples, (int) eps->size()); i++) {
 					t_partitionElementId nextId;
 					t_partitioningScheme nextScheme;
 					Utilities::mergeIds(nextId, eps->at(i)->e1->getId(),

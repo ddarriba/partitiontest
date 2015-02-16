@@ -28,7 +28,10 @@
 #include <iomanip>
 #include <pthread.h>
 #include <memory>
+#include <cmath>
 #include <unistd.h>
+
+using namespace std;
 
 namespace partest {
 
@@ -43,13 +46,13 @@ SearchAlgorithm::SchemeManager::~SchemeManager() {
 int SearchAlgorithm::SchemeManager::addSchemes(
 		vector<PartitioningScheme *> schemesToAdd) {
 	(*nextSchemes) = schemesToAdd;
-	return nextSchemes->size();
+	return (int) nextSchemes->size();
 }
 
 int SearchAlgorithm::SchemeManager::addScheme(
 		PartitioningScheme * schemeToAdd) {
 	nextSchemes->push_back(schemeToAdd);
-	return nextSchemes->size();
+	return (int) nextSchemes->size();
 }
 
 void SearchAlgorithm::printStepLog(int id, PartitioningScheme *bestScheme) {
@@ -83,7 +86,7 @@ void SearchAlgorithm::printStep(SearchAlgo algo, double nextScore) {
 		cout << " [XXX] ";
 		break;
 	}
-	if (!bestScore) {
+	if (fabs(bestScore) < 1e-10) {
 		bestScore = nextScore;
 		cout << "Initial score is " << fixed << setprecision(4) << nextScore
 				<< "." << endl;
@@ -141,7 +144,7 @@ void * distribute(void * arg) {
 }
 #endif
 
-int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
+int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &_mo) {
 	t_partitionElementId id(3);
 #ifdef HAVE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -159,7 +162,7 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 					if (!(element->isOptimized() || element->isTagged())) {
 						element->setTagged(true);
 						nextItem = 1;
-						mo.optimizePartitionElement(element);
+						_mo.optimizePartitionElement(element);
 					}
 				}
 			}
@@ -174,7 +177,7 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 				t_partitionElementId id(nextItem);
 				MPI_Recv(&(id.front()), nextItem, MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
 				PartitionElement * element = PartitionMap::getInstance()->getPartitionElement(id);
-				mo.optimizePartitionElement(element);
+				_mo.optimizePartitionElement(element);
 			}
 		}
 	}
@@ -197,7 +200,7 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &mo) {
 #else
 	for (size_t i = 0; i < nextSchemes->size(); i++) {
 		PartitioningScheme * scheme = nextSchemes->at(i);
-		mo.optimizePartitioningScheme(scheme, i, nextSchemes->size());
+		_mo.optimizePartitioningScheme(scheme, (int) i, (int) nextSchemes->size());
 	}
 #endif
 	nextSchemes->clear();
@@ -213,7 +216,7 @@ SearchAlgorithm::SearchAlgorithm() {
 	} else {
 		ofs = 0;
 	}
-	bestScore = 0;
+	bestScore = 0.0;
 }
 
 SearchAlgorithm::~SearchAlgorithm() {

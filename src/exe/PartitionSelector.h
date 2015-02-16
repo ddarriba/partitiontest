@@ -38,12 +38,12 @@ typedef struct {
 	double value;
 	double delta;
 	double weight;
-	void print(ostream & out);
+	void print(std::ostream & out);
 } SelectionPartitioningScheme;
 
 class PartitionSelector {
 public:
-	PartitionSelector(vector<PartitioningScheme *> schemesArray);
+	PartitionSelector(std::vector<PartitioningScheme *> schemesArray);
 	virtual ~PartitionSelector();
 	PartitioningScheme * getBestScheme(void) {
 		return bestSelectionScheme->scheme;
@@ -51,11 +51,11 @@ public:
 	SelectionPartitioningScheme * getBestSelectionScheme(void) {
 		return bestSelectionScheme;
 	}
-	void print(ostream& out, int limit=-1);
+	void print(std::ostream& out, int limit=-1);
 private:
-	vector<PartitioningScheme *> schemesArray;
+	std::vector<PartitioningScheme *> schemesArray;
 	SelectionPartitioningScheme * bestSelectionScheme;
-	vector<SelectionPartitioningScheme *> * schemesVector;
+	std::vector<SelectionPartitioningScheme *> * schemesVector;
 };
 
 } /* namespace partest */

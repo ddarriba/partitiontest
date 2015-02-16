@@ -30,6 +30,8 @@
 
 #define UNDEFINED -1
 
+using namespace std;
+
 namespace partest {
 
 struct comparePartitionElements {
@@ -61,7 +63,7 @@ PartitioningScheme::PartitioningScheme(t_partitioningScheme * schemeVector) :
 	code = 0;
 	sort(schemeVector->begin(), schemeVector->end());
 	numberOfElements = schemeVector->size();
-	codeLines = Utilities::iDecLog(numberOfElements - 1) + 1;
+	codeLines = (size_t) Utilities::iDecLog((int) numberOfElements - 1) + 1;
 
 	for (size_t i = 0; i < schemeVector->size(); i++) {
 		id.at(i) = schemeVector->at(i);
@@ -84,9 +86,9 @@ PartitioningScheme::~PartitioningScheme() {
 	}
 }
 
-PartitionElement * PartitioningScheme::getElement(size_t id) {
-	if (id < numberOfElements) {
-		return partitions.at(id);
+PartitionElement * PartitioningScheme::getElement(size_t _id) {
+	if (_id < numberOfElements) {
+		return partitions.at(_id);
 	} else {
 		return 0;
 	}
@@ -135,7 +137,7 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 			for (size_t j = 0; j < i; j++) {
 				Model * mi = getElement(i)->getBestModel()->getModel();
 				Model * mj = getElement(j)->getBestModel()->getModel();
-				int index = (i * (i - 1) / 2) + j;
+				size_t index = (i * (i - 1) / 2) + j;
 #ifdef _IG_MODELS
 				pinvValues.at(index) = pow(mi->getpInv() - mj->getpInv(), 2);
 #endif
@@ -149,7 +151,7 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 					double treeDist = 0.0;
 					double * bl1 = getElement(i)->getBranchLengths();
 					double * bl2 = getElement(j)->getBranchLengths();
-					for (int cBranch=0; cBranch < Utilities::numberOfBranches(num_taxa); cBranch++) {
+					for (int cBranch=0; cBranch < Utilities::numberOfBranches((int) num_taxa); cBranch++) {
 						treeDist += pow(bl1[cBranch] - bl2[cBranch], 2);
 					}
 					distances.at(index) += treeDist;
@@ -159,7 +161,7 @@ vector<elementPair *> * PartitioningScheme::getElementDistances() {
 		double minDistance = DOUBLE_INF;
 		for (size_t i = 1; i < numberOfElements; i++) {
 			for (size_t j = 0; j < i; j++) {
-				int index = (i * (i - 1) / 2) + j;
+				size_t index = (i * (i - 1) / 2) + j;
 				alphaValues.at(index) /= maxAlpha;
 				distances.at(index) += alphaValues[index];
 #ifdef _IG_MODELS
@@ -195,7 +197,7 @@ string PartitioningScheme::getName() {
 }
 
 int PartitioningScheme::getCodeLines(void) {
-	return codeLines;
+	return (int) codeLines;
 }
 
 string PartitioningScheme::getCode(int codeLine) {
@@ -203,14 +205,14 @@ string PartitioningScheme::getCode(int codeLine) {
 		if (codeLine >= (int) codeLines)
 			exit_partest(EX_SOFTWARE);
 
-		int hashmap[numberOfElements];
-		int intcode[number_of_genes];
-		char charcode[codeLines * number_of_genes + 1];
+		int * hashmap = (int *) malloc(numberOfElements * sizeof(int));
+		int * intcode = (int *) malloc(number_of_genes * sizeof(int));
+		char * charcode = (char *) malloc(codeLines * number_of_genes + 1);
 		for (size_t i = 0; i < numberOfElements; i++) {
-			t_partitionElementId id = getElement(i)->getId();
+			t_partitionElementId _id = getElement(i)->getId();
 			hashmap[i] = UNDEFINED;
-			for (size_t j = 0; j < id.size(); j++) {
-				intcode[id.at(j)] = i;
+			for (size_t j = 0; j < _id.size(); j++) {
+				intcode[_id.at(j)] = (int) i;
 			}
 		}
 		hashmap[intcode[0]] = 0;
@@ -230,19 +232,23 @@ string PartitioningScheme::getCode(int codeLine) {
 		charcode[codeLines * number_of_genes] = '\0';
 
 		code = new string(charcode);
+
+		free(intcode);
+		free(hashmap);
+		free(charcode);
 	}
 
 	if (codeLine == FULL_CODE) {
 		return *code;
 	} else {
-		string the_code = code->substr(codeLine * number_of_genes,
+		string the_code = code->substr((size_t) codeLine * number_of_genes,
 				number_of_genes);
 		return the_code;
 	}
 }
 
-void PartitioningScheme::setTree(char * tree) {
-	this->tree = tree;
+void PartitioningScheme::setTree(char * _tree) {
+	this->tree = _tree;
 }
 
 char * PartitioningScheme::getTree(void) const {
@@ -263,13 +269,13 @@ double PartitioningScheme::getLnL() {
 unsigned int PartitioningScheme::getNumberOfFreeParameters() {
 	if (!isOptimized())
 		return 0;
-	unsigned int k = reoptimize_branch_lengths?0:Utilities::numberOfBranches(num_taxa);
+	unsigned int k = reoptimize_branch_lengths?0:(unsigned int) Utilities::numberOfBranches((int) num_taxa);
 	for (size_t i=0; i<partitions.size(); i++) {
 		PartitionElement * pe = partitions.at(i);
 		if (reoptimize_branch_lengths) {
-			k += pe->getBestModel()->getModel()->getNumberOfFreeParameters();
+			k += (unsigned int) pe->getBestModel()->getModel()->getNumberOfFreeParameters();
 		} else {
-			k += pe->getBestModel()->getModel()->getModelFreeParameters();
+			k += (unsigned int) pe->getBestModel()->getModel()->getModelFreeParameters();
 		}
 	}
 	return k;
@@ -345,42 +351,42 @@ double PartitioningScheme::getDTValue() {
 double PartitioningScheme::getLinkedIcValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeIc(ic_type, getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(ic_type, getLnL(), (int) getNumberOfFreeParameters(),
 			seq_len);
 }
 
 double PartitioningScheme::getLinkedBicValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeIc(BIC, getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(BIC, getLnL(), (int) getNumberOfFreeParameters(),
 			seq_len);
 }
 
 double PartitioningScheme::getLinkedAicValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeIc(AIC, getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(AIC, getLnL(), (int) getNumberOfFreeParameters(),
 			seq_len);
 }
 
 double PartitioningScheme::getLinkedAiccValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeIc(AICC, getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(AICC, getLnL(), (int) getNumberOfFreeParameters(),
 			seq_len);
 }
 
 double PartitioningScheme::getLinkedDTValue() {
 	if (!isOptimized())
 		return 0.0;
-	return ModelSelector::computeIc(DT, getLnL(), getNumberOfFreeParameters(),
+	return ModelSelector::computeIc(DT, getLnL(), (int) getNumberOfFreeParameters(),
 			seq_len);
 }
 
 void PartitioningScheme::print(ostream & out) {
 	out << getName() << endl;
 	out << "Code Lines: " << codeLines << endl;
-	for (int i = codeLines-1; i >= 0; i--) {
+	for (int i = (int)codeLines-1; i >= 0; i--) {
 		out << "  " << getCode(i) << endl;
 	}
 	out << setw(23) <<  "Num.Elements:" << numberOfElements << endl;

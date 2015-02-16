@@ -66,7 +66,7 @@ public:
 	/**
 	 * @brief Gets a locally indexed partition.
 	 *
-	 * @param[in] id The local id of the partition (i.e., in range [0,numberOfElements-1]
+	 * @param[in] index The local index of the partition (i.e., in range [0,numberOfElements-1]
 	 * @return The partition.
 	 */
 	PartitionElement * getElement(size_t index);
@@ -93,10 +93,8 @@ public:
 
 	/**
 	 * @brief Gets the closest pair of partitions.
-	 *
-	 * @param[out] el1, el2 the two closest partitions
 	 */
-	vector<elementPair *> * getElementDistances();
+	std::vector<elementPair *> * getElementDistances();
 
 	/**
 	 * @brief Gets the number of lines of the code
@@ -110,14 +108,14 @@ public:
 	 *
 	 * @return A string identifier for the scheme.
 	 */
-	string getCode(int codeLine=FULL_CODE);
+	std::string getCode(int codeLine=FULL_CODE);
 
 	/**
 	 * @brief Gets a string name for the scheme.
 	 *
 	 * @return A string identifier for the scheme.
 	 */
-	string getName();
+	std::string getName();
 
 	virtual ~PartitioningScheme();
 
@@ -136,13 +134,13 @@ public:
 
 	unsigned int getNumberOfFreeParameters();
 
-	void print(ostream & out);
+	void print(std::ostream & out);
 private:
 	t_partitioningScheme id;
-	vector<PartitionElement*> partitions; /** Array of reference to the partitions of this scheme */
+	std::vector<PartitionElement*> partitions; /** Array of reference to the partitions of this scheme */
 	size_t currentElement; /** Current element index for the step-by-step construction of the scheme */
 	size_t numberOfElements; /** The number of partitions */
-	vector<elementPair *> * eps;
+	std::vector<elementPair *> * eps;
 	char * tree;
 
 	/** Number of lines of the scheme code */
@@ -155,7 +153,7 @@ private:
 	 * that belong to the scheme. For example, 121123 means that genes 1,3 and 4 belong
 	 * to the same partition, as well as genes 2 and 5. Gene 6 belongs to a third partition.
 	 */
-	string * code;
+	std::string * code;
 };
 
 } /* namespace partest */

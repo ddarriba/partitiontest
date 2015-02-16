@@ -28,8 +28,6 @@
 #include "util/GlobalDefs.h"
 #include <string>
 
-using namespace std;
-
 namespace partest {
 
 /**
@@ -51,28 +49,28 @@ public:
 	 *
 	 * @return The name of the model.
 	 */
-	string getName(void) const;
+	std::string getName(void) const;
 
 	/**
 	 * @brief Sets the name of the model.
 	 *
 	 * @param name The name of the model.
 	 */
-	void setName(string name);
+	void setName(std::string name);
 
 	/**
 	 * @brief Gets the name of the substitution scheme.
 	 *
 	 * @return The name of the substitution scheme.
 	 */
-	string getMatrixName(void) const;
+	std::string getMatrixName(void) const;
 
 	/**
 	 * @brief Sets the name of the substitution scheme.
 	 *
 	 * @param matrixName The name of the substitution scheme.
 	 */
-	void setMatrixName(string matrixName);
+	void setMatrixName(std::string matrixName);
 
 	/**
 	 * @brief Gets the rate variation and frequencies parameters as a bitmask.
@@ -86,7 +84,7 @@ public:
 	 *
 	 * @return The model tree in Newick format.
 	 */
-	string getTree(void) const;
+	std::string getTree(void) const;
 
 #ifdef _IG_MODELS
 	/**
@@ -196,10 +194,10 @@ public:
 	/**
 	 * @brief Sets the positive log likelihood score.
 	 *
-	 * @param lnL Log likelihood in absolute value.
+	 * @param _lnL Log likelihood in absolute value.
 	 */
-	void setLnL(double lnL) {
-		this->lnL = lnL;
+	void setLnL(double _lnL) {
+		this->lnL = _lnL;
 	}
 
 	/**
@@ -225,7 +223,7 @@ public:
 	 *
 	 * @param tree The model tree in Newick format.
 	 */
-	void setTree(string tree);
+	void setTree(std::string tree);
 
 	/**
 	 * @brief Sets the model tree in Newick format.
@@ -264,7 +262,7 @@ public:
 	/**
 	 * @brief Prints the model details and parameters.
 	 */
-	virtual void print(ostream& out, const char * prefix = "") const;
+	virtual void print(std::ostream& out, const char * prefix = "") const;
 
 	virtual ~Model();
 protected:
@@ -285,15 +283,15 @@ protected:
 	/** Number of state frequencies */
 	int numberOfFrequencies;
 	/** Full name of the model. */
-	string name;
+	std::string name;
 	/** Name of the model matrix. */
-	string matrixName;
+	std::string matrixName;
 	/** Number of free parameters of the model. */
 	int modelFreeParameters;
 	/** Number of free parameters of the tree. */
 	int treeFreeParameters;
 	/** Most likely tree */
-	string tree;
+	std::string tree;
 };
 
 } /* namespace partest */

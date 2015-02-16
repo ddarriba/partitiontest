@@ -42,9 +42,9 @@ char Utilities::encoding_table[] = {
 		'4', '5', '6', '7', '8', '9', '-', '_' };
 
 bool Utilities::isNumeric(const char * value) {
-	int len = strlen(value);
+	size_t len = strlen(value);
 	bool decimalFound = false;
-	for (int i = 0; i<len; i++) {
+	for (size_t i = 0; i<len; i++) {
 		if (!isdigit(value[i])) {
 			if (value[i] == '.' && !decimalFound) {
 				decimalFound = true;
@@ -57,8 +57,8 @@ bool Utilities::isNumeric(const char * value) {
 }
 
 bool Utilities::isInteger(const char * value) {
-	int len = strlen(value);
-	for (int i = 0; i<len; i++)
+	size_t len = strlen(value);
+	for (size_t i = 0; i<len; i++)
 		if (!isdigit(value[i])) {
 			return false;
 		}
@@ -83,7 +83,7 @@ int Utilities::setbitsCount(bitMask n) {
 		n &= (n - 1);
 		count++;
 	}
-	return count;
+	return (int) count;
 }
 
 double Utilities::mean(double series[], int n) {
@@ -136,8 +136,8 @@ double Utilities::normalizedEuclideanDistance(double X[], double Y[], int n) {
 	double meanY = mean(Y, n);
 	double sdX = standardDeviation(X, n);
 	double sdY = standardDeviation(Y, n);
-	sdX = sdX?sdX:1;
-	sdY = sdY?sdY:1;
+	sdX = isfinite(sdX)?sdX:1;
+	sdY = isfinite(sdY)?sdY:1;
 	double sum = 0.0;
 	for (int i = 0; i < n; i++) {
 		sum += pow((X[i] - meanX)/sdX - (Y[i] - meanY)/sdY, 2);
@@ -170,7 +170,7 @@ bool Utilities::intersec(t_partitionElementId & e1, t_partitionElementId & e2) {
 
 bool Utilities::contains(t_partitionElementId vec, int num) {
 	for (size_t i=0; i < vec.size(); i++) {
-		int n = vec.at(i);
+		int n = (int) vec.at(i);
 		if (n == num)
 			return true;
 	}
@@ -192,13 +192,13 @@ int Utilities::duplicateAlignmentData(pllAlignmentData ** out,
 		return -1;
 	}
 	(*out) = pllInitAlignmentData(in->sequenceCount, in->sequenceLength);
-	(*out)->siteWeights = (int *) malloc((*out)->sequenceLength * sizeof(int));
+	(*out)->siteWeights = (int *) malloc((size_t)(*out)->sequenceLength * sizeof(int));
 	for (int seq = 1; seq <= (*out)->sequenceCount; seq++) {
 		(*out)->sequenceLabels[seq] = (char *) malloc(
 				strlen(in->sequenceLabels[seq]) + 1);
 		strcpy((*out)->sequenceLabels[seq], in->sequenceLabels[seq]);
 		memcpy((*out)->sequenceData[seq], in->sequenceData[seq],
-				(*out)->sequenceLength * sizeof(unsigned char));
+				(size_t)(*out)->sequenceLength * sizeof(unsigned char));
 	}
 	for (int site = 0; site < (*out)->sequenceLength; site++) {
 		(*out)->siteWeights[site] = 1;
@@ -277,7 +277,7 @@ std::string Utilities::getProtMatrixName(ProtMatrix matrix) {
 		matrixName = "Auto";
 		break;
 	default:
-		exit_partest(EX_SOFTWARE);
+		assert(0);
 	}
 	return matrixName;
 }
@@ -340,11 +340,15 @@ int Utilities::averageModelParameters(t_partitionElementId id, partitionList * p
 
 pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
 
-	if (!pergene_branch_lengths || !pergene_starting_tree)
-		return 0;
+	assert(pergene_branch_lengths && pergene_starting_tree);
 
-	pllNewickTree * nts[id.size()];
-	pllStack * infoStack[id.size()];
+	pllNewickTree ** nts = (pllNewickTree **) malloc(id.size() * sizeof(pllNewickTree *));
+	pllStack ** infoStack = (pllStack **) malloc (id.size() * sizeof(pllStack *));
+
+	if (!(nts && infoStack)) {
+		exit_partest(EX_IOERR);
+	}
+
 	pllNewickNodeInfo * ninfo, *updateInfo;
 	for (size_t i=0; i<id.size(); i++) {
 		nts[i] = pllNewickParseString(pergene_starting_tree[id.at(0)]);
@@ -369,6 +373,10 @@ pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
 		/* remove newick structures but the one to return */
 		pllNewickParseDestroy(&nts[i]);
 	}
+
+	free ( nts );
+	free ( infoStack );
+
 	return nt;
 }
 

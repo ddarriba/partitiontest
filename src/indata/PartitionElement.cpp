@@ -35,8 +35,8 @@ using namespace std;
 
 namespace partest {
 
-PartitionElement::PartitionElement(t_partitionElementId id) :
-		ready(false), id(id), sampleSize(0.0), treeManager(0), sections(
+PartitionElement::PartitionElement(t_partitionElementId _id) :
+		ready(false), id(_id), sampleSize(0.0), treeManager(0), sections(
 				id.size()), ckpLoaded(false), tag(false), branchLengths(0) {
 
 	this->bestModel = 0;
@@ -48,14 +48,14 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	for (size_t i = 0; i < numberOfSections; i++) {
 		size_t part = id.at(i);
 
-		sections[i].start = pllPartitions->partitionData[part]->lower + 1;
-		sections[i].end = pllPartitions->partitionData[part]->upper;
+		sections[i].start = (size_t) pllPartitions->partitionData[part]->lower + 1;
+		sections[i].end = (size_t) pllPartitions->partitionData[part]->upper;
 		sections[i].id = part;
 		name.append(*(singleGeneNames[part]));
 		if (i < numberOfSections - 1)
 			name.append(",");
 		//this->id.push_back(part);
-		numberOfSites += pllPartitions->partitionData[part]->width;
+		numberOfSites += (size_t) pllPartitions->partitionData[part]->width;
 	}
 	name.append(")");
 
@@ -63,11 +63,11 @@ PartitionElement::PartitionElement(t_partitionElementId id) :
 	/* prefix */
 	ss << "pt_";
 	size_t maxId = id.at(id.size() - 1);
-	int numchars = ceil((maxId + 1) / 6.0);
-	int curPos = 0;
-	for (int currentChar = numchars - 1; currentChar >= 0; currentChar--) {
-		size_t charRangeStart = 6 * (numchars - currentChar - 1);
-		size_t charRangeEnd = 6 * (numchars - currentChar);
+	size_t numchars = (size_t) ceil((maxId + 1) / 6.0);
+	size_t curPos = 0;
+	for (long currentChar = (long) numchars - 1; currentChar >= 0; currentChar--) {
+		size_t charRangeStart = 6 * (numchars - (size_t)currentChar - 1);
+		size_t charRangeEnd = 6 * (numchars - (size_t)currentChar);
 		int value = 0;
 		for (size_t k = charRangeStart; k < charRangeEnd; k++) {
 			if (id[curPos] == k) {
@@ -106,7 +106,7 @@ int PartitionElement::setupStructures(void) {
 				case OPT_GTR:
 					models.push_back(
 							new NucleicModel(NUC_MATRIX_GTR,
-									RateVarG | RateVarF, num_taxa));
+									RateVarG | RateVarF, (int) num_taxa));
 					break;
 				case OPT_SEARCH:
 					for (int current_model = 0; current_model < NUC_MATRIX_SIZE;
@@ -114,13 +114,13 @@ int PartitionElement::setupStructures(void) {
 						models.push_back(
 								new NucleicModel(
 										static_cast<NucMatrix>(current_model),
-										RateVarG, num_taxa));
+										RateVarG, (int) num_taxa));
 						if (do_rate & RateVarF) {
 							models.push_back(
 									new NucleicModel(
 											static_cast<NucMatrix>(current_model
 													+ 1), RateVarG | RateVarF,
-											num_taxa));
+											(int) num_taxa));
 						}
 					}
 					break;
@@ -132,18 +132,18 @@ int PartitionElement::setupStructures(void) {
 				switch (optimize_mode) {
 				case OPT_SEARCH:
 				case OPT_CUSTOM:
-					for (int current_model = 0;
+					for (size_t current_model = 0;
 							current_model < PROT_MATRIX_SIZE; current_model++) {
 						if (Utilities::binaryPow(current_model) & protModels) {
 							models.push_back(
 									new ProteicModel(
 											static_cast<ProtMatrix>(current_model),
-											RateVarG, num_taxa));
+											RateVarG, (int) num_taxa));
 							if (do_rate & RateVarF) {
 								models.push_back(
 										new ProteicModel(
 												static_cast<ProtMatrix>(current_model),
-												RateVarG | RateVarF, num_taxa));
+												RateVarG | RateVarF, (int) num_taxa));
 							}
 						}
 					}
@@ -151,7 +151,7 @@ int PartitionElement::setupStructures(void) {
 				case OPT_GTR:
 					models.push_back(
 							new ProteicModel(PROT_MATRIX_AUTO, RateVarG,
-									num_taxa));
+									(int) num_taxa));
 					break;
 				default:
 					assert(0);
@@ -222,15 +222,15 @@ vector<Model *> PartitionElement::getModels(void) const {
 	return models;
 }
 
-int PartitionElement::getNumberOfModels(void) const {
+size_t PartitionElement::getNumberOfModels(void) const {
 	return models.size();
 }
 
-int PartitionElement::getNumberOfSites(void) const {
+size_t PartitionElement::getNumberOfSites(void) const {
 	return numberOfSites;
 }
 
-int PartitionElement::getNumberOfSections(void) const {
+size_t PartitionElement::getNumberOfSections(void) const {
 	return numberOfSections;
 }
 
@@ -241,7 +241,7 @@ PEsection PartitionElement::getSection(size_t i) {
 	return sections[i];
 }
 
-int PartitionElement::getNumberOfPatterns(void) const {
+size_t PartitionElement::getNumberOfPatterns(void) const {
 	return numberOfPatterns;
 }
 
@@ -307,13 +307,13 @@ int PartitionElement::loadData(void) {
 	while (!ofs.eof() && !ckpLoaded) {
 		ofs.seekg(curpos, ios_base::cur);
 		size_t ckpSize;
-		ofs.read((char *) &(ckpSize), sizeof(size_t));
+		ofs.read((char *) &(ckpSize), (streamsize) sizeof(size_t));
 
 		size_t hashlen;
-		ofs.read((char *) &hashlen, sizeof(size_t));
+		ofs.read((char *) &hashlen, (streamsize) sizeof(size_t));
 		if (hashlen > 0) {
 			char * charhash = (char *) malloc(hashlen + 1);
-			ofs.read((char *) charhash, hashlen);
+			ofs.read((char *) charhash, (streamsize) hashlen);
 			charhash[hashlen] = '\0';
 			if (!strcmp(charhash, ckphash.c_str())) {
 				ckpLoaded = true;
@@ -327,15 +327,16 @@ int PartitionElement::loadData(void) {
 				cerr << "ERROR LOADING CHECKPOINTS" << endl;
 				exit_partest(EX_SOFTWARE);
 			}
-			curpos = ckpSize - hashlen - sizeof(size_t);
+			curpos = (streampos)ckpSize - (streampos)hashlen - (streampos)sizeof(size_t);
 		}
 	}
+
 	if (ckpLoaded) {
-		ofs.read((char *) &(numberOfSections), sizeof(size_t));
-		ofs.read((char *) &(numberOfSites), sizeof(size_t));
-		ofs.read((char *) &(numberOfPatterns), sizeof(size_t));
+		ofs.read((char *) &(numberOfSections), (streamsize) sizeof(size_t));
+		ofs.read((char *) &(numberOfSites), (streamsize) sizeof(size_t));
+		ofs.read((char *) &(numberOfPatterns), (streamsize) sizeof(size_t));
 		size_t ckpNumberOfModels;
-		ofs.read((char *) &(ckpNumberOfModels), sizeof(size_t));
+		ofs.read((char *) &(ckpNumberOfModels), (streamsize) sizeof(size_t));
 
 		if (ckpNumberOfModels != number_of_models) {
 			if (!force_overriding) {
@@ -370,7 +371,6 @@ int PartitionElement::loadData(void) {
 			}
 			return CHECKPOINT_UNEXISTENT;
 		}
-
 		size_t modelSize =
 				data_type == DT_NUCLEIC ?
 						sizeof(NucleicModel) : sizeof(ProteicModel);
@@ -384,29 +384,31 @@ int PartitionElement::loadData(void) {
 				model = (ProteicModel *) alloca(modelSize);
 				break;
 			default:
-				cerr << "[INTERNAL_ERROR] Unrecognized datatype" << endl;
 				assert(0);
 			}
-			ofs.read((char *) model, modelSize);
+
+			ofs.read((char *) model, (streamsize) modelSize);
 			double * freqs = (double *) alloca(
-					model->getNumberOfFrequencies() * sizeof(double));
+					(size_t)model->getNumberOfFrequencies() * sizeof(double));
 			ofs.read((char *) freqs,
-					model->getNumberOfFrequencies() * sizeof(double));
+					(streamsize) ((size_t)model->getNumberOfFrequencies() * sizeof(double)));
 
 			double * rates = 0;
 			if (data_type == DT_NUCLEIC) {
 				rates = (double *) alloca(NUM_DNA_RATES * sizeof(double));
-				ofs.read((char *) rates, NUM_DNA_RATES * sizeof(double));
+				ofs.read((char *) rates, (streamsize) (NUM_DNA_RATES * sizeof(double)));
 				//model->setRates(rates);
 			}
 			int len_tree;
 			ofs.read((char *) &len_tree, sizeof(size_t));
-			char ctree[len_tree];
-			ofs.read((char *) &ctree, len_tree);
+
+			char * ctree = (char *) malloc(len_tree);
+
+			ofs.read((char *) ctree, (streamsize) len_tree);
 			if (data_type == DT_NUCLEIC) {
 				NucleicModel * finalModel = new NucleicModel(
 						((NucleicModel *) model)->getMatrix(),
-						model->getRateVariation(), num_taxa);
+						model->getRateVariation(), (int) num_taxa);
 				finalModel->setFrequencies(freqs);
 				finalModel->setRates(rates);
 				if (model->isGamma())
@@ -421,7 +423,7 @@ int PartitionElement::loadData(void) {
 			} else {
 				ProteicModel * finalModel = new ProteicModel(
 						((ProteicModel *) model)->getMatrix(),
-						model->getRateVariation(), num_taxa);
+						model->getRateVariation(), (int) num_taxa);
 				finalModel->setFrequencies(freqs);
 				if (model->isGamma())
 					finalModel->setAlpha(model->getAlpha());
@@ -433,14 +435,15 @@ int PartitionElement::loadData(void) {
 				finalModel->setTree(ctree);
 				models.push_back(finalModel);
 			}
+			free(ctree);
 		}
 		int bestModelIndex;
-		ofs.read((char *) &bestModelIndex, sizeof(int));
+		ofs.read((char *) &bestModelIndex, (streamsize) sizeof(int));
 
 		SelectionModel * sm = (SelectionModel *) alloca(sizeof(SelectionModel));
 		ofs.read((char *) sm, sizeof(SelectionModel));
 		SelectionModel * selectionmodel = new SelectionModel(
-				models.at(bestModelIndex), sm->getValue());
+				models.at((size_t) bestModelIndex), sm->getValue());
 		selectionmodel->setWeight(sm->getWeight());
 		selectionmodel->setCumWeight(sm->getCumWeight());
 		selectionmodel->setDelta(sm->getDelta());
@@ -454,13 +457,13 @@ int PartitionElement::loadData(void) {
 
 	/* branch lengths */
 	size_t numBranches;
-	ofs.read((char *) &numBranches, sizeof(size_t));
+	ofs.read((char *) &numBranches, (streamsize) sizeof(size_t));
 	if (numBranches) {
 		if (branchLengths) {
 			free(branchLengths);
 		}
 		branchLengths = (double *) malloc(numBranches * sizeof(double));
-		ofs.read((char *) branchLengths, numBranches * sizeof(double));
+		ofs.read((char *) branchLengths, (streamsize) (numBranches * sizeof(double)));
 	}
 	ofs.close();
 	return ckpLoaded ? CHECKPOINT_LOADED : CHECKPOINT_UNEXISTENT;
@@ -505,55 +508,62 @@ int PartitionElement::storeData(void) {
 	int numberOfRates = data_type == DT_NUCLEIC ?
 	NUM_DNA_RATES :
 													0;
+
+	size_t treeStrLen = models[0]->getTree().size() + 1;
+
 	size_t hashlen = ckphash.length();
 	size_t ckpSize = 6 * sizeof(size_t) + hashlen
 			+ models.size()
-					* (modelSize + sizeof(size_t) + tree->treeStringLength
-							+ (numberOfFrequencies + numberOfRates)
+					* (modelSize + sizeof(size_t) + (size_t) treeStrLen
+							+ ((size_t) (numberOfFrequencies + numberOfRates))
 									* sizeof(double)) + sizeof(int)
 			+ sizeof(SelectionModel)
 			+ (branchLengths ?
-					Utilities::numberOfBranches(num_taxa) * sizeof(double) : 0);
+					(size_t)Utilities::numberOfBranches((int)num_taxa) * sizeof(double) : sizeof(size_t));
 	ofs.write((char *) &ckpSize, sizeof(size_t));
 	ofs.write((char *) &hashlen, sizeof(size_t));
 	if (hashlen > 0) {
 		ofs.write((char *) ckphash.c_str(), hashlen);
 	}
 	ofs.write((char *) &numberOfSections, sizeof(size_t));
-	ofs.write((char *) &numberOfSites, sizeof(size_t));
-	ofs.write((char *) &numberOfPatterns, sizeof(size_t));
-	ofs.write((char *) &number_of_models, sizeof(size_t));
+	ofs.write((char *) &numberOfSites, (streamsize) sizeof(size_t));
+	ofs.write((char *) &numberOfPatterns, (streamsize) sizeof(size_t));
+	ofs.write((char *) &number_of_models, (streamsize) sizeof(size_t));
 	int bestModelIndex = 0;
 	for (size_t i = 0; i < models.size(); i++) {
 		Model * model = models.at(i);
 		if (model == getBestModel()->getModel()) {
-			bestModelIndex = i;
+			bestModelIndex = (int)i;
 		}
 		model->setFrequencies(model->getFrequencies());
-		ofs.write((char *) model, modelSize);
+		ofs.write((char *) model, (streamsize) modelSize);
+
+		assert(numberOfFrequencies == model->getNumberOfFrequencies());
 		ofs.write((char *) model->getFrequencies(),
-				model->getNumberOfFrequencies() * sizeof(double));
+				(streamsize) ((size_t)model->getNumberOfFrequencies() * sizeof(double)));
+
 		if (data_type == DT_NUCLEIC) {
 			ofs.write((char *) model->getRates(),
-			NUM_DNA_RATES * sizeof(double));
+					(streamsize) (NUM_DNA_RATES * sizeof(double)));
 		}
 		size_t tree_len = strlen(model->getTree().c_str()) + 1;
-		ofs.write((char *) &tree_len, sizeof(size_t));
-		ofs.write((char *) model->getTree().c_str(), tree_len);
+		assert( tree_len == treeStrLen);
+		ofs.write((char *) &treeStrLen, (streamsize) sizeof(size_t));
+		ofs.write((char *) model->getTree().c_str(), (streamsize) treeStrLen);
 	}
 	/* best model */
 	SelectionModel * selectionmodel = getBestModel();
-	ofs.write((char *) &bestModelIndex, sizeof(int));
-	ofs.write((char *) selectionmodel, sizeof(SelectionModel));
+	ofs.write((char *) &bestModelIndex, (streamsize) sizeof(int));
+	ofs.write((char *) selectionmodel, (streamsize) sizeof(SelectionModel));
 
 	/* branch lengths */
 	if (branchLengths) {
-		size_t numBranches = Utilities::numberOfBranches(num_taxa);
-		ofs.write((char *) &numBranches, sizeof(size_t));
-		ofs.write((char *) branchLengths, numBranches * sizeof(double));
+		size_t numBranches = (size_t)Utilities::numberOfBranches((int)num_taxa);
+		ofs.write((char *) &numBranches, (streamsize) sizeof(size_t));
+		ofs.write((char *) branchLengths, (streamsize) (numBranches * sizeof(double)));
 	} else {
 		size_t zero = 0;
-		ofs.write((char *) &zero, sizeof(size_t));
+		ofs.write((char *) &zero, (streamsize) sizeof(size_t));
 	}
 
 	ofs.close();

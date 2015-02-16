@@ -36,8 +36,8 @@ namespace partest_parser {
 
 using namespace std;
 
-PartestParserUtils::PartestParserUtils(char * inputFile, char * outputFile) :
-		inputFile(inputFile), outputFile(outputFile) {
+PartestParserUtils::PartestParserUtils(char * _inputFile, char * _outputFile) :
+		inputFile(_inputFile), outputFile(_outputFile) {
 }
 
 PartestParserUtils::~PartestParserUtils() {
@@ -84,10 +84,10 @@ int PartestParserUtils::parsePartitionFinderFile(vector<string> ** partitions,
 
 	/** PARTITIONS **/
 	vector<string> * keys = ini.getGenes("data_blocks");
-	int num_genes = keys->size()*2;
+	size_t num_genes = keys->size()*2;
 	(*partitions) = new vector<string>(num_genes);
 
-	for (int partitionId = 0; partitionId < num_genes; partitionId++) {
+	for (size_t partitionId = 0; partitionId < num_genes; partitionId++) {
 		string partitionLine(keys->at(partitionId * 2));
 		replace(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end(), '\\', '/');
 		replace(keys->at(partitionId * 2 + 1).begin(), keys->at(partitionId * 2 + 1).end(), ';', '\0');
@@ -102,12 +102,12 @@ int PartestParserUtils::parsePartitionFinderFile(vector<string> ** partitions,
 
 int PartestParserUtils::parseRaxmlFile(vector<string> ** partitions) {
 	FILE *f;
-	int numberOfModels = 0;
+	size_t numberOfModels = 0;
 	int nbytes = 0;
 	char *ch;
 	char *cc = (char *) NULL;
 	char **p_names;
-	int n, i, l;
+	size_t n, i, l;
 	int lower, upper, modulo;
 	char buf[256];
 	int pairsCount;
@@ -129,11 +129,11 @@ int PartestParserUtils::parseRaxmlFile(vector<string> ** partitions) {
 
 	(*partitions) = new vector<string>(numberOfModels);
 
-	i = 0;
+	i=0;
 	while (myGetline(&cc, &nbytes, f) > -1) {
 		if (!lineContainsOnlyWhiteChars(cc)) {
 			n = strlen(cc);
-			p_names[i] = (char *) malloc(sizeof(char) * (n + 1));
+			p_names[i] = (char *) malloc(sizeof(char) * ((size_t)n + 1));
 			strcpy(&(p_names[i][0]), cc);
 			i++;
 		}
@@ -154,7 +154,7 @@ int PartestParserUtils::parseRaxmlFile(vector<string> ** partitions) {
 		}
 
 		char * partitionName;
-		analyzeIdentifier(&ch, i, &partitionName);
+		analyzeIdentifier(&ch, &partitionName);
 		partitionInfo pInfo;
 		pInfo.name = string(partitionName);
 		ch++;
@@ -335,19 +335,19 @@ void PartestParserUtils::skipWhites(char **ch) {
 
 int PartestParserUtils::myGetline(char **lineptr, int *n, FILE *stream) {
 	char *line, *p;
-	int size, copy, len;
-	int chunkSize = 256 * sizeof(char);
+	size_t size, copy, len;
+	size_t chunkSize = 256 * sizeof(char);
 
 	if (*lineptr == NULL || *n < 2) {
 		line = (char *) realloc(*lineptr, chunkSize);
 		if (line == NULL)
 			return -1;
 		*lineptr = line;
-		*n = chunkSize;
+		*n = (int)chunkSize;
 	}
 
 	line = *lineptr;
-	size = *n;
+	size = (size_t) *n;
 
 	copy = size;
 	p = line;
@@ -358,20 +358,20 @@ int PartestParserUtils::myGetline(char **lineptr, int *n, FILE *stream) {
 			if (c == EOF)
 				goto lose;
 			else {
-				*p++ = c;
+				*p++ = (char) c;
 				if (c == '\n' || c == '\r')
 					goto win;
 			}
 		}
 
 		/* Need to enlarge the line buffer.  */
-		len = p - line;
+		len = (size_t) (p - line);
 		size *= 2;
 		line = (char *) realloc(line, size);
 		if (line == NULL)
 			goto lose;
 		*lineptr = line;
-		*n = size;
+		*n = (int)size;
 		p = line + len;
 		copy = size - len;
 	}
@@ -380,18 +380,18 @@ int PartestParserUtils::myGetline(char **lineptr, int *n, FILE *stream) {
 		return -1;
 	/* Return a partial line since we got an error in the middle.  */
 	win: *p = '\0';
-	return p - *lineptr;
+	return (int) (p - *lineptr);
 }
 
 /**
  * This function has modifications from original RAxML's. It is used to
  * bypass the partition model and get the partition name.
  */
-void PartestParserUtils::analyzeIdentifier(char **ch, int modelNumber,
+void PartestParserUtils::analyzeIdentifier(char **ch,
 		char **modelName) {
 	char ident[2048] = "", model[2048] = "";
 
-	int i = 0, n, j, containsComma = 0;
+	size_t i = 0, n, j, containsComma = 0;
 
 	while (**ch != '=') {
 		if (**ch != ' ' && **ch != '\t') {
@@ -413,7 +413,7 @@ void PartestParserUtils::analyzeIdentifier(char **ch, int modelNumber,
 				"Error, model file must have format: DNA or AA model, then a comma, and then the partition name\n");
 		exit(-1);
 	} else {
-		int openBracket = 0, closeBracket = 0, openPos = 0, closePos = 0;
+		size_t openBracket = 0, closeBracket = 0, openPos = 0, closePos = 0;
 
 		i = 0;
 
