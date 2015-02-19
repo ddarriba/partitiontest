@@ -25,7 +25,6 @@
 #include "indata/PartitionMap.h"
 #include "indata/TreeManager.h"
 
-#include <pll/pllInternal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
