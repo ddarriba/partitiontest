@@ -1,0 +1,1 @@
+**`PartitionTest`** is a tool for finding the optimal partitioning scheme and selecting best-fit models of molecular evolution for multi-gene data sets, according to statistical information criteria like **AIC** or **BIC**.
