@@ -4,10 +4,10 @@
 # D. Darriba
 
 # This script generates 4 files:
-#   modelsfile.out         list of amino-acid replacement models
-#   genestopartitions.out  genes mapping to partitions (thus, models)
-#   partitionsfile.out     definition of partitions
-#   treeefile.out          one tree per partitioning scheme (i.e., simulation)
+#   modelsfile.out          list of amino-acid replacement models
+#   blockstopartitions.out  blocks mapping to partitions (thus, models)
+#   partitionsfile.out      definition of partitions
+#   treeefile.out           one tree per partitioning scheme (i.e., simulation)
 
 library (MCMCpack)
 library (ape)
@@ -18,34 +18,34 @@ options("scipen"=100, "digits"=6)
 args = commandArgs(trailingOnly = T)
 if (length(args) < 9) {
   cat("Number of arguments is ", length(args), "\n")
-  stop("Required arguments: Prefix, DataType={aa, dna}, Num_Samples, Min_Taxa, Max_Taxa, Min_Genes, Max_Genes, Min_GeneLen, Max_GeneLen")
+  stop("Required arguments: Prefix, DataType={aa, dna}, Num_Samples, Min_Taxa, Max_Taxa, Min_DataBlocks, Max_DataBlocks, Min_BlockLen, Max_BlockLen")
 }
 PREFIX      = args[1]
 DATA_TYPE   = args[2]
 SAMPLES     = as.numeric(args[3])   # Total number of samples
 MIN_TAXA    = as.numeric(args[4])   # Number of taxa in the output trees
-MAX_TAXA    = as.numeric(args[5])   # Length of each gene
-MIN_GENES   = as.numeric(args[6])
-MAX_GENES   = as.numeric(args[7])
-MIN_GENELEN = as.numeric(args[8])
-MAX_GENELEN = as.numeric(args[9])
+MAX_TAXA    = as.numeric(args[5])   
+MIN_DATA_BLOCKS   = as.numeric(args[6])	# Number of data blocks
+MAX_DATA_BLOCKS   = as.numeric(args[7])
+MIN_BLOCKLEN = as.numeric(args[8])	# Length of each data block
+MAX_BLOCKLEN = as.numeric(args[9])
 
 cat("\n------ Sim parameters ------\n")
 cat("Exec Prefix:       ",PREFIX,"\n")
 cat("Number of samples: ",SAMPLES,"\n")
 cat("Number of taxa:    ",MIN_TAXA,"-",MAX_TAXA,"\n")
-cat("Number of genes:   ",MIN_GENES,"-",MAX_GENES,"\n")
-cat("Gene length:       ",MIN_GENELEN,"-",MAX_GENELEN,"\n")
+cat("Number of blocks:  ",MIN_DATA_BLOCKS,"-",MAX_DATA_BLOCKS,"\n")
+cat("Block length:      ",MIN_BLOCKLEN,"-",MAX_BLOCKLEN,"\n")
 cat("------ -------------- ------\n\n")
 
 MIN_PARTITIONS = 1
 MAX_PARTITIONS = 100
 
 BASE_DIR = paste("../sims.",PREFIX, sep="")
-OUT_TREE_FILE   = paste(BASE_DIR,"/treefile.out", sep="")              # Output file for trees
+OUT_TREE_FILE   = paste(BASE_DIR,"/treefile.out", sep="")               # Output file for trees
 OUT_SUMMARY_FILE   = paste(BASE_DIR,"/true.summary", sep="")
-OUT_MODELS_FILE = paste(BASE_DIR,"/modelsfile.out", sep="")            # Output file for models
-OUT_GENTOPART_FILE = paste(BASE_DIR,"/genestopartitions.out", sep="")  # Output file for gene mapping to partitions
+OUT_MODELS_FILE = paste(BASE_DIR,"/modelsfile.out", sep="")             # Output file for models
+OUT_GENTOPART_FILE = paste(BASE_DIR,"/blockstopartitions.out", sep="")  # Output file for data block mapping to partitions
 OUT_PARTITIONS_FILE = paste(BASE_DIR,"/partitionsfile.out", sep="")     # Output file for partitions
 OUT_SIMS_DIR = paste(BASE_DIR,"/simulations/", sep="")
 
@@ -69,20 +69,20 @@ current_index = 0
 
 for(sample_index in 1:(SAMPLES)) {
 
-	if (MIN_GENES < MAX_GENES) {
-		num_genes = sample(MIN_GENES:MAX_GENES,1,replace=T)
+	if (MIN_DATA_BLOCKS < MAX_DATA_BLOCKS) {
+		num_data_blocks = sample(MIN_DATA_BLOCKS:MAX_DATA_BLOCKS,1,replace=T)
 	} else {
-		num_genes = MIN_GENES
+		num_data_blocks = MIN_DATA_BLOCKS
 	}
-	max_partitions = sample(MIN_PARTITIONS:min(num_genes,MAX_PARTITIONS),1,replace=T)
+	max_partitions = sample(MIN_PARTITIONS:min(num_data_blocks,MAX_PARTITIONS),1,replace=T)
 
 	
 
-	# Assign models to genes
-	boxes = cluster(max_partitions,num_genes)
-	genes_mat = matrix(nrow=num_genes,ncol=4,byrow=TRUE)
-	colnames(genes_mat) = c("GeneNumber", "ModelNumber", "LocalNumber", "NumSites")
-	genes_mat = as.table(genes_mat)
+	# Assign models to data blocks
+	boxes = cluster(max_partitions,num_data_blocks)
+	data_blocks_mat = matrix(nrow=num_data_blocks,ncol=4,byrow=TRUE)
+	colnames(data_blocks_mat) = c("BlockNumber", "ModelNumber", "LocalNumber", "NumSites")
+	data_blocks_mat = as.table(data_blocks_mat)
 	hash = matrix(0, 1, length(unique(boxes)))
 	hashsize = 1
 	hash[1] = boxes[1]
@@ -98,8 +98,8 @@ for(sample_index in 1:(SAMPLES)) {
 	}
 
 	OUT_CURSIM_FILE = paste(OUT_SIMS_DIR, "/alignment", sample_index, ".desc", sep="")
-	sim_desc = matrix(nrow=(num_genes),ncol=6,byrow=TRUE)
-	colnames(sim_desc) = c("gene", "partid", "model", "length", "start", "end")
+	sim_desc = matrix(nrow=(num_data_blocks),ncol=6,byrow=TRUE)
+	colnames(sim_desc) = c("block", "partid", "model", "length", "start", "end")
 
 	num_partitions = length(unique(boxes))
 
@@ -160,33 +160,33 @@ for(sample_index in 1:(SAMPLES)) {
 	# Write the output models
 	write.table(models_mat,file=OUT_MODELS_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
-	partitionstring = matrix(1:num_genes)
+	partitionstring = matrix(1:num_data_blocks)
 	startposition = 1
-	for(i in 1:(num_genes)) {
+	for(i in 1:(num_data_blocks)) {
 
-	  genes_mat[i,1] = i-1
-	  genes_mat[i,2] = boxes[i] + current_index
-	  genes_mat[i,3] = boxes[i]
-	  if (MIN_GENELEN < MAX_GENELEN) {
-	  	genes_mat[i,4] = sample(MIN_GENELEN:MAX_GENELEN,1,replace=T)
+	  data_blocks_mat[i,1] = i-1
+	  data_blocks_mat[i,2] = boxes[i] + current_index
+	  data_blocks_mat[i,3] = boxes[i]
+	  if (MIN_BLOCKLEN < MAX_BLOCKLEN) {
+	  	data_blocks_mat[i,4] = sample(MIN_BLOCKLEN:MAX_BLOCKLEN,1,replace=T)
 	  } else {
-		genes_mat[i,4] = MIN_GENELEN
+		data_blocks_mat[i,4] = MIN_BLOCKLEN
 	  }
 
 	  sim_desc[i,1] = i
 	  sim_desc[i,2] = boxes[i] + current_index
 	  sim_desc[i,3] = models_mat[boxes[i],1]
-	  sim_desc[i,4] = genes_mat[i,4]
+	  sim_desc[i,4] = data_blocks_mat[i,4]
 	  sim_desc[i,5] = startposition
-	  sim_desc[i,6] = startposition + genes_mat[i,4] - 1
-	  startposition = startposition + genes_mat[i,4]
+	  sim_desc[i,6] = startposition + data_blocks_mat[i,4] - 1
+	  startposition = startposition + data_blocks_mat[i,4]
 
 	  partitionstring[i] = boxes[i]-1
 	}
 	write.table(sim_desc,file=OUT_CURSIM_FILE,append=FALSE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
-	partitionstringDEC = matrix(1:num_genes)
-	for(i in 1:(num_genes)) {
+	partitionstringDEC = matrix(1:num_data_blocks)
+	for(i in 1:(num_data_blocks)) {
 	  partitionstringDEC[i] = partitionstring[i] %/% 10
 	  partitionstring[i] = partitionstring[i] %% 10
 	}
@@ -197,10 +197,10 @@ for(sample_index in 1:(SAMPLES)) {
 
 	header = array(1:3)
 	header[1] = sample_index
-	header[2] = num_genes
+	header[2] = num_data_blocks
 	header[3] = num_partitions
 	write(header, file=OUT_GENTOPART_FILE, append=TRUE)
-	write.table(genes_mat,file=OUT_GENTOPART_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
+	write.table(data_blocks_mat,file=OUT_GENTOPART_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
 	write(header, file=OUT_PARTITIONS_FILE, append=TRUE)
 	write(partitionstringDEC, file=OUT_PARTITIONS_FILE, append=TRUE)
@@ -239,10 +239,10 @@ for(sample_index in 1:(SAMPLES)) {
     treeStr = write.tree(scaledTree)
     treeLen = sum(scaledTree$edge.length)
 
-    tList = list(id=sample_index, ngenes=num_genes, nparts=num_partitions, part0=partitionstring, 
+    tList = list(id=sample_index, ndatablocks=num_data_blocks, nparts=num_partitions, part0=partitionstring, 
       part1=partitionstringDEC, ntaxa=TAXA_COUNT, seqlen=(startposition-1),treelen=treeLen,tree=treeStr)
     write.table(tList, file=OUT_SUMMARY_FILE, append=TRUE, col.names=FALSE, row.names=FALSE, quote=FALSE)
-    cat(sample_index,"/",SAMPLES, " : ntaxa=",TAXA_COUNT, " ngenes=", num_genes, " nparts=", num_partitions,"\n")
+    cat(sample_index,"/",SAMPLES, " : ntaxa=",TAXA_COUNT, " ndatablocks=", num_data_blocks, " nparts=", num_partitions,"\n")
 } # end SAMPLES
 cat("\nDone R script\n")
 
