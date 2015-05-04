@@ -25,9 +25,11 @@
 #include "parser/ArgumentParser.h"
 #include "util/Utilities.h"
 #include "util/GlobalDefs.h"
+#include <pll/parsePartition.h>
 
 #include <iomanip>
 #include <string.h>
+#include <sstream>
 #include <assert.h>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -475,13 +477,35 @@ void PrintMeta::print_results_xml(ostream & ofs,
 		default:
 			assert(0);
 		}
+
+		vector<string> pllRegions(number_of_genes);
+		pllQueueItem * qitem = pllPartsQueue->head;
+		int j = 0;
+		while (qitem) {
+			pllPartitionInfo * pinfo = (pllPartitionInfo *)(qitem->item);
+			pllQueueItem * ritem = pinfo->regionList->head;
+			stringstream curpart;
+			while (ritem) {
+				pllPartitionRegion * pregion = (pllPartitionRegion *) ritem->item;
+				curpart << pregion->start << "-" << pregion->end;
+				if (pregion->stride > 1)
+					curpart << "\\" << pregion->stride;
+				ritem = ritem->next;
+				if (ritem) {
+					curpart << ",";
+				}
+			}
+			pllRegions[j++] = curpart.str();
+			qitem = qitem->next;
+		}
+
 		ofs << "PART" << i + 1 << " = ";
 		for (size_t j = 0; j < element->getNumberOfSections(); j++) {
 			PEsection section = element->getSection(j);
 			if (j > 0) {
-				ofs << ",";
+				ofs << ", ";
 			}
-			ofs << section.start << "-" << section.end;
+			ofs << pllRegions[section.id];
 		}
 		ofs << endl;
 	}
