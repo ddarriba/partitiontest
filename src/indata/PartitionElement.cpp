@@ -399,7 +399,7 @@ int PartitionElement::loadData(void) {
 				ofs.read((char *) rates, (streamsize) (NUM_DNA_RATES * sizeof(double)));
 				//model->setRates(rates);
 			}
-			int len_tree;
+			size_t len_tree;
 			ofs.read((char *) &len_tree, sizeof(size_t));
 
 			char * ctree = (char *) malloc(len_tree);
@@ -509,12 +509,14 @@ int PartitionElement::storeData(void) {
 	NUM_DNA_RATES :
 													0;
 
-	size_t treeStrLen = models[0]->getTree().size() + 1;
-
+	size_t treeStrLen = 0;
+	for (size_t i = 0; i < models.size(); i++) {
+		treeStrLen += models[i]->getTree().size() + 1;
+	}
 	size_t hashlen = ckphash.length();
 	size_t ckpSize = 6 * sizeof(size_t) + hashlen
-			+ models.size()
-					* (modelSize + sizeof(size_t) + (size_t) treeStrLen
+			+ treeStrLen + models.size()
+					* (modelSize + sizeof(size_t)
 							+ ((size_t) (numberOfFrequencies + numberOfRates))
 									* sizeof(double)) + sizeof(int)
 			+ sizeof(SelectionModel)
@@ -547,9 +549,8 @@ int PartitionElement::storeData(void) {
 					(streamsize) (NUM_DNA_RATES * sizeof(double)));
 		}
 		size_t tree_len = strlen(model->getTree().c_str()) + 1;
-		assert( tree_len == treeStrLen);
-		ofs.write((char *) &treeStrLen, (streamsize) sizeof(size_t));
-		ofs.write((char *) model->getTree().c_str(), (streamsize) treeStrLen);
+		ofs.write((char *) &tree_len, (streamsize) sizeof(size_t));
+		ofs.write((char *) model->getTree().c_str(), (streamsize) tree_len);
 	}
 	/* best model */
 	SelectionModel * selectionmodel = getBestModel();
