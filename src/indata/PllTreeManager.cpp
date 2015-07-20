@@ -27,7 +27,7 @@ namespace partest {
 static pllInstance * buildTree() {
 	pllInstanceAttr attr;
 	attr.fastScaling = PLL_FALSE;
-	attr.randomNumberSeed = 12345;
+	attr.randomNumberSeed = 0x54321;
 	attr.rateHetModel = PLL_GAMMA;
 	attr.saveMemory = PLL_FALSE;
 	attr.useRecom = PLL_FALSE;
@@ -142,7 +142,6 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 		} else {
 			nt = pllNewickParseString(starting_tree);
 		}
-		_tree->fracchange = 1.0;
 		pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
 		pllNewickParseDestroy(&nt);
 		break;
@@ -162,7 +161,6 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 		} else {
 			nt = pllNewickParseFile(user_tree->c_str());
 		}
-		_tree->fracchange = 1.0;
 		pllTreeInitTopologyNewick(_tree, nt, PLL_FALSE);
 		pllNewickParseDestroy(&nt);
 		break;
@@ -453,15 +451,12 @@ double PllTreeManager::scaleBranchLengths(double multiplier) {
 		storedBranchLengths.resize(((2 * (size_t)_tree->mxtips - 3) * 2));
 		count = 0;
 		for (int i = 1; i <= nodes; i++) {
-			storedBranchLengths[count] = -_tree->fracchange
-					* log(_tree->nodep[i]->z[0]);
+			storedBranchLengths[count] = -log(_tree->nodep[i]->z[0]);
 			count++;
 			if (i > _tree->mxtips) {
-				storedBranchLengths[count] = -_tree->fracchange
-						* log(_tree->nodep[i]->next->z[0]);
+				storedBranchLengths[count] = -log(_tree->nodep[i]->next->z[0]);
 				count++;
-				storedBranchLengths[count] = -_tree->fracchange
-						* log(_tree->nodep[i]->next->next->z[0]);
+				storedBranchLengths[count] = -log(_tree->nodep[i]->next->next->z[0]);
 				count++;
 			}
 		}
@@ -471,7 +466,7 @@ double PllTreeManager::scaleBranchLengths(double multiplier) {
 		count = 0;
 		for (int i = 1; i <= nodes; i++) {
 			double z = multiplier * storedBranchLengths[count];
-			z = exp(-z / _tree->fracchange);
+			z = exp(-z);
 			z = fixZ(z);
 			_tree->nodep[i]->z[0] = z;
 
@@ -479,14 +474,14 @@ double PllTreeManager::scaleBranchLengths(double multiplier) {
 
 			if (i > _tree->mxtips) {
 				z = multiplier * storedBranchLengths[count];
-				z = exp(-z / _tree->fracchange);
+				z = exp(-z);
 				z = fixZ(z);
 				_tree->nodep[i]->next->z[0] = z;
 
 				count++;
 
 				z = multiplier * storedBranchLengths[count];
-				z = exp(-z / _tree->fracchange);
+				z = exp(-z);
 				z = fixZ(z);
 				_tree->nodep[i]->next->next->z[0] = z;
 

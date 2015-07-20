@@ -134,6 +134,15 @@ void PrintMeta::print_options(ostream& output) {
 		break;
 	}
 
+	output << setw(OPT_DESCR_LENGTH) << left << "  Branch lengths:";
+  if (reoptimize_branch_lengths) {
+    output << "Unlinked" << endl;
+  }
+  else
+  {
+    output << "Proportional" << endl;
+  }
+
 	output << setw(OPT_DESCR_LENGTH) << left << "  Data type:";
 	switch (data_type) {
 	case DT_NUCLEIC:

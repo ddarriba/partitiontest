@@ -29,13 +29,11 @@ partest_SOURCES = \
 
 
 
-partest_CPPFLAGS = -g -O3 -Wall 
-partest_LDFLAGS = -g -O3 -Wall 
+partest_CPPFLAGS = -g -O3 -Wall -DPTHREADS
+partest_LDFLAGS = -g -O3 -Wall -DPTHREADS
 
-if HAVE_PTHREADS
   partest_CPPFLAGS += -DHAVE_PTHREADS
   partest_LDFLAGS += -DHAVE_PTHREADS
-endif
 
 if HAVE_AVX
   partest_CPPFLAGS += -DHAVE_AVX

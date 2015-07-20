@@ -182,7 +182,7 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 
 	pllInstanceAttr attr;
 	attr.fastScaling = PLL_FALSE;
-	attr.randomNumberSeed = 12345;
+	attr.randomNumberSeed = 0x54321;
 	attr.rateHetModel = PLL_GAMMA;
 	attr.saveMemory = PLL_FALSE;
 	attr.useRecom = PLL_FALSE;

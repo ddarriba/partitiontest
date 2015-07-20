@@ -350,6 +350,7 @@ int PartitionElement::loadData(void) {
 			cerr
 					<< "          of models. Configuration might changed. Checkpoint loading for this "
 					<< endl;
+			cerr    << number_of_models << " instead of " << ckpNumberOfModels << endl;
 			cerr << "          element was aborted." << endl;
 			if (force_overriding) {
 				ckpLoaded = false;

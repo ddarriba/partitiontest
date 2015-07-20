@@ -109,14 +109,16 @@ enum ProtMatrix {
 	PROT_MATRIX_GTR = PLL_GTR
 };
 
-#define NUC_MATRIX_SIZE 22
+#define NUC_MATRIX_SIZE 6
 enum NucMatrix {
 	NUC_MATRIX_JC = 0,
 	NUC_MATRIX_F81 = 1,
 	NUC_MATRIX_K80 = 2,
 	NUC_MATRIX_HKY = 3,
-	NUC_MATRIX_TrNef = 4,
-	NUC_MATRIX_TrN = 5,
+	NUC_MATRIX_SYM = 4,
+	NUC_MATRIX_GTR = 5,
+	NUC_MATRIX_TrNef = 20,
+	NUC_MATRIX_TrN = 21,
 	NUC_MATRIX_TPM1 = 6,
 	NUC_MATRIX_TPM1uf = 7,
 	NUC_MATRIX_TPM2 = 8,
@@ -130,9 +132,7 @@ enum NucMatrix {
 	NUC_MATRIX_TIM3ef = 16,
 	NUC_MATRIX_TIM3 = 17,
 	NUC_MATRIX_TVMef = 18,
-	NUC_MATRIX_TVM = 19,
-	NUC_MATRIX_SYM = 20,
-	NUC_MATRIX_GTR = 21
+	NUC_MATRIX_TVM = 19
 };
 
 #define EX_OK           0       /* successful termination */
