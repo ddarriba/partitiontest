@@ -32,7 +32,7 @@
 #include <cstring>
 #include <cassert>
 
-#define ML_STARTING_TREE 0
+#define ML_STARTING_TREE 1
 
 using namespace std;
 
