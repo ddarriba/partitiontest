@@ -109,7 +109,7 @@ enum ProtMatrix {
 	PROT_MATRIX_GTR = PLL_GTR
 };
 
-#define NUC_MATRIX_SIZE 6
+#define NUC_MATRIX_SIZE 22
 enum NucMatrix {
 	NUC_MATRIX_JC = 0,
 	NUC_MATRIX_F81 = 1,

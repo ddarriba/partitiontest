@@ -483,7 +483,7 @@ int ConfigParser::parsePartitionDetails(char * line,
 		pllPartitionRegion * region = (pllPartitionRegion *) qItem->item;
 		pInfo->start[numberOfSections] = region->start;
 		pInfo->end[numberOfSections] = region->end;
-		if ((region->end < region->start) || region->stride <= 0 || region->stride > (region->end - region->start)) {
+		if ((region->end < region->start) || region->stride <= 0) {
 			cerr << "[ERROR] Invalid partition: \"" << line << "\"" << endl;
 			exit_partest(EX_IOERR);
 		}
