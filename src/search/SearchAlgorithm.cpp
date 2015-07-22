@@ -69,6 +69,12 @@ void SearchAlgorithm::printStepLog(int id, PartitioningScheme *bestScheme) {
 void SearchAlgorithm::printStep(SearchAlgo algo, double nextScore) {
 	cout << timestamp();
 	switch (algo) {
+	case SearchK1:
+		cout << " [K=1] ";
+		break;
+	case SearchKN:
+		cout << " [K=N] ";
+		break;
 	case SearchHCluster:
 		cout << " [HCL] ";
 		break;

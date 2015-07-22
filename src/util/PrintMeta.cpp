@@ -189,9 +189,20 @@ void PrintMeta::print_options(ostream& output) {
 	if (number_of_schemes > 0) {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Schemes to evaluate:";
 		output << left << number_of_schemes << endl;
+		if (search_algo == SearchK1) {
+			output << left << "Single partition only" << endl;
+		} else if (search_algo == SearchKN) {
+			output << left << "K=N scheme only" << endl;
+		}
 	} else {
 		output << setw(OPT_DESCR_LENGTH) << left << "  Search algorithm:";
 		switch (search_algo) {
+		case SearchK1:
+			output << left << "Single partition only" << endl;
+			break;
+		case SearchKN:
+			output << left << "K=N scheme only" << endl;
+			break;
 		case SearchGreedy:
 			output << left << "Greedy" << endl;
 			break;
@@ -365,6 +376,10 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
 			<< "Sets the search algorithm" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search k1" << "Evaluate only partitioning scheme with K=1" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
+			<< "--search kn" << "Evaluate only partitioning scheme with K=N" << endl;
+	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search greedy" << "Greedy search algorithm" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
 			<< "--search greedyext" << "Extended greedy search algorithm"
@@ -383,17 +398,17 @@ void PrintMeta::print_usage(std::ostream& out) {
 	out << setw(MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
 			<< "Sets the starting topology for optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology " << ARG_TOPO_MP
+			<< "--topology mp"
 			<< "(DEFAULT) Creates a maximum parsimony topology for each model optimization"
 			<< endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology " << ARG_TOPO_ML
+			<< "--topology ml"
 			<< "Creates a maximum likelihood topology for every model optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology "<< ARG_TOPO_FIXED
+			<< "--topology fixed"
 			<< "Uses a fixed ML topology for every model optimization" << endl;
 	out << setw(SHORT_OPT_LENGTH) << " " << setw(COMPL_OPT_LENGTH)
-			<< "--topology "<< ARG_TOPO_USER
+			<< "--topology user"
 			<< "Uses a user-defined topology. Requires the \"-u\" argument"
 			<< endl;
 	out << setw(MAX_OPT_LENGTH) << " "

@@ -163,6 +163,8 @@ enum StartTopo {
 };
 
 enum SearchAlgo {
+	SearchK1,
+	SearchKN,
 	SearchExhaustive,
 	SearchRandom,
 	SearchGreedy,

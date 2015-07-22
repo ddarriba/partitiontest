@@ -327,7 +327,11 @@ ConfigParser::ConfigParser(const char * _configFile) :
 
 		/** SEARCH ALGORITHM **/
 		value = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_TAG, "auto").c_str();
-		if (!strcmp(value, "greedy")) {
+		if (!strcmp(value, "k1")) {
+			search_algo = SearchK1;
+		} else if (!strcmp(value, "kn")) {
+			search_algo = SearchKN;
+		} else if (!strcmp(value, "greedy")) {
 			search_algo = SearchGreedy;
 		} else if (!strcmp(value, "exhaustive")) {
 			search_algo = SearchExhaustive;

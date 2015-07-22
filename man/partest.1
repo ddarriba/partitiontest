@@ -65,7 +65,9 @@ Sets the criterion for model selection. CRITERION: \fBbic\fR (Bayesian Informati
 \fBdt\fR (Decision Theory). Sample size for bic, aicc and dt criteria is the alignment length
 .TP
 \fB\-S\fR, \fB\-\-search\fR \fISEARCH_ALGORITHM\fR
-Sets the search algorithm SEARCH_ALGORITHM: \fBgreedy\fR (greedy search algorithm),
+Sets the search algorithm SEARCH_ALGORITHM: \fBk1\fR (evaluate K=1 only),
+\fBkn\fR (evaluate K=N only),
+\fBgreedy\fR (greedy search algorithm),
 \fBgreedyext\fR (extended greedy search algorithm),
 \fBhcluster\fR (hierarchical clustering algorithm),
 \fBrandom\fR (multiple step random sampling),
@@ -115,7 +117,7 @@ Written by Diego Darriba.
 .SH "REPORTING BUGS"
 Report PartitionTest bugs to ddarriba@udc.es
 .br
-PartitionTest home page: <http://code.google.com/p/partitiontest/>
+PartitionTest home page: <https://github.com/ddarriba/partitiontest/>
 .SH COPYRIGHT
 Copyright \(co 2014 Diego Darriba, Guillermo L. Taboada, Ramon Doallo and David Posada.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.

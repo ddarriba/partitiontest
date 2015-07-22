@@ -334,6 +334,36 @@ int main(int argc, char * argv[]) {
 	PartitioningScheme * bestScheme;
 	if (search_algo != SearchAuto) {
 		switch (search_algo) {
+		case SearchK1:
+		{
+			number_of_schemes = 1;
+			if (schemes)
+				delete schemes;
+			schemes = new vector<t_partitioningScheme>(number_of_schemes);
+			/* building K=1 scheme */
+			t_partitionElementId geneId(number_of_genes);
+			for (size_t gene = 0; gene < number_of_genes; gene++) {
+				geneId.at(gene) = gene;
+			}
+			schemes->at(0).push_back(geneId);
+			searchAlgo = new ExhaustiveSearchAlgorithm();
+			break;
+		}
+		case SearchKN:
+		{
+			number_of_schemes = 1;
+			if (schemes)
+				delete schemes;
+			schemes = new vector<t_partitioningScheme>(number_of_schemes);
+			/* building K=N scheme */
+			for (size_t gene = 0; gene < number_of_genes; gene++) {
+				t_partitionElementId geneId(1);
+				geneId.at(0) = gene;
+				schemes->at(0).push_back(geneId);
+			}
+			searchAlgo = new ExhaustiveSearchAlgorithm();
+			break;
+		}
 		case SearchHCluster:
 			searchAlgo = new HierarchicalClusteringSearchAlgorithm();
 			break;

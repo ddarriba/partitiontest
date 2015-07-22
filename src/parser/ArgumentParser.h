@@ -50,6 +50,9 @@
 #define ARG_SS_ALIGN   "alignment"	/** Argument for NxL sample size */
 #define ARG_SS_SHANNON "shannon"	/** Argument for Shannon sample size */
 #define ARG_SS_CUSTOM  "custom"		/** Argument for custom sample size */
+
+#define ARG_SEARCH_K1 "k1"	                /** Argument for evaluate K1 only */
+#define ARG_SEARCH_KN "kn"	                /** Argument for evaluate KN only */
 #define ARG_SEARCH_EXHAUSTIVE "exhaustive"	/** Argument for exhaustive search */
 #define ARG_SEARCH_RANDOM "random"			/** Argument for random search */
 #define ARG_SEARCH_GREEDY "greedy"			/** Argument for greedy search */

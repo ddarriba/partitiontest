@@ -305,7 +305,11 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_SEARCH_ALGORITHM:
 			/* search algorithm (HCluster, Greedy, Random or Exhaustive) */
-			if (!strcmp(value, ARG_SEARCH_EXHAUSTIVE)) {
+			if (!strcmp(value, ARG_SEARCH_K1)) {
+				ptest->setSearchAlgo(SearchK1);
+			} else if (!strcmp(value, ARG_SEARCH_KN)) {
+				ptest->setSearchAlgo(SearchKN);
+			} else if (!strcmp(value, ARG_SEARCH_EXHAUSTIVE)) {
 				ptest->setSearchAlgo(SearchExhaustive);
 			} else if (!strcmp(value, ARG_SEARCH_RANDOM)) {
 				ptest->setSearchAlgo(SearchRandom);
@@ -320,6 +324,9 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			} else {
 				cerr << "[ERROR] \"-S " << value
 						<< "\" is not a valid search algorithm. Use one of the following:"
+						<< endl;
+				cerr << "  -S " << setw(12) << left << ARG_SEARCH_KN
+						<< "Evaluate only the user defined partitioning scheme"
 						<< endl;
 				cerr << "  -S " << setw(12) << left << ARG_SEARCH_EXHAUSTIVE
 						<< "Exhaustive algorithm (horribly computationally expensive)"
