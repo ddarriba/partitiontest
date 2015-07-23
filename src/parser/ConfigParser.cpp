@@ -353,6 +353,17 @@ ConfigParser::ConfigParser(const char * _configFile) :
 		PARTITIONS_TAG);
 		number_of_genes = keys->size() / 2;
 
+		if (number_of_genes > PLL_NUM_BRANCHES)
+		{
+			cerr << "[ERROR] PLL is compiled for a maximum of "
+				 << PLL_NUM_BRANCHES << " partitions."
+				 << endl;
+			cerr << "        You need to increase PLL_NUM_BRANCHES in pll.h and "
+			     << "recompile both PLL and PartitionTest."
+				 << endl;
+								exit_partest(EX_CONFIG);
+		}
+
 		if (number_of_genes) {
 			partitions = new vector<partitionInfo>(number_of_genes);
 			singleGeneNames = (string **) calloc( (size_t) number_of_genes, sizeof(string*));

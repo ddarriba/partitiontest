@@ -147,6 +147,18 @@ int PartitionElement::setupStructures(void) {
 							}
 						}
 					}
+					if (models.size() == 0)
+					{
+						models.push_back(
+								new ProteicModel(PROT_MATRIX_AUTO, RateVarG,
+										(int) num_taxa));
+						if (do_rate & RateVarF) {
+							models.push_back(
+									new ProteicModel(PROT_MATRIX_AUTO,
+											RateVarG | RateVarF,
+											(int) num_taxa));
+						}
+					}
 					break;
 				case OPT_GTR:
 					models.push_back(
