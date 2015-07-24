@@ -11,6 +11,7 @@ namespace partest {
 
 TreeManager::TreeManager(const t_partitionElementId id, size_t _numberOfSites, size_t _numberOfPatterns) :
 	_id(id), numberOfSites(_numberOfSites), numberOfPatterns(_numberOfPatterns), branchLengthMultiplier(1.0) {
+	branchLengths = 0;
 }
 
 TreeManager::~TreeManager() {

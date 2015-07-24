@@ -117,31 +117,33 @@ void * distribute(void * arg) {
 			(vector<PartitioningScheme *> *) arg;
 
 	if (numProcs > 1) {
-		int buf;
+		int buf[3];
 		MPI_Status targetStatus;
 		for (size_t i = 0; i < nextSchemes->size(); i++) {
 			PartitioningScheme * scheme = nextSchemes->at(i);
+			buf[2] = scheme->getNumberOfElements();
 			for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
 				PartitionElement * element = scheme->getElement(j);
 				if (!(element->isOptimized() || element->isTagged())) {
 					// wait for request
 					element->setTagged(true);
-					MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, 0,
+					MPI_Recv(buf, 1, MPI_INT, MPI_ANY_SOURCE, 0,
 							MPI_COMM_WORLD, &targetStatus);
-					buf = element->getId().size(); //getNumberOfSections();
+					buf[0] = element->getId().size(); //getNumberOfSections();
+					buf[1] = j;
 					// send element
-					MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1,
+					MPI_Ssend(buf, 3, MPI_INT, targetStatus.MPI_SOURCE, 1,
 							MPI_COMM_WORLD);
-					MPI_Ssend(&(element->getId().front()), buf, MPI_INT,
+					MPI_Ssend(&(element->getId().front()), buf[0], MPI_INT,
 							targetStatus.MPI_SOURCE, 2, MPI_COMM_WORLD);
 				}
 			}
 		}
 		for (int i = 1; i < numProcs; i++) {
-			MPI_Recv(&buf, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,
+			MPI_Recv(buf, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,
 					&targetStatus);
-			buf = 0;
-			MPI_Ssend(&buf, 1, MPI_INT, targetStatus.MPI_SOURCE, 1,
+			buf[0] = 0;
+			MPI_Ssend(buf, 3, MPI_INT, targetStatus.MPI_SOURCE, 1,
 					MPI_COMM_WORLD);
 		}
 	}
@@ -163,27 +165,29 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &_mo) {
 			nextItem = 0;
 			for (size_t i = 0; i < nextSchemes->size(); i++) {
 				PartitioningScheme * scheme = nextSchemes->at(i);
-				for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
+				size_t numElements = scheme->getNumberOfElements();
+				for (size_t j = 0; j < numElements; j++) {
 					PartitionElement * element = scheme->getElement(j);
 					if (!(element->isOptimized() || element->isTagged())) {
 						element->setTagged(true);
 						nextItem = 1;
-						_mo.optimizePartitionElement(element);
+						_mo.optimizePartitionElement(element, j, numElements);
 					}
 				}
 			}
 		}
 		pthread_join(t1, NULL);
 	} else {
-		int nextItem = 1;
-		while (nextItem > 0) {
-			MPI_Ssend(&nextItem, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-			MPI_Recv(&nextItem, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
-			if (nextItem) {
-				t_partitionElementId id(nextItem);
-				MPI_Recv(&(id.front()), nextItem, MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
+		int nextItem[3];
+		nextItem[0] = 1;
+		while (nextItem[0] > 0) {
+			MPI_Ssend(nextItem, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+			MPI_Recv(nextItem, 3, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+			if (nextItem[0]) {
+				t_partitionElementId id(nextItem[0]);
+				MPI_Recv(&(id.front()), nextItem[0], MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
 				PartitionElement * element = PartitionMap::getInstance()->getPartitionElement(id);
-				_mo.optimizePartitionElement(element);
+				_mo.optimizePartitionElement(element, nextItem[1], nextItem[2]);
 			}
 		}
 	}

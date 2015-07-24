@@ -13,6 +13,8 @@
 #ifndef PLLTREEMANAGER_H_
 #define PLLTREEMANAGER_H_
 
+#define USE_PLL_ALGORITHM false
+
 namespace partest {
 
 class PllTreeManager: public TreeManager {
@@ -22,7 +24,9 @@ public:
 			size_t numberOfSites);
 	virtual ~PllTreeManager();
 
-	virtual double * getBranchLengths(void);
+	virtual double * getBranchLengths(bool update = true);
+	virtual void setBranchLengths(double * bls);
+
 	virtual void setModelParameters(const Model * _model, int index,
 			bool setAlphaFreqs);
 	virtual double searchMlTopology(bool estimateModel);

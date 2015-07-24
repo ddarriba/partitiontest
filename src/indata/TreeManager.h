@@ -30,7 +30,8 @@ public:
 	/**
 	 * Allocates and returns a vector with the branch lengths
 	 */
-	virtual double * getBranchLengths(void) = 0;
+	virtual double * getBranchLengths(bool update = true) = 0;
+	virtual void setBranchLengths(double * bls) = 0;
 
 	/**
 	 * Applies the parameters contained in a Model instance to the tree
@@ -70,6 +71,7 @@ protected:
 	t_partitionElementId _id;
 	size_t numberOfSites;
 	size_t numberOfPatterns;
+	double * branchLengths;
 	double branchLengthMultiplier;
 };
 

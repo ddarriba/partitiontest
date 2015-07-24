@@ -24,14 +24,14 @@ using namespace std;
 
 namespace partest {
 
-static pllInstance * buildTree() {
+static pllInstance * buildTree(bool use_multithread) {
 	pllInstanceAttr attr;
 	attr.fastScaling = PLL_FALSE;
 	attr.randomNumberSeed = 0x54321;
 	attr.rateHetModel = PLL_GAMMA;
 	attr.saveMemory = PLL_FALSE;
 	attr.useRecom = PLL_FALSE;
-	attr.numberOfThreads = number_of_threads;
+	attr.numberOfThreads = use_multithread?number_of_threads:1;
 	return (pllCreateInstance(&attr));
 }
 
@@ -40,7 +40,7 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 		size_t numberOfSites) :
 		TreeManager(id, numberOfSites, numberOfSites) {
 
-	_tree = buildTree();
+	_tree = buildTree(numberOfSites > 1500);
 	_alignData = pllInitAlignmentData(_phylip->sequenceCount, (int) numberOfSites);
 	_alignData->siteWeights = (int *) malloc(numberOfSites * sizeof(int));
 	for (int seq = 1; seq <= _alignData->sequenceCount; seq++) {
@@ -189,14 +189,33 @@ PllTreeManager::~PllTreeManager() {
 	}
 }
 
-double * PllTreeManager::getBranchLengths(void) {
-	double * bls = (double *) malloc(
+double * PllTreeManager::getBranchLengths(bool update) {
+	bool localUpdate = update;
+	if (!branchLengths)
+	{
+		branchLengths = (double *) malloc(
 			(size_t) Utilities::numberOfBranches((int)num_taxa) * sizeof(double));
-	for (int i = 0; i < Utilities::numberOfBranches((int)num_taxa); i++) {
-		assert(!isnan(_tree->nodep[i + 1]->z[0]));
-		bls[i] = _tree->nodep[i + 1]->z[0];
+		localUpdate = true;
 	}
-	return bls;
+	if (localUpdate)
+	{
+		for (int i = 0; i < Utilities::numberOfBranches((int)num_taxa); i++) {
+			assert(!isnan(_tree->nodep[i + 1]->z[0]));
+			branchLengths[i] = _tree->nodep[i + 1]->z[0];
+		}
+	}
+	return branchLengths;
+}
+
+void PllTreeManager::setBranchLengths(double * bls) {
+	if (!branchLengths) {
+		branchLengths = (double *) malloc(
+				(size_t) Utilities::numberOfBranches((int) num_taxa)
+						* sizeof(double));
+		for (int i = 0; i < Utilities::numberOfBranches((int) num_taxa); i++) {
+			branchLengths[i] = bls[i];
+		}
+	}
 }
 
 void PllTreeManager::setModelParameters(const Model * _model, int index,
@@ -408,6 +427,7 @@ void PllTreeManager::optimizeBranchLengths(int smoothIterations) {
 
 void PllTreeManager::optimizeBaseFreqs(double _epsilon) {
 	pllOptBaseFreqs(_tree, _partitions, _epsilon, _partitions->freqList);
+	evaluateLikelihood(true);
 }
 
 void PllTreeManager::optimizeRates(double _epsilon) {
@@ -416,6 +436,7 @@ void PllTreeManager::optimizeRates(double _epsilon) {
 
 void PllTreeManager::optimizeAlphas(double _epsilon) {
 	pllOptAlphasGeneric(_tree, _partitions, _epsilon, _partitions->alphaList);
+	evaluateLikelihood(true);
 }
 
 const char * PllTreeManager::getNewickTree() {
@@ -426,7 +447,24 @@ const char * PllTreeManager::getNewickTree() {
 }
 
 void PllTreeManager::optimizeModelParameters(double _epsilon) {
+#if(USE_PLL_ALGORITHM)
 	pllOptimizeModelParameters(_tree, _partitions, _epsilon);
+#else
+	double lk;
+
+	evaluateLikelihood(true);
+	optimizeRates(10 * _epsilon);
+	optimizeBaseFreqs(10 * _epsilon);
+	optimizeAlphas(10 * _epsilon);
+	evaluateLikelihood(true);
+	do {
+		lk = getLikelihood();
+		optimizeRates(_epsilon);
+		optimizeBaseFreqs(_epsilon);
+		optimizeAlphas(_epsilon);
+		evaluateLikelihood(true);
+	} while (fabs(lk - getLikelihood()) > _epsilon);
+#endif
 }
 
 static double fixZ(double z) {
@@ -448,7 +486,7 @@ double PllTreeManager::scaleBranchLengths(double multiplier) {
 
 	if (storedBranchLengths.size() == 0) {
 		/* store original branch lengths */
-		storedBranchLengths.resize(((2 * (size_t)_tree->mxtips - 3) * 2));
+		storedBranchLengths.resize(((2 * (size_t) _tree->mxtips - 3) * 2));
 		count = 0;
 		for (int i = 1; i <= nodes; i++) {
 			storedBranchLengths[count] = -log(_tree->nodep[i]->z[0]);
@@ -456,41 +494,42 @@ double PllTreeManager::scaleBranchLengths(double multiplier) {
 			if (i > _tree->mxtips) {
 				storedBranchLengths[count] = -log(_tree->nodep[i]->next->z[0]);
 				count++;
-				storedBranchLengths[count] = -log(_tree->nodep[i]->next->next->z[0]);
+				storedBranchLengths[count] = -log(
+						_tree->nodep[i]->next->next->z[0]);
 				count++;
 			}
 		}
-		assert(count == (2 * (size_t) _tree->mxtips - 3) * 2);
+		assert(count == (2 * (size_t ) _tree->mxtips - 3) * 2);
 	}
 
-		count = 0;
-		for (int i = 1; i <= nodes; i++) {
-			double z = multiplier * storedBranchLengths[count];
+	count = 0;
+	for (int i = 1; i <= nodes; i++) {
+		double z = multiplier * storedBranchLengths[count];
+		z = exp(-z);
+		z = fixZ(z);
+		_tree->nodep[i]->z[0] = z;
+
+		count++;
+
+		if (i > _tree->mxtips) {
+			z = multiplier * storedBranchLengths[count];
 			z = exp(-z);
 			z = fixZ(z);
-			_tree->nodep[i]->z[0] = z;
+			_tree->nodep[i]->next->z[0] = z;
 
 			count++;
 
-			if (i > _tree->mxtips) {
-				z = multiplier * storedBranchLengths[count];
-				z = exp(-z);
-				z = fixZ(z);
-				_tree->nodep[i]->next->z[0] = z;
+			z = multiplier * storedBranchLengths[count];
+			z = exp(-z);
+			z = fixZ(z);
+			_tree->nodep[i]->next->next->z[0] = z;
 
-				count++;
-
-				z = multiplier * storedBranchLengths[count];
-				z = exp(-z);
-				z = fixZ(z);
-				_tree->nodep[i]->next->next->z[0] = z;
-
-				count++;
-			}
+			count++;
 		}
-		assert(count == (2 * (size_t) _tree->mxtips - 3) * 2);
-		evaluateLikelihood(PLL_TRUE);
-		return getLikelihood();
+	}
+	assert(count == (2 * (size_t ) _tree->mxtips - 3) * 2);
+	evaluateLikelihood(PLL_TRUE);
+	return getLikelihood();
 }
 
 }

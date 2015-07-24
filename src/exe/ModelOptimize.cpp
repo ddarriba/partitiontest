@@ -32,7 +32,7 @@
 #include <cstring>
 #include <cassert>
 
-#define ML_STARTING_TREE 1
+#define ML_STARTING_TREE 0
 
 using namespace std;
 
@@ -167,12 +167,52 @@ string ModelOptimize::buildStartingTree() {
 			pllEvaluateLikelihood(tree, compParts, tree->start,
 			PLL_TRUE,
 			PLL_FALSE);
-			if (!reoptimize_branch_lengths) {
-				while (fabs(lk - tree->likelihood) > 5) {
+			cout << "next LK: " << tree->likelihood << endl;
+		if (!reoptimize_branch_lengths) {
+			while (fabs(lk - tree->likelihood) > 5) {
+				lk = tree->likelihood;
+				cout << "ini LK: " << lk << endl;
+				pllOptimizeBranchLengths(tree, compParts, 4);
+				cout << "bl LK: " << tree->likelihood << endl;
+
+				double lk;
+
+				pllEvaluateLikelihood(tree, compParts, tree->start,
+				PLL_TRUE,
+				PLL_FALSE);
+				cout << "rates LK: " << tree->likelihood << endl;
+				pllOptRatesGeneric(tree, compParts, 10 * optEpsilon,
+						compParts->rateList);
+				cout << "freqs LK: " << tree->likelihood << endl;
+				pllOptBaseFreqs(tree, compParts, 10 * optEpsilon,
+						compParts->freqList);
+				pllEvaluateLikelihood(tree, compParts, tree->start,
+				PLL_TRUE,
+				PLL_FALSE);
+				cout << "alpha LK: " << tree->likelihood << endl;
+				pllOptAlphasGeneric(tree, compParts, 10 * optEpsilon,
+						compParts->alphaList);
+				pllEvaluateLikelihood(tree, compParts, tree->start,
+				PLL_TRUE,
+				PLL_FALSE);
+					cout << "iterate: " << tree->likelihood << endl;
 					lk = tree->likelihood;
-					pllOptimizeBranchLengths(tree, compParts, 64);
-					pllOptimizeModelParameters(tree, compParts, optEpsilon);
-				}
+					pllOptRatesGeneric(tree, compParts, optEpsilon,
+							compParts->rateList);
+					pllOptBaseFreqs(tree, compParts, optEpsilon,
+							compParts->freqList);
+					pllEvaluateLikelihood(tree, compParts, tree->start,
+					PLL_TRUE,
+					PLL_FALSE);
+					pllOptAlphasGeneric(tree, compParts, optEpsilon,
+							compParts->alphaList);
+					pllEvaluateLikelihood(tree, compParts, tree->start,
+					PLL_TRUE,
+					PLL_FALSE);
+
+//					pllOptimizeModelParameters(tree, compParts, optEpsilon);
+				cout << "next LK: " << tree->likelihood << endl;
+			}
 			}
 
 #endif
@@ -583,7 +623,11 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 		return EX_OK;
 	}
 
-	cout << timestamp() << " - - - element "
+	cout << timestamp() << " - - -";
+#ifdef HAVE_MPI
+	cout << " [" << myRank << "]";
+#endif
+	cout <<" element "
 			<< setw(Utilities::iDecLog(limit) + 1) << setfill('0') << right
 			<< index + 1 << "/" << limit << setfill(' ') << endl;
 	element->setupStructures();
@@ -619,31 +663,16 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 			cur_epsilon = -0.001 * treeManager->getLikelihood();
 		}
 		if (reoptimize_branch_lengths) {
-			int smoothIterations = 64;
+			int smoothIterations = 32;
+			treeManager->optimizeBranchLengths(smoothIterations);
+			treeManager->optimizeModelParameters(10*cur_epsilon);
 			do {
 				lk = treeManager->getLikelihood();
-				treeManager->optimizeBranchLengths(smoothIterations);
+				treeManager->optimizeBranchLengths(2*smoothIterations);
 				treeManager->optimizeModelParameters(cur_epsilon);
 			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 		} else {
-			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeRates(10*cur_epsilon);
-			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeBaseFreqs(10*cur_epsilon);
-			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeAlphas(10*cur_epsilon);
-			treeManager->evaluateLikelihood(true);
-			treeManager->optimizeBranchLengths(4);
-			do {
-				lk = treeManager->getLikelihood();
-				treeManager->optimizeRates(cur_epsilon);
-				treeManager->evaluateLikelihood(true);
-				treeManager->optimizeBaseFreqs(cur_epsilon);
-				treeManager->evaluateLikelihood(true);
-				treeManager->optimizeAlphas(cur_epsilon);
-				treeManager->evaluateLikelihood(true);
-				treeManager->optimizeBranchLengths(8);
-			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
+			treeManager->optimizeModelParameters(cur_epsilon);
 		}
 	}
 
@@ -672,7 +701,11 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 						static_cast<ProtMatrix>(treeManager->getAutoProtModel())));
 	}
 
-	cout << timestamp() << " - - - - - " << setw(Utilities::iDecLog(limit) + 1)
+	cout << timestamp() << " - - - - -";
+#ifdef HAVE_MPI
+	cout << " [" << myRank << "]";
+#endif
+	cout << " " << setw(Utilities::iDecLog(limit) + 1)
 			<< setfill('0') << right << modelIndex + 1 << "/" << limit << " "
 			<< model->getName() << " (" << fixed << setprecision(4)
 			<< treeManager->getLikelihood() << ")" << setfill(' ') << endl;

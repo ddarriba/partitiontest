@@ -29,12 +29,12 @@ partest_mpi_SOURCES = \
 	../src/util/PrintMeta.cpp \
 	../src/util/Utilities.cpp \
 	../src/PartitionTest.cpp
-partest_mpi_CPPFLAGS = -I../src -DHAVE_MPI -Wall
-partest_mpi_LDFLAGS = -I../src -DHAVE_MPI -Wall
-if HAVE_PTHREADS
+partest_mpi_CPPFLAGS = -I../src -DHAVE_MPI -Wall -DPTHREADS
+partest_mpi_LDFLAGS = -I../src -DHAVE_MPI -Wall -DPTHREADS
+
   partest_mpi_CPPFLAGS += -DHAVE_PTHREADS
   partest_mpi_LDFLAGS += -DHAVE_PTHREADS
-endif
+
 if HAVE_AVX
   partest_mpi_CPPFLAGS += -DHAVE_AVX
   partest_mpi_LDFLAGS += -DHAVE_AVX
