@@ -168,12 +168,14 @@ void PrintMeta::print_options(ostream& output) {
 			output << "True " << endl;
 		else
 			output << "False" << endl;
+#ifdef _IG_MODELS
 		output << setw(OPT_DESCR_LENGTH) << left
 				<< "  Include models with rate variation:";
 		if (do_rate & RateVarG)
 			output << "True" << endl;
 		else
 			output << "False" << endl;
+#endif
 	}
 	output << setw(OPT_DESCR_LENGTH) << left << "  Number of candidate models:"
 			<< number_of_models << endl;
