@@ -222,6 +222,31 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 		cerr << "[ERROR] There was an error parsing partitions data." << endl;
 		exit_partest(EX_IOERR);
 	}
+
+	/* evaluate present states */
+	bool frequenciesOK = true;
+	double ** freqs = pllBaseFrequenciesAlignment(phylip, pllPartitions);
+	for (int i=0; i<pllPartitions->numberOfPartitions; i++) {
+		for (int j=0; j<pllPartitions->partitionData[i]->states; j++) {
+			if (freqs[i][j] < 1.0/pllPartitions->partitionData[i]->width) {
+				cerr << "[ERROR] State ";
+				if (pllPartitions->partitionData[i]->dataType == PLL_DNA_DATA)
+					cerr << dnaStateNames[j];
+				else
+					cerr << protStateNames[j];
+				cerr << " is not present in partition "
+						<< pllPartitions->partitionData[i]->partitionName
+						<< endl;
+				frequenciesOK = false;
+			}
+		}
+	}
+	if (!frequenciesOK) {
+		cerr << "[ERROR] There are missing states. Please fix your data" << endl;
+		exit_partest(EX_IOERR);
+	}
+	free(freqs);
+
 	num_taxa = (size_t) phylip->sequenceCount;
 	seq_len = (size_t) phylip->sequenceLength;
 

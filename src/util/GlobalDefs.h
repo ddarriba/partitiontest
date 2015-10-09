@@ -189,6 +189,13 @@ enum OptimizeMode {
 	OPT_SEARCH, OPT_GTR, OPT_CUSTOM
 };
 
+const char dnaStateNames[NUM_NUC_FREQS] = {'A', 'C', 'G', 'T'};
+
+const char protStateNames[NUM_PROT_FREQS]
+         = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H',
+            'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W',
+            'Y', 'V'};
+
 #define CHECKPOINT_LOADED      0
 #define CHECKPOINT_SAVED       1
 #define CHECKPOINT_UNAVAILABLE 2
