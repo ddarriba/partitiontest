@@ -345,12 +345,32 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			break;
 		case ARG_HCLUSTER_REPS:
 			/* number of replicates for HCluster and Random */
-				if (!Utilities::isInteger(value)) {
-					cerr << "[ERROR] \"-r " << value << "\" must be an integer."
-							<< endl;
-					exit_partest(EX_CONFIG);
-				}
+			if (Utilities::isInteger(value)) {
+				/* apply absolute number of replicates */
 				ptest->setMaxSamples(atoi(value));
+				ptest->setSamplesPercent(0.0);
+			} else {
+				/* apply percentage of replicates */
+				ptest->setMaxSamples(0);
+				if (value[strlen(value) - 1] == '%') {
+					value[strlen(value) - 1] = '\0';
+					if (Utilities::isInteger(value)) {
+						ptest->setSamplesPercent(atof(value) / 100);
+					} else {
+						cerr << "[ERROR] Invalid samples percent " << samples_percent
+								<< endl;
+						exit_partest(EX_CONFIG);
+					}
+				} else {
+					if (Utilities::isNumeric(value)) {
+						ptest->setSamplesPercent(atof(value));
+					} else {
+						cerr << "[ERROR] Invalid samples percent " << samples_percent
+								<< endl;
+						exit_partest(EX_CONFIG);
+					}
+				}
+			}
 			break;
 		case ARG_KEEP_BRANCH_LENGTHS:
 			/* keep branch lengths from the initial topology */

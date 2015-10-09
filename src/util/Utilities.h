@@ -127,6 +127,11 @@ public:
 	 */
 	static double normalizedEuclideanDistance(double X[], double Y[], int n);
 
+	static int numSchemesHierarchicalClustering(int numDataBlocks);
+
+	static int numSchemesGreedy(int numDataBlocks);
+
+	static int numSchemesAutoSearch(int numDataBlocks);
 
 	/* ********* IDENTIFIERS MANAGEMENT ********* */
 

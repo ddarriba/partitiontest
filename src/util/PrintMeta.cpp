@@ -212,8 +212,12 @@ void PrintMeta::print_options(ostream& output) {
 			output << left << "Greedy extended" << endl;
 			break;
 		case SearchHCluster:
-			output << left << "Hierarchical Cluster (" << max_samples << ")"
-					<< endl;
+			output << left << "Hierarchical Cluster (";
+			if(max_samples)
+				output << max_samples;
+			else
+				output << samples_percent*100 << "%";
+			output << ")" << endl;
 			break;
 		case SearchRandom:
 			output << left << "Random" << endl;
@@ -227,6 +231,38 @@ void PrintMeta::print_options(ostream& output) {
 		default:
 			assert(0);
 		}
+	}
+	output << setw(OPT_DESCR_LENGTH) << left << "  Max evaluations:";
+	switch (search_algo) {
+	case SearchK1:
+		output << left << 1 << endl;
+		break;
+	case SearchKN:
+		output << left << number_of_genes << endl;
+		break;
+	case SearchGreedy:
+		output << left << Utilities::numSchemesGreedy(number_of_genes) << endl;
+		break;
+	case SearchGreedyExtended:
+		output << left << Utilities::numSchemesGreedy(number_of_genes) << endl;
+		break;
+	case SearchHCluster:
+		output << left
+				<< Utilities::numSchemesHierarchicalClustering(number_of_genes)
+				<< endl;
+		break;
+	case SearchRandom:
+		output << left << max_samples << endl;
+		break;
+	case SearchExhaustive:
+		output << left << "a lot" << endl;
+		break;
+	case SearchAuto:
+		output << left << Utilities::numSchemesAutoSearch(number_of_genes)
+				<< endl;
+		break;
+	default:
+		assert(0);
 	}
 	output << setw(OPT_DESCR_LENGTH) << left << "  Selection criterion:";
 	switch (ic_type) {

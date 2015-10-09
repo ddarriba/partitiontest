@@ -125,7 +125,13 @@ PartitioningScheme * HierarchicalClusteringSearchAlgorithm::start(
 			if (continueExec) {
 				vector<elementPair *> * eps =
 						localBestScheme->getElementDistances();
-				for (size_t i = 0; i < (size_t)min(max_samples, (int) eps->size()); i++) {
+				int sample_size;
+				if (max_samples) {
+					sample_size = min(max_samples, (int) eps->size());
+				} else {
+					sample_size = max((int) (eps->size() * samples_percent), 1);
+				}
+				for (size_t i = 0; i < (size_t)sample_size; i++) {
 					t_partitionElementId nextId;
 					t_partitioningScheme nextScheme;
 					Utilities::mergeIds(nextId, eps->at(i)->e1->getId(),

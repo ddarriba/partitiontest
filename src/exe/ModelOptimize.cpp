@@ -159,7 +159,6 @@ string ModelOptimize::buildStartingTree() {
 			pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
 
 #else
-
 			cout << timestamp() << " Updating branch lengths..." << endl;
 			pllInitModel(tree, compParts);
 			double lk = 0;
@@ -167,53 +166,42 @@ string ModelOptimize::buildStartingTree() {
 			pllEvaluateLikelihood(tree, compParts, tree->start,
 			PLL_TRUE,
 			PLL_FALSE);
-			cout << "next LK: " << tree->likelihood << endl;
 		if (!reoptimize_branch_lengths) {
 			while (fabs(lk - tree->likelihood) > 5) {
 				lk = tree->likelihood;
-				cout << "ini LK: " << lk << endl;
 				pllOptimizeBranchLengths(tree, compParts, 4);
-				cout << "bl LK: " << tree->likelihood << endl;
-
-				double lk;
-
 				pllEvaluateLikelihood(tree, compParts, tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-				cout << "rates LK: " << tree->likelihood << endl;
 				pllOptRatesGeneric(tree, compParts, 10 * optEpsilon,
 						compParts->rateList);
-				cout << "freqs LK: " << tree->likelihood << endl;
 				pllOptBaseFreqs(tree, compParts, 10 * optEpsilon,
 						compParts->freqList);
 				pllEvaluateLikelihood(tree, compParts, tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-				cout << "alpha LK: " << tree->likelihood << endl;
 				pllOptAlphasGeneric(tree, compParts, 10 * optEpsilon,
 						compParts->alphaList);
 				pllEvaluateLikelihood(tree, compParts, tree->start,
 				PLL_TRUE,
 				PLL_FALSE);
-					cout << "iterate: " << tree->likelihood << endl;
-					lk = tree->likelihood;
-					pllOptRatesGeneric(tree, compParts, optEpsilon,
-							compParts->rateList);
-					pllOptBaseFreqs(tree, compParts, optEpsilon,
-							compParts->freqList);
-					pllEvaluateLikelihood(tree, compParts, tree->start,
-					PLL_TRUE,
-					PLL_FALSE);
-					pllOptAlphasGeneric(tree, compParts, optEpsilon,
-							compParts->alphaList);
-					pllEvaluateLikelihood(tree, compParts, tree->start,
-					PLL_TRUE,
-					PLL_FALSE);
+				lk = tree->likelihood;
+				pllOptRatesGeneric(tree, compParts, optEpsilon,
+						compParts->rateList);
+				pllOptBaseFreqs(tree, compParts, optEpsilon,
+						compParts->freqList);
+				pllEvaluateLikelihood(tree, compParts, tree->start,
+				PLL_TRUE,
+				PLL_FALSE);
+				pllOptAlphasGeneric(tree, compParts, optEpsilon,
+						compParts->alphaList);
+				pllEvaluateLikelihood(tree, compParts, tree->start,
+				PLL_TRUE,
+				PLL_FALSE);
 
 //					pllOptimizeModelParameters(tree, compParts, optEpsilon);
-				cout << "next LK: " << tree->likelihood << endl;
 			}
-			}
+		}
 
 #endif
 

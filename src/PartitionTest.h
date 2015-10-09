@@ -39,6 +39,7 @@ public:
 	void setDoRate(bitMask doRate);
 	void setIcType(InformationCriterion icType);
 	void setMaxSamples(int maxSamples);
+	void setSamplesPercent(double samplesPercent);
 	void setOptimize(OptimizeMode optimize);
 	void setSearchAlgo(SearchAlgo searchAlgo);
 	void setStartingTopology(StartTopo startingTopology);

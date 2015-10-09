@@ -243,7 +243,23 @@ void PartitionTest::setIcType(InformationCriterion icType) {
 }
 
 void PartitionTest::setMaxSamples(int maxSamples) {
+	if (maxSamples < 0)
+		{
+			cerr << "[ERROR] Max samples must be positive: ("
+					<< maxSamples << ")" << endl;
+			exit_partest(EX_IOERR);
+		}
 	max_samples = maxSamples;
+}
+
+void PartitionTest::setSamplesPercent(double samplesPercent) {
+	if (samplesPercent < 0 || samplesPercent > 1)
+	{
+		cerr << "[ERROR] Samples percent must be between 0 and 1: ("
+				<< samplesPercent << ")" << endl;
+		exit_partest(EX_IOERR);
+	}
+	samples_percent = samplesPercent;
 }
 
 void PartitionTest::setOptimize(OptimizeMode optimize) {

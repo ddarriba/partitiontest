@@ -56,6 +56,7 @@ namespace partest {
 	SearchAlgo search_algo;
 	double epsilon = 1.0;
 	int max_samples = 1;
+	double samples_percent = 0.0;
 	InformationCriterion ic_type;
 	OptimizeMode optimize_mode;
 	bool non_stop = false;

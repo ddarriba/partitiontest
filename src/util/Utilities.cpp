@@ -145,6 +145,31 @@ double Utilities::normalizedEuclideanDistance(double X[], double Y[], int n) {
 	return sqrt(sum);
 }
 
+int Utilities::numSchemesHierarchicalClustering(int n) {
+	int nSchemes = n + 1;
+	int i;
+	if (max_samples) {
+		for (i=2; i<n; i++)
+			nSchemes += max_samples<(i*(i-1)/2)?max_samples:(i*(i-1)/2);
+	} else {
+		int n_iter_samples;
+		for (i=2; i<n; i++)
+		{
+			n_iter_samples = (int)(samples_percent * (i*(i-1)/2));
+			nSchemes += n_iter_samples?n_iter_samples:1;
+		}
+	}
+	return nSchemes;
+}
+
+int Utilities::numSchemesGreedy(int n) {
+	return n + (n-1)*(n + n-2)/2;
+}
+
+int Utilities::numSchemesAutoSearch(int n) {
+	return numSchemesHierarchicalClustering(n);
+}
+
 int Utilities::numberOfBranches(int numTaxa) {
 	return 2 * numTaxa - 3;
 }

@@ -223,6 +223,8 @@ extern SearchAlgo search_algo;
 extern double epsilon;
 /** Number of samples in configurable algorithms */
 extern int max_samples;
+/** Percent of samples to analyze */
+extern double samples_percent;
 /** Whether to stop or not in local maxima */
 extern bool non_stop;
 /** Whether to thoroughly optimize the final scheme*/

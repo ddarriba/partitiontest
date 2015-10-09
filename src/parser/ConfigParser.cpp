@@ -346,7 +346,34 @@ ConfigParser::ConfigParser(const char * _configFile) :
 			exit_partest(EX_CONFIG);
 		}
 
-		max_samples = (int) ini.GetInteger(SEARCH_TAG, SEARCH_ALGORITHM_REPS, 1);
+		string samples_str = ini.Get(SEARCH_TAG, SEARCH_ALGORITHM_REPS, "1");
+		if (Utilities::isInteger(samples_str.c_str())) {
+			/* apply absolute number of replicates */
+			max_samples = (int) ini.GetInteger(SEARCH_TAG,
+					SEARCH_ALGORITHM_REPS, 1);
+			samples_percent = 0.0;
+		} else {
+			/* apply percentage of replicates */
+			max_samples = 0;
+			if (samples_str[samples_str.length() - 1] == '%') {
+				samples_str[samples_str.length() - 1] = '\0';
+				if (Utilities::isInteger(samples_str.c_str())) {
+					samples_percent = atof(samples_str.c_str()) / 100;
+				} else {
+					cerr << "Invalid samples percent " << samples_percent
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
+			} else {
+				if (Utilities::isNumeric(samples_str.c_str())) {
+					samples_percent = atof(samples_str.c_str());
+				} else {
+					cerr << "Invalid samples percent " << samples_percent
+							<< endl;
+					exit_partest(EX_CONFIG);
+				}
+			}
+		}
 
 		/** PARTITIONS **/
 		std::vector<std::string> * keys = ini.getGenes(
