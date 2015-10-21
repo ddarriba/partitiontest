@@ -228,7 +228,8 @@ bool PartitionTest::configure(PartitionTest * ptest, int argc, char * argv[]) {
 	double ** freqs = pllBaseFrequenciesAlignment(phylip, pllPartitions);
 	for (int i=0; i<pllPartitions->numberOfPartitions; i++) {
 		for (int j=0; j<pllPartitions->partitionData[i]->states; j++) {
-			if (freqs[i][j] < 1.0/pllPartitions->partitionData[i]->width) {
+			if (freqs[i][j] < 1e-12) {
+
 				cerr << "[ERROR] State ";
 				if (pllPartitions->partitionData[i]->dataType == PLL_DNA_DATA)
 					cerr << dnaStateNames[j];
