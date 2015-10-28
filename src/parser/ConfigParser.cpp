@@ -200,17 +200,19 @@ ConfigParser::ConfigParser(const char * _configFile) :
 		/** INPUT **/
 		value = ini.Get(INPUT_TAG, INPUT_MSA_TAG, "").c_str();
 		if (strcmp(value, "")) {
-			size_t prefixLen = 0;
-			char * basedir = (char *) malloc(strlen(configFile) + 1);
-			strcpy(basedir, configFile);
-			char * lastSlash = strrchr(basedir, char_separator);
-			if (lastSlash) {
-				*(lastSlash + 1) = 0;
-				strcpy(inputFile, basedir);
-				prefixLen = strlen(basedir);
-			}
-			strcpy(inputFile + prefixLen, value);
-			free( basedir );
+    	size_t prefixLen = 0;
+      if (value[0] != '/') {
+    			char * basedir = (char *) malloc(strlen(configFile) + 1);
+    			strcpy(basedir, configFile);
+    			char * lastSlash = strrchr(basedir, char_separator);
+    			if (lastSlash) {
+    				*(lastSlash + 1) = 0;
+    				strcpy(inputFile, basedir);
+				    prefixLen = strlen(basedir);
+		    	}
+			    free( basedir );
+      }
+    	strcpy(inputFile + prefixLen, value);
 		}
 
 		value = ini.Get(INPUT_TAG, INPUT_STARTTOPO_TAG, "").c_str();
