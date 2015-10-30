@@ -34,74 +34,88 @@
 #include <string>
 #include <vector>
 
-namespace partest {
+namespace partest
+{
 
-class PartitionElement {
+  class PartitionElement
+  {
 
-public:
-	PartitionElement(t_partitionElementId id);
-	t_partitionElementId getId(void) { return id; }
-	std::string & getName(void) { return name; }
+  public:
+    PartitionElement (t_partitionElementId id);
+    t_partitionElementId getId (void)
+    {
+      return id;
+    }
+    std::string & getName (void)
+    {
+      return name;
+    }
 
-	int setupStructures(void);
-	int destroyStructures(void);
-	virtual ~PartitionElement();
+    int setupStructures (void);
+    int destroyStructures (void);
+    virtual ~PartitionElement ();
 
-	size_t getNumberOfSites(void) const;
-	size_t getNumberOfPatterns(void) const;
-	size_t getNumberOfSections(void) const;
-	PEsection getSection(size_t i);
+    size_t getNumberOfSites (void) const;
+    size_t getNumberOfPatterns (void) const;
+    size_t getNumberOfSections (void) const;
+    PEsection getSection (size_t i);
 
-	size_t getNumberOfModels(void) const;
-	Model * getModel(size_t index);
-	std::vector<Model *> getModels(void) const;
+    size_t getNumberOfModels (void) const;
+    Model * getModel (size_t index);
+    std::vector<Model *> getModels (void) const;
 
-	double getLnL(void) const;
-	SelectionModel * getBestModel(void);
-	void setBestModel(SelectionModel * model);
+    double getLnL (void) const;
+    SelectionModel * getBestModel (void);
+    void setBestModel (SelectionModel * model);
 
-	double * getBranchLengths(void);
+    double * getBranchLengths (void);
 
-	void setTagged(bool tag_status) { tag = tag_status; }
-	bool isTagged() { return tag; }
+    void setTagged (bool tag_status)
+    {
+      tag = tag_status;
+    }
+    bool isTagged ()
+    {
+      return tag;
+    }
 
-	bool isReady(void);
-	bool isOptimized(void);
-	double getEpsilon(void);
+    bool isReady (void);
+    bool isOptimized (void);
+    double getEpsilon (void);
 
-	TreeManager * getTreeManager(void);
+    TreeManager * getTreeManager (void);
 
-	double getSampleSize(void);
+    double getSampleSize (void);
 
-	int loadData(void);
-	int storeData(void);
+    int loadData (void);
+    int storeData (void);
 
-	void print(std::ostream & out);
-private:
+    void print (std::ostream & out);
+  private:
 
-	bool ready;
+    bool ready;
 
-	t_partitionElementId id;
-	size_t numberOfSections;
+    t_partitionElementId id;
+    size_t numberOfSections;
 
-	size_t numberOfSites;
-	size_t numberOfPatterns;
+    size_t numberOfSites;
+    size_t numberOfPatterns;
 
-	std::vector<Model *> models;
-	SelectionModel * bestModel;
+    std::vector<Model *> models;
+    SelectionModel * bestModel;
 
-	std::string name, ckpname, ckphash;
-	double sampleSize;
+    std::string name, ckpname, ckphash;
+    double sampleSize;
 
-	PllTreeManager * treeManager;
+    PllTreeManager * treeManager;
 
-	std::vector<PEsection> sections;
+    std::vector<PEsection> sections;
 
-	bool ckpLoaded;
-	bool tag;
+    bool ckpLoaded;
+    bool tag;
 
-	double * branchLengths;
-};
+    double * branchLengths;
+  };
 
 }
 #endif /* PARTITIONELEMENT_H_ */

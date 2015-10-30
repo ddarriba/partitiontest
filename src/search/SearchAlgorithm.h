@@ -29,33 +29,37 @@
 #include "exe/ModelOptimize.h"
 #include <fstream>
 
-namespace partest {
+namespace partest
+{
 
-class SearchAlgorithm {
-public:
-	SearchAlgorithm();
-	virtual ~SearchAlgorithm();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0) = 0;
-protected:
-	ModelOptimize mo;
-	void printStepLog(int id, PartitioningScheme * bestScheme);
-	void printStep(SearchAlgo algo, double nextScore);
+  class SearchAlgorithm
+  {
+  public:
+    SearchAlgorithm ();
+    virtual ~SearchAlgorithm ();
+    virtual PartitioningScheme * start (
+        PartitioningScheme * startingPoint = 0) = 0;
+  protected:
+    ModelOptimize mo;
+    void printStepLog (int id, PartitioningScheme * bestScheme);
+    void printStep (SearchAlgo algo, double nextScore);
 
-	class SchemeManager {
-	public:
-		SchemeManager();
-		~SchemeManager();
+    class SchemeManager
+    {
+    public:
+      SchemeManager ();
+      ~SchemeManager ();
 
-		int addSchemes(std::vector<PartitioningScheme *> schemesToAdd);
-		int addScheme(PartitioningScheme * schemeToAdd);
-		int optimize(ModelOptimize &mo);
-	private:
-		std::vector<PartitioningScheme *> * nextSchemes;
-	};
-private:
-	std::ofstream * ofs;
-	double bestScore;
-};
+      int addSchemes (std::vector<PartitioningScheme *> schemesToAdd);
+      int addScheme (PartitioningScheme * schemeToAdd);
+      int optimize (ModelOptimize &mo);
+    private:
+      std::vector<PartitioningScheme *> * nextSchemes;
+    };
+  private:
+    std::ofstream * ofs;
+    double bestScore;
+  };
 
 } /* namespace partest */
 

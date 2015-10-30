@@ -27,20 +27,22 @@
 
 #include "SearchAlgorithm.h"
 
-namespace partest {
+namespace partest
+{
 
-/**
- * @brief Single-step exhaustive search algorithm
- *
- * This algorithm constructs and evaluates all possible partitioning schemes.
- * It is not recommended at all unless the number of gene-partitions is very very low.
- */
-class ExhaustiveSearchAlgorithm: public SearchAlgorithm {
-public:
-	ExhaustiveSearchAlgorithm();
-	virtual ~ExhaustiveSearchAlgorithm();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
-};
+  /**
+   * @brief Single-step exhaustive search algorithm
+   *
+   * This algorithm constructs and evaluates all possible partitioning schemes.
+   * It is not recommended at all unless the number of gene-partitions is very very low.
+   */
+  class ExhaustiveSearchAlgorithm : public SearchAlgorithm
+  {
+  public:
+    ExhaustiveSearchAlgorithm ();
+    virtual ~ExhaustiveSearchAlgorithm ();
+    virtual PartitioningScheme * start (PartitioningScheme * startingPoint = 0);
+  };
 
 } /* namespace partest */
 #endif /* EXHAUSTIVESEARCHALGORITHM_H_ */

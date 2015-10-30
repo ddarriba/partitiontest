@@ -31,194 +31,195 @@
 
 #define FREQ_MIN 0.001
 
-namespace partest {
+namespace partest
+{
 
-class Utilities {
-public:
+  class Utilities
+  {
+  public:
 
+    /* ********* NUMERIC UTILITIES ********* */
 
-	/* ********* NUMERIC UTILITIES ********* */
-
-
-	/**
-	 * Binary power of x.
-	 * @return 2 to the x
-	 */
-	static unsigned long int binaryPow(unsigned long int x);
-
-	/**
-	 * @brief Compute the unsigned integer binary logarithm
-	 */
-	static inline size_t iBinaryLog(size_t x) {
-		return (size_t) ceil(log(x) / log(2));
-	}
-
-	/**
-	 * @brief Compute the double precission binary logarithm
-	 */
-	static inline double dBinaryLog(double x) {
-		return (log(x) / log(2));
-	}
-
-	/**
-	 * @brief Compute the integer decimal logarithm
-	 */
-	static inline int iDecLog(int x) {
-		return (int) (x > 0 ? floor(log(x) / log(10)) : 0);
-	}
-
-	/**
-	 * @brief Check if a string value is numeric
+    /**
+     * Binary power of x.
+     * @return 2 to the x
      */
-	static bool isNumeric(const char * value);
+    static unsigned long int binaryPow (unsigned long int x);
 
-	/**
-	 * @brief Check if a string value is integer
-	 */
-	static bool isInteger(const char * value);
+    /**
+     * @brief Compute the unsigned integer binary logarithm
+     */
+    static inline size_t iBinaryLog (size_t x)
+    {
+      return (size_t) ceil (log (x) / log (2));
+    }
 
-	/**
-	 * @brief Convert an integer value to base 64 char
-	 * \pre { value < 64 }
-	 */
-	static char toBase64(int value);
+    /**
+     * @brief Compute the double precission binary logarithm
+     */
+    static inline double dBinaryLog (double x)
+    {
+      return (log (x) / log (2));
+    }
 
-	/**
-	 * @brief Count the number of 1s in a binary string
-	 */
-	static int setbitsCount(bitMask value);
+    /**
+     * @brief Compute the integer decimal logarithm
+     */
+    static inline int iDecLog (int x)
+    {
+      return (int) (x > 0 ? floor (log (x) / log (10)) : 0);
+    }
 
+    /**
+     * @brief Check if a string value is numeric
+     */
+    static bool isNumeric (const char * value);
 
-	/* ********* STATISTICS ********* */
+    /**
+     * @brief Check if a string value is integer
+     */
+    static bool isInteger (const char * value);
 
+    /**
+     * @brief Convert an integer value to base 64 char
+     * \pre { value < 64 }
+     */
+    static char toBase64 (int value);
 
-	/**
-	 * @brief Compute the mean value of a doubles vector
-	 */
-	static double mean(double series[], int n);
+    /**
+     * @brief Count the number of 1s in a binary string
+     */
+    static int setbitsCount (bitMask value);
 
-	/**
-	 * @brief Compute the variance of a doubles vector
-	 */
-	static double variance(double series[], int n);
+    /* ********* STATISTICS ********* */
 
-	/**
-	 * @brief Compute the standard deviation of a doubles vector
-	 */
-	static double standardDeviation(double series[], int n);
+    /**
+     * @brief Compute the mean value of a doubles vector
+     */
+    static double mean (double series[], int n);
 
-	/**
-	 * @brief Compute the covariance of 2 doubles vectors
-	 */
-	static double covariance(double X[], double Y[], int n);
+    /**
+     * @brief Compute the variance of a doubles vector
+     */
+    static double variance (double series[], int n);
 
-	/**
-	 * @brief Compute the correlation of 2 doubles vectors
-	 */
-	static double correlation(double X[], double Y[], int n);
+    /**
+     * @brief Compute the standard deviation of a doubles vector
+     */
+    static double standardDeviation (double series[], int n);
 
-	/**
-	 * @brief Compute the euclidean distance between 2 doubles vectors
-	 */
-	static double euclideanDistance(double X[], double Y[], int n, double multiplier = 1.0);
+    /**
+     * @brief Compute the covariance of 2 doubles vectors
+     */
+    static double covariance (double X[], double Y[], int n);
 
-	/**
-	 * @brief Compute the normalized euclidean distance between 2 doubles vectors
-	 */
-	static double normalizedEuclideanDistance(double X[], double Y[], int n);
+    /**
+     * @brief Compute the correlation of 2 doubles vectors
+     */
+    static double correlation (double X[], double Y[], int n);
 
-	static int numSchemesHierarchicalClustering(int numDataBlocks);
+    /**
+     * @brief Compute the euclidean distance between 2 doubles vectors
+     */
+    static double euclideanDistance (double X[], double Y[], int n,
+                                     double multiplier = 1.0);
 
-	static int numSchemesGreedy(int numDataBlocks);
+    /**
+     * @brief Compute the normalized euclidean distance between 2 doubles vectors
+     */
+    static double normalizedEuclideanDistance (double X[], double Y[], int n);
 
-	static int numSchemesAutoSearch(int numDataBlocks);
+    static int numSchemesHierarchicalClustering (int numDataBlocks);
 
-	/* ********* IDENTIFIERS MANAGEMENT ********* */
+    static int numSchemesGreedy (int numDataBlocks);
 
+    static int numSchemesAutoSearch (int numDataBlocks);
 
-	/**
-	 * @brief Merge 2 partition element ids into a new one
-	 */
-	static void mergeIds(t_partitionElementId & dest, t_partitionElementId id1,
-			t_partitionElementId id2);
-	/**
-	 * @brief Get the intersection between 2 partition element ids
-	 */
-	static bool intersec(t_partitionElementId & e1, t_partitionElementId & e2);
+    /* ********* IDENTIFIERS MANAGEMENT ********* */
 
-	/**
-	 * @brief Check if a partition element id contains a certain partition
-	 */
-	static bool contains(t_partitionElementId vec, int num);
+    /**
+     * @brief Merge 2 partition element ids into a new one
+     */
+    static void mergeIds (t_partitionElementId & dest, t_partitionElementId id1,
+                          t_partitionElementId id2);
+    /**
+     * @brief Get the intersection between 2 partition element ids
+     */
+    static bool intersec (t_partitionElementId & e1, t_partitionElementId & e2);
 
-	/**
-	 * @brief Check if a partitioning scheme contains a certain partition element
-	 */
-	static bool contains(t_partitioningScheme vec, t_partitionElementId id);
+    /**
+     * @brief Check if a partition element id contains a certain partition
+     */
+    static bool contains (t_partitionElementId vec, int num);
 
-	/**
-	 * @brief Clone PLL alignment data
-	 */
-	static int duplicateAlignmentData(pllAlignmentData ** out,
-			pllAlignmentData * in);
+    /**
+     * @brief Check if a partitioning scheme contains a certain partition element
+     */
+    static bool contains (t_partitioningScheme vec, t_partitionElementId id);
 
-	/**
-	 * @brief Print a partitioning scheme identifier
-	 */
-	static void printScheme(t_partitioningScheme scheme);
+    /**
+     * @brief Clone PLL alignment data
+     */
+    static int duplicateAlignmentData (pllAlignmentData ** out,
+                                       pllAlignmentData * in);
 
+    /**
+     * @brief Print a partitioning scheme identifier
+     */
+    static void printScheme (t_partitioningScheme scheme);
 
-	/* ********* MATRICES NAMING ********* */
+    /* ********* MATRICES NAMING ********* */
 
+    /**
+     * @brief Get the name of the amino acid replacement matrix
+     */
+    static std::string getProtMatrixName (ProtMatrix matrix);
+    /**
+     * @brief Get the name of the amino acid replacement matrix as used in RAxML
+     */
+    static std::string getProtRaxmlName (ProtMatrix matrix);
 
-	/**
-	 * @brief Get the name of the amino acid replacement matrix
-	 */
-	static std::string getProtMatrixName(ProtMatrix matrix);
-	/**
-	 * @brief Get the name of the amino acid replacement matrix as used in RAxML
-	 */
-	static std::string getProtRaxmlName(ProtMatrix matrix);
+    /* ********* MISCELANEOUS ********* */
 
+    /**
+     * @brief Convert a string to lower case
+     */
+    static int toLower (char * str);
 
-	/* ********* MISCELANEOUS ********* */
+    /**
+     * @brief Compute number of branches according to the number of taxa.
+     */
+    static int numberOfBranches (int numTaxa);
 
+    /**
+     * @brief Compute the average of the model parameters
+     */
+    static int averageModelParameters (t_partitionElementId id,
+                                       partitionList * partitions);
 
-	/**
-	 * @brief Convert a string to lower case
-	 */
-	static int toLower(char * str);
+    /**
+     * @brief Get a newick tree with the average branch lengths
+     */
+    static pllNewickTree * averageBranchLengths (t_partitionElementId id);
 
-	/**
-	 * @brief Compute number of branches according to the number of taxa.
-	 */
-	static int numberOfBranches(int numTaxa);
+    /**
+     * @brief Smooth the base frequencies such that there is no frequency below FREQ_MIN
+     */
+    static void smoothFrequencies (double *frequencies,
+                                   int numberOfFrequencies);
 
-	/**
-	 * @brief Compute the average of the model parameters
-	 */
-	static int averageModelParameters(t_partitionElementId id, partitionList * partitions);
+    static double minimize_brent (double xmin, double xguess, double xmax,
+                                  double xtol, double *fx, double *f2x,
+                                  void * params,
+                                  double (*target_funk) (void *, double));
+  private:
+    static char encoding_table[]; /** Table for encoding base 64 values */
 
-	/**
-	 * @brief Get a newick tree with the average branch lengths
-	 */
-	static pllNewickTree * averageBranchLengths(t_partitionElementId id);
-
-	/**
-	 * @brief Smooth the base frequencies such that there is no frequency below FREQ_MIN
-	 */
-	static void smoothFrequencies(double *frequencies, int numberOfFrequencies);
-
-	static double minimize_brent(double xmin, double xguess, double xmax, double xtol,
-			double *fx, double *f2x, void * params,
-			double (*target_funk)(void *, double));
-private:
-	static char encoding_table[];	/** Table for encoding base 64 values */
-
-	static double brent_opt(double ax, double bx, double cx, double tol,
-			double *foptx, double *f2optx, double fax, double fbx, double fcx,
-			void * params, double (*target_funk)(void *, double));
-};
+    static double brent_opt (double ax, double bx, double cx, double tol,
+                             double *foptx, double *f2optx, double fax,
+                             double fbx, double fcx, void * params,
+                             double (*target_funk) (void *, double));
+  };
 
 } /* namespace partest */
 

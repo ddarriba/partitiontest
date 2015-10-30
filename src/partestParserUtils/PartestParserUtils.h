@@ -32,64 +32,77 @@
 
 #define MAX_SECTIONS 30
 
-namespace partest_parser {
+namespace partest_parser
+{
 
-enum selection {
-	icAIC, icAICc, icBIC, icUNDEFINED
-};
+  enum selection
+  {
+    icAIC, icAICc, icBIC, icUNDEFINED
+  };
 
-enum pfSearch {
-	searchAll, searchHCluster, searchRCluster, searchGreedy, searchUNDEFINED
-};
+  enum pfSearch
+  {
+    searchAll, searchHCluster, searchRCluster, searchGreedy, searchUNDEFINED
+  };
 
-/**
- * @brief Structure with information about a single-gene partition
- */
-struct partitionInfo {
-	int start[MAX_SECTIONS]; /** Starting position */
-	int end[MAX_SECTIONS]; /** Ending position */
-	int stride[MAX_SECTIONS]; /** Stride for codon position (0 means no codon division) */
-	int numberOfSections;
-	std::string name; /** Name of the gene/partition */
-	~partitionInfo(void) {
-	}
-};
+  /**
+   * @brief Structure with information about a single-gene partition
+   */
+  struct partitionInfo
+  {
+    int start[MAX_SECTIONS]; /** Starting position */
+    int end[MAX_SECTIONS]; /** Ending position */
+    int stride[MAX_SECTIONS]; /** Stride for codon position (0 means no codon division) */
+    int numberOfSections;
+    std::string name; /** Name of the gene/partition */
+    ~partitionInfo (void)
+    {
+    }
+  };
 
-struct executionInfo {
-	std::string alignment;
-	std::string models;
-	std::string modelSelection;
-	pfSearch searchAlgorithm;
-};
+  struct executionInfo
+  {
+    std::string alignment;
+    std::string models;
+    std::string modelSelection;
+    pfSearch searchAlgorithm;
+  };
 
-class PartestParserUtils {
-public:
-	PartestParserUtils(char * inputFile, char * outputFile);
-	virtual ~PartestParserUtils();
-	int parseRaxmlFile(std::vector<std::string> ** partitions);
-	int parsePartitionFinderFile(std::vector<std::string> ** partitions,
-			char ** alignment, char ** models, pfSearch * searchAlgo,
-			selection * icSelection);
-	static inline int isNum(char c) {
-		return !(c < '0' || c > '9');
-	}
-	static inline bool existsFile(const std::string& name) {
-		if (FILE *file = fopen(name.c_str(), "r")) {
-			fclose(file);
-			return true;
-		} else {
-			return false;
-		}
-	}
-private:
-	static void analyzeIdentifier(char **ch, char **modelName);
-	static int myGetline(char **lineptr, int *n, FILE *stream);
-	static void skipWhites(char **ch);
-	static int lineContainsOnlyWhiteChars(char * str);
+  class PartestParserUtils
+  {
+  public:
+    PartestParserUtils (char * inputFile, char * outputFile);
+    virtual ~PartestParserUtils ();
+    int parseRaxmlFile (std::vector<std::string> ** partitions);
+    int parsePartitionFinderFile (std::vector<std::string> ** partitions,
+                                  char ** alignment, char ** models,
+                                  pfSearch * searchAlgo,
+                                  selection * icSelection);
+    static inline int isNum (char c)
+    {
+      return !(c < '0' || c > '9');
+    }
+    static inline bool existsFile (const std::string& name)
+    {
+      if (FILE *file = fopen (name.c_str (), "r"))
+      {
+        fclose (file);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+  private:
+    static void analyzeIdentifier (char **ch, char **modelName);
+    static int myGetline (char **lineptr, int *n, FILE *stream);
+    static void skipWhites (char **ch);
+    static int lineContainsOnlyWhiteChars (char * str);
 
-	char * inputFile;
-	char * outputFile;
-};
+    char * inputFile;
+    char * outputFile;
+  };
 
 } /* namespace partest */
 

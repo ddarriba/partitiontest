@@ -29,34 +29,39 @@
 #include "util/GlobalDefs.h"
 #include <iostream>
 
-namespace partest {
+namespace partest
+{
 
-typedef struct {
-	PartitioningScheme * scheme;
-	double lnL;
-	double numParameters;
-	double value;
-	double delta;
-	double weight;
-	void print(std::ostream & out);
-} SelectionPartitioningScheme;
+  typedef struct
+  {
+    PartitioningScheme * scheme;
+    double lnL;
+    double numParameters;
+    double value;
+    double delta;
+    double weight;
+    void print (std::ostream & out);
+  } SelectionPartitioningScheme;
 
-class PartitionSelector {
-public:
-	PartitionSelector(std::vector<PartitioningScheme *> schemesArray);
-	virtual ~PartitionSelector();
-	PartitioningScheme * getBestScheme(void) {
-		return bestSelectionScheme->scheme;
-	}
-	SelectionPartitioningScheme * getBestSelectionScheme(void) {
-		return bestSelectionScheme;
-	}
-	void print(std::ostream& out, int limit=-1);
-private:
-	std::vector<PartitioningScheme *> schemesArray;
-	SelectionPartitioningScheme * bestSelectionScheme;
-	std::vector<SelectionPartitioningScheme *> * schemesVector;
-};
+  class PartitionSelector
+  {
+  public:
+    PartitionSelector (std::vector<PartitioningScheme *> schemesArray);
+    virtual ~PartitionSelector ();
+    PartitioningScheme * getBestScheme (void)
+    {
+      return bestSelectionScheme->scheme;
+    }
+    SelectionPartitioningScheme * getBestSelectionScheme (void)
+    {
+      return bestSelectionScheme;
+    }
+    void print (std::ostream& out, int limit = -1);
+  private:
+    std::vector<PartitioningScheme *> schemesArray;
+    SelectionPartitioningScheme * bestSelectionScheme;
+    std::vector<SelectionPartitioningScheme *> * schemesVector;
+  };
 
 } /* namespace partest */
 #endif /* PARTITIONSELECTOR_H_ */

@@ -28,36 +28,40 @@
 #include "Model.h"
 #include "util/GlobalDefs.h"
 
-namespace partest {
+namespace partest
+{
 
-/**
- * @brief Amino-acid replacement model.
- */
-class ProteicModel: public Model {
-public:
-	/**
-	 * @brief Constructor of a amino-acid replacement model.
-	 *
-	 * @param matrix Amino-acid replacement matrix.
-	 * @param rateVariation The rate variation and frequencies parameters (+I, +G, +F).
-	 * @param numberOfTaxa Number of taxa (required for computing the free parameters.
-	 */
-  ProteicModel(ProtMatrix matrix, bitMask rateVariation, int numberOfTaxa);
-  virtual void setFrequencies(const double * frequencies);
-  virtual void allocateRates(void) { /* do nothing */ }
-  void setRates(const double * rates);
-  ProtMatrix getMatrix(void) const;
-  void setMatrix(ProtMatrix  matrix);
-  double distanceTo(Model * other) const;
-  virtual void print(std::ostream& out, const char * prefix = "") const;
-  virtual ~ProteicModel();
-private:
   /**
-   * @brief Compute euclidean distances between amino-acid replacement matrices
+   * @brief Amino-acid replacement model.
    */
-  double getEuclideanDistance(ProtMatrix m1, ProtMatrix m2) const;
-  ProtMatrix matrix; /** Amino-acid replacement matrix. */
-};
+  class ProteicModel : public Model
+  {
+  public:
+    /**
+     * @brief Constructor of a amino-acid replacement model.
+     *
+     * @param matrix Amino-acid replacement matrix.
+     * @param rateVariation The rate variation and frequencies parameters (+I, +G, +F).
+     * @param numberOfTaxa Number of taxa (required for computing the free parameters.
+     */
+    ProteicModel (ProtMatrix matrix, bitMask rateVariation, int numberOfTaxa);
+    virtual void setFrequencies (const double * frequencies);
+    virtual void allocateRates (void)
+    { /* do nothing */
+    }
+    void setRates (const double * rates);
+    ProtMatrix getMatrix (void) const;
+    void setMatrix (ProtMatrix matrix);
+    double distanceTo (Model * other) const;
+    virtual void print (std::ostream& out, const char * prefix = "") const;
+    virtual ~ProteicModel ();
+  private:
+    /**
+     * @brief Compute euclidean distances between amino-acid replacement matrices
+     */
+    double getEuclideanDistance (ProtMatrix m1, ProtMatrix m2) const;
+    ProtMatrix matrix; /** Amino-acid replacement matrix. */
+  };
 
 } /* namespace partest */
 #endif /* PROTEICMODEL_H_ */

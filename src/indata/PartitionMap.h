@@ -31,90 +31,96 @@
 #include "PartitionElement.h"
 #include "util/GlobalDefs.h"
 
-namespace partest {
+namespace partest
+{
 
-struct partitionMappingInfo {
-	partitionMappingInfo() :
-			partitionId(1), partitionElement(0) {
-	}
-	t_partitionElementId partitionId;
-	PartitionElement * partitionElement;
-	~partitionMappingInfo(void) {
-	}
-};
+  struct partitionMappingInfo
+  {
+    partitionMappingInfo () :
+        partitionId (1), partitionElement (0)
+    {
+    }
+    t_partitionElementId partitionId;
+    PartitionElement * partitionElement;
+    ~partitionMappingInfo (void)
+    {
+    }
+  };
 
-/**
- * @brief Mapping of the simplest and unbreakable partitions.
- *
- * This class represent the mapping of the simplest and unbreakable partitions.
- * Each partition has a power of two Id, what allows to easy identify a complex partition from the id.
- * e.g., Partition 13 (1101) will be a merge of partitions 8 (1000),4 (0100) and 1 (0001).
- */
-class PartitionMap {
-public:
+  /**
+   * @brief Mapping of the simplest and unbreakable partitions.
+   *
+   * This class represent the mapping of the simplest and unbreakable partitions.
+   * Each partition has a power of two Id, what allows to easy identify a complex partition from the id.
+   * e.g., Partition 13 (1101) will be a merge of partitions 8 (1000),4 (0100) and 1 (0001).
+   */
+  class PartitionMap
+  {
+  public:
 
-	/**
-	 * @brief Gets the partition in a fixed position.
-	 *
-	 * @param[in] partitionId Position of the partition.
-	 *
-	 * @return The partition.
-	 */
-	PartitionElement * getPartitionElement(t_partitionElementId partitionId);
+    /**
+     * @brief Gets the partition in a fixed position.
+     *
+     * @param[in] partitionId Position of the partition.
+     *
+     * @return The partition.
+     */
+    PartitionElement * getPartitionElement (t_partitionElementId partitionId);
 
-	/**
-	 * @brief Deletes a PartitionElement
-	 *
-	 * @param[in] id PartitionElement's id.
-	 */
-	void deletePartitionElement(t_partitionElementId id);
+    /**
+     * @brief Deletes a PartitionElement
+     *
+     * @param[in] id PartitionElement's id.
+     */
+    void deletePartitionElement (t_partitionElementId id);
 
-	/**
-	 * @brief Gets the number of elements already created in the map.
-	 *
-	 * Gets the number of elements already created in the map. For a set of N genes,
-	 * this value belongs to the interval [N,2^N]
-	 *
-	 * @return The number of elements already created in the map.
-	 */
-	size_t getNumberOfElements() {
-		return numberOfElements;
-	}
+    /**
+     * @brief Gets the number of elements already created in the map.
+     *
+     * Gets the number of elements already created in the map. For a set of N genes,
+     * this value belongs to the interval [N,2^N]
+     *
+     * @return The number of elements already created in the map.
+     */
+    size_t getNumberOfElements ()
+    {
+      return numberOfElements;
+    }
 
-	/**
-	 * @brief Gets the number of single-gene partitions.
-	 *
-	 * @return The number of single-gene partitions.
-	 */
-	size_t getNumberOfPartitions() {
-		return numberOfPartitions;
-	}
+    /**
+     * @brief Gets the number of single-gene partitions.
+     *
+     * @return The number of single-gene partitions.
+     */
+    size_t getNumberOfPartitions ()
+    {
+      return numberOfPartitions;
+    }
 
-	void purgePartitionMap(t_partitionElementId id);
-	void keep(t_partitioningScheme id);
-	void keep_add(t_partitioningScheme id);
-	void keep_remove(t_partitioningScheme id);
+    void purgePartitionMap (t_partitionElementId id);
+    void keep (t_partitioningScheme id);
+    void keep_add (t_partitioningScheme id);
+    void keep_remove (t_partitioningScheme id);
 
-	static PartitionMap * getInstance(void);
-	static void deleteInstance(void);
+    static PartitionMap * getInstance (void);
+    static void deleteInstance (void);
 
-private:
+  private:
 
-	/**
-	 * @brief Constructs a new partition map.
-	 */
-	PartitionMap();
+    /**
+     * @brief Constructs a new partition map.
+     */
+    PartitionMap ();
 
-	virtual ~PartitionMap();
+    virtual ~PartitionMap ();
 
+    size_t numberOfElements; /** Number of partitions already created in the map. */
+    size_t numberOfPartitions; /** Number of single-gene partitions */
+    std::vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
+    t_partitioningScheme _keep; /** Set of elements to keep in purge operations*/
 
-	size_t numberOfElements; /** Number of partitions already created in the map. */
-	size_t numberOfPartitions; /** Number of single-gene partitions */
-	std::vector<partitionMappingInfo> * partitions; /** Vector containing all the partitions created. */
-	t_partitioningScheme _keep; /** Set of elements to keep in purge operations*/
-
-	static PartitionMap * instance;
-};
+    static PartitionMap * instance;
+  };
 
 } /* namespace partest */
 #endif /* PARTITIONMAP_H_ */

@@ -33,16 +33,20 @@
 #define OPT_DESCR_LENGTH 45
 #define H_RULE_LENGTH 80
 
-namespace partest {
+namespace partest
+{
 
-class PrintMeta {
+  class PrintMeta
+  {
   public:
-    static void print_header(std::ostream& output);
-    static void print_options(std::ostream& output);
-    static void print_usage(std::ostream& output);
-    static void print_results(std::ostream & ofs, PartitioningScheme * bestScheme);
-    static void print_results_xml(std::ostream & ofs, PartitioningScheme * bestScheme);
-};
+    static void print_header (std::ostream& output);
+    static void print_options (std::ostream& output);
+    static void print_usage (std::ostream& output);
+    static void print_results (std::ostream & ofs,
+                               PartitioningScheme * bestScheme);
+    static void print_results_xml (std::ostream & ofs,
+                                   PartitioningScheme * bestScheme);
+  };
 
 } /* namespace partest */
 

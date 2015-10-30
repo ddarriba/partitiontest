@@ -28,27 +28,30 @@
 #include "SearchAlgorithm.h"
 #include "indata/PartitioningScheme.h"
 
-namespace partest {
+namespace partest
+{
 
-/**
- * @brief Multi-stage search algorithm choosing random states.
- *
- * This algorithms randomly selects a set of states using the Chinese Restaurant
- * Process. On each stage reduces the states space depending on the best-fit
- * partition of the previous state.
- *
- * TODO: This algorithm can be combined with other using the best-fit partitions
- * as fixed starting points.
- */
-class RandomSearchAlgorithm: public SearchAlgorithm {
-public:
-	RandomSearchAlgorithm();
-	virtual ~RandomSearchAlgorithm();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
-private:
-	int getRandomPartitioningScheme(std::vector<PartitioningScheme *> & nextSchemes,
-			int numberOfSchemes, t_partitioningScheme p0);
-};
+  /**
+   * @brief Multi-stage search algorithm choosing random states.
+   *
+   * This algorithms randomly selects a set of states using the Chinese Restaurant
+   * Process. On each stage reduces the states space depending on the best-fit
+   * partition of the previous state.
+   *
+   * TODO: This algorithm can be combined with other using the best-fit partitions
+   * as fixed starting points.
+   */
+  class RandomSearchAlgorithm : public SearchAlgorithm
+  {
+  public:
+    RandomSearchAlgorithm ();
+    virtual ~RandomSearchAlgorithm ();
+    virtual PartitioningScheme * start (PartitioningScheme * startingPoint = 0);
+  private:
+    int getRandomPartitioningScheme (
+        std::vector<PartitioningScheme *> & nextSchemes, int numberOfSchemes,
+        t_partitioningScheme p0);
+  };
 
 } /* namespace partest */
 #endif /* RANDOMSEARCHALGORITHM_H_ */

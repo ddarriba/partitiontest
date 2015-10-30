@@ -94,7 +94,7 @@ namespace partest {
 	pllInstance * tree = 0;
 
 	time_t start_time = time(NULL);
-	int verbosity = VERBOSITY_LOW;
+  int verbosity = VERBOSITY_LOW;
 
 	void exit_partest(int status) {
 		/* free global variables */

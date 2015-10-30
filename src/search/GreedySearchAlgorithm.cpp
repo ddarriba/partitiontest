@@ -31,212 +31,241 @@
 
 using namespace std;
 
-namespace partest {
+namespace partest
+{
 
-struct nextSchemeFunctor {
-	nextSchemeFunctor(PartitioningScheme * _scheme) :
-			elementIndex1(1), elementIndex2(0), scheme(_scheme) {
-		numberOfElements = scheme->getNumberOfElements();
-		numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
-		currentScheme = 0;
-	}
+  struct nextSchemeFunctor
+  {
+    nextSchemeFunctor (PartitioningScheme * _scheme) :
+        elementIndex1 (1), elementIndex2 (0), scheme (_scheme)
+    {
+      numberOfElements = scheme->getNumberOfElements ();
+      numberOfSchemes = (numberOfElements * (numberOfElements - 1)) / 2;
+      currentScheme = 0;
+    }
 
-	~nextSchemeFunctor() {
+    ~nextSchemeFunctor ()
+    {
 
-	}
-	PartitioningScheme * operator()(void) {
+    }
+    PartitioningScheme * operator() (void)
+    {
 
-		if (currentScheme >= numberOfSchemes)
-			return 0;
+      if (currentScheme >= numberOfSchemes)
+        return 0;
 
-		t_partitioningScheme nextSchemeId;
-		nextSchemeId.reserve(numberOfElements - 1);
+      t_partitioningScheme nextSchemeId;
+      nextSchemeId.reserve (numberOfElements - 1);
 
-		t_partitionElementId e1 = scheme->getElement(elementIndex1)->getId();
-		t_partitionElementId e2 = scheme->getElement(elementIndex2)->getId();
-		t_partitionElementId nextId;
-		Utilities::mergeIds(nextId, e1, e2);
-		nextSchemeId.push_back(nextId);
+      t_partitionElementId e1 = scheme->getElement (elementIndex1)->getId ();
+      t_partitionElementId e2 = scheme->getElement (elementIndex2)->getId ();
+      t_partitionElementId nextId;
+      Utilities::mergeIds (nextId, e1, e2);
+      nextSchemeId.push_back (nextId);
 
-		/* fill */
-		for (size_t k = 0; k < numberOfElements; k++) {
+      /* fill */
+      for (size_t k = 0; k < numberOfElements; k++)
+      {
 
-			t_partitionElementId eX = scheme->getElement(k)->getId();
-			if (eX != e1 && eX != e2) {
-				nextSchemeId.push_back(eX);
-			}
-		}
+        t_partitionElementId eX = scheme->getElement (k)->getId ();
+        if (eX != e1 && eX != e2)
+        {
+          nextSchemeId.push_back (eX);
+        }
+      }
 
-		currentScheme++;
-		elementIndex2++;
-		if (elementIndex2 == elementIndex1) {
-			elementIndex1++;
-			elementIndex2 = 0;
-		}
+      currentScheme++;
+      elementIndex2++;
+      if (elementIndex2 == elementIndex1)
+      {
+        elementIndex1++;
+        elementIndex2 = 0;
+      }
 
-		return (new PartitioningScheme(&nextSchemeId));
-	}
-	size_t size() {
-		return ((numberOfElements * (numberOfElements - 1)) / 2);
-	}
-private:
-	size_t elementIndex1, elementIndex2;
-	size_t numberOfElements, numberOfSchemes, currentScheme;
-	PartitioningScheme * scheme;
-};
+      return (new PartitioningScheme (&nextSchemeId));
+    }
+    size_t size ()
+    {
+      return ((numberOfElements * (numberOfElements - 1)) / 2);
+    }
+  private:
+    size_t elementIndex1, elementIndex2;
+    size_t numberOfElements, numberOfSchemes, currentScheme;
+    PartitioningScheme * scheme;
+  };
 
-GreedySearchAlgorithm::GreedySearchAlgorithm() {
-}
+  GreedySearchAlgorithm::GreedySearchAlgorithm ()
+  {
+  }
 
-GreedySearchAlgorithm::~GreedySearchAlgorithm() {
-}
+  GreedySearchAlgorithm::~GreedySearchAlgorithm ()
+  {
+  }
 
-vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes(
-		const t_partitioningScheme * startingScheme) {
+  vector<PartitioningScheme *> GreedySearchAlgorithm::getNextSchemes (
+      const t_partitioningScheme * startingScheme)
+  {
 
-	vector<PartitioningScheme *> nextSchemes;
-	for (size_t i = 1; i < startingScheme->size(); i++) {
-		t_partitionElementId e1 = startingScheme->at(i);
-		for (size_t j = 0; j < i; j++) {
+    vector<PartitioningScheme *> nextSchemes;
+    for (size_t i = 1; i < startingScheme->size (); i++)
+    {
+      t_partitionElementId e1 = startingScheme->at (i);
+      for (size_t j = 0; j < i; j++)
+      {
 
-			t_partitioningScheme nextSchemeId(startingScheme->size() - 1);
+        t_partitioningScheme nextSchemeId (startingScheme->size () - 1);
 
-			/* merge elements i and j */
-			t_partitionElementId e2 = startingScheme->at(j);
-			t_partitionElementId nextId;
-			Utilities::mergeIds(nextId, e1, e2);
+        /* merge elements i and j */
+        t_partitionElementId e2 = startingScheme->at (j);
+        t_partitionElementId nextId;
+        Utilities::mergeIds (nextId, e1, e2);
 
-			/* fill */
-			for (size_t k = 0; k < startingScheme->size(); k++) {
+        /* fill */
+        for (size_t k = 0; k < startingScheme->size (); k++)
+        {
 
-				t_partitionElementId eX = startingScheme->at(k);
-				if (eX != e1 && eX != e2) {
-					nextSchemeId.push_back(eX);
-				}
-			}
-			nextSchemes.push_back(new PartitioningScheme(&nextSchemeId));
-		}
-	}
-	return nextSchemes;
+          t_partitionElementId eX = startingScheme->at (k);
+          if (eX != e1 && eX != e2)
+          {
+            nextSchemeId.push_back (eX);
+          }
+        }
+        nextSchemes.push_back (new PartitioningScheme (&nextSchemeId));
+      }
+    }
+    return nextSchemes;
 
-}
+  }
 
-PartitioningScheme * GreedySearchAlgorithm::start(
-		PartitioningScheme * startingPoint) {
+  PartitioningScheme * GreedySearchAlgorithm::start (
+      PartitioningScheme * startingPoint)
+  {
 
-	SchemeManager schemeManager;
+    SchemeManager schemeManager;
 
-	PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
-	double bestScore, score;
-	size_t numberOfPartitions = number_of_genes;
-	vector<PartitioningScheme *> nextSchemes;
-	int currentStep = 0;
-	size_t maxSteps = number_of_genes;
+    PartitioningScheme *bestScheme = 0, *localBestScheme = 0;
+    double bestScore, score;
+    size_t numberOfPartitions = number_of_genes;
+    vector<PartitioningScheme *> nextSchemes;
+    int currentStep = 0;
+    size_t maxSteps = number_of_genes;
 
-	bool continueExec = (numberOfPartitions > 1);
-	if (I_AM_ROOT) {
+    bool continueExec = (numberOfPartitions > 1);
+    if (I_AM_ROOT)
+    {
 
-		/* building first scheme */
-		cout << timestamp() << " [GRE] Step " << ++currentStep << "/" << maxSteps
-				<< endl;
-		if (startingPoint) {
-			nextSchemes.push_back(startingPoint);
-			maxSteps = startingPoint->getNumberOfElements();
-			localBestScheme = bestScheme = startingPoint;
-		} else {
-			t_partitioningScheme * firstSchemeId = new t_partitioningScheme(
-					number_of_genes);
-			for (size_t gene = 0; gene < number_of_genes; gene++) {
-				t_partitionElementId geneId(1);
-				geneId.at(0) = gene;
-				firstSchemeId->at(gene) = geneId;
-			}
+      /* building first scheme */
+      cout << timestamp () << " [GRE] Step " << ++currentStep << "/" << maxSteps
+          << endl;
+      if (startingPoint)
+      {
+        nextSchemes.push_back (startingPoint);
+        maxSteps = startingPoint->getNumberOfElements ();
+        localBestScheme = bestScheme = startingPoint;
+      }
+      else
+      {
+        t_partitioningScheme * firstSchemeId = new t_partitioningScheme (
+            number_of_genes);
+        for (size_t gene = 0; gene < number_of_genes; gene++)
+        {
+          t_partitionElementId geneId (1);
+          geneId.at (0) = gene;
+          firstSchemeId->at (gene) = geneId;
+        }
 
-			localBestScheme = bestScheme = new PartitioningScheme(
-					firstSchemeId);
-			nextSchemes.push_back(bestScheme);
-			delete firstSchemeId;
-		}
+        localBestScheme = bestScheme = new PartitioningScheme (firstSchemeId);
+        nextSchemes.push_back (bestScheme);
+        delete firstSchemeId;
+      }
 
-		schemeManager.addScheme(bestScheme);
-		schemeManager.optimize(mo);
+      schemeManager.addScheme (bestScheme);
+      schemeManager.optimize (mo);
 #ifdef HAVE_MPI
-		MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
+      MPI_Bcast (&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
-		printStepLog(currentStep, localBestScheme);
+      printStepLog (currentStep, localBestScheme);
 
-		//mo.optimizePartitioningScheme(bestScheme);
-		PartitionSelector ps(nextSchemes);
-		nextSchemes.clear();
+      //mo.optimizePartitioningScheme(bestScheme);
+      PartitionSelector ps (nextSchemes);
+      nextSchemes.clear ();
 
-		bestScore = score = ps.getBestScheme()->getIcValue();
+      bestScore = score = ps.getBestScheme ()->getIcValue ();
 
-		while (continueExec) {
-			cout << timestamp() << " [GRE] Step " << ++currentStep << "/" << maxSteps
-					<< endl;
-			nextSchemeFunctor nextScheme(localBestScheme);
-			nextSchemes.reserve(nextScheme.size());
+      while (continueExec)
+      {
+        cout << timestamp () << " [GRE] Step " << ++currentStep << "/"
+            << maxSteps << endl;
+        nextSchemeFunctor nextScheme (localBestScheme);
+        nextSchemes.reserve (nextScheme.size ());
 
-			while (PartitioningScheme * scheme = nextScheme()) {
-				if (!scheme->isOptimized())
-					schemeManager.addScheme(scheme);
-				nextSchemes.push_back(scheme);
-			}
-			schemeManager.optimize(mo);
+        while (PartitioningScheme * scheme = nextScheme ())
+        {
+          if (!scheme->isOptimized ())
+            schemeManager.addScheme (scheme);
+          nextSchemes.push_back (scheme);
+        }
+        schemeManager.optimize (mo);
 
-			numberOfPartitions = localBestScheme->getNumberOfElements() - 1;
+        numberOfPartitions = localBestScheme->getNumberOfElements () - 1;
 
-			PartitionSelector _ps(nextSchemes);
-			//ps.print(cout);
-			localBestScheme = _ps.getBestScheme();
-			score = localBestScheme->getIcValue();
+        PartitionSelector _ps (nextSchemes);
+        //ps.print(cout);
+        localBestScheme = _ps.getBestScheme ();
+        score = localBestScheme->getIcValue ();
 
-			printStepLog(currentStep, localBestScheme);
+        printStepLog (currentStep, localBestScheme);
 
-			if (score < bestScore) {
-				delete bestScheme;
-				bestScheme = localBestScheme;
-				PartitionMap::getInstance()->keep(bestScheme->getId());
-				bestScore = score;
-			}
-			printStep(SearchGreedy, score);
+        if (score < bestScore)
+        {
+          delete bestScheme;
+          bestScheme = localBestScheme;
+          PartitionMap::getInstance ()->keep (bestScheme->getId ());
+          bestScore = score;
+        }
+        printStep (SearchGreedy, score);
 
-			continueExec = ((non_stop || fabs(bestScore - score) < 1e-10)
-					&& (numberOfPartitions > 1));
-
-#ifdef HAVE_MPI
-			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
-#endif
-			for (size_t i=0; i<nextSchemes.size(); i++) {
-				PartitioningScheme * scheme = nextSchemes.at(i);
-				if (scheme != localBestScheme) {
-					delete scheme;
-				}
-			}
-
-			if (continueExec) {
-				for (size_t i = 0;
-						i < localBestScheme->getNumberOfElements(); i++) {
-					PartitionMap::getInstance()->purgePartitionMap(
-							localBestScheme->getElement(i)->getId());
-				}
-			}
-
-			nextSchemes.clear();
-		}
-	}
+        continueExec = ((non_stop || fabs (bestScore - score) < 1e-10)
+            && (numberOfPartitions > 1));
 
 #ifdef HAVE_MPI
-	else {
-		while(continueExec) {
-			schemeManager.optimize(mo);
-			MPI_Bcast(&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD );
-		}
-	}
+        MPI_Bcast (&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+        for (size_t i = 0; i < nextSchemes.size (); i++)
+        {
+          PartitioningScheme * scheme = nextSchemes.at (i);
+          if (scheme != localBestScheme)
+          {
+            delete scheme;
+          }
+        }
+
+        if (continueExec)
+        {
+          for (size_t i = 0; i < localBestScheme->getNumberOfElements (); i++)
+          {
+            PartitionMap::getInstance ()->purgePartitionMap (
+                localBestScheme->getElement (i)->getId ());
+          }
+        }
+
+        nextSchemes.clear ();
+      }
+    }
+
+#ifdef HAVE_MPI
+    else
+    {
+      while (continueExec)
+      {
+        schemeManager.optimize (mo);
+        MPI_Bcast (&continueExec, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      }
+    }
 #endif
 
-	return bestScheme;
-}
+    return bestScheme;
+  }
 
 } /* namespace partest */

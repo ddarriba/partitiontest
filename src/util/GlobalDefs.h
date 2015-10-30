@@ -35,12 +35,11 @@
 #include <string>
 
 #ifdef HAVE_MPI
-  #include <mpi.h>
-  #define I_AM_ROOT myRank==0
+#include <mpi.h>
+#define I_AM_ROOT myRank==0
 #else
-  #define I_AM_ROOT 1
+#define I_AM_ROOT 1
 #endif
-
 
 #define MAX_FILE_LENGTH 250
 
@@ -54,19 +53,21 @@
 #define ML_PARAM_BESTTRAV      5
 #define ML_PARAM_INITIALSET    PLL_FALSE
 
-namespace partest {
+namespace partest
+{
 
-typedef unsigned long int bitMask;
+  typedef unsigned long int bitMask;
 #define MAX_PARTITIONS LONG_MAX
-typedef std::vector<size_t> t_partitionElementId;
-typedef std::vector<t_partitionElementId> t_partitioningScheme;
-typedef std::vector<t_partitioningScheme> t_schemesVector;
+  typedef std::vector<size_t> t_partitionElementId;
+  typedef std::vector<t_partitionElementId> t_partitioningScheme;
+  typedef std::vector<t_partitioningScheme> t_schemesVector;
 
-typedef struct {
-	size_t start;
-	size_t end;
-	size_t id;
-} PEsection;
+  typedef struct
+  {
+    size_t start;
+    size_t end;
+    size_t id;
+  } PEsection;
 
 #define DOUBLE_INF 1e140
 
@@ -74,17 +75,17 @@ typedef struct {
 
 #ifdef _WIN32
 #define char_separator '\\'
-const std::string os_separator("\\");
+  const std::string os_separator("\\");
 #else
-const std::string os_separator("/");
+  const std::string os_separator ("/");
 #define char_separator '/'
 #endif
 
 #define NUM_DNA_RATES 6
 #define NUM_AA_RATES 190
-/** Number of states for nucleotide substitution models */
+  /** Number of states for nucleotide substitution models */
 #define NUM_NUC_FREQS 4
-/** Number of states for amino-acid replacement models */
+  /** Number of states for amino-acid replacement models */
 #define NUM_PROT_FREQS 20
 
 #ifdef HAVE_MPI
@@ -92,54 +93,56 @@ const std::string os_separator("/");
 #endif
 
 #define PROT_MATRIX_SIZE 18 // excluding auto & GTR
-enum ProtMatrix {
-	PROT_MATRIX_DAYHOFF = PLL_DAYHOFF,
-	PROT_MATRIX_DCMUT = PLL_DCMUT,
-	PROT_MATRIX_JTT = PLL_JTT,
-	PROT_MATRIX_MTREV = PLL_MTREV,
-	PROT_MATRIX_WAG = PLL_WAG,
-	PROT_MATRIX_RTREV = PLL_RTREV,
-	PROT_MATRIX_CPREV = PLL_CPREV,
-	PROT_MATRIX_VT = PLL_VT,
-	PROT_MATRIX_BLOSUM62 = PLL_BLOSUM62,
-	PROT_MATRIX_MTMAM = PLL_MTMAM,
-	PROT_MATRIX_LG = PLL_LG,
-	PROT_MATRIX_MTART = PLL_MTART,
-	PROT_MATRIX_MTZOA = PLL_MTZOA,
-	PROT_MATRIX_PMB = PLL_PMB,
-	PROT_MATRIX_HIVB = PLL_HIVB,
-	PROT_MATRIX_HIVW = PLL_HIVW,
-	PROT_MATRIX_JTTDCMUT = PLL_JTTDCMUT,
-	PROT_MATRIX_FLU = PLL_FLU,
-	PROT_MATRIX_AUTO = PLL_AUTO,
-	PROT_MATRIX_GTR = PLL_GTR
-};
+  enum ProtMatrix
+  {
+    PROT_MATRIX_DAYHOFF = PLL_DAYHOFF,
+    PROT_MATRIX_DCMUT = PLL_DCMUT,
+    PROT_MATRIX_JTT = PLL_JTT,
+    PROT_MATRIX_MTREV = PLL_MTREV,
+    PROT_MATRIX_WAG = PLL_WAG,
+    PROT_MATRIX_RTREV = PLL_RTREV,
+    PROT_MATRIX_CPREV = PLL_CPREV,
+    PROT_MATRIX_VT = PLL_VT,
+    PROT_MATRIX_BLOSUM62 = PLL_BLOSUM62,
+    PROT_MATRIX_MTMAM = PLL_MTMAM,
+    PROT_MATRIX_LG = PLL_LG,
+    PROT_MATRIX_MTART = PLL_MTART,
+    PROT_MATRIX_MTZOA = PLL_MTZOA,
+    PROT_MATRIX_PMB = PLL_PMB,
+    PROT_MATRIX_HIVB = PLL_HIVB,
+    PROT_MATRIX_HIVW = PLL_HIVW,
+    PROT_MATRIX_JTTDCMUT = PLL_JTTDCMUT,
+    PROT_MATRIX_FLU = PLL_FLU,
+    PROT_MATRIX_AUTO = PLL_AUTO,
+    PROT_MATRIX_GTR = PLL_GTR
+  };
 
 #define NUC_MATRIX_SIZE 22
-enum NucMatrix {
-	NUC_MATRIX_JC = 0,
-	NUC_MATRIX_F81 = 1,
-	NUC_MATRIX_K80 = 2,
-	NUC_MATRIX_HKY = 3,
-	NUC_MATRIX_SYM = 4,
-	NUC_MATRIX_GTR = 5,
-	NUC_MATRIX_TrNef = 20,
-	NUC_MATRIX_TrN = 21,
-	NUC_MATRIX_TPM1 = 6,
-	NUC_MATRIX_TPM1uf = 7,
-	NUC_MATRIX_TPM2 = 8,
-	NUC_MATRIX_TPM2uf = 9,
-	NUC_MATRIX_TPM3 = 10,
-	NUC_MATRIX_TPM3uf = 11,
-	NUC_MATRIX_TIM1ef = 12,
-	NUC_MATRIX_TIM1 = 13,
-	NUC_MATRIX_TIM2ef = 14,
-	NUC_MATRIX_TIM2 = 15,
-	NUC_MATRIX_TIM3ef = 16,
-	NUC_MATRIX_TIM3 = 17,
-	NUC_MATRIX_TVMef = 18,
-	NUC_MATRIX_TVM = 19
-};
+  enum NucMatrix
+  {
+    NUC_MATRIX_JC = 0,
+    NUC_MATRIX_F81 = 1,
+    NUC_MATRIX_K80 = 2,
+    NUC_MATRIX_HKY = 3,
+    NUC_MATRIX_SYM = 4,
+    NUC_MATRIX_GTR = 5,
+    NUC_MATRIX_TrNef = 20,
+    NUC_MATRIX_TrN = 21,
+    NUC_MATRIX_TPM1 = 6,
+    NUC_MATRIX_TPM1uf = 7,
+    NUC_MATRIX_TPM2 = 8,
+    NUC_MATRIX_TPM2uf = 9,
+    NUC_MATRIX_TPM3 = 10,
+    NUC_MATRIX_TPM3uf = 11,
+    NUC_MATRIX_TIM1ef = 12,
+    NUC_MATRIX_TIM1 = 13,
+    NUC_MATRIX_TIM2ef = 14,
+    NUC_MATRIX_TIM2 = 15,
+    NUC_MATRIX_TIM3ef = 16,
+    NUC_MATRIX_TIM3 = 17,
+    NUC_MATRIX_TVMef = 18,
+    NUC_MATRIX_TVM = 19
+  };
 
 #define EX_OK           0       /* successful termination */
 #define EX__BASE        64      /* base value for error messages */
@@ -160,160 +163,166 @@ enum NucMatrix {
 #define EX_CONFIG       78      /* configuration error */
 #define EX_MEM          79      /* memory error */
 
-enum RateVar {
-	RateVarM = 1, RateVarF = 2, RateVarI = 4, RateVarG = 8
-};
+  enum RateVar
+  {
+    RateVarM = 1, RateVarF = 2, RateVarI = 4, RateVarG = 8
+  };
 
-enum StartTopo {
-	StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
-};
+  enum StartTopo
+  {
+    StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
+  };
 
-enum SearchAlgo {
-	SearchK1,
-	SearchKN,
-	SearchExhaustive,
-	SearchRandom,
-	SearchGreedy,
-	SearchGreedyExtended,
-	SearchHCluster,
-	SearchAuto
-};
+  enum SearchAlgo
+  {
+    SearchK1,
+    SearchKN,
+    SearchExhaustive,
+    SearchRandom,
+    SearchGreedy,
+    SearchGreedyExtended,
+    SearchHCluster,
+    SearchAuto
+  };
 
-enum DataType {
-	DT_NUCLEIC = 1, DT_PROTEIC = 2
-};
+  enum DataType
+  {
+    DT_NUCLEIC = 1, DT_PROTEIC = 2
+  };
 
-enum InformationCriterion {
-	AIC, AICC, BIC, DT
-};
+  enum InformationCriterion
+  {
+    AIC, AICC, BIC, DT
+  };
 
-enum SampleSize {
-	SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM
-};
+  enum SampleSize
+  {
+    SS_ALIGNMENT, SS_SHANNON, SS_CUSTOM
+  };
 
-enum OptimizeMode {
-	OPT_SEARCH, OPT_GTR, OPT_CUSTOM
-};
+  enum OptimizeMode
+  {
+    OPT_SEARCH, OPT_GTR, OPT_CUSTOM
+  };
 
-const char dnaStateNames[NUM_NUC_FREQS] = {'A', 'C', 'G', 'T'};
+  const char dnaStateNames[NUM_NUC_FREQS] =
+    { 'A', 'C', 'G', 'T' };
 
-const char protStateNames[NUM_PROT_FREQS]
-         = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H',
-            'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W',
-            'Y', 'V'};
+  const char protStateNames[NUM_PROT_FREQS] =
+    { 'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P',
+        'S', 'T', 'W', 'Y', 'V' };
 
 #define CHECKPOINT_LOADED      0
 #define CHECKPOINT_SAVED       1
 #define CHECKPOINT_UNAVAILABLE 2
 #define CHECKPOINT_UNEXISTENT  3
 
-#define DEFAULT_DATA_TYPE DT_NUCLEIC
-#define DEFAULT_STARTING_TOPOLOGY StartTopoMP
-#define DEFAULT_SEARCH_ALGO SearchHCluster
-#define DEFAULT_IC_TYPE BIC
-#define DEFAULT_SAMPLE_SIZE SS_ALIGNMENT
-#define DEFAULT_OPTIMIZE OPT_SEARCH
-#define DEFAULT_DO_F false
-#define DEFAULT_DO_I false
-#define DEFAULT_DO_G false
+#define DEFAULT_DATA_TYPE          DT_NUCLEIC
+#define DEFAULT_STARTING_TOPOLOGY  StartTopoMP
+#define DEFAULT_SEARCH_ALGO        SearchHCluster
+#define DEFAULT_IC_TYPE            BIC
+#define DEFAULT_SAMPLE_SIZE        SS_ALIGNMENT
+#define DEFAULT_OPTIMIZE           OPT_SEARCH
+#define DEFAULT_DO_F               false
+#define DEFAULT_DO_I               false
+#define DEFAULT_DO_G               false
 
 #define VERBOSITY_LOW  0
 #define VERBOSITY_MID  1
 #define VERBOSITY_HIGH 2
-/* configuration */
-/** Use brent algorithm for estimating branch length scalers */
+  /* configuration */
+  /** Use brent algorithm for estimating branch length scalers */
 #define USE_BLSCALER_BRENT 1
 #define BL_SCALER_MIN 0.01
 #define BL_SCALER_MAX 10
 
-/* checkpointing */
-extern bool ckpAvailable;
-extern std::string ckpPath;
-extern std::string ckpStartingTree;
-extern std:: string ckpFinalTree;
+  /* checkpointing */
+  extern bool ckpAvailable;
+  extern std::string ckpPath;
+  extern std::string ckpStartingTree;
+  extern std::string ckpFinalTree;
 
-/* configuration */
-/** Number of threads used for optimization */
-extern int number_of_threads;
-/** Data type (nucleic or amino acid) */
-extern DataType data_type;
-/** Starting topology for optimizations */
-extern StartTopo starting_topology;
-/** Algorithm for searching in the partition space */
-extern SearchAlgo search_algo;
-/** Epsilon for optimization algorithm */
-extern double epsilon;
-/** Number of samples in configurable algorithms */
-extern int max_samples;
-/** Percent of samples to analyze */
-extern double samples_percent;
-/** Whether to stop or not in local maxima */
-extern bool non_stop;
-/** Whether to thoroughly optimize the final scheme*/
-extern bool compute_final_tree;
-/** Algorithm for candidate model selection */
-extern OptimizeMode optimize_mode;
-/** Information criterion for selecting models/partitions */
-extern InformationCriterion ic_type;
-/** Model rates to optimize */
-extern bitMask do_rate;
-/** Models to evaluate (proteins only) */
-extern bitMask protModels;
-/** Determine if branch lengths are optimized for each partition */
-extern bool reoptimize_branch_lengths;
-/** Determine whether to estimate per-gene branch lengths */
-extern bool pergene_branch_lengths;
+  /* configuration */
+  /** Number of threads used for optimization */
+  extern int number_of_threads;
+  /** Data type (nucleic or amino acid) */
+  extern DataType data_type;
+  /** Starting topology for optimizations */
+  extern StartTopo starting_topology;
+  /** Algorithm for searching in the partition space */
+  extern SearchAlgo search_algo;
+  /** Epsilon for optimization algorithm */
+  extern double epsilon;
+  /** Number of samples in configurable algorithms */
+  extern int max_samples;
+  /** Percent of samples to analyze */
+  extern double samples_percent;
+  /** Whether to stop or not in local maxima */
+  extern bool non_stop;
+  /** Whether to thoroughly optimize the final scheme*/
+  extern bool compute_final_tree;
+  /** Algorithm for candidate model selection */
+  extern OptimizeMode optimize_mode;
+  /** Information criterion for selecting models/partitions */
+  extern InformationCriterion ic_type;
+  /** Model rates to optimize */
+  extern bitMask do_rate;
+  /** Models to evaluate (proteins only) */
+  extern bitMask protModels;
+  /** Determine if branch lengths are optimized for each partition */
+  extern bool reoptimize_branch_lengths;
+  /** Determine whether to estimate per-gene branch lengths */
+  extern bool pergene_branch_lengths;
 
-
-/* input/output */
-extern std::string * input_file;
-extern std::string * config_file;
-extern std::string * user_tree;
-extern std::string * output_dir;
-extern std::string * models_logfile;
-extern std::string * schemes_logfile;
-extern std::string * results_logfile;
-extern std::string * log_logfile;
-extern bool outputAvailable;
-extern bool force_overriding;
+  /* input/output */
+  extern std::string * input_file;
+  extern std::string * config_file;
+  extern std::string * user_tree;
+  extern std::string * output_dir;
+  extern std::string * models_logfile;
+  extern std::string * schemes_logfile;
+  extern std::string * results_logfile;
+  extern std::string * log_logfile;
+  extern bool outputAvailable;
+  extern bool force_overriding;
 
 #ifdef HAVE_MPI
-	extern int myRank;
-	extern int numProcs;
+  extern int myRank;
+  extern int numProcs;
 #endif
 
-/* data description */
-/** Number of taxa in the alignment */
-extern size_t num_taxa;
-/** Sequence length of the alignment */
-extern size_t seq_len;
-/** Number of patterns in the alignment */
-extern size_t num_patterns;
-/** Number of models to evaluate */
-extern size_t number_of_models;
-/** Number of genes in the input data */
-extern size_t number_of_genes;
-/**
- * Number of schemes to evaluate if a fixed set
- * of candidate schemes is specified
- */
-extern size_t number_of_schemes;
-extern std::string ** singleGeneNames;
-extern char * starting_tree;
-extern char ** pergene_starting_tree;
-extern std::vector<t_partitioningScheme> * schemes;
+  /* data description */
+  /** Number of taxa in the alignment */
+  extern size_t num_taxa;
+  /** Sequence length of the alignment */
+  extern size_t seq_len;
+  /** Number of patterns in the alignment */
+  extern size_t num_patterns;
+  /** Number of models to evaluate */
+  extern size_t number_of_models;
+  /** Number of genes in the input data */
+  extern size_t number_of_genes;
+  /**
+   * Number of schemes to evaluate if a fixed set
+   * of candidate schemes is specified
+   */
+  extern size_t number_of_schemes;
+  extern std::string ** singleGeneNames;
+  extern char * starting_tree;
+  extern char ** pergene_starting_tree;
+  extern std::vector<t_partitioningScheme> * schemes;
 
-/* data structures */
-extern pllQueue * pllPartsQueue;
-extern partitionList * pllPartitions;
-extern pllAlignmentData * phylip;
-extern pllInstance * tree;
+  /* data structures */
+  extern pllQueue * pllPartsQueue;
+  extern partitionList * pllPartitions;
+  extern pllAlignmentData * phylip;
+  extern pllInstance * tree;
 
-extern time_t start_time;
-extern int verbosity;
+  extern time_t start_time;
+  extern int verbosity;
 
-void exit_partest(int status) __attribute__ ((noreturn));
-std::string timestamp();
+  void exit_partest (int status) __attribute__ ((noreturn));
+  std::string timestamp ();
 
 }
 

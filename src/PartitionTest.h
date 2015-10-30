@@ -28,36 +28,38 @@
 #include "util/GlobalDefs.h"
 #include <string>
 
-namespace partest {
+namespace partest
+{
 
-class PartitionTest {
-public:
-	PartitionTest();
-	virtual ~PartitionTest();
+  class PartitionTest
+  {
+  public:
+    PartitionTest ();
+    virtual ~PartitionTest ();
 
-	void setDataType(DataType dataType);
-	void setDoRate(bitMask doRate);
-	void setIcType(InformationCriterion icType);
-	void setMaxSamples(int maxSamples);
-	void setSamplesPercent(double samplesPercent);
-	void setOptimize(OptimizeMode optimize);
-	void setSearchAlgo(SearchAlgo searchAlgo);
-	void setStartingTopology(StartTopo startingTopology);
+    void setDataType (DataType dataType);
+    void setDoRate (bitMask doRate);
+    void setIcType (InformationCriterion icType);
+    void setMaxSamples (int maxSamples);
+    void setSamplesPercent (double samplesPercent);
+    void setOptimize (OptimizeMode optimize);
+    void setSearchAlgo (SearchAlgo searchAlgo);
+    void setStartingTopology (StartTopo startingTopology);
 
-	std::string * getConfigFile() const;
-	void setConfigFile(const char * configFile);
-	std::string * getInputFile() const;
-	void setInputFile(const char * inputFile);
-	std::string * getOutputDir() const;
-	void setOutputDir(const char * outputDir);
-	std::string * getUserTree() const;
-	void setUserTree(const char * userTree);
+    std::string * getConfigFile () const;
+    void setConfigFile (const char * configFile);
+    std::string * getInputFile () const;
+    void setInputFile (const char * inputFile);
+    std::string * getOutputDir () const;
+    void setOutputDir (const char * outputDir);
+    std::string * getUserTree () const;
+    void setUserTree (const char * userTree);
 
-	bool checkParameters(void);
-	bool configure(PartitionTest * ptest, int argc, char * argv[]);
-private:
-	std::string buildStartingTree(void);
-};
+    bool checkParameters (void);
+    bool configure (PartitionTest * ptest, int argc, char * argv[]);
+  private:
+    std::string buildStartingTree (void);
+  };
 
 }
 

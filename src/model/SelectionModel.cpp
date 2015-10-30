@@ -18,113 +18,138 @@
 
 #include "SelectionModel.h"
 
-namespace partest {
+namespace partest
+{
 
-SelectionModel::SelectionModel(Model * _model, double _value) :
-		model(_model), value(_value) {
-	/* initialize to invalid values */
-	index = -1;
-	delta = -1.0;
-	weight = -1.0;
-	cumWeight = -1.0;
+  SelectionModel::SelectionModel (Model * _model, double _value) :
+      model (_model), value (_value)
+  {
+    /* initialize to invalid values */
+    index = -1;
+    delta = -1.0;
+    weight = -1.0;
+    cumWeight = -1.0;
 
-	bicScore = -1.0;
-	aicScore = -1.0;
-	aiccScore = -1.0;
-	dtScore = -1.0;
-}
+    bicScore = -1.0;
+    aicScore = -1.0;
+    aiccScore = -1.0;
+    dtScore = -1.0;
+  }
 
-SelectionModel::~SelectionModel() {
-	// NOTHING
-}
+  SelectionModel::~SelectionModel ()
+  {
+    // NOTHING
+  }
 
-bool SelectionModel::operator<(const SelectionModel& other) const {
-	return weight < other.weight;
-}
+  bool SelectionModel::operator< (const SelectionModel& other) const
+  {
+    return weight < other.weight;
+  }
 
-bool SelectionModel::operator>(const SelectionModel& other) const {
-	return weight > other.weight;
-}
+  bool SelectionModel::operator> (const SelectionModel& other) const
+  {
+    return weight > other.weight;
+  }
 
-void SelectionModel::setIndex(int _index) {
-	this->index = _index;
-}
+  void SelectionModel::setIndex (int _index)
+  {
+    this->index = _index;
+  }
 
-void SelectionModel::setWeight(double _weight) {
-	this->weight = _weight;
-}
+  void SelectionModel::setWeight (double _weight)
+  {
+    this->weight = _weight;
+  }
 
-void SelectionModel::setCumWeight(double _cumWeight) {
-	this->cumWeight = _cumWeight;
-}
+  void SelectionModel::setCumWeight (double _cumWeight)
+  {
+    this->cumWeight = _cumWeight;
+  }
 
-void SelectionModel::setValue(double _value) {
-	this->value = _value;
-}
+  void SelectionModel::setValue (double _value)
+  {
+    this->value = _value;
+  }
 
-void SelectionModel::setDelta(double _delta) {
-	this->delta = _delta;
-}
+  void SelectionModel::setDelta (double _delta)
+  {
+    this->delta = _delta;
+  }
 
-int SelectionModel::getIndex() {
-	return index;
-}
+  int SelectionModel::getIndex ()
+  {
+    return index;
+  }
 
-Model * SelectionModel::getModel() {
-	return model;
-}
+  Model * SelectionModel::getModel ()
+  {
+    return model;
+  }
 
-double SelectionModel::getValue() {
-	return value;
-}
+  double SelectionModel::getValue ()
+  {
+    return value;
+  }
 
-double SelectionModel::getWeight() {
-	return weight;
-}
+  double SelectionModel::getWeight ()
+  {
+    return weight;
+  }
 
-double SelectionModel::getCumWeight() {
-	return cumWeight;
-}
+  double SelectionModel::getCumWeight ()
+  {
+    return cumWeight;
+  }
 
-double SelectionModel::getDelta() {
-	return delta;
-}
+  double SelectionModel::getDelta ()
+  {
+    return delta;
+  }
 
-double SelectionModel::getBicScore(void) {
-	return bicScore;
-}
+  double SelectionModel::getBicScore (void)
+  {
+    return bicScore;
+  }
 
-double SelectionModel::getAicScore(void) {
-	return aicScore;
-}
+  double SelectionModel::getAicScore (void)
+  {
+    return aicScore;
+  }
 
-double SelectionModel::getAiccScore(void) {
-	return aiccScore;
-}
+  double SelectionModel::getAiccScore (void)
+  {
+    return aiccScore;
+  }
 
-double SelectionModel::getDTScore(void) {
-	return dtScore;
-}
+  double SelectionModel::getDTScore (void)
+  {
+    return dtScore;
+  }
 
-void SelectionModel::setBicScore(double _value) {
-	bicScore = _value;
-}
+  void SelectionModel::setBicScore (double _value)
+  {
+    bicScore = _value;
+  }
 
-void SelectionModel::setAicScore(double _value) {
-	aicScore = _value;
-}
+  void SelectionModel::setAicScore (double _value)
+  {
+    aicScore = _value;
+  }
 
-void SelectionModel::setAiccScore(double _value) {
-	aiccScore = _value;
-}
+  void SelectionModel::setAiccScore (double _value)
+  {
+    aiccScore = _value;
+  }
 
-void SelectionModel::setDTScore(double _value) {
-	dtScore = _value;
-}
+  void SelectionModel::setDTScore (double _value)
+  {
+    dtScore = _value;
+  }
 
-SelectionModel * SelectionModel::clone(void) {
-	SelectionModel * cloneModel = new SelectionModel(*this);
-	return cloneModel;
-}
+  SelectionModel * SelectionModel::clone (void)
+  {
+    SelectionModel * cloneModel = new SelectionModel (*this);
+    return cloneModel;
+  }
 
 } /* namespace partest */

@@ -30,16 +30,19 @@
 #include "util/GlobalDefs.h"
 #include <vector>
 
-namespace partest {
+namespace partest
+{
 
-class GreedySearchAlgorithm: public partest::SearchAlgorithm {
-public:
-	GreedySearchAlgorithm();
-	virtual ~GreedySearchAlgorithm();
-	virtual PartitioningScheme * start(PartitioningScheme * startingPoint = 0);
-private:
-	std::vector<PartitioningScheme *> getNextSchemes(const t_partitioningScheme * startingScheme);
-};
+  class GreedySearchAlgorithm : public partest::SearchAlgorithm
+  {
+  public:
+    GreedySearchAlgorithm ();
+    virtual ~GreedySearchAlgorithm ();
+    virtual PartitioningScheme * start (PartitioningScheme * startingPoint = 0);
+  private:
+    std::vector<PartitioningScheme *> getNextSchemes (
+        const t_partitioningScheme * startingScheme);
+  };
 
 } /* namespace partest */
 

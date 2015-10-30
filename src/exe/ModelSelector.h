@@ -30,57 +30,61 @@
 #include "indata/PartitionElement.h"
 #include <vector>
 
-namespace partest {
+namespace partest
+{
 
-using namespace std;
+  using namespace std;
 
-class ModelSelector {
-public:
-	ModelSelector(PartitionElement * partitionElement, InformationCriterion ic,
-			double sampleSize);
-	virtual ~ModelSelector();
-	double getAlphaImportance(void) const;
-	double getFImportance(void) const;
-	double getOverallAlpha(void) const;
+  class ModelSelector
+  {
+  public:
+    ModelSelector (PartitionElement * partitionElement, InformationCriterion ic,
+                   double sampleSize);
+    virtual ~ModelSelector ();
+    double getAlphaImportance (void) const;
+    double getFImportance (void) const;
+    double getOverallAlpha (void) const;
 #ifdef _IG_MODELS
-	double getInvImportance(void) const;
-	double getAlphaInvImportance(void) const;
-	double getOverallInv(void) const;
-	double getOverallInvAlpha(void) const;
-	double getOverallAlphaInv(void) const;
+    double getInvImportance(void) const;
+    double getAlphaInvImportance(void) const;
+    double getOverallInv(void) const;
+    double getOverallInvAlpha(void) const;
+    double getOverallAlphaInv(void) const;
 #endif
-	SelectionModel * getBestModel(void) {
-		return bestModel;
-	}
-	static double computeIc(InformationCriterion ic, double lnL,
-			int freeParameters, double sampleSize);
-	static double computeBic(double lnL, int freeParameters, double sampleSize);
-	static double computeAic(double lnL, int freeParameters);
-	static double computeAicc(double lnL, int freeParameters,
-			double sampleSize);
-	void print(ostream& out);
-private:
-	void doSelection(vector<Model *> modelset, InformationCriterion ic,
-			double sampleSize);
-	vector<SelectionModel *> * selectionModels;
-	SelectionModel * bestModel;
-	PartitionElement * partitionElement;
-	InformationCriterion ic;
-	double sampleSize;
-	double minValue;
+    SelectionModel * getBestModel (void)
+    {
+      return bestModel;
+    }
+    static double computeIc (InformationCriterion ic, double lnL,
+                             int freeParameters, double sampleSize);
+    static double computeBic (double lnL, int freeParameters,
+                              double sampleSize);
+    static double computeAic (double lnL, int freeParameters);
+    static double computeAicc (double lnL, int freeParameters,
+                               double sampleSize);
+    void print (ostream& out);
+  private:
+    void doSelection (vector<Model *> modelset, InformationCriterion ic,
+                      double sampleSize);
+    vector<SelectionModel *> * selectionModels;
+    SelectionModel * bestModel;
+    PartitionElement * partitionElement;
+    InformationCriterion ic;
+    double sampleSize;
+    double minValue;
 
-	double alphaImportance;
-	double fImportance;
-	double overallAlpha;
+    double alphaImportance;
+    double fImportance;
+    double overallAlpha;
 #ifdef _IG_MODELS
-	double invImportance;
-	double alphaInvImportance;
-	double overallInv;
-	double overallAlphaInv;
-	double overallInvAlpha;
+    double invImportance;
+    double alphaInvImportance;
+    double overallInv;
+    double overallAlphaInv;
+    double overallInvAlpha;
 #endif
 
-};
+  };
 
 } /* namespace partest */
 #endif /* ModelSelector_H_ */

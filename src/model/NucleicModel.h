@@ -28,31 +28,33 @@
 #include "Model.h"
 #include "util/GlobalDefs.h"
 
-namespace partest {
+namespace partest
+{
 
-/**
- * @brief Nucleotide substitution model.
- */
-class NucleicModel: public Model {
-public:
-	/**
-	 * Constructor of a nucleotide substitution model.
-	 *
-	 * @param matrix Nucleotide substitution scheme.
-	 * @param rateVariation The rate variation and frequencies parameters (+I, +G, +F).
-	 * @param numberOfTaxa Number of taxa (required for computing the free parameters.
-	 */
-	NucleicModel(NucMatrix matrix, bitMask rateVariation, int numberOfTaxa);
-	NucMatrix getMatrix(void) const;
-	virtual void setFrequencies(const double * frequencies);
-	virtual void allocateRates(void);
-	void setRates(const double * rates);
-	double distanceTo(Model * other) const;
-	virtual void print(std::ostream& out, const char * prefix = "") const;
-	virtual ~NucleicModel();
-private:
-	NucMatrix matrix; /** Nucleotide substitution scheme */
-};
+  /**
+   * @brief Nucleotide substitution model.
+   */
+  class NucleicModel : public Model
+  {
+  public:
+    /**
+     * Constructor of a nucleotide substitution model.
+     *
+     * @param matrix Nucleotide substitution scheme.
+     * @param rateVariation The rate variation and frequencies parameters (+I, +G, +F).
+     * @param numberOfTaxa Number of taxa (required for computing the free parameters.
+     */
+    NucleicModel (NucMatrix matrix, bitMask rateVariation, int numberOfTaxa);
+    NucMatrix getMatrix (void) const;
+    virtual void setFrequencies (const double * frequencies);
+    virtual void allocateRates (void);
+    void setRates (const double * rates);
+    double distanceTo (Model * other) const;
+    virtual void print (std::ostream& out, const char * prefix = "") const;
+    virtual ~NucleicModel ();
+  private:
+    NucMatrix matrix; /** Nucleotide substitution scheme */
+  };
 
 } /* namespace partest */
 #endif /* NUCLEICMODELL_H_ */
