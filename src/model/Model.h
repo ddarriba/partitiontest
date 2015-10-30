@@ -174,6 +174,21 @@ public:
 	}
 
 	/**
+	 * @brief Gets the branch lengths scaler
+	 *
+	 * If branch lengths are re-optimized, the scaler is 1.0.
+	 *
+	 * @return The branch lengths scaler.
+	 */
+	double getBranchLengthsScaler(void) const {
+		return (branchLengthsScaler);
+	}
+
+	void setBranchLengthsScaler(double value) {
+		branchLengthsScaler = value;
+	}
+
+	/**
 	 * @brief Gets the number of free parameters of the model (whithout the branch lengths parameters).
 	 *
 	 * @return The number of free parameters of the model (without the tree).
@@ -292,6 +307,8 @@ protected:
 	int treeFreeParameters;
 	/** Most likely tree */
 	std::string tree;
+	/** Branch lengths scaler */
+	double branchLengthsScaler;
 };
 
 } /* namespace partest */

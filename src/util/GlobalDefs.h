@@ -217,6 +217,12 @@ const char protStateNames[NUM_PROT_FREQS]
 #define DEFAULT_DO_I false
 #define DEFAULT_DO_G false
 
+/* configuration */
+/** Use brent algorithm for estimating branch length scalers */
+#define USE_BLSCALER_BRENT 1
+#define BL_SCALER_MIN 0.01
+#define BL_SCALER_MAX 10
+
 /* checkpointing */
 extern bool ckpAvailable;
 extern std::string ckpPath;

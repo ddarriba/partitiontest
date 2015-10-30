@@ -100,6 +100,9 @@ PllTreeManager::PllTreeManager(const t_partitionElementId id,
 	pllQueuePartitionsDestroy(&partsQueue);
 
 	assert(_alignData->sequenceLength == (int ) numberOfSites);
+
+	numberOfTaxa = _alignData->sequenceCount;
+
 	pllAlignmentRemoveDups(_alignData, _partitions);
 	numberOfPatterns = (size_t) _alignData->sequenceLength;
 
@@ -391,17 +394,109 @@ int PllTreeManager::getAutoProtModel(size_t partition) {
 	return _partitions->partitionData[partition]->autoProtModels;
 }
 
-#define MIN_MULTIPLIER 0.001
+typedef struct _brent_params {
+	PllTreeManager * tree_mgr;
+	std::vector<double> * storedBranchLengths;
+	pllInstance * tree;
+} brent_params;
 
-void PllTreeManager::scaleBranchLengthsSymmetric( int smoothIterations ) {
+static double fixZ(double z) {
+	if (z > PLL_ZMAX)
+		return PLL_ZMAX;
+
+	if (z < PLL_ZMIN)
+		return PLL_ZMIN;
+
+	return z;
+}
+
+static double brent_target(void * p, double x)
+{
+	brent_params * bp = (brent_params *)p;
+	PllTreeManager * tree_mgr = bp->tree_mgr;
+	std::vector<double> * z0 = bp->storedBranchLengths;
+	pllInstance * tree = bp->tree;
+
+	size_t ntips = tree_mgr->getNumberOfTaxa();
+	size_t nodes = ntips + ntips - 2;
+
+	size_t count;
+
+	tree_mgr->evaluateLikelihood(PLL_TRUE);
+
+	count = 0;
+	for (size_t i = 1; i <= nodes; i++) {
+		double z = x * z0->at(count);
+		z = exp(-z);
+		z = fixZ(z);
+		tree->nodep[i]->z[0] = z;
+
+		count++;
+
+		if (i > ntips) {
+			z = x * z0->at(count);
+			;
+			z = exp(-z);
+			z = fixZ(z);
+			tree->nodep[i]->next->z[0] = z;
+
+			count++;
+
+			z = x * z0->at(count);
+			z = exp(-z);
+			z = fixZ(z);
+			tree->nodep[i]->next->next->z[0] = z;
+
+			count++;
+		}
+	}
+	assert(count == (2 * (size_t ) ntips - 3) * 2);
+	tree_mgr->evaluateLikelihood(PLL_TRUE);
+	return -1 * tree_mgr->getLikelihood();
+}
+
+void PllTreeManager::scaleBranchLengthsSymmetric(int smoothIterations) {
+
+	if (storedBranchLengths.size() == 0) {
+		/* store original branch lengths */
+		size_t count = 0;
+		size_t nodes = numberOfTaxa + numberOfTaxa - 2;
+		storedBranchLengths.resize(((2 * (size_t) numberOfTaxa - 3) * 2));
+		for (size_t i = 1; i <= nodes; i++) {
+			storedBranchLengths[count] = -log(_tree->nodep[i]->z[0]);
+			count++;
+			if (i > numberOfTaxa) {
+				storedBranchLengths[count] = -log(_tree->nodep[i]->next->z[0]);
+				count++;
+				storedBranchLengths[count] = -log(
+						_tree->nodep[i]->next->next->z[0]);
+				count++;
+			}
+		}
+		assert(count == (2 * (size_t ) numberOfTaxa - 3) * 2);
+	}
+
+#if(USE_BLSCALER_BRENT)
+	/* Optimize branch length scaler by Brent's method */
+	double f2x, score;
+	brent_params bp;
+	bp.storedBranchLengths = &storedBranchLengths;
+	bp.tree_mgr = this;
+	bp.tree = _tree;
+	branchLengthMultiplier = Utilities::minimize_brent(BL_SCALER_MIN, 1.0,
+			BL_SCALER_MAX, 1e-2, &score, &f2x, &bp, brent_target);
+#else
+	/* Optimize branch length scaler by dichotomic search */
 	double blScaler = branchLengthMultiplier;
 	double epsMultiplier = 0.5;
-	double lkUpper,lkLower;
+	double lkUpper, lkLower;
 	double lkIni = getLikelihood();
 	double lkEnd = -DOUBLE_INF;
-	for (int i=0; i<smoothIterations; i++) {
-		lkUpper = scaleBranchLengths(blScaler + epsMultiplier);
-		lkLower = scaleBranchLengths(max(blScaler - epsMultiplier, MIN_MULTIPLIER));
+	for (int i = 0; i < smoothIterations; i++) {
+		lkUpper = scaleBranchLengths(
+				min(blScaler + epsMultiplier, BL_SCALER_MAX));
+		lkLower = scaleBranchLengths(
+				max(blScaler - epsMultiplier, BL_SCALER_MIN));
 		if (lkUpper > lkLower) {
 			lkEnd = lkUpper;
 			blScaler = blScaler + epsMultiplier;
@@ -415,6 +510,7 @@ void PllTreeManager::scaleBranchLengthsSymmetric( int smoothIterations ) {
 		branchLengthMultiplier = blScaler;
 	}
 	lkEnd = scaleBranchLengths(branchLengthMultiplier);
+#endif
 }
 
 void PllTreeManager::optimizeBranchLengths(int smoothIterations) {
@@ -467,42 +563,12 @@ void PllTreeManager::optimizeModelParameters(double _epsilon) {
 #endif
 }
 
-static double fixZ(double z) {
-	if (z > PLL_ZMAX)
-		return PLL_ZMAX;
-
-	if (z < PLL_ZMIN)
-		return PLL_ZMIN;
-
-	return z;
-}
-
 double PllTreeManager::scaleBranchLengths(double multiplier) {
 	int nodes = _tree->mxtips + _tree->mxtips - 2;
 	assert(_partitions->numberOfPartitions == 1);
-	size_t count;
+	size_t count = 0;
 
 	evaluateLikelihood(PLL_TRUE);
-
-	if (storedBranchLengths.size() == 0) {
-		/* store original branch lengths */
-		storedBranchLengths.resize(((2 * (size_t) _tree->mxtips - 3) * 2));
-		count = 0;
-		for (int i = 1; i <= nodes; i++) {
-			storedBranchLengths[count] = -log(_tree->nodep[i]->z[0]);
-			count++;
-			if (i > _tree->mxtips) {
-				storedBranchLengths[count] = -log(_tree->nodep[i]->next->z[0]);
-				count++;
-				storedBranchLengths[count] = -log(
-						_tree->nodep[i]->next->next->z[0]);
-				count++;
-			}
-		}
-		assert(count == (2 * (size_t ) _tree->mxtips - 3) * 2);
-	}
-
-	count = 0;
 	for (int i = 1; i <= nodes; i++) {
 		double z = multiplier * storedBranchLengths[count];
 		z = exp(-z);

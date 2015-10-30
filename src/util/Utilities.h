@@ -209,8 +209,15 @@ public:
 	 */
 	static void smoothFrequencies(double *frequencies, int numberOfFrequencies);
 
+	static double minimize_brent(double xmin, double xguess, double xmax, double xtol,
+			double *fx, double *f2x, void * params,
+			double (*target_funk)(void *, double));
 private:
 	static char encoding_table[];	/** Table for encoding base 64 values */
+
+	static double brent_opt(double ax, double bx, double cx, double tol,
+			double *foptx, double *f2optx, double fax, double fbx, double fcx,
+			void * params, double (*target_funk)(void *, double));
 };
 
 } /* namespace partest */

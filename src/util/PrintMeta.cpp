@@ -281,6 +281,11 @@ void PrintMeta::print_options(ostream& output) {
 	default:
 		assert(0);
 	}
+	output << setw(OPT_DESCR_LENGTH) << left << "  Output path:";
+		if (output_dir->length() > (H_RULE_LENGTH - OPT_DESCR_LENGTH)) {
+			output << endl << setw(H_RULE_LENGTH - (int)output_dir->length()) << " ";
+		}
+		output << *output_dir << endl;
 	output << setw(H_RULE_LENGTH) << setfill('-') << "" << setfill(' ') << endl
 			<< endl;
 }

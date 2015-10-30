@@ -19,6 +19,10 @@ public:
 	TreeManager(const t_partitionElementId _id, size_t numberOfSites, size_t numberOfPatterns);
 	virtual ~TreeManager();
 
+	size_t getNumberOfTaxa(void) {
+			return numberOfTaxa;
+		}
+
 	size_t getNumberOfPatterns(void) {
 		return numberOfPatterns;
 	}
@@ -69,6 +73,7 @@ public:
 
 protected:
 	t_partitionElementId _id;
+	size_t numberOfTaxa;
 	size_t numberOfSites;
 	size_t numberOfPatterns;
 	double * branchLengths;

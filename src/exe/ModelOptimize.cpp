@@ -654,18 +654,14 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		if (epsilon == AUTO_EPSILON) {
 			cur_epsilon = element->getEpsilon();
 		}
-		if (reoptimize_branch_lengths) {
-			int smoothIterations = 32;
-			treeManager->optimizeBranchLengths(smoothIterations);
-			treeManager->optimizeModelParameters(10*cur_epsilon);
-			do {
-				lk = treeManager->getLikelihood();
-				treeManager->optimizeBranchLengths(2*smoothIterations);
-				treeManager->optimizeModelParameters(cur_epsilon);
-			} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
-		} else {
+		int smoothIterations = 16;
+		treeManager->optimizeBranchLengths(smoothIterations);
+		treeManager->optimizeModelParameters(10 * cur_epsilon);
+		do {
+			lk = treeManager->getLikelihood();
+			treeManager->optimizeBranchLengths(2 * smoothIterations);
 			treeManager->optimizeModelParameters(cur_epsilon);
-		}
+		} while (fabs(lk - treeManager->getLikelihood()) > cur_epsilon);
 	}
 
 	if (!isfinite(treeManager->getLikelihood())) {
@@ -677,6 +673,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 	/* set newick tree for optimized model */
 	model->setLnL(treeManager->getLikelihood());
 	model->setTree(treeManager->getNewickTree());
+	model->setBranchLengthsScaler(treeManager->getBranchLengthMultiplier());
 
 	model->setFrequencies(treeManager->getFrequencies());
 	if (model->isGamma())

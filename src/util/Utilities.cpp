@@ -442,4 +442,171 @@ void Utilities::smoothFrequencies(double *frequencies, int numberOfFrequencies) 
 	}
 }
 
+/******************************************************************************/
+/* BRENT'S OPTIMIZATION */
+/******************************************************************************/
+
+#define ITMAX 100
+#define CGOLD 0.3819660
+#define GOLD 1.618034
+#define GLIMIT 100.0
+#define TINY 1.0e-20
+#define ZEPS 1.0e-10
+#define SHFT(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);
+#define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
+
+double Utilities::brent_opt(double ax, double bx, double cx, double tol,
+		double *foptx, double *f2optx, double fax, double fbx, double fcx,
+		void * params, double (*target_funk)(void *, double)) {
+	int iter;
+	double a, b, d = 0, etemp, fu, fv, fw, fx, p, q, r, tol1, tol2, u, v, w, x,
+			xm;
+	double xw, wv, vx;
+	double e = 0.0;
+
+	a = (ax < cx ? ax : cx);
+	b = (ax > cx ? ax : cx);
+	x = bx;
+	fx = fbx;
+	if (fax < fcx) {
+		w = ax;
+		fw = fax;
+		v = cx;
+		fv = fcx;
+	} else {
+		w = cx;
+		fw = fcx;
+		v = ax;
+		fv = fax;
+	}
+
+	for (iter = 1; iter <= ITMAX; iter++) {
+		xm = 0.5 * (a + b);
+		tol2 = 2.0 * (tol1 = tol * fabs(x) + ZEPS);
+		if (fabs(x - xm) <= (tol2 - 0.5 * (b - a))) {
+			*foptx = fx;
+			xw = x - w;
+			wv = w - v;
+			vx = v - x;
+			*f2optx = 2.0 * (fv * xw + fx * wv + fw * vx)
+					/ (v * v * xw + x * x * wv + w * w * vx);
+			return x;
+		}
+
+		if (fabs(e) > tol1) {
+			r = (x - w) * (fx - fv);
+			q = (x - v) * (fx - fw);
+			p = (x - v) * q - (x - w) * r;
+			q = 2.0 * (q - r);
+			if (q > 0.0)
+				p = -p;
+			q = fabs(q);
+			etemp = e;
+			e = d;
+			if (fabs(p) >= fabs(0.5 * q * etemp) || p <= q * (a - x)
+					|| p >= q * (b - x))
+				d = CGOLD * (e = (x >= xm ? a - x : b - x));
+			else {
+				d = p / q;
+				u = x + d;
+				if (u - a < tol2 || b - u < tol2)
+					d = SIGN(tol1, xm - x);
+			}
+		} else {
+			d = CGOLD * (e = (x >= xm ? a - x : b - x));
+		}
+
+		u = (fabs(d) >= tol1 ? x + d : x + SIGN(tol1, d));
+		fu = target_funk(params, u);
+		if (fu <= fx) {
+			if (u >= x)
+				a = x;
+			else
+				b = x;
+
+			SHFT(v, w, x, u)
+			SHFT(fv, fw, fx, fu)
+		} else {
+			if (u < x)
+				a = u;
+			else
+				b = u;
+			if (fu <= fw || w == x) {
+				v = w;
+				w = u;
+				fv = fw;
+				fw = fu;
+			} else if (fu <= fv || v == x || v == w) {
+				v = u;
+				fv = fu;
+			}
+		}
+	}
+
+	*foptx = fx;
+	xw = x - w;
+	wv = w - v;
+	vx = v - x;
+	*f2optx = 2.0 * (fv * xw + fx * wv + fw * vx)
+			/ (v * v * xw + x * x * wv + w * w * vx);
+
+	return x;
+}
+
+/* most of the code for Brent optimization taken from IQ-Tree
+ * http://www.cibiv.at/software/iqtree
+ * --------------------------------------------------------------------------
+ * Bui Quang Minh, Minh Anh Thi Nguyen, and Arndt von Haeseler (2013)
+ * Ultrafast approximation for phylogenetic bootstrap.
+ * Mol. Biol. Evol., 30:1188-1195. (free reprint, DOI: 10.1093/molbev/mst024) */
+double Utilities::minimize_brent(double xmin, double xguess, double xmax, double xtol,
+		double *fx, double *f2x, void * params,
+		double (*target_funk)(void *, double))
+{
+  double eps, optx, ax, bx, cx, fa, fb, fc;
+  int outbounds_ax, outbounds_cx;
+
+  /* first attempt to bracketize minimum */
+  if (xguess < xmin)
+    xguess = xmin;
+  if (xguess > xmax)
+    xguess = xmax;
+  eps = xguess * xtol * 50.0;
+  ax = xguess - eps;
+  outbounds_ax = ax < xmin;
+  if (outbounds_ax)
+    ax = xmin;
+  bx = xguess;
+  cx = xguess + eps;
+  outbounds_cx = cx > xmax;
+  if (outbounds_cx)
+    cx = xmax;
+
+  /* check if this works */
+  fa = target_funk (params, ax);
+  fb = target_funk (params, bx);
+  fc = target_funk (params, cx);
+
+  /* if it works use these borders else be conservative */
+  if ((fa < fb) || (fc < fb))
+  {
+    if (!outbounds_ax)
+      fa = target_funk (params, xmin);
+    if (!outbounds_cx)
+      fc = target_funk (params, xmax);
+    ax = xmin;
+    cx = xmax;
+  }
+
+  optx = brent_opt (ax, bx, cx, xtol, fx, f2x, fa, fb, fc, params,
+                    target_funk);
+  if (*fx > fb) // if worse, return initial value
+  {
+    *fx = target_funk (params, bx);
+    return bx;
+  }
+
+  return optx; /* return optimal x */
+}
+
 } /* namespace partest */

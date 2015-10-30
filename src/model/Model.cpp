@@ -29,14 +29,14 @@ namespace partest {
 Model::Model(bitMask _rateVariation, int numberOfTaxa) :
 		rateVariation(_rateVariation), lnL(0.0), alpha(1.0),
 		rates(0), frequencies(0), numberOfFrequencies(0),
-		name(), modelFreeParameters(0) {
+		name(), modelFreeParameters(0), branchLengthsScaler(1.0) {
 
 #ifdef _IG_MODELS
 	pInv = 0.0;
 #endif
 
 	/* The free parameters are initialized with the number of branches */
-	treeFreeParameters = reoptimize_branch_lengths?Utilities::numberOfBranches(numberOfTaxa):0;
+	treeFreeParameters = reoptimize_branch_lengths?Utilities::numberOfBranches(numberOfTaxa):1;
 }
 
 Model::~Model() {
@@ -65,6 +65,7 @@ void Model::setMatrixName(string _matrixName) {
 bitMask Model::getRateVariation() const {
 	return rateVariation;
 }
+
 string Model::getTree() const {
 	return tree;
 }
@@ -110,6 +111,10 @@ void Model::print(ostream& cout, const char * prefix) const {
 #endif
 		if (isGamma()) {
 			cout << prefix << "alpha: " << alpha << endl;
+		}
+		if (!reoptimize_branch_lengths)
+		{
+			cout << prefix << "brlen scaler: " << branchLengthsScaler << endl;
 		}
 		cout << prefix << "Most Likely Tree: " << tree;
 	} else {
