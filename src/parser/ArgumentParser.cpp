@@ -75,7 +75,8 @@ ArgumentParser::ArgumentParser(PartitionTest * _ptest) :
 			ARG_TOPOLOGY, 't', "topology", true }, {
 			ARG_FINAL_TREE, 'T', "get-final-tree", false }, {
 			ARG_USER_TREE, 'u', "user-tree", true }, {
-			ARG_VERSION, 'v', "version", false }};
+			ARG_VERBOSE, 'v', "verbose", true }, {
+			ARG_VERSION, 'V', "version", false }};
 
 	size_t size = NUM_ARGUMENTS * sizeof(option);
 
@@ -454,14 +455,14 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 				ptest->setOptimize(OPT_GTR);
 			} else {
 				cerr << "[ERROR] \"-n " << value
-						<< "\" is not a valid optimize mode. Use one of the following:"
-						<< endl;
+					<< "\" is not a valid optimize mode. Use one of the following:"
+					<< endl;
 				cerr << "  -O " << setw(16) << left << ARG_OPTIMIZE_BESTMODEL
-						<< "\t Perform a model selection on the best partition"
-						<< endl;
+					<< "\t Perform a model selection on the best partition"
+					<< endl;
 				cerr << "  -O " << setw(16) << left << ARG_OPTIMIZE_GTR
-						<< "\t Optimize only GTR models on the best partition"
-						<< endl;
+					<< "\t Optimize only GTR models on the best partition"
+					<< endl;
 				exit_partest(EX_CONFIG);
 			}
 			break;
@@ -498,6 +499,20 @@ void ArgumentParser::parse(int argc, char *argv[]) {
 			exit_partest(EX_CONFIG);
 #endif
 			break;
+		case ARG_VERBOSE:
+					/* verbosity level */
+					if (Utilities::isInteger(value)) {
+						/* apply absolute number of replicates */
+						verbosity = atoi(value);
+					} else {
+						/* error */
+						cerr << "[ERROR] \"-v " << value
+							 << "\" is not a valid verbosity level. "
+							 << "It must be 0, 1 or 2."
+							 << endl;
+						exit_partest(EX_CONFIG);
+					}
+					break;
 		case ARG_VERSION:
 			/* display application version */
 			cout << "PartitionTest v" << PROGRAM_VERSION << " - " << PROGRAM_DATE << endl;

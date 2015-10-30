@@ -473,7 +473,10 @@ void PrintMeta::print_usage(std::ostream& out) {
 			<< endl;
 	out << endl;
 
-	out << setw(MAX_OPT_LENGTH) << left << "  -v, --version"
+	out << setw(MAX_OPT_LENGTH) << left << "  -v, --verbose LEVEL"
+				<< "Sets the verbosity level (0=low, 1=medium, 2=high)" << endl;
+
+	out << setw(MAX_OPT_LENGTH) << left << "  -V, --version"
 			<< "Output version information and exit" << endl;
 	out << endl;
 

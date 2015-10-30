@@ -40,6 +40,11 @@
 #define MODELS_TAG			"models"
 #define MODELS_INCLUDE_TAG	"include"
 #define MODELS_EPSILON_TAG	"epsilon"
+#define MODELS_DO_F_TAG     "include-f"
+#define MODELS_DO_M_TAG     "include-m"
+#define MODELS_DO_I_TAG     "include-i"
+#define MODELS_DO_G_TAG     "include-g"
+#define MODELS_DO_IG_TAG    "include-ig"
 
 #define INPUT_TAG 			"input"
 #define INPUT_MSA_TAG 		"msa"
@@ -48,13 +53,13 @@
 #define INPUT_KEEPBRANCHES_TAG "keep-branches"
 #define INPUT_DATATYPE_TAG	"datatype"
 
-#define OUTPUT_TAG 			"output"
-#define OUTPUT_TMP_PATH 	"tmp"
-#define OUTPUT_BASE_PATH 	"path"
-#define OUTPUT_RESULTS_TAG 	"results"
-#define OUTPUT_MODELS_TAG 	"models"
-#define OUTPUT_PARTS_TAG 	"partitions"
-#define OUTPUT_SCHEMES_TAG 	"schemes"
+#define OUTPUT_TAG 			 "output"
+#define OUTPUT_TMP_PATH 	 "tmp"
+#define OUTPUT_BASE_PATH 	 "path"
+#define OUTPUT_RESULTS_TAG 	 "results"
+#define OUTPUT_MODELS_TAG 	 "models"
+#define OUTPUT_PARTS_TAG 	 "partitions"
+#define OUTPUT_SCHEMES_TAG 	 "schemes"
 #ifdef _WIN32
 #define DEFAULT_OUTPUT_TMP_PATH 	""
 #else

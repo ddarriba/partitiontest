@@ -91,6 +91,7 @@ enum ArgIndex {
 	ARG_SEARCH_ALGORITHM, /** Argument for search algorithm */
 	ARG_TOPOLOGY, /** Argument for starting topology type */
 	ARG_USER_TREE, /** Argument for input user tree file */
+	ARG_VERBOSE, /** Argument for setting verbosity level */
 	ARG_VERSION, /** Show version */
 	ARG_END
 };

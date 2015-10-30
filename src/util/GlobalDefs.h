@@ -217,6 +217,9 @@ const char protStateNames[NUM_PROT_FREQS]
 #define DEFAULT_DO_I false
 #define DEFAULT_DO_G false
 
+#define VERBOSITY_LOW  0
+#define VERBOSITY_MID  1
+#define VERBOSITY_HIGH 2
 /* configuration */
 /** Use brent algorithm for estimating branch length scalers */
 #define USE_BLSCALER_BRENT 1
@@ -307,6 +310,7 @@ extern pllAlignmentData * phylip;
 extern pllInstance * tree;
 
 extern time_t start_time;
+extern int verbosity;
 
 void exit_partest(int status) __attribute__ ((noreturn));
 std::string timestamp();

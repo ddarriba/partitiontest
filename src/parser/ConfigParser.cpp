@@ -588,48 +588,56 @@ void ConfigParser::printFormat() {
 	cout << "   ;THIS IS A COMMENT" << endl;
 	cout << endl << "   ; Start of input data" << endl;
 	cout << "   [" << INPUT_TAG << "]" << endl;
-	cout << "   " << INPUT_MSA_TAG << "=INPUT_ALIGNMENT_FILE" << endl;
-	cout << "   " << INPUT_TREE_TAG << "=INPUT_TREE_FILE" << endl;
-	cout << "   " << INPUT_DATATYPE_TAG << "={nt|aa} (default: nt)" << endl;
-	cout << "   " << INPUT_KEEPBRANCHES_TAG << "={true|false} (default: false)"
+	cout << "   " << INPUT_MSA_TAG << " = INPUT_ALIGNMENT_FILE" << endl;
+	cout << "   " << INPUT_TREE_TAG << " = INPUT_TREE_FILE" << endl;
+	cout << "   " << INPUT_DATATYPE_TAG << " = {nt|aa} (default: nt)" << endl;
+	cout << "   " << INPUT_KEEPBRANCHES_TAG << " = {true|false} (default: false)"
 			<< endl;
 	cout << endl << "   ; Start of searching options" << endl;
 	cout << "   [" << SEARCH_TAG << "]" << endl;
 	cout << "   " << SEARCH_ALGORITHM_TAG
 			<< "={greedy|hcluster|random|auto} (default: auto)";
-	cout << "   " << SEARCH_ALGORITHM_REPS << "=# (default: 1)" << endl;
+	cout << "   " << SEARCH_ALGORITHM_REPS << " = # (default: 1)" << endl;
 	cout << endl << "   ; Start of candidate models description" << endl;
 	cout << "   [" << MODELS_TAG << "]" << endl;
-	cout << "   " << MODELS_INCLUDE_TAG << "={all | gtr | [LIST]} (default:all)"
+	cout << "   " << MODELS_INCLUDE_TAG << " = {all | gtr | [LIST]} (default:all)"
 			<< endl;
+	cout << "   " << MODELS_EPSILON_TAG << " = EPSILON_THRESHOLD (default:auto)" << endl;
+	cout << "   " << MODELS_DO_M_TAG << " = {true|false} (default:true)" << endl;
+	cout << "   " << MODELS_DO_F_TAG << " = {true|false} (default:false)" << endl;
+	cout << "   " << MODELS_DO_G_TAG << " = {true|false} (default:false)" << endl;
+#ifdef _IG_MODELS
+	cout << "   " << MODELS_DO_I_TAG << " = {true|false} (default:false)" << endl;
+	cout << "   " << MODELS_DO_IG_TAG << " = {true|false} (default:false)" << endl;
+#endif
 	cout << endl << "   ; Start of partitions" << endl;
 	cout << "   [" << PARTITIONS_TAG << "]" << endl;
-	cout << "   PART1=INI1-END1" << endl;
-	cout << "   PART1=INI2-END2" << endl;
+	cout << "   PART1 = INI1-END1" << endl;
+	cout << "   PART1 = INI2-END2" << endl;
 	cout << "   ..." << endl;
-	cout << "   PARTn=INIn-ENDn" << endl;
+	cout << "   PARTn = INIn-ENDn" << endl;
 	cout << endl << "   ; Start of schemes" << endl;
 	cout << "   [" << SCHEMES_TAG << "]" << endl;
-	cout << "   S1=(GENE1,GENE2)(GENE3)..." << endl;
-	cout << "   S2=(GENE1,GENE2,GENE3)..." << endl;
+	cout << "   S1 = (GENE1,GENE2)(GENE3)..." << endl;
+	cout << "   S2 = (GENE1,GENE2,GENE3)..." << endl;
 	cout << "   ..." << endl;
-	cout << "   Sn=(GENE1)(GENE2,GENE3,...)" << endl;
+	cout << "   Sn = (GENE1)(GENE2,GENE3,...)" << endl;
 	cout << endl << "   ; Start of output section" << endl;
 	cout << "   [" << OUTPUT_TAG << "]" << endl;
 	cout << "   " << OUTPUT_BASE_PATH
-			<< "=OUTPUT_BASE_URL (default:partitiontest_FILENAME" << endl;
+			<< " = OUTPUT_BASE_URL (default:partitiontest_FILENAME" << endl;
 	cout << "   " << OUTPUT_MODELS_TAG
-			<< "=OUTPUT_MODELS_FILE (default: $path/models)" << endl;
+			<< " = OUTPUT_MODELS_FILE (default: $path/models)" << endl;
 	cout << "   " << OUTPUT_SCHEMES_TAG
-			<< "=OUTPUT_SCHEMES_FILE (default: $path/schemes)" << endl;
+			<< " = OUTPUT_SCHEMES_FILE (default: $path/schemes)" << endl;
 	cout << "   " << OUTPUT_RESULTS_TAG
-			<< "=OUTPUT_RESULTS_FILE (default: $path/results)" << endl;
+			<< " = OUTPUT_RESULTS_FILE (default: $path/results)" << endl;
 	cout << endl << "Example:" << endl << endl;
 	cout << "   [" << PARTITIONS_TAG << "]" << endl;
-	cout << "   DNA1=1-976" << endl;
-	cout << "   DNA2=976-1803" << endl;
-	cout << "   DNA3=1804-2700" << endl;
-	cout << "   DNA4=2701-3815" << endl << endl;
+	cout << "   DNA1 = 1-976" << endl;
+	cout << "   DNA2 = 976-1803" << endl;
+	cout << "   DNA3 = 1804-2700" << endl;
+	cout << "   DNA4 = 2701-3815" << endl << endl;
 	cout << INPUT_TAG << "/" << INPUT_DATATYPE_TAG << endl;
 	cout << "      nt - Nucleic (DNA) data" << endl;
 	cout << "      aa - Amino Acid (protein) data" << endl;
@@ -673,17 +681,28 @@ void ConfigParser::createTemplate() {
 	cout << ";THIS IS A COMMENT" << endl;
 	cout << "; Start of input data" << endl;
 	cout << "[" << INPUT_TAG << "]" << endl;
-	cout << INPUT_MSA_TAG << "= input.phy" << endl;
-	cout << INPUT_TREE_TAG << "= input.tree" << endl;
-	cout << INPUT_DATATYPE_TAG << "= nt" << endl;
-	cout << INPUT_KEEPBRANCHES_TAG << "= false" << endl << endl;
+	cout << INPUT_MSA_TAG << " = input.phy" << endl;
+	cout << INPUT_TREE_TAG << " = input.tree" << endl;
+	cout << INPUT_DATATYPE_TAG << " = nt" << endl;
+	cout << INPUT_KEEPBRANCHES_TAG << " = false" << endl << endl;
 	cout << "; Start of candidate models description" << endl;
 	cout << "[" << MODELS_TAG << "]" << endl;
-	cout << MODELS_INCLUDE_TAG << "= all" << endl << endl;
+	cout << MODELS_INCLUDE_TAG << " = all" << endl << endl;
+	cout << MODELS_EPSILON_TAG << " = 1.0" << endl;
+	cout << MODELS_DO_M_TAG << " = true" << endl;
+	cout << MODELS_DO_F_TAG << " = true" << endl;
+	cout << MODELS_DO_G_TAG << " = true" << endl;
+#ifdef _IG_MODELS
+	cout << MODELS_DO_I_TAG << " = false" << endl;
+	cout << MODELS_DO_IG_TAG << " = false" << endl;
+#endif
+	cout << "; Start of output data" << endl;
+	cout << "[" << OUTPUT_TAG << "]" << endl;
+	cout << OUTPUT_BASE_PATH << " = /tmp" << endl;
 	cout << "; Start of searching options" << endl;
 	cout << "[" << SEARCH_TAG << "]" << endl;
-	cout << SEARCH_ALGORITHM_TAG << "= auto" << endl;
-	cout << SEARCH_ALGORITHM_REPS << "= 1" << endl;
+	cout << SEARCH_ALGORITHM_TAG << " = auto" << endl;
+	cout << SEARCH_ALGORITHM_REPS << " = 1" << endl;
 	cout << "[" << PARTITIONS_TAG << "]" << endl;
 	cout << "PART1 = INI1-END1" << endl;
 	cout << "PART2 = INI2-END2" << endl;
