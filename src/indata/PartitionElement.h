@@ -67,6 +67,7 @@ public:
 
 	bool isReady(void);
 	bool isOptimized(void);
+	double getEpsilon(void);
 
 	TreeManager * getTreeManager(void);
 

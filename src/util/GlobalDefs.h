@@ -46,6 +46,8 @@
 
 /* ML optimization parameters */
 #define AUTO_EPSILON           0.0f
+#define AUTO_EPSILON_SCALE     -0.001f
+#define DEFAULT_EPSILON        1.0f
 #define ML_PARAM_CUTOFF        PLL_TRUE
 #define ML_PARAM_STEPWIDTH     5
 #define ML_PARAM_MAXREARRANGE  11
@@ -84,6 +86,10 @@ const std::string os_separator("/");
 #define NUM_NUC_FREQS 4
 /** Number of states for amino-acid replacement models */
 #define NUM_PROT_FREQS 20
+
+#ifdef HAVE_MPI
+#define MPI_ELEMENT_ID_TYPE MPI_UNSIGNED_LONG
+#endif
 
 #define PROT_MATRIX_SIZE 18 // excluding auto & GTR
 enum ProtMatrix {

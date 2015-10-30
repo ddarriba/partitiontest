@@ -611,14 +611,18 @@ int ModelOptimize::optimizePartitionElement(PartitionElement * element,
 		return EX_OK;
 	}
 
+	element->setupStructures();
+
 	cout << timestamp() << " - - -";
 #ifdef HAVE_MPI
 	cout << " [" << myRank << "]";
 #endif
 	cout <<" element "
 			<< setw(Utilities::iDecLog(limit) + 1) << setfill('0') << right
-			<< index + 1 << "/" << limit << setfill(' ') << endl;
-	element->setupStructures();
+			<< index + 1 << "/" << limit << setfill(' ');
+	if (epsilon == AUTO_EPSILON)
+		cout << " [" << element->getEpsilon() << "]";
+	cout << endl;
 
 	for (size_t modelIndex = 0; modelIndex < element->getNumberOfModels();
 			modelIndex++) {
@@ -648,7 +652,7 @@ void ModelOptimize::optimizeModel(PartitionElement * element, size_t modelIndex,
 		/* main optimization loop */
 		double cur_epsilon = epsilon;
 		if (epsilon == AUTO_EPSILON) {
-			cur_epsilon = -0.001 * treeManager->getLikelihood();
+			cur_epsilon = element->getEpsilon();
 		}
 		if (reoptimize_branch_lengths) {
 			int smoothIterations = 32;

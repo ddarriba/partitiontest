@@ -134,7 +134,7 @@ void * distribute(void * arg) {
 					// send element
 					MPI_Ssend(buf, 3, MPI_INT, targetStatus.MPI_SOURCE, 1,
 							MPI_COMM_WORLD);
-					MPI_Ssend(&(element->getId().front()), buf[0], MPI_INT,
+					MPI_Ssend(&(element->getId().front()), buf[0], MPI_ELEMENT_ID_TYPE,
 							targetStatus.MPI_SOURCE, 2, MPI_COMM_WORLD);
 				}
 			}
@@ -185,7 +185,7 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &_mo) {
 			MPI_Recv(nextItem, 3, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
 			if (nextItem[0]) {
 				t_partitionElementId id(nextItem[0]);
-				MPI_Recv(&(id.front()), nextItem[0], MPI_INT, 0, 2, MPI_COMM_WORLD, &status);
+				MPI_Recv(&(id.front()), nextItem[0], MPI_ELEMENT_ID_TYPE, 0, 2, MPI_COMM_WORLD, &status);
 				PartitionElement * element = PartitionMap::getInstance()->getPartitionElement(id);
 				_mo.optimizePartitionElement(element, nextItem[1], nextItem[2]);
 			}
@@ -200,7 +200,8 @@ int SearchAlgorithm::SchemeManager::optimize(ModelOptimize &_mo) {
 			for (size_t j = 0; j < scheme->getNumberOfElements(); j++) {
 				PartitionElement * element = scheme->getElement(j);
 				if (element->isTagged() && !element->isOptimized()) {
-					if (element->loadData()) {
+					if (int erno = element->loadData()) {
+						cerr << "[ERROR " << erno << "] Cannot load data for element" << endl;
 						exit_partest(EX_IOERR);
 					}
 				}

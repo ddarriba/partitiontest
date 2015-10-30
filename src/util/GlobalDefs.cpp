@@ -54,7 +54,7 @@ namespace partest {
 	DataType data_type;
 	StartTopo starting_topology;
 	SearchAlgo search_algo;
-	double epsilon = 1.0;
+	double epsilon = AUTO_EPSILON;
 	int max_samples = 1;
 	double samples_percent = 0.0;
 	InformationCriterion ic_type;

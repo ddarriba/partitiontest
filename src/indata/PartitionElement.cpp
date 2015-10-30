@@ -302,6 +302,16 @@ bool PartitionElement::isOptimized(void) {
 	return (models.size() > 0) && (models.at(0)->isOptimized());
 }
 
+double PartitionElement::getEpsilon(void) {
+	if (epsilon == AUTO_EPSILON) {
+		if (ready)
+			return AUTO_EPSILON_SCALE * treeManager->getLikelihood();
+		else
+			return DEFAULT_EPSILON;
+	} else
+		return epsilon;
+}
+
 /* checkpointing stuff */
 
 int PartitionElement::loadData(void) {
@@ -496,16 +506,6 @@ int PartitionElement::storeData(void) {
 	if (starting_topology == StartTopoFIXED && !branchLengths) {
 		/* if topology is fixed for each element, keep the branch lengths */
 		branchLengths = treeManager->getBranchLengths();
-//		branchLengths = (double *) malloc(
-//				(size_t) Utilities::numberOfBranches(num_taxa)
-//						* sizeof(double));
-//		for (int i = 0; i < Utilities::numberOfBranches(num_taxa); i++) {
-//			if (isnan(treeManager->_tree->nodep[i + 1]->z[0])) {
-//				cerr << "ERROR: NAN branch in " << i + 1 << endl;
-//				exit_partest(EX_SOFTWARE);
-//			}
-//			branchLengths[i] = treeManager->_tree->nodep[i + 1]->z[0];
-//		}
 	}
 
 	fstream ofs((ckpPath + os_separator + ckpname).c_str(),

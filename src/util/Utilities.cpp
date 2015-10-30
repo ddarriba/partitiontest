@@ -370,6 +370,7 @@ pllNewickTree * Utilities::averageBranchLengths(t_partitionElementId id) {
 	pllStack ** infoStack = (pllStack **) malloc (id.size() * sizeof(pllStack *));
 
 	if (!(nts && infoStack)) {
+		std::cerr << "[ERROR] Cannot allocate memory." << std::endl;
 		exit_partest(EX_IOERR);
 	}
 
