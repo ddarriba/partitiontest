@@ -57,7 +57,7 @@ namespace partest
   static int checkOverlap (vector<partitionInfo> * parts, int maxSite)
   {
     /* boolean array for marking that a site was assigned a partition */
-    char * used = (char *) calloc ((size_t) maxSite, sizeof(char));
+    char * used = (char *) calloc ((size_t) maxSite+1, sizeof(char));
 
     for (size_t i = 0; i < parts->size (); i++)
     {
@@ -69,10 +69,11 @@ namespace partest
         {
           if (used[site])
           {
-            free (used);
             cerr << "[ERROR] Detected overlapping partitions: " << endl;
             cerr << "        " << partInfo.start[sec] << "-"
-                << partInfo.end[sec];
+                 << partInfo.end[sec] << "/" << partInfo.stride[sec]
+                 << " (site " << site << ")";
+            free (used);
             if (partInfo.stride[sec] > 1)
             {
               cerr << "/" << partInfo.stride[sec];
