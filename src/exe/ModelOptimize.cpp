@@ -284,7 +284,10 @@ namespace partest
 
     starting_tree = tree->tree_string;
 
-    cout << timestamp () << " Starting tree loaded " << starting_tree << endl;
+    if (I_AM_ROOT)
+    {
+      cout << timestamp () << " Starting tree loaded " << starting_tree << endl;
+    }
     return string (tree->tree_string);
   }
 
@@ -671,7 +674,6 @@ namespace partest
     {
       return EX_OK;
     }
-
     element->setupStructures ();
 
     cout << timestamp () << " - - -";
@@ -720,16 +722,16 @@ namespace partest
       {
         cur_epsilon = element->getEpsilon ();
       }
-      int smoothIterations = 16;
-      treeManager->optimizeBranchLengths (smoothIterations);
-      treeManager->optimizeModelParameters (10 * cur_epsilon);
+      int smoothIterations = 32;
+      int iters=3;
       do
       {
         lk = treeManager->getLikelihood ();
-        treeManager->optimizeBranchLengths (2 * smoothIterations);
+        treeManager->optimizeBranchLengths (smoothIterations);
         treeManager->optimizeModelParameters (cur_epsilon);
+        iters--;
       }
-      while (fabs (lk - treeManager->getLikelihood ()) > cur_epsilon);
+      while (fabs (lk - treeManager->getLikelihood ()) > cur_epsilon && iters>0);
     }
 
     if (!isfinite (treeManager->getLikelihood ()))

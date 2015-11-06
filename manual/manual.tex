@@ -1,0 +1,179 @@
+\documentclass[11pt,twoside,a4paper]{article}
+\usepackage{pslatex,palatino,avant,graphicx}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[margin=2cm]{geometry}
+\usepackage{url}
+\usepackage[square,sort]{natbib}
+
+\usepackage{listings}
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{LimeGreen},  % comment style
+  % deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{BlueGreen},  % keyword style
+  % language=Java,                   % the language of the code
+  % numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  % numbersep=5pt,                   % how far the line-numbers are from the code
+  % numberstyle=\tiny\color{Gray},   % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{RubineRed},   % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname,                  % show the filename of files included with \lstinputlisting; also try caption instead of title
+  aboveskip=1em,
+  belowcaptionskip=0em,
+  belowskip=0em
+}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=Violet,
+    filecolor=black,
+    linkcolor=MidnightBlue,
+    urlcolor=MidnightBlue
+}
+
+\begin{document}
+\providecommand{\versionnumber}{0.1.1}
+\title{PartitionFinder 1.0 Manual v\versionnumber}
+\author{Diego Darriba, David Posada}
+\date{November 6, 2015}
+\maketitle
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\section{Overview}
+
+PartitionFinder is a tool to carry out statistical selection of best-fit partitioning schemes and models of nucleotide substitution / amino acid replacement.
+
+\subsection{Download}
+
+The main project webpage is located at GitHub: \url{http://www.github.com/ddarriba/partitiontest}.
+
+%\subsection{Citation}
+
+%-
+
+\subsection{Disclaimer}
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. The jModelTest distribution includes Phyml executables.
+
+These programs are protected by their own license and conditions, and using jModelTest implies agreeing with those conditions as well. 
+
+\subsection{Usage}
+
+       Selects the best-fit model of evolution for many-gene DNA or Protein data
+
+       Mandatory arguments to long options are mandatory for short options too
+
+\begin{tabular}{rlp{.5\textwidth}}
+       -c& --config-file CONFIG\_FILE &
+             Sets the input configuration file. Run with --config-help for more information \\
+
+        &--config-help 
+        &      Shows help about configuration files \\
+
+        & --config-template 
+        &      Generates a configuration file template \\
+
+       -d& --data-type DATA\_TYPE 
+         &     Sets the type of the input data. DATA\_TYPE: nt (nucleotide), aa (amino-acid) \\
+
+         &--disable-ckp 
+         &     Disables the checkpointing \\
+
+         &--disable-output 
+         &     Disables any file-based output. This option also disables the chackpointing\\
+
+       -F & --empirical-frequencies
+          &    Includes models with empirical frequencies (+F) \\
+\end{tabular}
+
+       -g, --pergene-bl
+              Estimate per-gene branch-lengths
+
+       --force-override
+              Existent output files will be overwritten
+
+       -h, --help-
+              Displays a help message
+
+       -i, --input-file INPUT\_FILE
+              Sets the input alignment file (REQUIRED)
+
+       -k, --keep-branches
+              Keep branch lengths from the initial topology. This argument has no effect for initial topology different than fixed
+
+       -N, --non-stop
+              Algorithms do not stop if no improvement found at one step, for avoiding local maxima
+
+       -O, --optimize-mode OPTIMIZE\_MODE
+              Sets  the  model optimization for the best-fit partition. OPTIMIZE\_MODE: findmodel (find the best-fit model for each partition), gtr (use only GTR model for each partition (nucleic data)
+              or AUTO for protein data)
+              
+       -p, --num-procs NUMBER\_OF\_THREADS
+              Number of threads for model evaluation (DEFAULT: 1)
+
+       -r, --replicates NUMBER\_OF\_REPLICATES
+              Sets the number of replicates on Hierarchical Clustering and Random search modes
+
+       -s, --selection-criterion CRITERION
+              Sets the criterion for model selection. CRITERION: bic (Bayesian Information Criterion) (DEFAULT), aic (Akaike Information Criterion), aicc (Corrected Akaike Information  Criterion),  dt
+              (Decision Theory). Sample size for bic, aicc and dt criteria is the alignment length
+
+       -S, --search SEARCH\_ALGORITHM
+              Sets  the  search  algorithm  SEARCH\_ALGORITHM:  k1  (evaluate K=1 only), kn (evaluate K=N only), greedy (greedy search algorithm), greedyext (extended greedy search algorithm), hcluster
+              (hierarchical clustering algorithm), random (multiple step random sampling), auto (auto-select algorithm (DEFAULT)), exhaustive (exhaustive search)
+
+       -t, --topology STARTING\_TOPOLOGY
+              Sets the starting topology for optimization. STARTING\_TOPOLOGY: mp (creates a maximum parsimony topology for each model optimization (DEFAULT)), ml (creates a maximum likelihood topology
+              for each model optimization), fixed (uses a fixed ML topology for every model optimization), user (uses a user-defined topology. Requires the "-u" argument). However, if "-u" argument is
+              used this option is automatically set
+
+       -T, --get-final-tree
+              Conduct final ML tree optimization
+
+       -u, --user-tree TREE\_FILE
+              Sets a user-defined topology. This option ignores all starting topologies different from "user-defined". The tree must be in Newick format
+
+       -v, --version
+              Output version information and exit
+%\end{tabular}
+
+   Exit status:
+       0      if OK,
+
+       64     usage error,
+
+       65     error with data,
+
+       69     unavailable feature,
+
+       70     internal software error (probably a bug),
+
+       74     I/O error,
+
+       78     error in configuration.
+
+%\bibliographystyle{natbib}
+%\bibliographystyle{achemnat}
+%\bibliographystyle{plainnat}
+%\bibliographystyle{abbrv}
+%\bibliographystyle{bioinformatics}
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\end{document}

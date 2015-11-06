@@ -639,22 +639,9 @@ namespace partest
 #if(USE_PLL_ALGORITHM)
     pllOptimizeModelParameters(_tree, _partitions, _epsilon);
 #else
-    double lk;
-
-    evaluateLikelihood (true);
-    optimizeRates (10 * _epsilon);
-    optimizeBaseFreqs (10 * _epsilon);
-    optimizeAlphas (10 * _epsilon);
-    evaluateLikelihood (true);
-    do
-    {
-      lk = getLikelihood ();
       optimizeRates (_epsilon);
       optimizeBaseFreqs (_epsilon);
       optimizeAlphas (_epsilon);
-      evaluateLikelihood (true);
-    }
-    while (fabs (lk - getLikelihood ()) > _epsilon);
 #endif
   }
 
