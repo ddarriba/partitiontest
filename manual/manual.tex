@@ -63,6 +63,13 @@ PartitionFinder is a tool to carry out statistical selection of best-fit partiti
 
 The main project webpage is located at GitHub: \url{http://www.github.com/ddarriba/partitiontest}.
 
+\subsection{Installation}
+
+PartitionTest depends on the Phylogenetic Likelihood Library (PLL) 1.0.11+.
+You can download PLL library at \url{http://www.libpll.org}.
+
+First, you need to install PLL following the instructions included in the package.
+
 %\subsection{Citation}
 
 %-
@@ -73,100 +80,155 @@ This program is free software; you can redistribute it and/or modify it under th
 
 These programs are protected by their own license and conditions, and using jModelTest implies agreeing with those conditions as well. 
 
-\subsection{Usage}
 
-       Selects the best-fit model of evolution for many-gene DNA or Protein data
+\section{Usage}
 
-       Mandatory arguments to long options are mandatory for short options too
+Typical usage of PartitionTest involves the creation of a configuration file.
+Although not mandatory, because PartitionTest can do a model selection on single-partition
+data sets, the configuration file is necessary for defining the initial datablocks.
+All parameters specified by command line will take preference over the ones specified in
+the configuration file.
 
-\begin{tabular}{rlp{.5\textwidth}}
-       -c& --config-file CONFIG\_FILE &
-             Sets the input configuration file. Run with --config-help for more information \\
+\subsection{Configuration file}
 
-        &--config-help 
-        &      Shows help about configuration files \\
+Running PartitionTest with the argument ``- - config-help'' prints out the format of the
+configuration file. The argument ``- - config-template'' prints out a template for the
+configuration file that you can redirect to a file and fill it up with your own options.
 
-        & --config-template 
-        &      Generates a configuration file template \\
+The format is the following:
 
-       -d& --data-type DATA\_TYPE 
-         &     Sets the type of the input data. DATA\_TYPE: nt (nucleotide), aa (amino-acid) \\
+\begin{verbatim}
+; This is a comment
 
-         &--disable-ckp 
-         &     Disables the checkpointing \\
+; Start of input data parameters
+[input]
+msa           = MSA_FILENAME
+tree          = TREE_FILENAME (default:maximum parsimony)
+topo	         = {mp|ml|fixed}
+datatype      = {nt|aa} (default: nt)
+keep-branches = {true|false} (default: false)
 
-         &--disable-output 
-         &     Disables any file-based output. This option also disables the chackpointing\\
+; Start of searching options
+[search]
+algorithm  = {greedy|hcluster|random|k1|kn|auto} (default: auto)
+replicates = # (default: 1)
 
-       -F & --empirical-frequencies
-          &    Includes models with empirical frequencies (+F) \\
+; Start of candidate models description
+[models]
+include = {all | gtr | [LIST]} (default:all)
+
+; Start of partitions
+[partitions]
+DATABLOCK1 = INI1-END1
+DATABLOCK2 = INI2-END2
+...
+DATABLOCKn = INIn-ENDn
+
+; Start of schemes
+[schemes]
+S1 = (DATABLOCK1,DATABLOCK2)(DATABLOCK3)...
+S2 = (DATABLOCK1,DATABLOCK2,DATABLOCK3)...
+...
+Sn = (DATABLOCK1)(DATABLOCK2,DATABLOCK3,...)
+
+; Start of output section
+[output]
+path=OUTPUT_BASE_URL (default:partitiontest_[MSA_FILENAME]
+\end{verbatim}
+
+\subsection{Command line arguments}
+
+Mandatory arguments to long options are mandatory for short options too
+
+\begin{flushleft}
+\renewcommand{\arraystretch}{1.5}
+\small {
+\begin{tabular}{@{}llp{.7\linewidth}@{}}
+-c & - - config-file {\it filename}
+   &   Sets the input configuration file. Run with - - config-help for more information \\
+
+ &- - config-help 
+ &      Shows help about configuration files \\
+
+ & - - config-template 
+ &      Generates a configuration file template \\
+
+-d& - - data-type {\it datatype} 
+  &     Sets the type of the input data. DATA\_TYPE: nt (nucleotide), aa (amino-acid) \\
+
+  &- - disable-ckp 
+  &     Disables the checkpointing \\
+
+  &- - disable-output 
+  &     Disables any file-based output. This option also disables the chackpointing\\
+
+-F & - - empirical-frequencies
+   &    Includes models with empirical frequencies (+F) \\
+
+-g& - - pergene-bl
+  &     Estimate per-gene branch-lengths \\
+
+&- - force-override
+&Existent output files will be overwritten \\
+
+-h& - - help-
+  &     Displays a help message \\
+
+-i& - - input-file {\it filename}
+  &     Sets the input alignment file ({\bf required}) \\
+
+-k& - - keep-branches
+  &     Keep branch lengths from the initial topology. This argument has no effect for initial topology different than fixed \\
+
+-N& - - non-stop
+  &     Algorithms do not stop if no improvement found at one step, for avoiding local maxima \\
+
+-O& - - optimize-mode {\it mode}
+  &     Sets  the  model optimization for the best-fit partition. {\it mode}: findmodel (find the best-fit model for each partition), gtr (use only GTR model for each partition (nucleic data)
+or AUTO for protein data) \\
+
+-p& - - num-procs {\it \#}
+  &     Number of threads for model evaluation (DEFAULT: 1) \\
+
+-r& - - replicates {\it \#}
+  &     Sets the number of replicates on Hierarchical Clustering and Random search modes \\
+
+-s& - - selection-criterion {\it sc}
+  &     Sets the criterion for model selection. {\it sc}: bic (Bayesian Information Criterion) (DEFAULT), aic (Akaike Information Criterion), aicc (Corrected Akaike Information  Criterion),  dt
+(Decision Theory). Sample size for bic, aicc and dt criteria is the alignment length \\
+
+-S& - - search {\it algorithm}
+  &     Sets  the  search  algorithm  {\it algorithm}:  k1  (evaluate K=1 only), kn (evaluate K=N only), greedy (greedy search algorithm), greedyext (extended greedy search algorithm), hcluster
+(hierarchical clustering algorithm), random (multiple step random sampling), auto (auto-select algorithm (DEFAULT)), exhaustive (exhaustive search) \\
+
+-t& - - topology {\it type}
+  &     Sets the starting topology for optimization. {\it type}: mp (creates a maximum parsimony topology for each model optimization (DEFAULT)), ml (creates a maximum likelihood topology
+for each model optimization), fixed (uses a fixed ML topology for every model optimization), user (uses a user-defined topology. Requires the "-u" argument). However, if "-u" argument is
+used this option is automatically set \\
+
+-T& - - get-final-tree
+  &     Conduct final ML tree optimization \\
+
+-u& - - user-tree {\it filename}
+  &     Sets a user-defined topology. This option ignores all starting topologies different from "user-defined". The tree must be in Newick format \\
+
+-v& - - version
+  &     Output version information and exit \\
 \end{tabular}
+}
+\end{flushleft}
 
-       -g, --pergene-bl
-              Estimate per-gene branch-lengths
-
-       --force-override
-              Existent output files will be overwritten
-
-       -h, --help-
-              Displays a help message
-
-       -i, --input-file INPUT\_FILE
-              Sets the input alignment file (REQUIRED)
-
-       -k, --keep-branches
-              Keep branch lengths from the initial topology. This argument has no effect for initial topology different than fixed
-
-       -N, --non-stop
-              Algorithms do not stop if no improvement found at one step, for avoiding local maxima
-
-       -O, --optimize-mode OPTIMIZE\_MODE
-              Sets  the  model optimization for the best-fit partition. OPTIMIZE\_MODE: findmodel (find the best-fit model for each partition), gtr (use only GTR model for each partition (nucleic data)
-              or AUTO for protein data)
-              
-       -p, --num-procs NUMBER\_OF\_THREADS
-              Number of threads for model evaluation (DEFAULT: 1)
-
-       -r, --replicates NUMBER\_OF\_REPLICATES
-              Sets the number of replicates on Hierarchical Clustering and Random search modes
-
-       -s, --selection-criterion CRITERION
-              Sets the criterion for model selection. CRITERION: bic (Bayesian Information Criterion) (DEFAULT), aic (Akaike Information Criterion), aicc (Corrected Akaike Information  Criterion),  dt
-              (Decision Theory). Sample size for bic, aicc and dt criteria is the alignment length
-
-       -S, --search SEARCH\_ALGORITHM
-              Sets  the  search  algorithm  SEARCH\_ALGORITHM:  k1  (evaluate K=1 only), kn (evaluate K=N only), greedy (greedy search algorithm), greedyext (extended greedy search algorithm), hcluster
-              (hierarchical clustering algorithm), random (multiple step random sampling), auto (auto-select algorithm (DEFAULT)), exhaustive (exhaustive search)
-
-       -t, --topology STARTING\_TOPOLOGY
-              Sets the starting topology for optimization. STARTING\_TOPOLOGY: mp (creates a maximum parsimony topology for each model optimization (DEFAULT)), ml (creates a maximum likelihood topology
-              for each model optimization), fixed (uses a fixed ML topology for every model optimization), user (uses a user-defined topology. Requires the "-u" argument). However, if "-u" argument is
-              used this option is automatically set
-
-       -T, --get-final-tree
-              Conduct final ML tree optimization
-
-       -u, --user-tree TREE\_FILE
-              Sets a user-defined topology. This option ignores all starting topologies different from "user-defined". The tree must be in Newick format
-
-       -v, --version
-              Output version information and exit
-%\end{tabular}
-
-   Exit status:
-       0      if OK,
-
-       64     usage error,
-
-       65     error with data,
-
-       69     unavailable feature,
-
-       70     internal software error (probably a bug),
-
-       74     I/O error,
-
-       78     error in configuration.
+\vspace{1em}
+\subsection{Exit status}
+\begin{itemize}
+\item[0] OK
+\item[64] Usage error
+\item[65] Error with data
+\item[69] Unavailable feature
+\item[70] Internal software error (probably a bug)
+\item[74] I/O error
+\item[78] Error in configuration
+\end{itemize}
 
 %\bibliographystyle{natbib}
 %\bibliographystyle{achemnat}

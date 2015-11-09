@@ -744,7 +744,7 @@ namespace partest
     cout << endl << "   ; Start of searching options" << endl;
     cout << "   [" << SEARCH_TAG << "]" << endl;
     cout << "   " << SEARCH_ALGORITHM_TAG
-        << "={greedy|hcluster|random|auto} (default: auto)";
+        << " = {greedy|hcluster|k1|kn|auto} (default: auto)";
     cout << "   " << SEARCH_ALGORITHM_REPS << " = # (default: 1)" << endl;
     cout << endl << "   ; Start of candidate models description" << endl;
     cout << "   [" << MODELS_TAG << "]" << endl;
@@ -764,16 +764,16 @@ namespace partest
 #endif
     cout << endl << "   ; Start of partitions" << endl;
     cout << "   [" << PARTITIONS_TAG << "]" << endl;
-    cout << "   PART1 = INI1-END1" << endl;
-    cout << "   PART1 = INI2-END2" << endl;
+    cout << "   DATABLOCK1 = INI1-END1" << endl;
+    cout << "   DATABLOCK2 = INI2-END2" << endl;
     cout << "   ..." << endl;
-    cout << "   PARTn = INIn-ENDn" << endl;
+    cout << "   DATABLOCKn = INIn-ENDn" << endl;
     cout << endl << "   ; Start of schemes" << endl;
     cout << "   [" << SCHEMES_TAG << "]" << endl;
-    cout << "   S1 = (GENE1,GENE2)(GENE3)..." << endl;
-    cout << "   S2 = (GENE1,GENE2,GENE3)..." << endl;
+    cout << "   S1 = (DATABLOCK1,DATABLOCK2)(DATABLOCK3)..." << endl;
+    cout << "   S2 = (DATABLOCK1,DATABLOCK2,DATABLOCK3)..." << endl;
     cout << "   ..." << endl;
-    cout << "   Sn = (GENE1)(GENE2,GENE3,...)" << endl;
+    cout << "   Sn = (DATABLOCK1)(DATABLOCK2,DATABLOCK3,...)" << endl;
     cout << endl << "   ; Start of output section" << endl;
     cout << "   [" << OUTPUT_TAG << "]" << endl;
     cout << "   " << OUTPUT_BASE_PATH
@@ -816,12 +816,12 @@ namespace partest
         << "                 blossum62, mtmam, mtart, hivb, hivw, mtzoa, pmb, flu }"
         << endl;
     cout << "               e.g.,  " << MODELS_INCLUDE_TAG
-        << "=dayhoff dcmut jtt" << endl;
+        << " = dayhoff dcmut jtt" << endl;
     cout << SCHEMES_TAG << endl;
     cout << "      Define a set of schemes to evaluate instead of searching."
         << endl;
     cout << "               e.g., "
-        << "S1=(GENE1,GENE2)(GENE3,GENE5,GENE6)(GENE4)" << endl;
+        << "S1=(DATABLOCK1,DATABLOCK2)(DATABLOCK3,DATABLOCK5,DATABLOCK6)(DATABLOCK4)" << endl;
     cout << OUTPUT_TAG << endl;
     cout
         << "      Define urls for the output files. set to N/A for avoid output"
@@ -857,10 +857,10 @@ namespace partest
     cout << SEARCH_ALGORITHM_TAG << " = auto" << endl;
     cout << SEARCH_ALGORITHM_REPS << " = 1" << endl;
     cout << "[" << PARTITIONS_TAG << "]" << endl;
-    cout << "PART1 = INI1-END1" << endl;
-    cout << "PART2 = INI2-END2" << endl;
+    cout << "DATABLOCK1 = INI1-END1" << endl;
+    cout << "DATABLOCK2 = INI2-END2" << endl;
     cout << "..." << endl;
-    cout << "PARTn = INIn-ENDn" << endl;
+    cout << "DATABLOCKn = INIn-ENDn" << endl;
   }
 
   vector<partitionInfo> * ConfigParser::getPartitions ()
