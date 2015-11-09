@@ -31,11 +31,6 @@
 #include <string.h>
 #include <sstream>
 #include <assert.h>
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-#define PACKAGE "partest-tool"
-#endif
 
 #define MAX_OPT_LENGTH 40
 #define SHORT_OPT_LENGTH 6
@@ -50,7 +45,10 @@ namespace partest
   {
     output << endl;
     output << "--------------------------------------------" << endl;
-    output << "|               PARTITIONTEST              |" << endl;
+    output << "|           PARTITIONTEST v" << PACKAGE_VERSION;
+    output << "           |" << endl;
+    output << "|                " << PROGRAM_DATE;
+    output << "                |" << endl;
     output << "|          (c) Diego Darriba 2014          |" << endl;
     output << "|                                          |" << endl;
     output << "| Model selection for genomic alignments   |" << endl;

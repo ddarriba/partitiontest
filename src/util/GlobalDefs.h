@@ -25,8 +25,14 @@
 #ifndef GLOBALDEFS_H_
 #define GLOBALDEFS_H_
 
-#define PROGRAM_VERSION "1.0"
-#define PROGRAM_DATE "15 Jul 2014"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE "partest-tool"
+#define PACKAGE_VERSION "undef"
+#endif
+
+#define PROGRAM_DATE "9 Nov 2015"
 
 #include <pll/pll.h>
 

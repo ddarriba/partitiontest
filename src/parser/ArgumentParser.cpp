@@ -626,7 +626,7 @@ namespace partest
           break;
         case ARG_VERSION:
           /* display application version */
-          cout << "PartitionTest v" << PROGRAM_VERSION << " - " << PROGRAM_DATE
+          cout << "PartitionTest v" << PACKAGE_VERSION << " - " << PROGRAM_DATE
               << endl;
           cout
               << "Copyright (C) 2014"
