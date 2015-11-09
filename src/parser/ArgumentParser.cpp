@@ -346,6 +346,10 @@ namespace partest
           {
             ptest->setStartingTopology (StartTopoFIXED);
           }
+          else if (!strcmp (value, ARG_TOPO_FIXEDML))
+          {
+            ptest->setStartingTopology (StartTopoFIXEDML);
+          }
           else if (!strcmp (value, ARG_TOPO_USER))
           {
             ptest->setStartingTopology (StartTopoUSER);

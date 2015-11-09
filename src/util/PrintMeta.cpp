@@ -76,7 +76,10 @@ namespace partest
     switch (starting_topology)
       {
       case StartTopoFIXED:
-        output << "Fixed" << endl;
+        output << "Fixed Maximum-Parsimony" << endl;
+        break;
+      case StartTopoFIXEDML:
+        output << "Fixed Maximum-Likelihood" << endl;
         break;
       case StartTopoML:
         output << "Maximum-Likelihood" << endl;
@@ -477,6 +480,9 @@ namespace partest
         << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--topology fixed"
+        << "Uses a fixed MP topology for every model optimization" << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology fixedml"
         << "Uses a fixed ML topology for every model optimization" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--topology user"

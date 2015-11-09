@@ -35,6 +35,7 @@
 #define ARG_TOPO_MP    "mp"		/** Argument for MP starting topology */
 #define ARG_TOPO_ML    "ml"		/** Argument for ML starting topology */
 #define ARG_TOPO_FIXED "fixed"	/** Argument for fixed JC/JTT starting topology */
+#define ARG_TOPO_FIXEDML "fixedml"  /** Argument for fixed ML JC/JTT starting topology */
 #define ARG_TOPO_USER  "user"	/** Argument for custom starting topology */
 #define ARG_IC_AIC     "aic"	/** Argument for using AIC for model selection */
 #define ARG_IC_BIC     "bic"	/** Argument for using BIC for model selection */

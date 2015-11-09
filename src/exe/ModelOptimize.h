@@ -40,7 +40,7 @@ namespace partest
     ModelOptimize ();
     virtual ~ModelOptimize ();
 
-    std::string buildStartingTree ();
+    std::string buildStartingFixedTree (int do_ml);
     std::string buildFinalTree (PartitioningScheme * finalScheme,
                                 bool reoptimizeParameters);
     std::string buildFinalTreeLinking (PartitioningScheme * finalScheme,

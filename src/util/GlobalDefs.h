@@ -47,7 +47,7 @@
 #define I_AM_ROOT 1
 #endif
 
-#define MAX_FILE_LENGTH 250
+#define MAX_FILE_LENGTH 40
 
 /* ML optimization parameters */
 #define AUTO_EPSILON           0.0f
@@ -176,7 +176,7 @@ namespace partest
 
   enum StartTopo
   {
-    StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
+    StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoFIXEDML, StartTopoUSER
   };
 
   enum SearchAlgo

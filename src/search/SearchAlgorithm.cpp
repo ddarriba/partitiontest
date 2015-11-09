@@ -258,9 +258,10 @@ namespace partest
 
   SearchAlgorithm::SearchAlgorithm ()
   {
-    if (starting_topology == StartTopoFIXED)
+    if (starting_topology == StartTopoFIXED
+        || starting_topology == StartTopoFIXEDML)
     {
-      mo.buildStartingTree ();
+      mo.buildStartingFixedTree (starting_topology == StartTopoFIXEDML);
     }
     if (outputAvailable && log_logfile)
     {

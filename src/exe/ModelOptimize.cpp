@@ -32,8 +32,6 @@
 #include <cstring>
 #include <cassert>
 
-#define ML_STARTING_TREE 0
-
 using namespace std;
 
 namespace partest
@@ -49,7 +47,7 @@ namespace partest
 
   }
 
-  string ModelOptimize::buildStartingTree ()
+  string ModelOptimize::buildStartingFixedTree (int do_ml)
   {
     bool loadedTree = false;
 
@@ -115,110 +113,111 @@ namespace partest
 
       pllComputeRandomizedStepwiseAdditionParsimonyTree (tree, compParts);
 
-#if(ML_STARTING_TREE)
-
-      tree->start = tree->nodep[1];
-
-      switch (data_type)
+      if (do_ml)
       {
-        case DT_PROTEIC:
-        for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-            cur_part++)
-        {
-          pInfo * current_part = compParts->partitionData[cur_part];
-          current_part->dataType = PLL_AA_DATA;
-          current_part->states = 20;
-          current_part->protUseEmpiricalFreqs = PLL_FALSE;
-          current_part->optimizeBaseFrequencies = PLL_FALSE;
-          current_part->optimizeAlphaParameter = PLL_TRUE;
-          current_part->optimizeSubstitutionRates = PLL_FALSE;
-          current_part->protModels = PLL_AUTO;
-          current_part->alpha = 0.0;
-        }
-        cout << timestamp() << " Loading AUTO models" << endl;
-        break;
-        case DT_NUCLEIC:
-        for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-            cur_part++)
-        {
-          pInfo * current_part = compParts->partitionData[cur_part];
-          current_part->dataType = PLL_DNA_DATA;
-          current_part->states = 4;
-          current_part->optimizeBaseFrequencies = PLL_TRUE;
-          current_part->optimizeAlphaParameter = PLL_TRUE;
-          current_part->optimizeSubstitutionRates = PLL_TRUE;
-        }
-        cout << timestamp() << " Loading GTR models" << endl;
-        break;
-        default:
-        assert(0);
-      }
+        tree->start = tree->nodep[1];
 
-      pllInitModel(tree, compParts);
+        switch (data_type)
+          {
+          case DT_PROTEIC:
+            for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+                cur_part++)
+            {
+              pInfo * current_part = compParts->partitionData[cur_part];
+              current_part->dataType = PLL_AA_DATA;
+              current_part->states = 20;
+              current_part->protUseEmpiricalFreqs = PLL_FALSE;
+              current_part->optimizeBaseFrequencies = PLL_FALSE;
+              current_part->optimizeAlphaParameter = PLL_TRUE;
+              current_part->optimizeSubstitutionRates = PLL_FALSE;
+              current_part->protModels = PLL_AUTO;
+              current_part->alpha = 0.0;
+            }
+            cout << timestamp () << " Loading AUTO models" << endl;
+            break;
+          case DT_NUCLEIC:
+            for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+                cur_part++)
+            {
+              pInfo * current_part = compParts->partitionData[cur_part];
+              current_part->dataType = PLL_DNA_DATA;
+              current_part->states = 4;
+              current_part->optimizeBaseFrequencies = PLL_TRUE;
+              current_part->optimizeAlphaParameter = PLL_TRUE;
+              current_part->optimizeSubstitutionRates = PLL_TRUE;
+            }
+            cout << timestamp () << " Loading GTR models" << endl;
+            break;
+          default:
+            assert(0);
+          }
 
-      tree->doCutoff = ML_PARAM_CUTOFF;
-      if (epsilon == AUTO_EPSILON)
-      {
-        tree->likelihoodEpsilon = -0.001 * tree->likelihood;
+        pllInitModel (tree, compParts);
+
+        tree->doCutoff = ML_PARAM_CUTOFF;
+        if (epsilon == AUTO_EPSILON)
+        {
+          tree->likelihoodEpsilon = -0.001 * tree->likelihood;
+        }
+        else
+        {
+          tree->likelihoodEpsilon = epsilon;
+        }
+        tree->stepwidth = ML_PARAM_STEPWIDTH;
+        tree->max_rearrange = ML_PARAM_MAXREARRANGE;
+        tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
+        tree->initialSet = ML_PARAM_INITIALSET;
+
+        cout << timestamp () << " Building ML topology (this might take a while...)" << endl;
+        pllRaxmlSearchAlgorithm (tree, compParts, PLL_TRUE);
       }
       else
       {
-        tree->likelihoodEpsilon = epsilon;
-      }
-      tree->stepwidth = ML_PARAM_STEPWIDTH;
-      tree->max_rearrange = ML_PARAM_MAXREARRANGE;
-      tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
-      tree->initialSet = ML_PARAM_INITIALSET;
-
-      cout << timestamp() << " Building ML topology" << endl;
-      pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
-
-#else
-      cout << timestamp () << " Updating branch lengths..." << endl;
-      pllInitModel (tree, compParts);
-      double lk = 0;
-      double optEpsilon = 10;
-      pllEvaluateLikelihood (tree, compParts, tree->start,
-      PLL_TRUE,
-                             PLL_FALSE);
-      if (!reoptimize_branch_lengths)
-      {
-        while (fabs (lk - tree->likelihood) > 5)
+        cout << timestamp () << " Updating branch lengths..." << endl;
+        pllInitModel (tree, compParts);
+        double lk = 0;
+        double optEpsilon = 10;
+        pllEvaluateLikelihood (tree, compParts, tree->start,
+        PLL_TRUE,
+                               PLL_FALSE);
+        if (!reoptimize_branch_lengths)
         {
-          lk = tree->likelihood;
-          pllOptimizeBranchLengths (tree, compParts, 4);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptRatesGeneric (tree, compParts, 10 * optEpsilon,
-                              compParts->rateList);
-          pllOptBaseFreqs (tree, compParts, 10 * optEpsilon,
-                           compParts->freqList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptAlphasGeneric (tree, compParts, 10 * optEpsilon,
-                               compParts->alphaList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          lk = tree->likelihood;
-          pllOptRatesGeneric (tree, compParts, optEpsilon, compParts->rateList);
-          pllOptBaseFreqs (tree, compParts, optEpsilon, compParts->freqList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptAlphasGeneric (tree, compParts, optEpsilon,
-                               compParts->alphaList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
+          while (fabs (lk - tree->likelihood) > 5)
+          {
+            lk = tree->likelihood;
+            pllOptimizeBranchLengths (tree, compParts, 4);
+            pllEvaluateLikelihood (tree, compParts, tree->start,
+            PLL_TRUE,
+                                   PLL_FALSE);
+            pllOptRatesGeneric (tree, compParts, 10 * optEpsilon,
+                                compParts->rateList);
+            pllOptBaseFreqs (tree, compParts, 10 * optEpsilon,
+                             compParts->freqList);
+            pllEvaluateLikelihood (tree, compParts, tree->start,
+            PLL_TRUE,
+                                   PLL_FALSE);
+            pllOptAlphasGeneric (tree, compParts, 10 * optEpsilon,
+                                 compParts->alphaList);
+            pllEvaluateLikelihood (tree, compParts, tree->start,
+            PLL_TRUE,
+                                   PLL_FALSE);
+            lk = tree->likelihood;
+            pllOptRatesGeneric (tree, compParts, optEpsilon,
+                                compParts->rateList);
+            pllOptBaseFreqs (tree, compParts, optEpsilon, compParts->freqList);
+            pllEvaluateLikelihood (tree, compParts, tree->start,
+            PLL_TRUE,
+                                   PLL_FALSE);
+            pllOptAlphasGeneric (tree, compParts, optEpsilon,
+                                 compParts->alphaList);
+            pllEvaluateLikelihood (tree, compParts, tree->start,
+            PLL_TRUE,
+                                   PLL_FALSE);
 
 //					pllOptimizeModelParameters(tree, compParts, optEpsilon);
+          }
         }
       }
-
-#endif
 
       pllTreeToNewick (tree->tree_string, tree, compParts, tree->start->back,
       PLL_TRUE,
@@ -466,6 +465,7 @@ namespace partest
           fTree->start = fTree->nodep[1];
           break;
         case StartTopoFIXED:
+        case StartTopoFIXEDML:
           {
             pllNewickTree * nt;
             nt = pllNewickParseString (starting_tree);
@@ -682,8 +682,10 @@ namespace partest
 #endif
     cout << " element " << setw (Utilities::iDecLog (limit) + 1)
         << setfill ('0') << right << index + 1 << "/" << limit << setfill (' ');
+#ifdef DEBUG
     if (epsilon == AUTO_EPSILON)
       cout << " [" << element->getEpsilon () << "]";
+#endif
     cout << endl;
 
     for (size_t modelIndex = 0; modelIndex < element->getNumberOfModels ();
@@ -723,7 +725,7 @@ namespace partest
         cur_epsilon = element->getEpsilon ();
       }
       int smoothIterations = 32;
-      int iters=3;
+      int iters = 5;
       do
       {
         lk = treeManager->getLikelihood ();
