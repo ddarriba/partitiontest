@@ -45,7 +45,10 @@
     urlcolor=MidnightBlue
 }
 
+\setlength\parindent{0pt}
+
 \begin{document}
+
 \providecommand{\versionnumber}{0.1.1}
 \title{PartitionFinder 1.0 Manual v\versionnumber}
 \author{Diego Darriba, David Posada}
@@ -68,7 +71,35 @@ The main project webpage is located at GitHub: \url{http://www.github.com/ddarri
 PartitionTest depends on the Phylogenetic Likelihood Library (PLL) 1.0.11+.
 You can download PLL library at \url{http://www.libpll.org}.
 
-First, you need to install PLL following the instructions included in the package.
+First, you need to install PLL following the instructions included in the package. Typically:
+
+\begin{verbatim}
+$ wget http://libpll.org/Downloads/libpll-1.0.11.tar.gz
+$ tar zvxf libpll-1.0.11.tar.gz
+$ cd libpll-1.0.11
+$ ./configure && make && make install
+\end{verbatim}
+
+Next, download and unpackage PartitionTest and follow the instructions in the INSTALL file:
+
+\begin{verbatim}
+$ tar zvxf partitiontest-xx.yy.zz.tar.gz
+$ cd partitiontest-xx.yy.zz
+$ ./configure && make && make install
+\end{verbatim}
+
+Finally, you can check the installation by running an example data set:
+
+\begin{verbatim}
+$ partest -c example-data/dna/example1.conf
+\end{verbatim}
+
+Obtain command-line help by using the {\it help} argument or the {\it man} page:
+
+\begin{verbatim}
+$ partest --help
+$ man partest
+\end{verbatim}
 
 %\subsection{Citation}
 
@@ -80,7 +111,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 These programs are protected by their own license and conditions, and using jModelTest implies agreeing with those conditions as well. 
 
-
+\clearpage
 \section{Usage}
 
 Typical usage of PartitionTest involves the creation of a configuration file.
@@ -214,6 +245,12 @@ used this option is automatically set \\
 
 -v& - - version
   &     Output version information and exit \\
+  
+-w& - - weights {\it w\_r,w\_f,w\_a}
+  &     Sets the weights for computing partition distances: 
+  {\it w\_r} = substitution rates matrix, 
+  {\it w\_f} = base frequencies,
+  {\it w\_a} = $\Gamma$ shape parameter ($\alpha$). \\
 \end{tabular}
 }
 \end{flushleft}
