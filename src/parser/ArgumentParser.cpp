@@ -34,9 +34,9 @@ namespace partest
 {
 
 #ifdef _IG_MODELS
-#define NUM_ARGUMENTS 28
+#define NUM_ARGUMENTS 30
 #else
-#define NUM_ARGUMENTS 26
+#define NUM_ARGUMENTS 28
 #endif
 
   void ArgumentParser::init ()
@@ -81,7 +81,8 @@ namespace partest
         { ARG_FINAL_TREE, 'T', "get-final-tree", false },
         { ARG_USER_TREE, 'u', "user-tree", true },
         { ARG_VERBOSE, 'v', "verbose", true },
-        { ARG_VERSION, 'V', "version", false }
+        { ARG_VERSION, 'V', "version", false },
+        { ARG_WEIGHTS, 'w', "weights", true }
       };
 
     size_t size = NUM_ARGUMENTS * sizeof(option);
@@ -648,6 +649,32 @@ namespace partest
               << endl << endl;
           cout << "Written by Diego Darriba (ddarriba@udc.es)." << endl;
           exit_partest (EX_OK);
+          break;
+        case ARG_WEIGHTS:
+          {
+            char * pch[N_WGT];
+            string v0(value);
+            int i = 0;
+            pch[i++] = strtok (value,",");
+            while (i < N_WGT)
+            {
+              pch[i] = strtok (NULL, " ,");
+              if(!pch[i])
+                break;
+              i++;
+            }
+            for (int j=0; j<i; j++)
+            {
+              if (i!=N_WGT || !Utilities::isNumeric(pch[j]))
+              {
+                cerr << "[ERROR] wrong weight values: \"" << v0 << "\"" << endl;
+                exit_partest (EX_CONFIG);
+              }
+            }
+            wgt_r = atof(pch[0]);
+            wgt_f = atof(pch[1]);
+            wgt_a = atof(pch[2]);
+          }
           break;
         default:
           cerr << "[ERROR] \"" << argument << "\" option not recognized."

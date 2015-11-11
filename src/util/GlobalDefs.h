@@ -236,6 +236,7 @@ namespace partest
 #define VERBOSITY_LOW  0
 #define VERBOSITY_MID  1
 #define VERBOSITY_HIGH 2
+
   /* configuration */
   /** Use brent algorithm for estimating branch length scalers */
 #define USE_BLSCALER_BRENT 1
@@ -279,6 +280,12 @@ namespace partest
   extern bool reoptimize_branch_lengths;
   /** Determine whether to estimate per-gene branch lengths */
   extern bool pergene_branch_lengths;
+
+  /* distances weights */
+  #define N_WGT 3
+  extern double wgt_r; /* substitution rates */
+  extern double wgt_f; /* base frequencies */
+  extern double wgt_a; /* shape */
 
   /* input/output */
   extern std::string * input_file;

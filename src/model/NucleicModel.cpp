@@ -210,23 +210,6 @@ namespace partest
   {
     NucleicModel * other = static_cast<NucleicModel *> (otherModel);
 
-//	double shapeDistance = fabs(alpha - other->alpha);
-//	double rDistance = 0.0;
-//	for (int i = 0; i < 6; i++) {
-//		rDistance += (rates[i] - other->rates[i])
-//				* (rates[i] - other->rates[i]);
-//	}
-//	double freqsDistance = 0.0;
-//	for (int i = 0; i < numberOfFrequencies; i++) {
-//		freqsDistance += (frequencies[i] - other->frequencies[i])
-//				* (frequencies[i] - other->frequencies[i]);
-//	}
-//	freqsDistance = sqrt(freqsDistance);
-//
-//	double distance = matrixDistance + invDistance + shapeDistance
-//			+ freqsDistance;
-//  double rCorrelation = Utilities::correlation(rates, other->rates, 6);
-
     /* we calculate a factor K such that mse(Ra*K, Rb) is minimized */
     double numFactor = 0.0, denFactor = 0.0;
     for (int i = 0; i < 6; i++)
@@ -242,7 +225,11 @@ namespace partest
                                                      kFactor);
     double fDistance = Utilities::euclideanDistance (frequencies,
                                                      other->frequencies, 4);
-    double distance = rDistance + fDistance; // + shapeDistance;
+    double aDistance = fabs(alpha - other->alpha);
+
+    double distance = wgt_r * rDistance +
+                      wgt_f * fDistance +
+                      wgt_a * aDistance;
 
     return distance;
   }

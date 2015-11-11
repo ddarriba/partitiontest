@@ -66,6 +66,11 @@ namespace partest {
 	bool reoptimize_branch_lengths = true;
 	bool pergene_branch_lengths = false;
 
+  /* weights */
+  double wgt_r = 1;
+  double wgt_f = 1;
+  double wgt_a = 0;
+
 	/* input/output */
 	string * input_file = 0;
 	string * config_file = 0;

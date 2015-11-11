@@ -94,6 +94,7 @@ enum ArgIndex
   ARG_USER_TREE, /** Argument for input user tree file */
   ARG_VERBOSE, /** Argument for setting verbosity level */
   ARG_VERSION, /** Show version */
+  ARG_WEIGHTS, /** Weights for computing distances */
   ARG_END
 };
 
