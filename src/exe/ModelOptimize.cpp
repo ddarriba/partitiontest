@@ -180,31 +180,14 @@ namespace partest
           cout << timestamp () << " Updating branch lengths..." << endl;
           pllInitModel (tree, compParts);
           double lk = 0;
-          double optEpsilon = 10;
+          double optEpsilon = 1;
           pllEvaluateLikelihood (tree, compParts, tree->start,
           PLL_TRUE,
                                  PLL_FALSE);
           if (!reoptimize_branch_lengths)
           {
-            while (fabs (lk - tree->likelihood) > 5)
+            while (fabs (lk - tree->likelihood) > optEpsilon)
             {
-              lk = tree->likelihood;
-              pllOptimizeBranchLengths (tree, compParts, 4);
-              pllEvaluateLikelihood (tree, compParts, tree->start,
-              PLL_TRUE,
-                                     PLL_FALSE);
-              pllOptRatesGeneric (tree, compParts, 10 * optEpsilon,
-                                  compParts->rateList);
-              pllOptBaseFreqs (tree, compParts, 10 * optEpsilon,
-                               compParts->freqList);
-              pllEvaluateLikelihood (tree, compParts, tree->start,
-              PLL_TRUE,
-                                     PLL_FALSE);
-              pllOptAlphasGeneric (tree, compParts, 10 * optEpsilon,
-                                   compParts->alphaList);
-              pllEvaluateLikelihood (tree, compParts, tree->start,
-              PLL_TRUE,
-                                     PLL_FALSE);
               lk = tree->likelihood;
               pllOptRatesGeneric (tree, compParts, optEpsilon,
                                   compParts->rateList);
@@ -216,10 +199,7 @@ namespace partest
               pllOptAlphasGeneric (tree, compParts, optEpsilon,
                                    compParts->alphaList);
               pllEvaluateLikelihood (tree, compParts, tree->start,
-              PLL_TRUE,
-                                     PLL_FALSE);
-
-//					pllOptimizeModelParameters(tree, compParts, optEpsilon);
+              PLL_TRUE, PLL_FALSE);
             }
           }
         }
