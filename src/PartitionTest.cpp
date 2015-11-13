@@ -72,7 +72,9 @@ namespace partest
 
   PartitionTest::~PartitionTest ()
   {
-    cout << timestamp () << " Execution done." << endl;
+    if (I_AM_ROOT)
+      cout << timestamp () << " Execution done." << endl;
+
     if (phylip)
     {
       pllAlignmentDataDestroy (phylip);

@@ -2,15 +2,15 @@ R_LOG_FILE="rscript.log"
 IND_LOG_FILE="indelible.log"
 
 # --- script configuration ---
-prefix=sim1   # Simulation name
-datatype=nt   # Datatype (nt/aa)
-NUM_SIMS=4000 # Number of simulations
-mintaxa=6     # Min. number of taxa
-maxtaxa=40    # Max. number of taxa
-minblocks=5   # Min. number of data blocks
-maxblocks=50  # Max. number of data blocks
-minlen=500    # Min. per-data-block length
-maxlen=1500   # Max. per-data-block length
+prefix=sim1     # Simulation name
+datatype=nt     # Datatype (nt/aa)
+NUM_SIMS=100    # Number of simulations
+mintaxa=6       # Min. number of taxa
+maxtaxa=40      # Max. number of taxa
+minblocks=1000  # Min. number of data blocks
+maxblocks=1000  # Max. number of data blocks
+minlen=500      # Min. per-data-block length
+maxlen=1500     # Max. per-data-block length
 # --- /script configuration ---
 
 simsdir=sims.$prefix
@@ -31,9 +31,9 @@ OUTPUT_PART_SUMMARY="${simsdir}/partitionssummary.out"
 
 # Generate models, partitions and trees
 echo "[1] Running R scripts"
-cd R-scripts
-R --vanilla --slave --args $prefix $datatype $NUM_SIMS $mintaxa $maxtaxa $minblocks $maxblocks $minlen $maxlen < build_models.r 2>&1
-cd -
+#cd R-scripts
+#R --vanilla --slave --args $prefix $datatype $NUM_SIMS $mintaxa $maxtaxa $minblocks $maxblocks $minlen $maxlen < build_models.r 2>&1
+#cd -
 
 rm -rf ${LOG_DIR} ${OUTPUT_INDELIBLE_DIR} ${OUTPUT_ALIGNS_DIR} ${OUTPUT_PARTEST_DIR} ${OUTPUT_RKN_DIR} ${OUTPUT_RKT_DIR}
 mkdir  ${LOG_DIR} ${OUTPUT_INDELIBLE_DIR} ${OUTPUT_ALIGNS_DIR} ${OUTPUT_PARTEST_DIR} ${OUTPUT_RKN_DIR} ${OUTPUT_RKT_DIR}
@@ -56,7 +56,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	touch ${IND_FILE}
 
 	# Write header
-	if [ "$datatype" == "dna" ]; then
+	if [ "$datatype" == "nt" ]; then
 		echo [TYPE] NUCLEOTIDE 2 >> ${IND_FILE}
 	else
 		echo [TYPE] AMINOACID 1 >> ${IND_FILE}
@@ -83,11 +83,11 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 
 	#Write models
 	models=`sed -n -e $((part_header_line+1)),$((part_header_line+num_blocks))p ${INPUT_GEN2PARTFILE} | cut -d' ' -f2`
-	models=`for each in ${models}; do echo $each; done | sort | uniq`
+	models=`for each in ${models}; do echo $each; done | sort -n | uniq`
 	for each in ${models}; do
-		model=`sed -n -e ${each}p ${INPUT_MODELFILE}`
+		model=`sed -n -e ${each}p ${INPUT_MODELFILE}| xargs`
 		modelname=`echo $model | cut -d' ' -f1`
-		if [ "$datatype" == "dna" ]; then
+		if [ "$datatype" == "nt" ]; then
 			fA=`echo $model | cut -d' ' -f2`
 			fC=`echo $model | cut -d' ' -f3`
 			fG=`echo $model | cut -d' ' -f4`
@@ -102,27 +102,34 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 			rE=`echo $model | cut -d' ' -f11`
 			rF=`echo $model | cut -d' ' -f12`
 
-			pInv=0
-			shape=`echo $model | cut -d' ' -f13`
+			pInv=`echo $model | cut -d' ' -f13`
+			shape=`echo $model | cut -d' ' -f14`
 		else
 			pF=`echo $model | cut -d' ' -f2`
 			freqs=`echo $model | cut -d' ' -f3-22`
-			pInv=0
-			shape=`echo $model | cut -d' ' -f23`
-			modelName=`echo $model | cut -d' ' -f24`
+			pInv=`echo $model | cut -d' ' -f23`
+			shape=`echo $model | cut -d' ' -f24`
+			modelName=`echo $model | cut -d' ' -f25`
 		fi
 
 		if [ $shape != 0 ]; then
 			ncat=4
 		else
-			ncat=0
+			ncat=1
 		fi
 
 		echo [MODEL] model${each} >> ${IND_FILE}
 
-		if [ "$datatype" == "dna" ]; then
+		if [ "$datatype" == "nt" ]; then
 			if [ $rA != NA -a $rA != 0 ]; then
-				echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} ${rB} >> ${IND_FILE}
+        # normalize to rB for INDELible
+        rA=`echo "scale=4; $rA / $rB" | bc -l`
+        rC=`echo "scale=4; $rC / $rB" | bc -l`
+        rD=`echo "scale=4; $rD / $rB" | bc -l`
+        rE=`echo "scale=4; $rE / $rB" | bc -l`
+        rF=`echo "scale=4; $rF / $rB" | bc -l`
+        rB=1
+				echo [submodel] GTR ${rE} ${rC} ${rF} ${rA} ${rD} >> ${IND_FILE}
 			else
 				echo [submodel] HKY ${kappa} >> ${IND_FILE}
 			fi
@@ -131,11 +138,11 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		fi
 
 		if [ $shape == 100 ]; then
-		shape=0
+		  shape=0
 		fi
 
 		echo [rates] ${pInv} ${shape} ${ncat} >> ${IND_FILE}
-		if [ "$datatype" == "dna" ] || [ "$pF" == "1" ]; then
+		if [ "$datatype" == "nt" ] || [ "$pF" == "1" ]; then
 			echo [statefreq] $freqs >> ${IND_FILE}
 		fi
 
@@ -159,7 +166,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		cur_part=`echo ${partline} | cut -d' ' -f3`
 		cur_len=`echo ${partline} | cut -d' ' -f4`
 		if [ "" == "${trueparts[$cur_part]}" ]; then
-			if [ "$datatype" == "dna" ]; then
+			if [ "$datatype" == "nt" ]; then
 				trueparts[$cur_part]="DNAX, PART$cur_part=${next_pos}-$((next_pos + cur_len - 1))"
 			else
 				trueparts[$cur_part]="AUTO, PART$cur_part=${next_pos}-$((next_pos + cur_len - 1))"
@@ -187,7 +194,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 	align_filename=${OUTPUT_ALIGNS_DIR}/alignment${sim_index}.phy
 	rkn_filename=${OUTPUT_RKN_DIR}/control${sim_index}
 	partest_filename=${OUTPUT_PARTEST_DIR}/alignment${sim_index}.conf
-	partition_line=`sed "$((sim_index * 3 - 2))q;d" $INPUT_PARTITIONSFILE`
+	partition_line=`sed "$((sim_index * 4 - 3))q;d" $INPUT_PARTITIONSFILE`
 	num_blocks=`echo $partition_line | cut -d' ' -f 2`
 	echo "TRACE    ${num_blocks} data blocks"
 	echo [INPUT] > ${partest_filename}
@@ -216,7 +223,7 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 		block_length=`echo ${partmodel} | cut -d' ' -f4`
 		echo BLOCK${block_index}=${next_start}-$((next_start+block_length-1)) >> ${partest_filename}
 		echo "BLOCK${block_index}=${next_start}-$((next_start+block_length-1));" >> ${partfinder_filename}
-		if [ "$datatype" == "dna" ]; then
+		if [ "$datatype" == "nt" ]; then
 			echo "DNA, BLOCK${block_index}=${next_start}-$((next_start+block_length-1))" >> ${rkn_filename}
 		else
 			echo "AUTO, BLOCK${block_index}=${next_start}-$((next_start+block_length-1))" >> ${rkn_filename}
@@ -240,5 +247,5 @@ for ((sim_index=1; sim_index<=${NUM_SIMS}; sim_index++)); do
 
 	part_header_line=$((part_header_line + num_blocks + 1))
 
-        echo ${index}
+  echo ${index}
 done

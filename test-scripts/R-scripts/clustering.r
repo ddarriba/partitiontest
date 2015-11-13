@@ -52,7 +52,14 @@ sample_cluster <- function(max_boxes, num_elements) {
   return(boxes)
 }
 
-cluster <- function(max_boxes, num_elements) {
-  boxes <- sample_cluster(max_boxes, num_elements)
-  return(boxes)
+cluster <- function(n_boxes, n_elements) {
+  if (n_boxes > n_elements) {
+    cat("Error in cluster(n_boxes,n_elements\n  n_elements must be >= n_boxes\n")
+    return(NA)
+  } else {
+    boxes <- 1:n_boxes
+    remain <- n_elements - n_boxes
+    boxes[(n_boxes+1):n_elements] <- sample_cluster(n_boxes, remain)
+    return(boxes)
+  }
 }

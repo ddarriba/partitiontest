@@ -39,7 +39,7 @@ cat("Block length:      ",MIN_BLOCKLEN,"-",MAX_BLOCKLEN,"\n")
 cat("------ -------------- ------\n\n")
 
 MIN_PARTITIONS = 1
-MAX_PARTITIONS = 100
+MAX_PARTITIONS = MAX_DATA_BLOCKS
 
 BASE_DIR = paste("../sims.",PREFIX, sep="")
 OUT_TREE_FILE   = paste(BASE_DIR,"/treefile.out", sep="")               # Output file for trees
@@ -74,12 +74,10 @@ for(sample_index in 1:(SAMPLES)) {
 	} else {
 		num_data_blocks = MIN_DATA_BLOCKS
 	}
-	max_partitions = sample(MIN_PARTITIONS:min(num_data_blocks,MAX_PARTITIONS),1,replace=T)
-
 	
-
 	# Assign models to data blocks
-	boxes = cluster(max_partitions,num_data_blocks)
+  n_partitions = sample(MIN_PARTITIONS:MAX_PARTITIONS,1)
+	boxes = cluster(n_partitions,num_data_blocks)
 	data_blocks_mat = matrix(nrow=num_data_blocks,ncol=4,byrow=TRUE)
 	colnames(data_blocks_mat) = c("BlockNumber", "ModelNumber", "LocalNumber", "NumSites")
 	data_blocks_mat = as.table(data_blocks_mat)
@@ -105,13 +103,18 @@ for(sample_index in 1:(SAMPLES)) {
 
 	# allocate results matrix
 	if (DATA_TYPE == "aa") {
-		models_mat = matrix(nrow=(num_partitions),ncol=25,byrow=TRUE)
+		models_mat = matrix(nrow=(num_partitions),ncol=26,byrow=TRUE)
 		colnames(models_mat) = c("ModelName", "+F",
-			"f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18","f19","f20",
-			"shape", "partition", "id")
+                             "f1", "f2", "f3", "f4", "f5",
+                             "f6", "f7", "f8", "f9", "f10",
+                             "f11","f12","f13","f14","f15",
+                             "f16","f17","f18","f19","f20",
+                             "pinv", "shape", "partition", "id")
 	} else {
-		models_mat = matrix(nrow=(num_partitions),ncol=15,byrow=TRUE)
-		colnames(models_mat) = c("ModelName", "fA","fC","fG","fT","kappa", "Ra", "Rb", "Rc", "Rd", "Re", "Rf", "shape", "partition", "id")
+		models_mat = matrix(nrow=(num_partitions),ncol=16,byrow=TRUE)
+		colnames(models_mat) = c("ModelName", "fA","fC","fG","fT","kappa",
+                             "Ra", "Rb", "Rc", "Rd", "Re", "Rf", 
+                             "pinv", "shape", "partition", "id")
 	}
 	models_mat = as.table(models_mat)
 
@@ -119,42 +122,55 @@ for(sample_index in 1:(SAMPLES)) {
 
 	avoid = c()
 	for(i in 1:(num_partitions)) {
-	    if (DATA_TYPE == "aa") {
-		f_model = rbinom(1, 1, 0.5)
+	  if (DATA_TYPE == "aa") {
+		  f_model = rbinom(1, 1, 0.5)
+		  g_model = rbinom(1, 1, 0.5)
+		  i_model = rbinom(1, 1, 0.5)
 
-		modelid = sample(1:14,1,replace=T)
+		  modelid = sample(1:14,1,replace=T)
 
-		models_mat[i,24] = inp$indelible_model[modelid]
-		models_mat[i,25] = inp$indelible_index[modelid]
-		completename = inp$indelible_model[modelid]
-		completename = paste(completename, "+G", sep="")
-		if (f_model == 1) {
+		  models_mat[i,25] = inp$indelible_model[modelid]
+		  models_mat[i,26] = inp$indelible_index[modelid]
+		  completename = inp$indelible_model[modelid]
+		  completename = paste(completename, "+G", sep="")
+		  if (f_model == 1) {
 		   completename = paste(completename, "+F", sep="")
 		   base_frequencies <- numeric(20)
 		   while (min(base_frequencies) < 0.005) {
 		       base_frequencies <- rdirichlet(1, c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) )
 		   }
 		   models_mat[i,3:22] <- formatC(base_frequencies,digits=6)
-		}
-		models_mat[i,1] = completename
-		models_mat[i,2] = f_model
+		  }
+		  models_mat[i,1] = completename
+		  models_mat[i,2] = f_model
 
-		#Gamma shape from an Exponential (1,1) => mean=1
-		gamma_shape = rtrunc(1,"exp", 1, 2, a=0.5,b=5)
-		models_mat[i,23] = formatC(gamma_shape,digits=4)
-	    } else {
-		model = buildDNAmodel(inp, avoid)
-		models_mat[i,1:15] = model
-		id = as.numeric(model[15])
-		if (id <= 20) {
-			avoid = c(id, avoid)
-			if (id %% 2 > 0) {
-				avoid = c( id + 1, avoid)
-			} else {
-				avoid = c( id - 1, avoid)
-			}
-		}
-	    }
+      if (i_model)
+  		  p_inv = rtrunc(1,"exp", 1, 2, a=0.2,b=0.8)
+      else
+        p_inv = 0
+		  models_mat[i,23] = formatC(p_inv,digits=4)
+
+      if (g_model)
+  		  gamma_shape = rtrunc(1,"exp", 1, 2, a=0.5,b=5)
+      else
+        gamma_shape = 100
+		  models_mat[i,24] = formatC(gamma_shape,digits=4)
+
+    } else {
+
+		  model = buildDNAmodel(inp, avoid)
+		  models_mat[i,1:16] = model
+		  id = as.numeric(model[16])
+		  if ((id %% 22) < 13) {
+			  avoid = c(id, avoid)
+#			  if (id %% 2 > 0) {
+#				  avoid = c( id + 1, avoid)
+#			  } else {
+#				  avoid = c( id - 1, avoid)
+#			  }
+
+		  }
+	  }
 	}
 
 	# Write the output models
@@ -185,15 +201,19 @@ for(sample_index in 1:(SAMPLES)) {
 	}
 	write.table(sim_desc,file=OUT_CURSIM_FILE,append=FALSE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
-	partitionstringDEC = matrix(1:num_data_blocks)
+	partitionstring100 = matrix(1:num_data_blocks)
+	partitionstring10  = matrix(1:num_data_blocks)
 	for(i in 1:(num_data_blocks)) {
-	  partitionstringDEC[i] = partitionstring[i] %/% 10
+	  partitionstring100[i] = partitionstring[i] %/% 100
+	  partitionstring10[i] = (partitionstring[i] %% 100) %/% 10
 	  partitionstring[i] = partitionstring[i] %% 10
 	}
 	partitionstring = toString(partitionstring)
 	partitionstring = gsub(", ","",partitionstring)
-	partitionstringDEC = toString(partitionstringDEC)
-	partitionstringDEC = gsub(", ","",partitionstringDEC)
+	partitionstring10 = toString(partitionstring10)
+	partitionstring10 = gsub(", ","",partitionstring10)
+	partitionstring100 = toString(partitionstring100)
+	partitionstring100 = gsub(", ","",partitionstring100)
 
 	header = array(1:3)
 	header[1] = sample_index
@@ -203,7 +223,8 @@ for(sample_index in 1:(SAMPLES)) {
 	write.table(data_blocks_mat,file=OUT_GENTOPART_FILE,append=TRUE,quote=FALSE,col.names=FALSE,row.names=FALSE)
 
 	write(header, file=OUT_PARTITIONS_FILE, append=TRUE)
-	write(partitionstringDEC, file=OUT_PARTITIONS_FILE, append=TRUE)
+	write(partitionstring100, file=OUT_PARTITIONS_FILE, append=TRUE)
+	write(partitionstring10, file=OUT_PARTITIONS_FILE, append=TRUE)
 	write(partitionstring, file=OUT_PARTITIONS_FILE, append=TRUE)
 
 	current_index = current_index + num_partitions
@@ -216,31 +237,37 @@ for(sample_index in 1:(SAMPLES)) {
 	TAXA_COUNT = MIN_TAXA
     }
     goodTree = FALSE
+    tree_it = 400
     while (!goodTree) {
       tree = rtree(TAXA_COUNT,TRUE,NULL,rexp,rate=10)
       PhyloSim(tree)$treeLength
     
       write.tree(tree)
 
-      # Scale total tree length so the tree length uniformly distributed in the [0.5, 10] range
-      runiform = runif(1,0,1)
+      # Scale total tree length so the tree length uniformly distributed in the [2, 12] range
+      min_treelen = 2
+      max_treelen = 12
+      runiform = runif(1,min_treelen,max_treelen)
       nbranches = 2*TAXA_COUNT - 3
-      scale_factor = ((.1 + runiform)*nbranches)
+      scale_factor = runiform # ((.1 + runiform)*nbranches)
       scaledPhyloTree=PhyloSim(tree)
       scaleTree(scaledPhyloTree,scale_factor/scaledPhyloTree$treeLength)
       scaledPhyloTree$treeLength
       scaledTree = getPhylo(scaledPhyloTree)
       goodTree = (max(tree$edge.length)/min(tree$edge.length) < 1000 && max(scaledTree$edge.length) < 2 && min(scaledTree$edge.length)>0.001)
-# if (!goodTree)
-# cat("Reply ", TAXA_COUNT, " " , max(tree$edge.length), " ", min(tree$edge.length), " ", max(tree$edge.length)/min(tree$edge.length), " ", max(scaledTree$edge.length), " ", max(scaledTree$edge.length < 2) , " " , min(scaledTree$edge.length), " ", min(scaledTree$edge.length>0.001), "\n") 
+
+      # for security (avoid infinite loops)
+      tree_it = tree_it - 1
+      stopifnot(tree_it > 0)
     }
     write.tree(scaledTree, file=OUT_TREE_FILE, append=TRUE)
 
     treeStr = write.tree(scaledTree)
     treeLen = sum(scaledTree$edge.length)
 
-    tList = list(id=sample_index, ndatablocks=num_data_blocks, nparts=num_partitions, part0=partitionstring, 
-      part1=partitionstringDEC, ntaxa=TAXA_COUNT, seqlen=(startposition-1),treelen=treeLen,tree=treeStr)
+    tList = list(id=sample_index, ndatablocks=num_data_blocks, nparts=num_partitions,  
+                 part2=partitionstring100, part1=partitionstring10, part0=partitionstring, 
+                 ntaxa=TAXA_COUNT, seqlen=(startposition-1),treelen=treeLen,tree=treeStr)
     write.table(tList, file=OUT_SUMMARY_FILE, append=TRUE, col.names=FALSE, row.names=FALSE, quote=FALSE)
     cat(sample_index,"/",SAMPLES, " : ntaxa=",TAXA_COUNT, " ndatablocks=", num_data_blocks, " nparts=", num_partitions,"\n")
 } # end SAMPLES
