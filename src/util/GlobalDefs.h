@@ -25,8 +25,14 @@
 #ifndef GLOBALDEFS_H_
 #define GLOBALDEFS_H_
 
-#define PROGRAM_VERSION "1.0"
-#define PROGRAM_DATE "15 Jul 2014"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE "partest-tool"
+#define PACKAGE_VERSION "undef"
+#endif
+
+#define PROGRAM_DATE "9 Nov 2015"
 
 #include <pll/pll.h>
 
@@ -41,7 +47,7 @@
 #define I_AM_ROOT 1
 #endif
 
-#define MAX_FILE_LENGTH 250
+#define MAX_FILE_LENGTH 40
 
 /* ML optimization parameters */
 #define AUTO_EPSILON           0.0f
@@ -170,7 +176,7 @@ namespace partest
 
   enum StartTopo
   {
-    StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoUSER
+    StartTopoMP, StartTopoML, StartTopoFIXED, StartTopoFIXEDML, StartTopoUSER
   };
 
   enum SearchAlgo
@@ -230,6 +236,7 @@ namespace partest
 #define VERBOSITY_LOW  0
 #define VERBOSITY_MID  1
 #define VERBOSITY_HIGH 2
+
   /* configuration */
   /** Use brent algorithm for estimating branch length scalers */
 #define USE_BLSCALER_BRENT 1
@@ -273,6 +280,12 @@ namespace partest
   extern bool reoptimize_branch_lengths;
   /** Determine whether to estimate per-gene branch lengths */
   extern bool pergene_branch_lengths;
+
+  /* distances weights */
+  #define N_WGT 3
+  extern double wgt_r; /* substitution rates */
+  extern double wgt_f; /* base frequencies */
+  extern double wgt_a; /* shape */
 
   /* input/output */
   extern std::string * input_file;

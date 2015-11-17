@@ -14,8 +14,9 @@ buildDNAmodel <- function(inp, avoid) {
 
 	model <- c("",0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
+  n_models = length(modelName)
 	repeat {
-		modelid <- sample(1:22,1,replace=T)
+		modelid <- sample(1:n_models,1,replace=T)
 		if (!modelid %in% avoid) break
 	}
 
@@ -32,22 +33,22 @@ buildDNAmodel <- function(inp, avoid) {
 	    base_frequencies <- rdirichlet(1, c(1,1,1,1) )
 	  }
 	  model[2:5] <- formatC(base_frequencies,digits=4)
-    	}
+  }
     	
-    	if (model_titv[modelid] == 1) {
-	    if (modelid > 8) {
-		#Transition/Transversion rate from a Gamma (2,1) truncated between 2 and 10
-		titv <- rtrunc(1,"gamma", 2, 1, a=2, b=10)
-		if (f_model == 1) {
-		    kappa <- titv*2
-		} else {
-		    kappa <- titv*(base_frequencies[1]+base_frequencies[3])*(base_frequencies[2]+base_frequencies[4])/(base_frequencies[1]*base_frequencies[3] + base_frequencies[2]*base_frequencies[4])
-		}
-	    } else {
+  if (model_titv[modelid] == 1) {
+	  if (modelid > 8) {
+		  #Transition/Transversion rate from a Gamma (2,1) truncated between 2 and 10
+		  titv <- rtrunc(1,"gamma", 2, 1, a=2, b=10)
+		  if (f_model == 1) {
+		      kappa <- titv*2
+		  } else {
+		      kappa <- titv*(base_frequencies[1]+base_frequencies[3])*(base_frequencies[2]+base_frequencies[4])/(base_frequencies[1]*base_frequencies[3] + base_frequencies[2]*base_frequencies[4])
+		  }
+	  } else {
 	  	titv <- 0.5
-		kappa <- 1
-	    }
-	    model[6] <- formatC(kappa,digits=4)
+    	kappa <- 1
+    }
+	  model[6] <- formatC(kappa,digits=4)
 	}
 		
 	if (model_ratematrix[modelid] == 1) {
@@ -57,20 +58,20 @@ buildDNAmodel <- function(inp, avoid) {
 	    validRates=0
 	    while (!validRates) {
 	    	switch(model_num_partitions[modelid],
-		    {rates <- rdirichlet(1, c(1))},
-		    {rates <- rdirichlet(1, c(1,6))},
-		    {
-		  	if (as.numeric(partition[5]) == 2) {
-		   	    ti2=20
-		  	} else {
+		      {rates <- rdirichlet(1, c(1))},
+		      {rates <- rdirichlet(1, c(1,6))},
+		      {
+		  	    if (as.numeric(partition[5]) == 2) {
+		   	      ti2=20
+		  	    } else {
 		    	    ti2=2
-		  	}
-			rates <- rdirichlet(1, c(6,16,ti2))
-		    },
-		    {rates <- rdirichlet(1, c(6,16,2,8))},
-		    {rates <- rdirichlet(1, c(6,16,2,8,4))},
-		    {rates <- rdirichlet(1, c(6,16,2,8,20,4))}
-	    	)
+		  	    }
+			      rates <- rdirichlet(1, c(6,16,ti2))
+		      },
+		      {rates <- rdirichlet(1, c(6,16,2,8))},
+		      {rates <- rdirichlet(1, c(6,16,2,8,4))},
+		      {rates <- rdirichlet(1, c(6,16,2,8,20,4))}
+	      )
 
 	    	rmatrix <- 0
 
@@ -81,30 +82,40 @@ buildDNAmodel <- function(inp, avoid) {
 		
 		#scaled with the last rate
 		rmatrix_scaled <- rmatrix/rmatrix[6]
-		validRates=(sum(rmatrix_scaled<0.1) == 0) && (sum(rmatrix_scaled>100) == 0)
+		validRates=(sum(rmatrix_scaled<0.01) == 0) && (sum(rmatrix_scaled>100) == 0)
 		if (validRates) {
 		    for (ind1 in 2:6) {
 		    	for (ind2 in 1:(ind1-1)) {
 			    if (rmatrix_scaled[ind1] != rmatrix_scaled[ind2]) {
 			        if (abs(rmatrix_scaled[ind1]-rmatrix_scaled[ind2]) < 1) {
-				    validRates=0
-				    break
-				}
+				       validRates=0
+				       break
+				     }
 			    }
-			}
+			    }
 		    }
-		}
-	    }
-   	    model[7:12] <- formatC(rmatrix_scaled,digits=4)
-    	}
-    
-       #Gamma shape from an Exponential (1,1) => mean=1
-	gamma_shape <- rtrunc(1,"exp", 1, 2, a=0.5,b=5)
-	model[13] <- formatC(gamma_shape,digits=4)
+		  }
+	  }
+   	  model[7:12] <- formatC(rmatrix_scaled,digits=4)
+  }
+
+  p_inv <- 0 
+  if (i_model) {
+	  p_inv <- rtrunc(1,"exp", 1, 2, a=0.2,b=0.8)
+  }
+
+  gamma_shape <- 100
+  if (g_model) {
+    #Gamma shape from an Exponential (1,1) => mean=1
+	  gamma_shape <- rtrunc(1,"exp", 1, 2, a=0.5,b=5)
+  }
+
+	model[13] <- formatC(p_inv,digits=4)
+	model[14] <- formatC(gamma_shape,digits=4)
 	       	
-    model[14] <- model_partition[modelid]
-    model[15] <- modelid
+  model[15] <- model_partition[modelid]
+  model[16] <- modelid
    
-    model
+  model
 
 }

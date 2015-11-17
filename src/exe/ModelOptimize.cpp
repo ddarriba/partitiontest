@@ -32,8 +32,6 @@
 #include <cstring>
 #include <cassert>
 
-#define ML_STARTING_TREE 0
-
 using namespace std;
 
 namespace partest
@@ -49,246 +47,240 @@ namespace partest
 
   }
 
-  string ModelOptimize::buildStartingTree ()
+  string ModelOptimize::buildStartingFixedTree (int do_ml)
   {
-    bool loadedTree = false;
-
-    if (ckpAvailable)
+    if (I_AM_ROOT)
     {
-      fstream ofs ((ckpPath + os_separator + ckpStartingTree).c_str (),
-                   ios::in);
-
-      if (ofs)
-      {
-        cout << timestamp () << " Loading topology from checkpoint..." << endl;
-        ofs.seekg (0);
-        size_t treeLen;
-        ofs.read ((char *) &(treeLen), sizeof(size_t));
-        starting_tree = (char *) malloc (treeLen + 1);
-        ofs.read ((char *) starting_tree, (long) treeLen);
-
-        pllNewickTree * nt;
-        nt = pllNewickParseString (starting_tree);
-        pllTreeInitTopologyNewick (tree, nt, PLL_FALSE);
-        pllNewickParseDestroy (&nt);
-        strcpy (tree->tree_string, starting_tree);
-        free (starting_tree);
-
-        size_t npergenetrees;
-        ofs.read ((char *) &(npergenetrees), sizeof(size_t));
-        if (npergenetrees)
-        {
-          pergene_starting_tree = (char **) malloc (
-              (size_t) number_of_genes * sizeof(char *));
-        }
-        for (size_t i = 0; i < npergenetrees; i++)
-        {
-          ofs.read ((char *) &(treeLen), sizeof(size_t));
-          pergene_starting_tree[i] = (char *) malloc (
-              treeLen * sizeof(char) + 1);
-          ofs.read ((char *) pergene_starting_tree[i], (long) treeLen);
-        }
-
-        ofs.close ();
-        loadedTree = true;
-      }
-    }
-
-    if (!loadedTree)
-    {
-      cout << timestamp () << " Computing fixed topology..." << endl;
-      pllAlignmentData * alignData = 0;
-      Utilities::duplicateAlignmentData (&alignData, phylip);
-
-      partitionList * compParts = pllPartitionsCommit (pllPartsQueue,
-                                                       alignData);
-
-      if (pergene_branch_lengths)
-      {
-        compParts->perGeneBranchLengths = PLL_TRUE;
-      }
-
-      pllAlignmentRemoveDups (alignData, compParts);
-
-      pllTreeInitTopologyForAlignment (tree, alignData);
-      pllLoadAlignment (tree, alignData, compParts);
-
-      pllComputeRandomizedStepwiseAdditionParsimonyTree (tree, compParts);
-
-#if(ML_STARTING_TREE)
-
-      tree->start = tree->nodep[1];
-
-      switch (data_type)
-      {
-        case DT_PROTEIC:
-        for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-            cur_part++)
-        {
-          pInfo * current_part = compParts->partitionData[cur_part];
-          current_part->dataType = PLL_AA_DATA;
-          current_part->states = 20;
-          current_part->protUseEmpiricalFreqs = PLL_FALSE;
-          current_part->optimizeBaseFrequencies = PLL_FALSE;
-          current_part->optimizeAlphaParameter = PLL_TRUE;
-          current_part->optimizeSubstitutionRates = PLL_FALSE;
-          current_part->protModels = PLL_AUTO;
-          current_part->alpha = 0.0;
-        }
-        cout << timestamp() << " Loading AUTO models" << endl;
-        break;
-        case DT_NUCLEIC:
-        for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
-            cur_part++)
-        {
-          pInfo * current_part = compParts->partitionData[cur_part];
-          current_part->dataType = PLL_DNA_DATA;
-          current_part->states = 4;
-          current_part->optimizeBaseFrequencies = PLL_TRUE;
-          current_part->optimizeAlphaParameter = PLL_TRUE;
-          current_part->optimizeSubstitutionRates = PLL_TRUE;
-        }
-        cout << timestamp() << " Loading GTR models" << endl;
-        break;
-        default:
-        assert(0);
-      }
-
-      pllInitModel(tree, compParts);
-
-      tree->doCutoff = ML_PARAM_CUTOFF;
-      if (epsilon == AUTO_EPSILON)
-      {
-        tree->likelihoodEpsilon = -0.001 * tree->likelihood;
-      }
-      else
-      {
-        tree->likelihoodEpsilon = epsilon;
-      }
-      tree->stepwidth = ML_PARAM_STEPWIDTH;
-      tree->max_rearrange = ML_PARAM_MAXREARRANGE;
-      tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
-      tree->initialSet = ML_PARAM_INITIALSET;
-
-      cout << timestamp() << " Building ML topology" << endl;
-      pllRaxmlSearchAlgorithm(tree, compParts, PLL_TRUE);
-
-#else
-      cout << timestamp () << " Updating branch lengths..." << endl;
-      pllInitModel (tree, compParts);
-      double lk = 0;
-      double optEpsilon = 10;
-      pllEvaluateLikelihood (tree, compParts, tree->start,
-      PLL_TRUE,
-                             PLL_FALSE);
-      if (!reoptimize_branch_lengths)
-      {
-        while (fabs (lk - tree->likelihood) > 5)
-        {
-          lk = tree->likelihood;
-          pllOptimizeBranchLengths (tree, compParts, 4);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptRatesGeneric (tree, compParts, 10 * optEpsilon,
-                              compParts->rateList);
-          pllOptBaseFreqs (tree, compParts, 10 * optEpsilon,
-                           compParts->freqList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptAlphasGeneric (tree, compParts, 10 * optEpsilon,
-                               compParts->alphaList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          lk = tree->likelihood;
-          pllOptRatesGeneric (tree, compParts, optEpsilon, compParts->rateList);
-          pllOptBaseFreqs (tree, compParts, optEpsilon, compParts->freqList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-          pllOptAlphasGeneric (tree, compParts, optEpsilon,
-                               compParts->alphaList);
-          pllEvaluateLikelihood (tree, compParts, tree->start,
-          PLL_TRUE,
-                                 PLL_FALSE);
-
-//					pllOptimizeModelParameters(tree, compParts, optEpsilon);
-        }
-      }
-
-#endif
-
-      pllTreeToNewick (tree->tree_string, tree, compParts, tree->start->back,
-      PLL_TRUE,
-                       PLL_TRUE,
-                       PLL_FALSE,
-                       PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
-                       PLL_FALSE);
-      tree->tree_string[tree->treeStringLength - 1] = '\0';
-      if (pergene_branch_lengths)
-      {
-        pergene_starting_tree = (char **) malloc (
-            (size_t) number_of_genes * sizeof(char *));
-        for (size_t i = 0; i < number_of_genes; i++)
-        {
-          /* create one set of branch lengths for each gene */
-          pergene_starting_tree[i] = (char *) malloc (
-              (size_t) tree->treeStringLength * sizeof(char) + 1);
-          pllTreeToNewick (pergene_starting_tree[i], tree, compParts,
-                           tree->start->back,
-                           PLL_TRUE,
-                           PLL_TRUE,
-                           PLL_FALSE,
-                           PLL_FALSE, PLL_FALSE, (int) i,
-                           PLL_FALSE,
-                           PLL_FALSE);
-        }
-      }
-      else
-      {
-        pergene_starting_tree = 0;
-      }
-
-      pllPartitionsDestroy (tree, &compParts);
-      pllAlignmentDataDestroy (alignData);
+      bool loadedTree = false;
 
       if (ckpAvailable)
       {
-        /* store tree */
         fstream ofs ((ckpPath + os_separator + ckpStartingTree).c_str (),
-                     ios::out);
-        ofs.seekg (0);
-        size_t treeLen = strlen (tree->tree_string) + 1;
-        ofs.write ((char *) &treeLen, sizeof(size_t));
-        ofs.write ((char *) tree->tree_string, (long) treeLen);
-        if (pergene_starting_tree)
+                     ios::in);
+
+        if (ofs)
         {
-          ofs.write ((char *) &number_of_genes, sizeof(size_t));
+          cout << timestamp () << " Loading topology from checkpoint..."
+              << endl;
+          ofs.seekg (0);
+          size_t treeLen;
+          ofs.read ((char *) &(treeLen), sizeof(size_t));
+          starting_tree = (char *) malloc (treeLen + 1);
+          ofs.read ((char *) starting_tree, (long) treeLen);
+
+          pllNewickTree * nt;
+          nt = pllNewickParseString (starting_tree);
+          pllTreeInitTopologyNewick (tree, nt, PLL_FALSE);
+          pllNewickParseDestroy (&nt);
+          strcpy (tree->tree_string, starting_tree);
+          free (starting_tree);
+
+          size_t npergenetrees;
+          ofs.read ((char *) &(npergenetrees), sizeof(size_t));
+          if (npergenetrees)
+          {
+            pergene_starting_tree = (char **) malloc (
+                (size_t) number_of_genes * sizeof(char *));
+          }
+          for (size_t i = 0; i < npergenetrees; i++)
+          {
+            ofs.read ((char *) &(treeLen), sizeof(size_t));
+            pergene_starting_tree[i] = (char *) malloc (
+                treeLen * sizeof(char) + 1);
+            ofs.read ((char *) pergene_starting_tree[i], (long) treeLen);
+          }
+
+          ofs.close ();
+          loadedTree = true;
+        }
+      }
+
+      if (!loadedTree)
+      {
+        cout << timestamp () << " Computing fixed topology..." << endl;
+        pllAlignmentData * alignData = 0;
+        Utilities::duplicateAlignmentData (&alignData, phylip);
+
+        partitionList * compParts = pllPartitionsCommit (pllPartsQueue,
+                                                         alignData);
+
+        if (pergene_branch_lengths)
+        {
+          compParts->perGeneBranchLengths = PLL_TRUE;
+        }
+
+        pllAlignmentRemoveDups (alignData, compParts);
+
+        pllTreeInitTopologyForAlignment (tree, alignData);
+        pllLoadAlignment (tree, alignData, compParts);
+
+        pllComputeRandomizedStepwiseAdditionParsimonyTree (tree, compParts);
+
+        if (do_ml)
+        {
+          tree->start = tree->nodep[1];
+
+          switch (data_type)
+            {
+            case DT_PROTEIC:
+              for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+                  cur_part++)
+              {
+                pInfo * current_part = compParts->partitionData[cur_part];
+                current_part->dataType = PLL_AA_DATA;
+                current_part->states = 20;
+                current_part->protUseEmpiricalFreqs = PLL_FALSE;
+                current_part->optimizeBaseFrequencies = PLL_FALSE;
+                current_part->optimizeAlphaParameter = PLL_TRUE;
+                current_part->optimizeSubstitutionRates = PLL_FALSE;
+                current_part->protModels = PLL_AUTO;
+                current_part->alpha = 0.0;
+              }
+              cout << timestamp () << " Loading AUTO models" << endl;
+              break;
+            case DT_NUCLEIC:
+              for (int cur_part = 0; cur_part < compParts->numberOfPartitions;
+                  cur_part++)
+              {
+                pInfo * current_part = compParts->partitionData[cur_part];
+                current_part->dataType = PLL_DNA_DATA;
+                current_part->states = 4;
+                current_part->optimizeBaseFrequencies = PLL_TRUE;
+                current_part->optimizeAlphaParameter = PLL_TRUE;
+                current_part->optimizeSubstitutionRates = PLL_TRUE;
+              }
+              cout << timestamp () << " Loading GTR models" << endl;
+              break;
+            default:
+              assert(0);
+            }
+
+          pllInitModel (tree, compParts);
+
+          tree->doCutoff = ML_PARAM_CUTOFF;
+          if (epsilon == AUTO_EPSILON)
+          {
+            tree->likelihoodEpsilon = -0.001 * tree->likelihood;
+          }
+          else
+          {
+            tree->likelihoodEpsilon = epsilon;
+          }
+          tree->stepwidth = ML_PARAM_STEPWIDTH;
+          tree->max_rearrange = ML_PARAM_MAXREARRANGE;
+          tree->initial = tree->bestTrav = ML_PARAM_BESTTRAV;
+          tree->initialSet = ML_PARAM_INITIALSET;
+
+          cout << timestamp ()
+              << " Building ML topology (this might take a while...)" << endl;
+          pllRaxmlSearchAlgorithm (tree, compParts, PLL_TRUE);
+        }
+        else
+        {
+          cout << timestamp () << " Updating branch lengths..." << endl;
+          pllInitModel (tree, compParts);
+          double lk = 0;
+          double optEpsilon = 1;
+          pllEvaluateLikelihood (tree, compParts, tree->start,
+          PLL_TRUE,
+                                 PLL_FALSE);
+          if (!reoptimize_branch_lengths)
+          {
+            while (fabs (lk - tree->likelihood) > optEpsilon)
+            {
+              lk = tree->likelihood;
+              pllOptRatesGeneric (tree, compParts, optEpsilon,
+                                  compParts->rateList);
+              pllOptBaseFreqs (tree, compParts, optEpsilon,
+                               compParts->freqList);
+              pllEvaluateLikelihood (tree, compParts, tree->start,
+              PLL_TRUE,
+                                     PLL_FALSE);
+              pllOptAlphasGeneric (tree, compParts, optEpsilon,
+                                   compParts->alphaList);
+              pllEvaluateLikelihood (tree, compParts, tree->start,
+              PLL_TRUE, PLL_FALSE);
+            }
+          }
+        }
+
+        pllTreeToNewick (tree->tree_string, tree, compParts, tree->start->back,
+        PLL_TRUE,
+                         PLL_TRUE,
+                         PLL_FALSE,
+                         PLL_FALSE, PLL_FALSE, PLL_SUMMARIZE_LH, PLL_FALSE,
+                         PLL_FALSE);
+        tree->tree_string[tree->treeStringLength - 1] = '\0';
+        if (pergene_branch_lengths)
+        {
+          pergene_starting_tree = (char **) malloc (
+              (size_t) number_of_genes * sizeof(char *));
           for (size_t i = 0; i < number_of_genes; i++)
           {
-            treeLen = strlen (pergene_starting_tree[i]) + 1;
-            ofs.write ((char *) &treeLen, sizeof(size_t));
-            ofs.write ((char *) pergene_starting_tree[i], (long) treeLen);
+            /* create one set of branch lengths for each gene */
+            pergene_starting_tree[i] = (char *) malloc (
+                (size_t) tree->treeStringLength * sizeof(char) + 1);
+            pllTreeToNewick (pergene_starting_tree[i], tree, compParts,
+                             tree->start->back,
+                             PLL_TRUE,
+                             PLL_TRUE,
+                             PLL_FALSE,
+                             PLL_FALSE, PLL_FALSE, (int) i,
+                             PLL_FALSE,
+                             PLL_FALSE);
           }
         }
         else
         {
-          size_t zero = 0;
-          ofs.write ((char *) &zero, sizeof(size_t));
+          pergene_starting_tree = 0;
         }
-        ofs.close ();
+
+        pllPartitionsDestroy (tree, &compParts);
+        pllAlignmentDataDestroy (alignData);
+
+        if (ckpAvailable)
+        {
+          /* store tree */
+          fstream ofs ((ckpPath + os_separator + ckpStartingTree).c_str (),
+                       ios::out);
+          ofs.seekg (0);
+          size_t treeLen = strlen (tree->tree_string) + 1;
+          ofs.write ((char *) &treeLen, sizeof(size_t));
+          ofs.write ((char *) tree->tree_string, (long) treeLen);
+          if (pergene_starting_tree)
+          {
+            ofs.write ((char *) &number_of_genes, sizeof(size_t));
+            for (size_t i = 0; i < number_of_genes; i++)
+            {
+              treeLen = strlen (pergene_starting_tree[i]) + 1;
+              ofs.write ((char *) &treeLen, sizeof(size_t));
+              ofs.write ((char *) pergene_starting_tree[i], (long) treeLen);
+            }
+          }
+          else
+          {
+            size_t zero = 0;
+            ofs.write ((char *) &zero, sizeof(size_t));
+          }
+          ofs.close ();
+        }
       }
-    }
 
-    starting_tree = tree->tree_string;
-
-    if (I_AM_ROOT)
-    {
+      starting_tree = tree->tree_string;
       cout << timestamp () << " Starting tree loaded " << starting_tree << endl;
     }
-    return string (tree->tree_string);
+#ifdef HAVE_MPI
+    unsigned long treelen;
+    if (I_AM_ROOT)
+      treelen = strlen (starting_tree);
+    MPI_Bcast (&treelen, 1, MPI_UNSIGNED_LONG, 0, MPI_COMM_WORLD);
+    if (!I_AM_ROOT)
+      starting_tree = (char *) malloc (sizeof(char) * treelen);
+    MPI_Bcast (starting_tree, treelen, MPI_CHAR, 0, MPI_COMM_WORLD);
+    starting_tree[treelen] = '\0';
+    MPI_Barrier (MPI_COMM_WORLD);
+#endif
+    return string (starting_tree);
   }
 
   string ModelOptimize::buildFinalTreeLinking (PartitioningScheme * finalScheme,
@@ -466,6 +458,7 @@ namespace partest
           fTree->start = fTree->nodep[1];
           break;
         case StartTopoFIXED:
+        case StartTopoFIXEDML:
           {
             pllNewickTree * nt;
             nt = pllNewickParseString (starting_tree);
@@ -682,8 +675,10 @@ namespace partest
 #endif
     cout << " element " << setw (Utilities::iDecLog (limit) + 1)
         << setfill ('0') << right << index + 1 << "/" << limit << setfill (' ');
+#ifdef DEBUG
     if (epsilon == AUTO_EPSILON)
       cout << " [" << element->getEpsilon () << "]";
+#endif
     cout << endl;
 
     for (size_t modelIndex = 0; modelIndex < element->getNumberOfModels ();
@@ -723,7 +718,7 @@ namespace partest
         cur_epsilon = element->getEpsilon ();
       }
       int smoothIterations = 32;
-      int iters=3;
+      int iters = 5;
       do
       {
         lk = treeManager->getLikelihood ();

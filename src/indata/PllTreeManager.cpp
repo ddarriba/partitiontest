@@ -144,6 +144,7 @@ namespace partest
         _tree->start = _tree->nodep[1];
         break;
       case StartTopoFIXED:
+      case StartTopoFIXEDML:
         {
           pllNewickTree * nt;
           if (pergene_branch_lengths)

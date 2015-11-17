@@ -31,11 +31,6 @@
 #include <string.h>
 #include <sstream>
 #include <assert.h>
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#else
-#define PACKAGE "partest-tool"
-#endif
 
 #define MAX_OPT_LENGTH 40
 #define SHORT_OPT_LENGTH 6
@@ -50,7 +45,10 @@ namespace partest
   {
     output << endl;
     output << "--------------------------------------------" << endl;
-    output << "|               PARTITIONTEST              |" << endl;
+    output << "|           PARTITIONTEST v" << PACKAGE_VERSION;
+    output << "           |" << endl;
+    output << "|                " << PROGRAM_DATE;
+    output << "                |" << endl;
     output << "|          (c) Diego Darriba 2014          |" << endl;
     output << "|                                          |" << endl;
     output << "| Model selection for genomic alignments   |" << endl;
@@ -78,7 +76,10 @@ namespace partest
     switch (starting_topology)
       {
       case StartTopoFIXED:
-        output << "Fixed" << endl;
+        output << "Fixed Maximum-Parsimony" << endl;
+        break;
+      case StartTopoFIXEDML:
+        output << "Fixed Maximum-Likelihood" << endl;
         break;
       case StartTopoML:
         output << "Maximum-Likelihood" << endl;
@@ -340,171 +341,208 @@ namespace partest
     out
         << "Mandatory arguments for long options are also mandatory for short options."
         << endl;
+
     out << endl;
+    out << " Input options:" << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -c, --config-file CONFIG_FILE"
-        << "Sets the input configuration file for gene partition" << endl;
+        << "sets the input configuration file for gene partition" << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "Configuration file defines the gene bounds in the alignment"
+        << "configuration file defines the gene bounds in the alignment"
         << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "Use argument --help-config for info about the format:" << endl;
+        << "use argument --help-config for info about the format:" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--config-help" << "Shows help about configuration files" << endl;
+        << "--config-help" << "shows help about configuration files" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--config-template" << "Generates a configuration file template"
+        << "--config-template" << "generates a configuration file template"
         << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -d, --data-type DATA_TYPE"
-        << "Sets the type of the input data" << endl;
+        << "sets the type of the input data" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--data-type nt" << "Nucleotide sequences (DEFAULT)" << endl;
+        << "--data-type nt" << "nucleotide sequences" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--data-type aa" << "Amino-acid sequences" << endl;
-    out << endl;
-
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--disable-ckp" << "Disables the checkpointing" << endl;
-    out << endl;
-
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--disable-output" << "Disables any file-based output." << endl;
-    out << setw (MAX_OPT_LENGTH) << " "
-        << "This automatically disables also checkpointing" << endl;
-    out << endl;
-
-    out << setw (MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
-        << "Includes models with empirical frequencies (+F)" << endl;
-    out << endl;
-
-    out << setw (MAX_OPT_LENGTH) << left << "  -g, --pergene-bl"
-        << "Estimate per-gene branch lengths" << endl;
-    out << endl;
-
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--force-override" << "Existent output files will be overwritten."
-        << endl;
-    out << endl;
-
-    out << setw (MAX_OPT_LENGTH) << left << "  -h, --help"
-        << "Displays this help message" << endl;
+        << "--data-type aa" << "amino-acid sequences" << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: nt" << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -i, --input-file INPUT_FILE"
-        << "Sets the input alignment file (REQUIRED)" << endl;
+        << "sets the input alignment file (REQUIRED)" << endl;
     out << endl;
 
-    out << setw (MAX_OPT_LENGTH) << left << "  -k, --keep-branches"
-        << "Keep branch lengths from the initial topology." << endl;
+    out << setw (MAX_OPT_LENGTH) << left << "  -u, --user-tree TREE_FILE"
+        << "sets a user-defined topology (this option ignores all" << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "This argument has no effect for initial topology different than fixed."
+        << "starting topologies different from \"user-defined\")" << endl;
+    out << setw (MAX_OPT_LENGTH) << " " << "the tree must be in Newick format"
         << endl;
+    out << endl;
 
-    out << setw (SHORT_OPT_LENGTH) << "  -N" << setw (COMPL_OPT_LENGTH)
-        << "--non-stop"
-        << "Algorithms do not stop if no improvement found at one step" << endl;
+
+
+    out << endl;
+    out << " Model optimization options:" << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left << "  -e, --epsilon"
+        << "sets model optimization epsilon (float / \"auto\")" << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: auto" << endl;
+    out << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left << "  -F, --empirical-frequencies"
+        << "includes models with empirical frequencies (+F)" << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -O, --optimize OPTIMIZE_MODE"
-        << "Sets the model optimization for the best-fit partition" << endl;
+        << "sets the model optimization for the best-fit partition" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--optimize findModel"
-        << "Find the best-fit model for each partition" << endl;
+        << "find the best-fit model for each partition" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--optimize gtr"
-        << "Use only GTR model for each partition (nucleic data)" << endl;
+        << "use only GTR model for each partition (nucleic data)" << endl;
     out << setw (MAX_OPT_LENGTH) << " " << "or AUTO for protein data." << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: findModel" << endl;
     out << endl;
 
-    out << setw (MAX_OPT_LENGTH) << left
-        << "  -p, --num-procs NUMBER_OF_THREADS"
-        << "Number of threads for model evaluation (DEFAULT: 1)" << endl;
+    out << setw (MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
+        << "sets the starting topology for optimization" << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology mp"
+        << "creates a maximum parsimony topology for each model optimization"
+        << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology ml"
+        << "creates a maximum likelihood topology for every model optimization"
+        << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology fixed"
+        << "uses a fixed MP topology for every model optimization" << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology fixedml"
+        << "uses a fixed ML topology for every model optimization" << endl;
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--topology user"
+        << "uses a user-defined topology. Requires the \"-u\" argument" << endl;
+    out << setw (MAX_OPT_LENGTH) << " "
+        << "however, if \"-u\" argument is used this option is automatically set"
+        << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: mp" << endl;
     out << endl;
 
-    out << setw (MAX_OPT_LENGTH) << left << "  -r, --replicates N"
-        << "Sets the number of replicates on Hierarchical Clustering" << endl;
+    out << endl;
+    out << " Partitioning scheme search options:" << endl;
+
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--disable-ckp" << "disables the checkpointing" << endl;
+    out << endl;
+
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--disable-output" << "disables any file-based output." << endl;
+    out << setw (MAX_OPT_LENGTH) << " "
+        << "this automatically disables also checkpointing" << endl;
+    out << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left << "  -g, --pergene-bl"
+        << "estimate per-gene branch lengths for starting topology" << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left
         << "  -s, --selection-criterion CRITERION"
-        << "Sets the criterion for model selection" << endl;
+        << "sets the criterion for model selection" << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "Sample size for bic, aicc and dt criteria is the alignment length"
+        << "sample size for bic, aicc and dt criteria is the alignment length"
         << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--selection-criterion bic"
-        << "Bayesian Information Criterion (DEFAULT)" << endl;
+        << "Bayesian information criterion (DEFAULT)" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--selection-criterion aic" << "Akaike Information Criterion"
+        << "--selection-criterion aic" << "Akaike information criterion"
         << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
         << "--selection-criterion aicc"
-        << "Corrected Akaike Information Criterion" << endl;
+        << "corrected Akaike information criterion" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--selection-criterion dt" << "Decision Theory" << endl;
+        << "--selection-criterion dt" << "decision theory" << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -S, --search SEARCH_ALGORITHM"
-        << "Sets the search algorithm" << endl;
+        << "sets the search algorithm" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search k1" << "Evaluate only partitioning scheme with K=1"
+        << "--search k1" << "evaluate only partitioning scheme with K=1"
         << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search kn" << "Evaluate only partitioning scheme with K=N"
+        << "--search kn" << "evaluate only partitioning scheme with K=N"
         << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search greedy" << "Greedy search algorithm" << endl;
+        << "--search greedy" << "greedy search algorithm" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search greedyext" << "Extended greedy search algorithm" << endl;
+        << "--search greedyext" << "extended greedy search algorithm" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search hcluster" << "Hierarchical clustering algorithm" << endl;
+        << "--search hcluster" << "hierarchical clustering algorithm" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search random" << "Multiple step random sampling" << endl;
+        << "--search random" << "multiple step random sampling" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search auto" << "Auto-select algorithm (DEFAULT)" << endl;
+        << "--search auto" << "auto-select algorithm" << endl;
     out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--search exhaustive" << "Exhaustive search" << endl;
+        << "--search exhaustive" << "exhaustive search" << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: auto" << endl;
     out << endl;
 
-    out << setw (MAX_OPT_LENGTH) << left << "  -t, --topology STARTING_TOPOLOGY"
-        << "Sets the starting topology for optimization" << endl;
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--topology mp"
-        << "(DEFAULT) Creates a maximum parsimony topology for each model optimization"
-        << endl;
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--topology ml"
-        << "Creates a maximum likelihood topology for every model optimization"
-        << endl;
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--topology fixed"
-        << "Uses a fixed ML topology for every model optimization" << endl;
-    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
-        << "--topology user"
-        << "Uses a user-defined topology. Requires the \"-u\" argument" << endl;
+    out << setw (MAX_OPT_LENGTH) << left << "  -k, --keep-branches"
+        << "keep branch lengths from the initial topology." << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "However, if \"-u\" argument is used this option is automatically set"
+        << "this argument has no effect for initial topology different than fixed."
         << endl;
     out << endl;
+
+    out << setw (SHORT_OPT_LENGTH) << "  -N" << setw (COMPL_OPT_LENGTH)
+        << "--non-stop"
+        << "algorithms do not stop if no improvement found at one step" << endl;
+    out << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left
+        << "  -p, --num-procs NUMBER_OF_THREADS"
+        << "number of threads for model evaluation" << endl;
+    out << endl;
+    out << setw (MAX_OPT_LENGTH) << " " << "default: 1" << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left << "  -r, --replicates N"
+        << "sets the number of replicates on hierarchical clustering" << endl;
+    out << endl;
+    out << setw (MAX_OPT_LENGTH) << " "<< "default: 1" << endl;
 
     out << setw (SHORT_OPT_LENGTH) << "  -T" << setw (COMPL_OPT_LENGTH)
-        << "--get-final-tree" << "Conduct final ML tree optimization" << endl;
+        << "--get-final-tree" << "conduct final ML tree optimization" << endl;
     out << endl;
 
-    out << setw (MAX_OPT_LENGTH) << left << "  -u, --user-tree TREE_FILE"
-        << "Sets a user-defined topology. This option ignores all" << endl;
+    out << setw (SHORT_OPT_LENGTH) << "  -w" << setw (COMPL_OPT_LENGTH)
+        << "--weights W_R,W_F,W_A" << "sets the distances matrix weights (float) for hierarchical clustering" << endl;
     out << setw (MAX_OPT_LENGTH) << " "
-        << "starting topologies different from \"user-defined\"" << endl;
-    out << setw (MAX_OPT_LENGTH) << " " << "The tree must be in Newick format"
+        << "for W_R = subst.rates, W_F = base frequencies, W_A = Gamma shape (alpha)"
         << endl;
+    out << setw (MAX_OPT_LENGTH) << " " << "default: 1.0,1.0,1.0" << endl;
+    out << endl;
+
+
+    out << endl;
+    out << " Other options:" << endl;
+
+    out << setw (SHORT_OPT_LENGTH) << " " << setw (COMPL_OPT_LENGTH)
+        << "--force-override" << "existent output files will be overwritten."
+        << endl;
+    out << endl;
+
+    out << setw (MAX_OPT_LENGTH) << left << "  -h, --help"
+        << "displays this help message" << endl;
     out << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -v, --verbose LEVEL"
-        << "Sets the verbosity level (0=low, 1=medium, 2=high)" << endl;
+        << "sets the verbosity level (0=low, 1=medium, 2=high)" << endl;
 
     out << setw (MAX_OPT_LENGTH) << left << "  -V, --version"
-        << "Output version information and exit" << endl;
+        << "output version information and exit" << endl;
     out << endl;
 
   }
